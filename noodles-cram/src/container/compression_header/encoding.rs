@@ -5,31 +5,11 @@ pub use self::kind::Kind;
 
 use std::io;
 
+use self::codec::{Decode, Encode};
 use crate::io::{
     reader::container::slice::records::ExternalDataReaders,
     writer::container::slice::records::ExternalDataWriters, BitReader, BitWriter,
 };
-
-pub trait Decode<'de> {
-    type Value;
-
-    fn decode(
-        &self,
-        core_data_reader: &mut BitReader<'de>,
-        external_data_readers: &mut ExternalDataReaders<'de>,
-    ) -> io::Result<Self::Value>;
-}
-
-pub trait Encode<'en> {
-    type Value;
-
-    fn encode(
-        &self,
-        core_data_writer: &mut BitWriter,
-        external_data_writers: &mut ExternalDataWriters,
-        value: Self::Value,
-    ) -> io::Result<()>;
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Encoding<C>(C);
