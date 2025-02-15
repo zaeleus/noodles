@@ -1,6 +1,9 @@
 use std::io;
 
-use super::{read_byte_array_encoding, read_byte_encoding, read_integer_encoding};
+use super::{
+    encoding::consume_any_encoding, read_byte_array_encoding, read_byte_encoding,
+    read_integer_encoding,
+};
 use crate::{
     container::compression_header::{data_series_encodings::DataSeries, DataSeriesEncodings},
     io::reader::{collections::read_map, split_first_chunk},
@@ -86,7 +89,7 @@ fn read_data_series_encodings_inner(
             DataSeries::Bases => map.bases = read_byte_encoding(src).map(Some)?,
             DataSeries::QualityScores => map.quality_scores = read_byte_encoding(src).map(Some)?,
             DataSeries::ReservedTc | DataSeries::ReservedTn => {
-                read_integer_encoding(src)?;
+                consume_any_encoding(src)?;
             }
         }
     }

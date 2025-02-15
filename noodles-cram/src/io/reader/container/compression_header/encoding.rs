@@ -96,6 +96,12 @@ pub fn read_byte_array_encoding(src: &mut &[u8]) -> io::Result<Encoding<ByteArra
     }
 }
 
+pub fn consume_any_encoding(src: &mut &[u8]) -> io::Result<()> {
+    read_kind(src)?;
+    read_array(src)?;
+    Ok(())
+}
+
 fn read_kind(src: &mut &[u8]) -> io::Result<Kind> {
     match read_itf8(src)? {
         0 => Ok(Kind::Null),
