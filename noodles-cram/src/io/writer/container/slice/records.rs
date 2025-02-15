@@ -676,9 +676,7 @@ where
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
-        for &base in &record.sequence {
-            self.write_base(base)?;
-        }
+        self.write_sequence(&record.sequence)?;
 
         if record.cram_flags.are_quality_scores_stored_as_array() {
             for &score in &record.quality_scores {
@@ -687,6 +685,15 @@ where
         }
 
         Ok(())
+    }
+
+    fn write_sequence(&mut self, sequence: &[u8]) -> io::Result<()> {
+        self.compression_header
+            .data_series_encodings()
+            .bases()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::Bases))?
+            .get()
+            .encode_extend(self.core_data_writer, self.external_data_writers, sequence)
     }
 }
 

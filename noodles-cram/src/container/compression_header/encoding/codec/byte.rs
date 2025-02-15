@@ -53,6 +53,33 @@ impl Byte {
             Self::Huffman { .. } => todo!(),
         }
     }
+
+    pub fn encode_extend<W, X>(
+        &self,
+        _core_data_writer: &mut BitWriter<W>,
+        external_data_writers: &mut HashMap<block::ContentId, X>,
+        src: &[u8],
+    ) -> io::Result<()>
+    where
+        W: io::Write,
+        X: io::Write,
+    {
+        match self {
+            Self::External { block_content_id } => {
+                let dst = external_data_writers
+                    .get_mut(block_content_id)
+                    .ok_or_else(|| {
+                        io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            format!("missing external block: {block_content_id}"),
+                        )
+                    })?;
+
+                dst.write_all(src)
+            }
+            Self::Huffman { .. } => todo!(),
+        }
+    }
 }
 
 impl<'de> Decode<'de> for Byte {
