@@ -425,9 +425,7 @@ where
         self.write_mapping_quality(record.mapping_quality)?;
 
         if record.cram_flags.are_quality_scores_stored_as_array() {
-            for &score in &record.quality_scores {
-                self.write_quality_score(score)?;
-            }
+            self.write_quality_scores(&record.quality_scores)?;
         }
 
         Ok(())
@@ -679,9 +677,7 @@ where
         self.write_sequence(&record.sequence)?;
 
         if record.cram_flags.are_quality_scores_stored_as_array() {
-            for &score in &record.quality_scores {
-                self.write_quality_score(score)?;
-            }
+            self.write_quality_scores(&record.quality_scores)?;
         }
 
         Ok(())
@@ -694,6 +690,19 @@ where
             .ok_or_else(|| missing_data_series_encoding_error(DataSeries::Bases))?
             .get()
             .encode_extend(self.core_data_writer, self.external_data_writers, sequence)
+    }
+
+    fn write_quality_scores(&mut self, quality_scores: &[u8]) -> io::Result<()> {
+        self.compression_header
+            .data_series_encodings()
+            .quality_scores()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::QualityScores))?
+            .get()
+            .encode_extend(
+                self.core_data_writer,
+                self.external_data_writers,
+                quality_scores,
+            )
     }
 }
 
