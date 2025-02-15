@@ -49,7 +49,7 @@ where
     W: Write,
 {
     match encoding.get() {
-        ByteArray::ByteArrayLen {
+        ByteArray::ByteArrayLength {
             len_encoding,
             value_encoding,
         } => write_byte_array_len_codec(writer, len_encoding, value_encoding),

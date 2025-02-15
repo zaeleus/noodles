@@ -19,7 +19,7 @@ use crate::{
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ByteArray {
-    ByteArrayLen {
+    ByteArrayLength {
         len_encoding: Encoding<Integer>,
         value_encoding: Encoding<Byte>,
     },
@@ -38,7 +38,7 @@ impl<'de> Decode<'de> for ByteArray {
         external_data_readers: &mut ExternalDataReaders<'de>,
     ) -> std::io::Result<Self::Value> {
         match self {
-            Self::ByteArrayLen {
+            Self::ByteArrayLength {
                 len_encoding,
                 value_encoding,
             } => {
@@ -92,7 +92,7 @@ impl<'en> Encode<'en> for ByteArray {
         value: Self::Value,
     ) -> io::Result<()> {
         match self {
-            Self::ByteArrayLen {
+            Self::ByteArrayLength {
                 len_encoding,
                 value_encoding,
             } => {
@@ -157,7 +157,7 @@ mod tests {
         let value_encoding = Encoding::new(Byte::External { block_content_id });
         t(
             &[0x04, 0x6e, 0x64, 0x6c, 0x73],
-            &Encoding::new(ByteArray::ByteArrayLen {
+            &Encoding::new(ByteArray::ByteArrayLength {
                 len_encoding,
                 value_encoding,
             }),
@@ -213,7 +213,7 @@ mod tests {
         let len_encoding = Encoding::new(Integer::External { block_content_id });
         let value_encoding = Encoding::new(Byte::External { block_content_id });
         t(
-            &Encoding::new(ByteArray::ByteArrayLen {
+            &Encoding::new(ByteArray::ByteArrayLength {
                 len_encoding,
                 value_encoding,
             }),

@@ -76,7 +76,7 @@ pub fn read_byte_array_encoding(src: &mut &[u8]) -> io::Result<Encoding<ByteArra
         Kind::ByteArrayLen => {
             let (len_encoding, value_encoding) = read_byte_array_len_codec(src)?;
 
-            Ok(Encoding::new(ByteArray::ByteArrayLen {
+            Ok(Encoding::new(ByteArray::ByteArrayLength {
                 len_encoding,
                 value_encoding,
             }))

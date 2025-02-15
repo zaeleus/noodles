@@ -214,7 +214,7 @@ impl DataSeriesEncodings {
                 stop_byte: 0x00,
                 block_content_id: block::ContentId::from(DataSeries::StretchesOfBases),
             })),
-            stretches_of_quality_scores: Some(Encoding::new(ByteArray::ByteArrayLen {
+            stretches_of_quality_scores: Some(Encoding::new(ByteArray::ByteArrayLength {
                 len_encoding: Encoding::new(Integer::External {
                     block_content_id: block::ContentId::from(DataSeries::StretchesOfQualityScores),
                 }),

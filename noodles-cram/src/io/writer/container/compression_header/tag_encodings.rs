@@ -62,7 +62,7 @@ pub(super) fn build_tag_encodings(records: &[Record]) -> TagEncodings {
         .map(|block_content_id| {
             (
                 block_content_id,
-                Encoding::new(ByteArray::ByteArrayLen {
+                Encoding::new(ByteArray::ByteArrayLength {
                     len_encoding: Encoding::new(Integer::External { block_content_id }),
                     value_encoding: Encoding::new(Byte::External { block_content_id }),
                 }),
