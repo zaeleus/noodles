@@ -3,7 +3,7 @@ mod kind;
 
 pub use self::kind::Kind;
 
-use std::io::{self, Write};
+use std::io;
 
 use crate::io::{
     reader::container::slice::records::ExternalDataReaders,
@@ -23,14 +23,12 @@ pub trait Decode<'de> {
 pub trait Encode<'en> {
     type Value;
 
-    fn encode<X>(
+    fn encode(
         &self,
         core_data_writer: &mut BitWriter,
-        external_data_writers: &mut ExternalDataWriters<X>,
+        external_data_writers: &mut ExternalDataWriters,
         value: Self::Value,
-    ) -> io::Result<()>
-    where
-        X: Write;
+    ) -> io::Result<()>;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -63,15 +61,12 @@ impl<'en, C> Encoding<C>
 where
     C: Encode<'en>,
 {
-    pub fn encode<X>(
+    pub fn encode(
         &self,
         core_data_writer: &mut BitWriter,
-        external_data_writers: &mut ExternalDataWriters<X>,
+        external_data_writers: &mut ExternalDataWriters,
         value: C::Value,
-    ) -> io::Result<()>
-    where
-        X: Write,
-    {
+    ) -> io::Result<()> {
         self.get()
             .encode(core_data_writer, external_data_writers, value)
     }

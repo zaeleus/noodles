@@ -1,7 +1,5 @@
 use std::io;
 
-use byteorder::WriteBytesExt;
-
 use crate::{
     container::{
         block,
@@ -55,15 +53,12 @@ impl Byte {
         }
     }
 
-    pub fn encode_extend<X>(
+    pub fn encode_extend(
         &self,
         _core_data_writer: &mut BitWriter,
-        external_data_writers: &mut ExternalDataWriters<X>,
+        external_data_writers: &mut ExternalDataWriters,
         src: &[u8],
-    ) -> io::Result<()>
-    where
-        X: io::Write,
-    {
+    ) -> io::Result<()> {
         match self {
             Self::External { block_content_id } => {
                 let dst = external_data_writers
@@ -75,7 +70,9 @@ impl Byte {
                         )
                     })?;
 
-                dst.write_all(src)
+                dst.extend(src);
+
+                Ok(())
             }
             Self::Huffman { .. } => todo!(),
         }
@@ -124,18 +121,15 @@ impl<'de> Decode<'de> for Byte {
 impl Encode<'_> for Byte {
     type Value = u8;
 
-    fn encode<X>(
+    fn encode(
         &self,
         _core_data_writer: &mut BitWriter,
-        external_data_writers: &mut ExternalDataWriters<X>,
+        external_data_writers: &mut ExternalDataWriters,
         value: Self::Value,
-    ) -> io::Result<()>
-    where
-        X: io::Write,
-    {
+    ) -> io::Result<()> {
         match self {
             Self::External { block_content_id } => {
-                let writer = external_data_writers
+                let dst = external_data_writers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
                         io::Error::new(
@@ -144,7 +138,9 @@ impl Encode<'_> for Byte {
                         )
                     })?;
 
-                writer.write_u8(value)
+                dst.push(value);
+
+                Ok(())
             }
             _ => todo!("encode_byte: {:?}", self),
         }

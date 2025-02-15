@@ -1,6 +1,4 @@
-use std::io::{self, Write};
-
-use byteorder::WriteBytesExt;
+use std::io;
 
 use crate::{
     container::{
@@ -87,15 +85,12 @@ impl<'de> Decode<'de> for ByteArray {
 impl<'en> Encode<'en> for ByteArray {
     type Value = &'en [u8];
 
-    fn encode<X>(
+    fn encode(
         &self,
         core_data_writer: &mut BitWriter,
-        external_data_writers: &mut ExternalDataWriters<X>,
+        external_data_writers: &mut ExternalDataWriters,
         value: Self::Value,
-    ) -> io::Result<()>
-    where
-        X: Write,
-    {
+    ) -> io::Result<()> {
         match self {
             Self::ByteArrayLen {
                 len_encoding,
@@ -115,7 +110,7 @@ impl<'en> Encode<'en> for ByteArray {
                 stop_byte,
                 block_content_id,
             } => {
-                let writer = external_data_writers
+                let dst = external_data_writers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
                         io::Error::new(
@@ -124,8 +119,8 @@ impl<'en> Encode<'en> for ByteArray {
                         )
                     })?;
 
-                writer.write_all(value)?;
-                writer.write_u8(*stop_byte)?;
+                dst.extend(value);
+                dst.push(*stop_byte);
 
                 Ok(())
             }

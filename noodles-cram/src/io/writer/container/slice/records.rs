@@ -1,8 +1,4 @@
-use std::{
-    collections::HashMap,
-    error, fmt,
-    io::{self, Write},
-};
+use std::{collections::HashMap, error, fmt, io};
 
 use bstr::BStr;
 use noodles_core::Position;
@@ -21,7 +17,7 @@ use crate::{
     record::{Flags, MateFlags},
 };
 
-pub type ExternalDataWriters<W> = HashMap<block::ContentId, W>;
+pub type ExternalDataWriters = HashMap<block::ContentId, Vec<u8>>;
 
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -43,22 +39,19 @@ impl fmt::Display for WriteRecordError {
     }
 }
 
-pub struct Writer<'a, X> {
+pub struct Writer<'a> {
     compression_header: &'a CompressionHeader,
     core_data_writer: &'a mut BitWriter,
-    external_data_writers: &'a mut ExternalDataWriters<X>,
+    external_data_writers: &'a mut ExternalDataWriters,
     reference_sequence_context: ReferenceSequenceContext,
     prev_alignment_start: Option<Position>,
 }
 
-impl<'a, X> Writer<'a, X>
-where
-    X: Write,
-{
+impl<'a> Writer<'a> {
     pub fn new(
         compression_header: &'a CompressionHeader,
         core_data_writer: &'a mut BitWriter,
-        external_data_writers: &'a mut ExternalDataWriters<X>,
+        external_data_writers: &'a mut ExternalDataWriters,
         reference_sequence_context: ReferenceSequenceContext,
     ) -> Self {
         let initial_alignment_start = match reference_sequence_context {

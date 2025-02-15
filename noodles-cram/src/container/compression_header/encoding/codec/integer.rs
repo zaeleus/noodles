@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io;
 
 use crate::{
     container::{
@@ -95,18 +95,15 @@ impl<'de> Decode<'de> for Integer {
 impl Encode<'_> for Integer {
     type Value = i32;
 
-    fn encode<X>(
+    fn encode(
         &self,
         _core_data_writer: &mut BitWriter,
-        external_data_writers: &mut ExternalDataWriters<X>,
+        external_data_writers: &mut ExternalDataWriters,
         value: Self::Value,
-    ) -> io::Result<()>
-    where
-        X: Write,
-    {
+    ) -> io::Result<()> {
         match self {
             Self::External { block_content_id } => {
-                let writer = external_data_writers
+                let dst = external_data_writers
                     .get_mut(block_content_id)
                     .ok_or_else(|| {
                         io::Error::new(
@@ -115,7 +112,7 @@ impl Encode<'_> for Integer {
                         )
                     })?;
 
-                write_itf8(writer, value)
+                write_itf8(dst, value)
             }
             _ => todo!("encode_itf8: {:?}", self),
         }
