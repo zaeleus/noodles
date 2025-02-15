@@ -41,22 +41,21 @@ impl fmt::Display for WriteRecordError {
     }
 }
 
-pub struct Writer<'a, W, X> {
+pub struct Writer<'a, X> {
     compression_header: &'a CompressionHeader,
-    core_data_writer: &'a mut BitWriter<W>,
+    core_data_writer: &'a mut BitWriter,
     external_data_writers: &'a mut HashMap<block::ContentId, X>,
     reference_sequence_context: ReferenceSequenceContext,
     prev_alignment_start: Option<Position>,
 }
 
-impl<'a, W, X> Writer<'a, W, X>
+impl<'a, X> Writer<'a, X>
 where
-    W: Write,
     X: Write,
 {
     pub fn new(
         compression_header: &'a CompressionHeader,
-        core_data_writer: &'a mut BitWriter<W>,
+        core_data_writer: &'a mut BitWriter,
         external_data_writers: &'a mut HashMap<block::ContentId, X>,
         reference_sequence_context: ReferenceSequenceContext,
     ) -> Self {

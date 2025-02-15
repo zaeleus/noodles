@@ -157,7 +157,7 @@ fn write_records(
 ) -> io::Result<(Vec<u8>, Vec<(block::ContentId, Vec<u8>)>)> {
     use crate::container::compression_header::data_series_encodings::data_series::STANDARD_DATA_SERIES;
 
-    let mut core_data_writer = BitWriter::new(Vec::new());
+    let mut core_data_writer = BitWriter::default();
     let mut external_data_writers = HashMap::new();
 
     for data_series in STANDARD_DATA_SERIES {

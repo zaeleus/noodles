@@ -98,14 +98,13 @@ impl<'de> Decode<'de> for Integer {
 impl Encode<'_> for Integer {
     type Value = i32;
 
-    fn encode<W, X>(
+    fn encode<X>(
         &self,
-        _core_data_writer: &mut BitWriter<W>,
+        _core_data_writer: &mut BitWriter,
         external_data_writers: &mut HashMap<block::ContentId, X>,
         value: Self::Value,
     ) -> io::Result<()>
     where
-        W: Write,
         X: Write,
     {
         match self {
@@ -185,7 +184,7 @@ mod tests {
             expected_core_data: &[u8],
             expected_external_data: &[u8],
         ) -> io::Result<()> {
-            let mut core_data_writer = BitWriter::new(Vec::new());
+            let mut core_data_writer = BitWriter::default();
 
             let block_content_id = 1;
             let mut external_data_writers = [(block_content_id, Vec::new())].into_iter().collect();

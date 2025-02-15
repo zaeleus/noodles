@@ -54,14 +54,13 @@ impl Byte {
         }
     }
 
-    pub fn encode_extend<W, X>(
+    pub fn encode_extend<X>(
         &self,
-        _core_data_writer: &mut BitWriter<W>,
+        _core_data_writer: &mut BitWriter,
         external_data_writers: &mut HashMap<block::ContentId, X>,
         src: &[u8],
     ) -> io::Result<()>
     where
-        W: io::Write,
         X: io::Write,
     {
         match self {
@@ -124,14 +123,13 @@ impl<'de> Decode<'de> for Byte {
 impl Encode<'_> for Byte {
     type Value = u8;
 
-    fn encode<W, X>(
+    fn encode<X>(
         &self,
-        _core_data_writer: &mut BitWriter<W>,
+        _core_data_writer: &mut BitWriter,
         external_data_writers: &mut HashMap<block::ContentId, X>,
         value: Self::Value,
     ) -> io::Result<()>
     where
-        W: io::Write,
         X: io::Write,
     {
         match self {
@@ -218,7 +216,7 @@ mod tests {
             expected_core_data: &[u8],
             expected_external_data: &[u8],
         ) -> io::Result<()> {
-            let mut core_data_writer = BitWriter::new(Vec::new());
+            let mut core_data_writer = BitWriter::default();
 
             let block_content_id = 1;
             let mut external_data_writers = [(block_content_id, Vec::new())].into_iter().collect();
