@@ -8,6 +8,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 pub use self::header::write_header;
+use self::records::ExternalDataWriters;
 use crate::{
     calculate_normalized_sequence_digest,
     codecs::Encoder,
@@ -158,7 +159,7 @@ fn write_records(
     use crate::container::compression_header::data_series_encodings::data_series::STANDARD_DATA_SERIES;
 
     let mut core_data_writer = BitWriter::default();
-    let mut external_data_writers = HashMap::new();
+    let mut external_data_writers = ExternalDataWriters::default();
 
     for data_series in STANDARD_DATA_SERIES {
         let block_content_id = block::ContentId::from(*data_series);

@@ -21,6 +21,8 @@ use crate::{
     record::{Flags, MateFlags},
 };
 
+pub type ExternalDataWriters<W> = HashMap<block::ContentId, W>;
+
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum WriteRecordError {
@@ -44,7 +46,7 @@ impl fmt::Display for WriteRecordError {
 pub struct Writer<'a, X> {
     compression_header: &'a CompressionHeader,
     core_data_writer: &'a mut BitWriter,
-    external_data_writers: &'a mut HashMap<block::ContentId, X>,
+    external_data_writers: &'a mut ExternalDataWriters<X>,
     reference_sequence_context: ReferenceSequenceContext,
     prev_alignment_start: Option<Position>,
 }
@@ -56,7 +58,7 @@ where
     pub fn new(
         compression_header: &'a CompressionHeader,
         core_data_writer: &'a mut BitWriter,
-        external_data_writers: &'a mut HashMap<block::ContentId, X>,
+        external_data_writers: &'a mut ExternalDataWriters<X>,
         reference_sequence_context: ReferenceSequenceContext,
     ) -> Self {
         let initial_alignment_start = match reference_sequence_context {

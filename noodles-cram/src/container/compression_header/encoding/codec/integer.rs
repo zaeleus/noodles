@@ -1,7 +1,4 @@
-use std::{
-    collections::HashMap,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use crate::{
     container::{
@@ -11,7 +8,7 @@ use crate::{
     huffman::CanonicalHuffmanDecoder,
     io::{
         reader::{container::slice::records::ExternalDataReaders, num::read_itf8},
-        writer::num::write_itf8,
+        writer::{container::slice::records::ExternalDataWriters, num::write_itf8},
         BitReader, BitWriter,
     },
 };
@@ -101,7 +98,7 @@ impl Encode<'_> for Integer {
     fn encode<X>(
         &self,
         _core_data_writer: &mut BitWriter,
-        external_data_writers: &mut HashMap<block::ContentId, X>,
+        external_data_writers: &mut ExternalDataWriters<X>,
         value: Self::Value,
     ) -> io::Result<()>
     where

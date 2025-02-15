@@ -3,14 +3,11 @@ mod kind;
 
 pub use self::kind::Kind;
 
-use std::{
-    collections::HashMap,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
-use crate::{
-    container::block,
-    io::{reader::container::slice::records::ExternalDataReaders, BitReader, BitWriter},
+use crate::io::{
+    reader::container::slice::records::ExternalDataReaders,
+    writer::container::slice::records::ExternalDataWriters, BitReader, BitWriter,
 };
 
 pub trait Decode<'de> {
@@ -29,7 +26,7 @@ pub trait Encode<'en> {
     fn encode<X>(
         &self,
         core_data_writer: &mut BitWriter,
-        external_data_writers: &mut HashMap<block::ContentId, X>,
+        external_data_writers: &mut ExternalDataWriters<X>,
         value: Self::Value,
     ) -> io::Result<()>
     where
@@ -69,7 +66,7 @@ where
     pub fn encode<X>(
         &self,
         core_data_writer: &mut BitWriter,
-        external_data_writers: &mut HashMap<block::ContentId, X>,
+        external_data_writers: &mut ExternalDataWriters<X>,
         value: C::Value,
     ) -> io::Result<()>
     where

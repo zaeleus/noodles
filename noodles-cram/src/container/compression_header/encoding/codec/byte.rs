@@ -1,4 +1,4 @@
-use std::{collections::HashMap, io};
+use std::io;
 
 use byteorder::WriteBytesExt;
 
@@ -10,6 +10,7 @@ use crate::{
     huffman::CanonicalHuffmanDecoder,
     io::{
         reader::{container::slice::records::ExternalDataReaders, split_at_checked},
+        writer::container::slice::records::ExternalDataWriters,
         BitReader, BitWriter,
     },
 };
@@ -57,7 +58,7 @@ impl Byte {
     pub fn encode_extend<X>(
         &self,
         _core_data_writer: &mut BitWriter,
-        external_data_writers: &mut HashMap<block::ContentId, X>,
+        external_data_writers: &mut ExternalDataWriters<X>,
         src: &[u8],
     ) -> io::Result<()>
     where
@@ -126,7 +127,7 @@ impl Encode<'_> for Byte {
     fn encode<X>(
         &self,
         _core_data_writer: &mut BitWriter,
-        external_data_writers: &mut HashMap<block::ContentId, X>,
+        external_data_writers: &mut ExternalDataWriters<X>,
         value: Self::Value,
     ) -> io::Result<()>
     where
