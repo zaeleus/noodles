@@ -55,6 +55,11 @@
 
     Use the name container instead of data container instead.
 
+### Fixed
+
+  * cram/codecs/gzip: Wrap raw DEFLATE stream in gzip container when using
+    libdeflate.
+
 ### Removed
 
   * cram/container/slice: Remove mate resolver (`Slice::resolve_mates`).

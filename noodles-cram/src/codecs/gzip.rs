@@ -45,7 +45,7 @@ pub fn encode(compression_level: Compression, src: &[u8]) -> io::Result<Vec<u8>>
     let mut dst = vec![0; max_len];
 
     let len = encoder
-        .deflate_compress(src, &mut dst)
+        .gzip_compress(src, &mut dst)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     dst.resize(len, 0);
