@@ -20,10 +20,7 @@ where
     write_container(writer, header)
 }
 
-pub(super) fn write_file_definition<W>(
-    writer: &mut W,
-    file_definition: &FileDefinition,
-) -> io::Result<()>
+pub fn write_file_definition<W>(writer: &mut W, file_definition: &FileDefinition) -> io::Result<()>
 where
     W: Write,
 {

@@ -6,14 +6,16 @@ mod header;
 
 use noodles_fasta as fasta;
 use noodles_sam as sam;
-use tokio::io::{self, AsyncWrite, AsyncWriteExt};
+use tokio::io::{self, AsyncWrite};
 
 pub use self::builder::Builder;
-use self::{container::write_container, header::write_file_header};
+use self::{
+    container::write_container,
+    header::{write_file_definition, write_file_header},
+};
 use crate::{
-    file_definition::Version,
     io::writer::{Options, Record},
-    FileDefinition, MAGIC_NUMBER,
+    FileDefinition,
 };
 
 /// An async CRAM writer.
@@ -283,25 +285,4 @@ where
 
         Ok(())
     }
-}
-
-async fn write_file_definition<W>(
-    writer: &mut W,
-    file_definition: &FileDefinition,
-) -> io::Result<()>
-where
-    W: AsyncWrite + Unpin,
-{
-    writer.write_all(&MAGIC_NUMBER).await?;
-    write_format(writer, file_definition.version()).await?;
-    writer.write_all(file_definition.file_id()).await?;
-    Ok(())
-}
-
-async fn write_format<W>(writer: &mut W, version: Version) -> io::Result<()>
-where
-    W: AsyncWrite + Unpin,
-{
-    let format = [version.major(), version.minor()];
-    writer.write_all(&format).await
 }
