@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bcf/record/samples/series: Fix series length ([#328]).
+
+    This incorrectly used the value size instead of the sample count.
+
+[#328]: https://github.com/zaeleus/noodles/issues/328
+
 ## 0.70.0 - 2025-02-06
 
 ### Changed

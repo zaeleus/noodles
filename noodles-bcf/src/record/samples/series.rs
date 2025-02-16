@@ -19,6 +19,7 @@ use crate::record::value::{array::Values, read_type, read_value, Type};
 pub struct Series<'r> {
     id: usize,
     ty: Type,
+    sample_count: usize,
     src: &'r [u8],
 }
 
@@ -33,13 +34,7 @@ impl<'r> Series<'r> {
     }
 
     fn len(&self) -> usize {
-        match self.ty {
-            Type::Int8(len) => len,
-            Type::Int16(len) => len,
-            Type::Int32(len) => len,
-            Type::Float(len) => len,
-            Type::String(len) => len,
-        }
+        self.sample_count
     }
 
     /// Returns the value at the given index.
@@ -161,7 +156,12 @@ pub(super) fn read_series<'a>(src: &mut &'a [u8], sample_count: usize) -> io::Re
 
     *src = rest;
 
-    Ok(Series { id, ty, src: buf })
+    Ok(Series {
+        id,
+        ty,
+        sample_count,
+        src: buf,
+    })
 }
 
 fn read_string_map_index(src: &mut &[u8]) -> io::Result<usize> {
@@ -332,7 +332,10 @@ fn get_genotype_value<'r>(
 
 #[cfg(test)]
 mod tests {
-    use noodles_vcf::header::{record::value::Map, StringMaps};
+    use noodles_vcf::{
+        header::{record::value::Map, StringMaps},
+        variant::record::samples::Series as _,
+    };
 
     use super::*;
 
@@ -382,6 +385,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::Int8(1),
+            sample_count: 3,
             src,
         };
 
@@ -423,6 +427,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::Int8(2),
+            sample_count: 4,
             src,
         };
 
@@ -457,6 +462,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::Int16(1),
+            sample_count: 3,
             src,
         };
 
@@ -498,6 +504,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::Int16(2),
+            sample_count: 4,
             src,
         };
 
@@ -532,6 +539,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::Int32(1),
+            sample_count: 3,
             src,
         };
 
@@ -573,6 +581,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::Int32(2),
+            sample_count: 4,
             src,
         };
 
@@ -607,6 +616,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::Float(1),
+            sample_count: 3,
             src,
         };
 
@@ -648,6 +658,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::Float(2),
+            sample_count: 4,
             src,
         };
 
@@ -684,6 +695,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::String(1),
+            sample_count: 3,
             src,
         };
 
@@ -719,6 +731,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::String(3),
+            sample_count: 3,
             src,
         };
 
@@ -752,6 +765,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::String(4),
+            sample_count: 3,
             src,
         };
 
@@ -789,6 +803,7 @@ mod tests {
         let series = Series {
             id,
             ty: Type::String(4),
+            sample_count: 3,
             src,
         };
 
@@ -799,5 +814,34 @@ mod tests {
         assert!(series.get(&header, 3).is_none());
 
         Ok(())
+    }
+
+    #[test]
+    fn test_iter() {
+        let header = build_header_with_format(NAME, Number::Count(1), format::Type::Integer);
+        let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+        let src = &[
+            0x05, // Some(5)
+            0x08, // Some(5)
+            0x80, // None
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int8(1),
+            sample_count: 3,
+            src,
+        };
+
+        let actual: Vec<_> = series
+            .iter(&header)
+            .map(|result| match result {
+                Ok(Some(Value::Integer(n))) => Some(n),
+                Ok(None) => None,
+                _ => panic!(),
+            })
+            .collect();
+
+        assert_eq!(actual, [Some(5), Some(8), None]);
     }
 }
