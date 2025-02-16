@@ -89,6 +89,9 @@ fn read_data_series_encodings_inner(
             DataSeries::Bases => map.bases = read_byte_encoding(src).map(Some)?,
             DataSeries::QualityScores => map.quality_scores = read_byte_encoding(src).map(Some)?,
             DataSeries::ReservedTc | DataSeries::ReservedTn => {
+                // § 8.4.2 "Compression header block: Data series encodings" (2024-09-04): "TC and
+                // TN are legacy data series from CRAM 1.0... [and] decoders must silently skip
+                // these fields."
                 consume_any_encoding(src)?;
             }
         }
