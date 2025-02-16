@@ -81,8 +81,6 @@ impl From<Frequencies> for SubstitutionMatrix {
                 (cmp::Reverse(*frequency), Base::from(*read_base))
             });
 
-            dbg!(&base_frequencies);
-
             for (code, (read_base, _)) in base_frequencies.into_iter().enumerate() {
                 let i = usize::from(encode(reference_base));
                 // FIXME
