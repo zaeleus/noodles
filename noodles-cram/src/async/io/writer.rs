@@ -11,7 +11,7 @@ use tokio::io::{self, AsyncWrite};
 pub use self::builder::Builder;
 use self::{
     container::write_container,
-    header::{write_file_definition, write_file_header},
+    header::{write_file_definition, write_file_header, write_header},
 };
 use crate::{
     io::writer::{Options, Record},
@@ -161,16 +161,7 @@ where
     /// # }
     /// ```
     pub async fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        use crate::io::writer::add_missing_reference_sequence_checksums;
-
-        let mut header = header.clone();
-
-        add_missing_reference_sequence_checksums(
-            &self.reference_sequence_repository,
-            header.reference_sequences_mut(),
-        )?;
-
-        write_file_header(&mut self.inner, &header).await
+        write_file_header(&mut self.inner, &self.reference_sequence_repository, header).await
     }
 
     /// Writes a SAM header.
@@ -195,8 +186,15 @@ where
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        self.write_file_definition().await?;
-        self.write_file_header(header).await
+        let file_definition = FileDefinition::default();
+
+        write_header(
+            &mut self.inner,
+            &self.reference_sequence_repository,
+            &file_definition,
+            header,
+        )
+        .await
     }
 
     /// Writes a CRAM record.
