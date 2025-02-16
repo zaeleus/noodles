@@ -70,8 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_reference_sequence_repository(repository)
         .build_from_writer(io::stdout());
 
-    writer.write_file_definition().await?;
-    writer.write_file_header(&header).await?;
+    writer.write_header(&header).await?;
 
     let record = sam::alignment::RecordBuf::builder()
         .set_flags(sam::alignment::record::Flags::empty())
