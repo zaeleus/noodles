@@ -57,6 +57,11 @@
 
 ### Fixed
 
+  * cram/async/io/writer: Use inferred format version.
+
+    The format version is inferred from the codecs being used, but the file
+    definition writer was always using the default CRAM version (3.0).
+
   * cram/codecs/gzip: Wrap raw DEFLATE stream in gzip container when using
     libdeflate.
 

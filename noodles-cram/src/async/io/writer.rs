@@ -130,7 +130,7 @@ where
     /// # }
     /// ```
     pub async fn write_file_definition(&mut self) -> io::Result<()> {
-        let file_definition = FileDefinition::default();
+        let file_definition = FileDefinition::new(self.options.version, Default::default());
         write_file_definition(&mut self.inner, &file_definition).await
     }
 
@@ -186,7 +186,7 @@ where
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        let file_definition = FileDefinition::default();
+        let file_definition = FileDefinition::new(self.options.version, Default::default());
 
         write_header(
             &mut self.inner,
