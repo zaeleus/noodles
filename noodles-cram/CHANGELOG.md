@@ -18,11 +18,34 @@
   * cram/io/reader: Read container (`Reader::read_container`) into a given
     buffer (`cram::io::reader::Container`).
 
+    Container components (`Container::compression_header` and
+    `Container::slices`) are now lazily decoded.
+
+  * cram/io/reader/container/slice: Callers must decode and hold block data
+    (`Slice::decode_block`).
+
+    These are subsequently used when reading records (`Slice::records`).
+
+  * cram/io/reader/container/slice: `Slice::records` requires a reference
+    sequence repository (`fasta::Repository`) and SAM header (`sam::Header`).
+
   * cram/io/reader: Record iterators (e.g., `Reader::records` and
     `Reader::query`) return instances of `sam::alignment::RecordBuf`.
 
+  * cram/record: Change `cram::Record` to be read-only.
+
+    noodles-cram no longer has a public, mutable CRAM record. Use a more
+    general alignment record, e.g., `sam::alignment::RecordBuf`, instead.
+
   * cram/record: Include the read group field in the data iterator
     (`Record::data`).
+
+  * cram/record: Resolve sequence and quality scores when necessary.
+
+    This previously typically happened after slice records were decoded. The
+    sequence and quality score iterators now resolve their underlying data when
+    necessary, i.e., the sequence is for a mapped record or the quality scores
+    are stored as an array.
 
 ### Deprecated
 
