@@ -36,6 +36,7 @@
 
     noodles-cram no longer has a public, mutable CRAM record. Use a more
     general alignment record, e.g., `sam::alignment::RecordBuf`, instead.
+    Fields are only available via the `sam::alignment::Record` implementation.
 
   * cram/record: Include the read group field in the data iterator
     (`Record::data`).

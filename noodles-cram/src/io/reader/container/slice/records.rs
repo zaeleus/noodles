@@ -81,7 +81,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
 
         record.data = self.read_data()?;
 
-        if record.bam_flags().is_unmapped() {
+        if record.bam_flags.is_unmapped() {
             self.read_unmapped_read(record)?;
         } else {
             self.read_mapped_read(record)?;
@@ -233,14 +233,14 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
     }
 
     fn read_mate(&mut self, record: &mut Record<'c>) -> io::Result<()> {
-        if record.cram_flags().is_detached() {
+        if record.cram_flags.is_detached() {
             record.mate_flags = self.read_mate_flags()?;
 
-            if record.next_mate_flags().is_on_negative_strand() {
+            if record.mate_flags.is_on_negative_strand() {
                 record.bam_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
             }
 
-            if record.next_mate_flags().is_unmapped() {
+            if record.mate_flags.is_unmapped() {
                 record.bam_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
             }
 
@@ -254,7 +254,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
 
             record.mate_alignment_start = self.read_mate_alignment_start()?;
             record.template_length = self.read_template_length()?;
-        } else if record.cram_flags().has_mate_downstream() {
+        } else if record.cram_flags.has_mate_downstream() {
             record.distance_to_mate = self.read_mate_distance().map(Some)?;
         }
 
@@ -383,8 +383,8 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
 
         record.mapping_quality = self.read_mapping_quality()?;
 
-        if record.cram_flags().are_quality_scores_stored_as_array() {
-            record.quality_scores = self.read_quality_scores(record.read_length())?;
+        if record.cram_flags.are_quality_scores_stored_as_array() {
+            record.quality_scores = self.read_quality_scores(record.read_length)?;
         }
 
         Ok(())
@@ -616,10 +616,10 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
     }
 
     fn read_unmapped_read(&mut self, record: &mut Record<'c>) -> io::Result<()> {
-        record.sequence = self.read_sequence(record.read_length())?;
+        record.sequence = self.read_sequence(record.read_length)?;
 
-        if record.cram_flags().are_quality_scores_stored_as_array() {
-            record.quality_scores = self.read_quality_scores(record.read_length())?;
+        if record.cram_flags.are_quality_scores_stored_as_array() {
+            record.quality_scores = self.read_quality_scores(record.read_length)?;
         }
 
         Ok(())

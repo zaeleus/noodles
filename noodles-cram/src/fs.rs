@@ -140,14 +140,11 @@ fn push_index_records_for_multi_reference_slice(
         &core_data_src,
         &external_data_srcs,
     )? {
-        let reference_sequence_id = record.reference_sequence_id();
-
         let range = reference_sequence_ids
-            .entry(reference_sequence_id)
+            .entry(record.reference_sequence_id)
             .or_default();
 
-        let alignment_start = record.alignment_start();
-        range.start = cmp::min(range.start, alignment_start);
+        range.start = cmp::min(range.start, record.alignment_start);
 
         let alignment_end = record.alignment_end();
         range.end = cmp::max(range.end, alignment_end);

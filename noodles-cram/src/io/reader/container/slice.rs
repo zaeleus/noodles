@@ -5,7 +5,7 @@ use std::{borrow::Cow, io};
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
-use noodles_sam as sam;
+use noodles_sam::{self as sam, alignment::Record as _};
 
 use self::{
     header::read_header,
@@ -165,14 +165,14 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
     let mut mate_indices: Vec<_> = records
         .iter()
         .enumerate()
-        .map(|(i, record)| record.distance_to_next_fragment().map(|len| i + len + 1))
+        .map(|(i, record)| record.distance_to_mate.map(|len| i + len + 1))
         .collect();
 
     for i in 0..records.len() {
         let record = &mut records[i];
 
-        if record.name().is_none() {
-            let name = record.id().to_string().into_bytes();
+        if record.name.is_none() {
+            let name = record.id.to_string().into_bytes();
             record.name = Some(Cow::from(name));
         }
 
@@ -190,8 +190,8 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
             let mate = &mut right[mate_index - mid];
             set_mate(record, mate);
 
-            if mate.name().is_none() {
-                mate.name = record.name().map(|name| name.to_vec().into());
+            if mate.name.is_none() {
+                mate.name = record.name.as_ref().map(|name| name.to_vec().into());
             }
 
             j = mate_index;
@@ -226,20 +226,20 @@ fn set_mate(record: &mut Record, mate: &mut Record) {
         &mut record.bam_flags,
         &mut record.mate_reference_sequence_id,
         &mut record.mate_alignment_start,
-        mate.bam_flags(),
-        mate.reference_sequence_id(),
-        mate.alignment_start(),
+        mate.bam_flags,
+        mate.reference_sequence_id,
+        mate.alignment_start,
     );
 }
 
 fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
     calculate_template_size_chunk(
-        record.alignment_start(),
-        record.read_length(),
-        record.features(),
-        mate.alignment_start(),
-        mate.read_length(),
-        mate.features(),
+        record.alignment_start,
+        record.read_length,
+        &record.features,
+        mate.alignment_start,
+        mate.read_length,
+        &mate.features,
     )
 }
 
@@ -399,7 +399,7 @@ fn get_record_reference_sequence(
     }
 
     let reference_sequence_name = record
-        .reference_sequence(header.reference_sequences())
+        .reference_sequence(header)
         .transpose()?
         .map(|(name, _)| name)
         .expect("invalid reference sequence ID");
@@ -459,39 +459,30 @@ mod tests {
 
         assert_eq!(records[0].name(), Some(name_1));
         assert_eq!(
-            records[0].next_fragment_reference_sequence_id(),
-            records[1].reference_sequence_id()
+            records[0].mate_reference_sequence_id,
+            records[1].reference_sequence_id
         );
-        assert_eq!(
-            records[0].mate_alignment_start(),
-            records[1].alignment_start(),
-        );
-        assert_eq!(records[0].template_size(), 12);
+        assert_eq!(records[0].mate_alignment_start, records[1].alignment_start);
+        assert_eq!(records[0].template_length, 12);
 
         assert_eq!(records[1].name(), Some(name_1));
         assert_eq!(
-            records[1].next_fragment_reference_sequence_id(),
-            records[3].reference_sequence_id()
+            records[1].mate_reference_sequence_id,
+            records[3].reference_sequence_id
         );
-        assert_eq!(
-            records[1].mate_alignment_start(),
-            records[3].alignment_start(),
-        );
-        assert_eq!(records[1].template_size(), -12);
+        assert_eq!(records[1].mate_alignment_start, records[3].alignment_start);
+        assert_eq!(records[1].template_length, -12);
 
         let name_3 = b"3".as_bstr();
         assert_eq!(records[2].name(), Some(name_3));
 
         assert_eq!(records[3].name(), Some(name_1));
         assert_eq!(
-            records[3].next_fragment_reference_sequence_id(),
-            records[0].reference_sequence_id()
+            records[3].mate_reference_sequence_id,
+            records[0].reference_sequence_id
         );
-        assert_eq!(
-            records[3].mate_alignment_start(),
-            records[0].alignment_start(),
-        );
-        assert_eq!(records[3].template_size(), -12);
+        assert_eq!(records[3].mate_alignment_start, records[0].alignment_start);
+        assert_eq!(records[3].template_length, -12);
 
         Ok(())
     }
