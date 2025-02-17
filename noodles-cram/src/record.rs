@@ -2,7 +2,7 @@
 
 mod cigar;
 mod data;
-pub mod feature;
+pub(crate) mod feature;
 mod flags;
 mod mate_flags;
 mod quality_scores;
@@ -21,9 +21,8 @@ use noodles_sam::{
     },
 };
 
-pub use self::feature::Feature;
 use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
-pub(crate) use self::{flags::Flags, mate_flags::MateFlags};
+pub(crate) use self::{feature::Feature, flags::Flags, mate_flags::MateFlags};
 use crate::{
     container::compression_header::preservation_map::SubstitutionMatrix,
     io::reader::container::slice::ReferenceSequence,

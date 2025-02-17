@@ -48,51 +48,6 @@ pub enum Feature<'c> {
 }
 
 impl Feature<'_> {
-    /// Returns the feature code.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_core::Position;
-    /// use noodles_cram::record::{feature::Code, Feature};
-    ///
-    /// let position = Position::try_from(8)?;
-    /// let feature = Feature::Padding{ position, len: 13 };
-    ///
-    /// assert_eq!(feature.code(), Code::Padding);
-    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
-    /// ```
-    pub fn code(&self) -> Code {
-        match self {
-            Self::Bases { .. } => Code::Bases,
-            Self::Scores { .. } => Code::Scores,
-            Self::ReadBase { .. } => Code::ReadBase,
-            Self::Substitution { .. } => Code::Substitution,
-            Self::Insertion { .. } => Code::Insertion,
-            Self::Deletion { .. } => Code::Deletion,
-            Self::InsertBase { .. } => Code::InsertBase,
-            Self::QualityScore { .. } => Code::QualityScore,
-            Self::ReferenceSkip { .. } => Code::ReferenceSkip,
-            Self::SoftClip { .. } => Code::SoftClip,
-            Self::Padding { .. } => Code::Padding,
-            Self::HardClip { .. } => Code::HardClip,
-        }
-    }
-
-    /// Returns the feature position.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_core::Position;
-    /// use noodles_cram::record::Feature;
-    ///
-    /// let position = Position::try_from(8)?;
-    /// let feature = Feature::Padding{ position, len: 13 };
-    ///
-    /// assert_eq!(feature.position(), position);
-    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
-    /// ```
     pub fn position(&self) -> Position {
         match self {
             Self::Bases { position, .. } => *position,
@@ -114,86 +69,6 @@ impl Feature<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_code() {
-        let position = Position::MIN;
-
-        assert_eq!(
-            Feature::Bases {
-                position,
-                bases: &[]
-            }
-            .code(),
-            Code::Bases
-        );
-        assert_eq!(
-            Feature::Scores {
-                position,
-                quality_scores: &[]
-            }
-            .code(),
-            Code::Scores
-        );
-        assert_eq!(
-            Feature::ReadBase {
-                position,
-                base: b'N',
-                quality_score: 0
-            }
-            .code(),
-            Code::ReadBase
-        );
-        assert_eq!(
-            Feature::Substitution { position, code: 0 }.code(),
-            Code::Substitution
-        );
-        assert_eq!(
-            Feature::Insertion {
-                position,
-                bases: &[]
-            }
-            .code(),
-            Code::Insertion
-        );
-        assert_eq!(
-            Feature::Deletion { position, len: 0 }.code(),
-            Code::Deletion
-        );
-        assert_eq!(
-            Feature::InsertBase {
-                position,
-                base: b'N'
-            }
-            .code(),
-            Code::InsertBase
-        );
-        assert_eq!(
-            Feature::QualityScore {
-                position,
-                quality_score: 0
-            }
-            .code(),
-            Code::QualityScore
-        );
-        assert_eq!(
-            Feature::ReferenceSkip { position, len: 0 }.code(),
-            Code::ReferenceSkip
-        );
-        assert_eq!(
-            Feature::SoftClip {
-                position,
-                bases: &[]
-            }
-            .code(),
-            Code::SoftClip
-        );
-        assert_eq!(Feature::Padding { position, len: 0 }.code(), Code::Padding);
-        assert_eq!(
-            Feature::HardClip { position, len: 0 }.code(),
-            Code::HardClip
-        );
-    }
 
     #[test]
     fn test_position() {

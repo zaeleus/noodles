@@ -48,9 +48,9 @@
     necessary, i.e., the sequence is for a mapped record or the quality scores
     are stored as an array.
 
-  * cram/record: Reduce the visibility of `Flags` and `MateFlags`.
+  * cram/record: Reduce the visibility of `Feature`, `Flags`, `MateFlags`.
 
-    The flags and mate flags fields are no longer accessible.
+    The associated fields are no longer accessible.
 
 ### Deprecated
 
