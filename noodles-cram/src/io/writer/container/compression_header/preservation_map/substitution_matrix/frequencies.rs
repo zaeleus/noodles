@@ -89,9 +89,7 @@ impl From<Frequencies> for SubstitutionMatrix {
             }
         }
 
-        Self {
-            substitutions: substitution_matrix,
-        }
+        Self(substitution_matrix)
     }
 }
 
@@ -147,7 +145,7 @@ mod tests {
         let substitution_matrix = SubstitutionMatrix::from(frequencies);
 
         assert_eq!(
-            substitution_matrix.substitutions,
+            substitution_matrix.0,
             [
                 [Base::G, Base::T, Base::C, Base::N],
                 [Base::G, Base::T, Base::A, Base::N],

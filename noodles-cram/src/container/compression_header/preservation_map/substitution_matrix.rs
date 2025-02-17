@@ -11,9 +11,7 @@ pub const READ_BASES: [[Base; 4]; 5] = [
 ];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct SubstitutionMatrix {
-    pub(crate) substitutions: [[Base; 4]; 5],
-}
+pub struct SubstitutionMatrix(pub(crate) [[Base; 4]; 5]);
 
 impl SubstitutionMatrix {
     pub fn get(&self, reference_base: Base, substitution_code: u8) -> Base {
@@ -27,7 +25,7 @@ impl SubstitutionMatrix {
 
         let j = usize::from(substitution_code & 0x03);
 
-        self.substitutions[i][j]
+        self.0[i][j]
     }
 
     pub fn find_code(&self, reference_base: Base, read_base: Base) -> u8 {
@@ -43,15 +41,13 @@ impl SubstitutionMatrix {
 
 impl Default for SubstitutionMatrix {
     fn default() -> Self {
-        SubstitutionMatrix {
-            substitutions: [
-                [Base::C, Base::G, Base::T, Base::N],
-                [Base::A, Base::G, Base::T, Base::N],
-                [Base::A, Base::C, Base::T, Base::N],
-                [Base::A, Base::C, Base::G, Base::N],
-                [Base::A, Base::C, Base::G, Base::T],
-            ],
-        }
+        SubstitutionMatrix([
+            [Base::C, Base::G, Base::T, Base::N],
+            [Base::A, Base::G, Base::T, Base::N],
+            [Base::A, Base::C, Base::T, Base::N],
+            [Base::A, Base::C, Base::G, Base::N],
+            [Base::A, Base::C, Base::G, Base::T],
+        ])
     }
 }
 
@@ -61,15 +57,13 @@ mod tests {
 
     #[test]
     fn test_find_code() {
-        let matrix = SubstitutionMatrix {
-            substitutions: [
-                [Base::T, Base::G, Base::C, Base::N],
-                [Base::A, Base::G, Base::T, Base::N],
-                [Base::N, Base::A, Base::C, Base::T],
-                [Base::G, Base::N, Base::A, Base::C],
-                [Base::C, Base::G, Base::T, Base::A],
-            ],
-        };
+        let matrix = SubstitutionMatrix([
+            [Base::T, Base::G, Base::C, Base::N],
+            [Base::A, Base::G, Base::T, Base::N],
+            [Base::N, Base::A, Base::C, Base::T],
+            [Base::G, Base::N, Base::A, Base::C],
+            [Base::C, Base::G, Base::T, Base::A],
+        ]);
 
         assert_eq!(matrix.find_code(Base::A, Base::T), 0b00);
         assert_eq!(matrix.find_code(Base::C, Base::G), 0b01);

@@ -25,7 +25,7 @@ fn encode(substitution_matrix: &SubstitutionMatrix) -> [u8; 5] {
     let mut buf = [0; 5];
     let mut index_bases = [(0, Base::N); 4];
 
-    for (bases, codes) in substitution_matrix.substitutions.iter().zip(&mut buf) {
+    for (bases, codes) in substitution_matrix.0.iter().zip(&mut buf) {
         for ((i, base), index_base) in bases.iter().enumerate().zip(&mut index_bases) {
             *index_base = (i, *base);
         }
@@ -68,15 +68,13 @@ mod tests {
     #[test]
     fn test_encode() {
         // § 10.6.4 "Mapped reads: Substitution Matrix Format" (2024-09-04)
-        let substitution_matrix = SubstitutionMatrix {
-            substitutions: [
-                [Base::T, Base::C, Base::G, Base::N], // A
-                [Base::G, Base::A, Base::T, Base::N], // C
-                [Base::C, Base::T, Base::A, Base::N], // G
-                [Base::A, Base::G, Base::C, Base::N], // T
-                [Base::A, Base::C, Base::G, Base::T], // N
-            ],
-        };
+        let substitution_matrix = SubstitutionMatrix([
+            [Base::T, Base::C, Base::G, Base::N], // A
+            [Base::G, Base::A, Base::T, Base::N], // C
+            [Base::C, Base::T, Base::A, Base::N], // G
+            [Base::A, Base::G, Base::C, Base::N], // T
+            [Base::A, Base::C, Base::G, Base::T], // N
+        ]);
 
         assert_eq!(encode(&substitution_matrix), [0x63, 0x4b, 0x87, 0x27, 0x1b]);
     }
