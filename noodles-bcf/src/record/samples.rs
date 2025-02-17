@@ -10,7 +10,7 @@ use noodles_vcf as vcf;
 use self::series::read_series;
 pub use self::{sample::Sample, series::Series};
 
-/// BCF record genotypes.
+/// BCF record samples.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Samples<'r> {
     src: &'r [u8],
