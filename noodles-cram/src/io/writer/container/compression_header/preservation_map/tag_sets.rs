@@ -1,38 +1,35 @@
 use std::io::{self, Write};
 
-use crate::{
-    container::compression_header::preservation_map::TagSets,
-    io::writer::{num::write_itf8, Record},
-};
+use crate::{container::compression_header::preservation_map::TagSets, io::writer::Record};
 
-const NUL: u8 = 0x00;
+use super::write_array;
 
 pub(super) fn write_tag_sets<W>(writer: &mut W, tag_sets: &TagSets) -> io::Result<()>
 where
     W: Write,
 {
-    use noodles_bam::record::codec::encoder::data::field::ty::encode;
+    let buf = encode(tag_sets);
+    write_array(writer, &buf)
+}
+
+fn encode(tag_sets: &TagSets) -> Vec<u8> {
+    use noodles_bam::record::codec::encoder::data::field::ty;
+
+    const NUL: u8 = 0x00;
 
     let mut buf = Vec::new();
 
     for keys in tag_sets.iter() {
         for key in keys {
             let tag = key.tag();
-            buf.extend_from_slice(tag.as_ref());
-
-            let ty = key.ty();
-            buf.push(encode(ty));
+            buf.extend(tag.as_ref());
+            buf.push(ty::encode(key.ty()));
         }
 
         buf.push(NUL);
     }
 
-    let data_len =
-        i32::try_from(buf.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, data_len)?;
-    writer.write_all(&buf)?;
-
-    Ok(())
+    buf
 }
 
 pub(super) fn build_tag_sets(records: &[Record]) -> TagSets {
