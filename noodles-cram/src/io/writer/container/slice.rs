@@ -141,7 +141,7 @@ fn set_mates(records: &mut [Record]) {
 }
 
 fn set_downstream_mate(i: usize, record: &mut Record, j: usize, mate: &mut Record) {
-    record.distance_to_mate = Some(j - i - 1);
+    record.mate_distance = Some(j - i - 1);
     record.cram_flags.insert(Flags::HAS_MATE_DOWNSTREAM);
     mate.cram_flags.remove(Flags::DETACHED);
 }

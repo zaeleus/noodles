@@ -184,10 +184,10 @@ impl DataSeriesEncodings {
                 block_content_id: block::ContentId::from(DataSeries::MateFlags),
             })),
             mate_reference_sequence_ids: Some(Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(DataSeries::MateReferenceSequenceId),
+                block_content_id: block::ContentId::from(DataSeries::MateReferenceSequenceIds),
             })),
             mate_alignment_starts: Some(Encoding::new(Integer::External {
-                block_content_id: block::ContentId::from(DataSeries::MateAlignmentStart),
+                block_content_id: block::ContentId::from(DataSeries::MateAlignmentStarts),
             })),
             template_lengths: Some(Encoding::new(Integer::External {
                 block_content_id: block::ContentId::from(DataSeries::TemplateLengths),

@@ -64,7 +64,7 @@ impl Record {
             mate_reference_sequence_id: record.mate_reference_sequence_id(header).transpose()?,
             mate_alignment_start: record.mate_alignment_start().transpose()?,
             template_length: record.template_length()?,
-            distance_to_mate: None,
+            mate_distance: None,
             data: data_buf,
             features,
             mapping_quality: record.mapping_quality().transpose()?,

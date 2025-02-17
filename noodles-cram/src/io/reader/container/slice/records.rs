@@ -255,7 +255,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             record.mate_alignment_start = self.read_mate_alignment_start()?;
             record.template_length = self.read_template_length()?;
         } else if record.cram_flags.has_mate_downstream() {
-            record.distance_to_mate = self.read_mate_distance().map(Some)?;
+            record.mate_distance = self.read_mate_distance().map(Some)?;
         }
 
         Ok(())
@@ -279,7 +279,9 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .mate_reference_sequence_ids()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateReferenceSequenceId))?
+            .ok_or_else(|| {
+                missing_data_series_encoding_error(DataSeries::MateReferenceSequenceIds)
+            })?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|id| match id {
                 UNMAPPED => Ok(None),
@@ -293,7 +295,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.compression_header
             .data_series_encodings()
             .mate_alignment_starts()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateAlignmentStart))?
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateAlignmentStarts))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
             .and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

@@ -165,7 +165,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
     let mut mate_indices: Vec<_> = records
         .iter()
         .enumerate()
-        .map(|(i, record)| record.distance_to_mate.map(|len| i + len + 1))
+        .map(|(i, record)| record.mate_distance.map(|len| i + len + 1))
         .collect();
 
     for i in 0..records.len() {
@@ -428,7 +428,7 @@ mod tests {
                 reference_sequence_id: Some(2),
                 read_length: 4,
                 alignment_start: Position::new(5),
-                distance_to_mate: Some(0),
+                mate_distance: Some(0),
                 ..Default::default()
             },
             Record {
@@ -437,7 +437,7 @@ mod tests {
                 reference_sequence_id: Some(2),
                 read_length: 4,
                 alignment_start: Position::new(8),
-                distance_to_mate: Some(1),
+                mate_distance: Some(1),
                 ..Default::default()
             },
             Record {

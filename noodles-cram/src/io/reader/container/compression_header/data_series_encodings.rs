@@ -36,10 +36,10 @@ fn read_data_series_encodings_inner(
             }
             DataSeries::Names => map.names = read_byte_array_encoding(src).map(Some)?,
             DataSeries::MateFlags => map.mate_flags = read_integer_encoding(src).map(Some)?,
-            DataSeries::MateReferenceSequenceId => {
+            DataSeries::MateReferenceSequenceIds => {
                 map.mate_reference_sequence_ids = read_integer_encoding(src).map(Some)?
             }
-            DataSeries::MateAlignmentStart => {
+            DataSeries::MateAlignmentStarts => {
                 map.mate_alignment_starts = read_integer_encoding(src).map(Some)?
             }
             DataSeries::TemplateLengths => {

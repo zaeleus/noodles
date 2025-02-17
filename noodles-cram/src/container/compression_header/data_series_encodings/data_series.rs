@@ -11,8 +11,8 @@ pub static STANDARD_DATA_SERIES: &[DataSeries; 28] = &[
     DataSeries::ReadGroupIds,
     DataSeries::Names,
     DataSeries::MateFlags,
-    DataSeries::MateReferenceSequenceId,
-    DataSeries::MateAlignmentStart,
+    DataSeries::MateReferenceSequenceIds,
+    DataSeries::MateAlignmentStarts,
     DataSeries::TemplateLengths,
     DataSeries::MateDistances,
     DataSeries::TagSetIds,
@@ -53,9 +53,9 @@ pub enum DataSeries {
     /// Next mate bit flags (`MF`).
     MateFlags,
     /// Next fragment reference sequence ID (`NS`).
-    MateReferenceSequenceId,
+    MateReferenceSequenceIds,
     /// Next mate alignment start (`NP`).
-    MateAlignmentStart,
+    MateAlignmentStarts,
     /// Template size (`TS`).
     TemplateLengths,
     /// Distance to next fragment (`NF`).
@@ -126,8 +126,8 @@ impl TryFrom<[u8; 2]> for DataSeries {
             [b'R', b'G'] => Ok(Self::ReadGroupIds),
             [b'R', b'N'] => Ok(Self::Names),
             [b'M', b'F'] => Ok(Self::MateFlags),
-            [b'N', b'S'] => Ok(Self::MateReferenceSequenceId),
-            [b'N', b'P'] => Ok(Self::MateAlignmentStart),
+            [b'N', b'S'] => Ok(Self::MateReferenceSequenceIds),
+            [b'N', b'P'] => Ok(Self::MateAlignmentStarts),
             [b'T', b'S'] => Ok(Self::TemplateLengths),
             [b'N', b'F'] => Ok(Self::MateDistances),
             [b'T', b'L'] => Ok(Self::TagSetIds),
@@ -164,8 +164,8 @@ impl From<DataSeries> for [u8; 2] {
             DataSeries::ReadGroupIds => [b'R', b'G'],
             DataSeries::Names => [b'R', b'N'],
             DataSeries::MateFlags => [b'M', b'F'],
-            DataSeries::MateReferenceSequenceId => [b'N', b'S'],
-            DataSeries::MateAlignmentStart => [b'N', b'P'],
+            DataSeries::MateReferenceSequenceIds => [b'N', b'S'],
+            DataSeries::MateAlignmentStarts => [b'N', b'P'],
             DataSeries::TemplateLengths => [b'T', b'S'],
             DataSeries::MateDistances => [b'N', b'F'],
             DataSeries::TagSetIds => [b'T', b'L'],
@@ -201,8 +201,8 @@ impl From<DataSeries> for block::ContentId {
             DataSeries::ReadGroupIds => 6,
             DataSeries::Names => 7,
             DataSeries::MateFlags => 8,
-            DataSeries::MateReferenceSequenceId => 9,
-            DataSeries::MateAlignmentStart => 10,
+            DataSeries::MateReferenceSequenceIds => 9,
+            DataSeries::MateAlignmentStarts => 10,
             DataSeries::TemplateLengths => 11,
             DataSeries::MateDistances => 12,
             DataSeries::TagSetIds => 13,
@@ -262,11 +262,11 @@ mod tests {
         );
         assert_eq!(
             DataSeries::try_from([b'N', b'S']),
-            Ok(DataSeries::MateReferenceSequenceId)
+            Ok(DataSeries::MateReferenceSequenceIds)
         );
         assert_eq!(
             DataSeries::try_from([b'N', b'P']),
-            Ok(DataSeries::MateAlignmentStart)
+            Ok(DataSeries::MateAlignmentStarts)
         );
         assert_eq!(
             DataSeries::try_from([b'T', b'S']),
@@ -366,11 +366,11 @@ mod tests {
         assert_eq!(<[u8; 2]>::from(DataSeries::Names), [b'R', b'N']);
         assert_eq!(<[u8; 2]>::from(DataSeries::MateFlags), [b'M', b'F']);
         assert_eq!(
-            <[u8; 2]>::from(DataSeries::MateReferenceSequenceId),
+            <[u8; 2]>::from(DataSeries::MateReferenceSequenceIds),
             [b'N', b'S']
         );
         assert_eq!(
-            <[u8; 2]>::from(DataSeries::MateAlignmentStart),
+            <[u8; 2]>::from(DataSeries::MateAlignmentStarts),
             [b'N', b'P']
         );
         assert_eq!(<[u8; 2]>::from(DataSeries::TemplateLengths), [b'T', b'S']);

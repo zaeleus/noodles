@@ -102,8 +102,8 @@ where
     maybe_write_integer_encoding(writer, DataSeries::ReadGroupIds, encodings.read_group_ids())?;
     maybe_write_byte_array_encoding(writer, DataSeries::Names, encodings.names())?;
     maybe_write_integer_encoding(writer, DataSeries::MateFlags, encodings.mate_flags())?;
-    maybe_write_integer_encoding(writer, DataSeries::MateReferenceSequenceId, encodings.mate_reference_sequence_ids())?;
-    maybe_write_integer_encoding(writer, DataSeries::MateAlignmentStart, encodings.mate_alignment_starts())?;
+    maybe_write_integer_encoding(writer, DataSeries::MateReferenceSequenceIds, encodings.mate_reference_sequence_ids())?;
+    maybe_write_integer_encoding(writer, DataSeries::MateAlignmentStarts, encodings.mate_alignment_starts())?;
     maybe_write_integer_encoding(writer, DataSeries::TemplateLengths, encodings.template_lengths())?;
     maybe_write_integer_encoding(writer, DataSeries::MateDistances, encodings.mate_distances())?;
     maybe_write_integer_encoding(writer, DataSeries::TagSetIds, encodings.tag_set_ids())?;

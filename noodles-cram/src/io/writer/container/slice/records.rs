@@ -76,7 +76,7 @@ impl<'a> Writer<'a> {
         self.write_names(record)?;
         self.write_mate(record)?;
 
-        self.write_tags(record)?;
+        self.write_data(record)?;
 
         if record.bam_flags.is_unmapped() {
             self.write_unmapped_read(record)?;
@@ -244,7 +244,7 @@ impl<'a> Writer<'a> {
 
     fn write_mate(&mut self, record: &Record) -> io::Result<()> {
         if record.cram_flags.is_detached() {
-            self.write_next_mate_bit_flags(record.mate_flags)?;
+            self.write_mate_flags(record.mate_flags)?;
 
             let preservation_map = self.compression_header.preservation_map();
 
@@ -253,18 +253,18 @@ impl<'a> Writer<'a> {
                 self.write_name(name)?;
             }
 
-            self.write_next_fragment_reference_sequence_id(record.mate_reference_sequence_id)?;
+            self.write_mate_reference_sequence_id(record.mate_reference_sequence_id)?;
 
-            self.write_next_mate_alignment_start(record.mate_alignment_start)?;
-            self.write_template_size(record.template_length)?;
-        } else if let Some(distance_to_mate) = record.distance_to_mate {
-            self.write_mate_distance(distance_to_mate)?;
+            self.write_mate_alignment_start(record.mate_alignment_start)?;
+            self.write_template_length(record.template_length)?;
+        } else if let Some(mate_distance) = record.mate_distance {
+            self.write_mate_distance(mate_distance)?;
         }
 
         Ok(())
     }
 
-    fn write_next_mate_bit_flags(&mut self, next_mate_flags: MateFlags) -> io::Result<()> {
+    fn write_mate_flags(&mut self, next_mate_flags: MateFlags) -> io::Result<()> {
         let next_mate_bit_flags = i32::from(u8::from(next_mate_flags));
 
         self.compression_header
@@ -278,7 +278,7 @@ impl<'a> Writer<'a> {
             )
     }
 
-    fn write_next_fragment_reference_sequence_id(
+    fn write_mate_reference_sequence_id(
         &mut self,
         next_fragment_reference_sequence_id: Option<usize>,
     ) -> io::Result<()> {
@@ -289,7 +289,7 @@ impl<'a> Writer<'a> {
             .data_series_encodings()
             .mate_reference_sequence_ids()
             .ok_or_else(|| {
-                missing_data_series_encoding_error(DataSeries::MateReferenceSequenceId)
+                missing_data_series_encoding_error(DataSeries::MateReferenceSequenceIds)
             })?;
 
         let raw_next_fragment_reference_sequence_id =
@@ -306,7 +306,7 @@ impl<'a> Writer<'a> {
         )
     }
 
-    fn write_next_mate_alignment_start(
+    fn write_mate_alignment_start(
         &mut self,
         next_mate_alignment_start: Option<Position>,
     ) -> io::Result<()> {
@@ -314,7 +314,7 @@ impl<'a> Writer<'a> {
             .compression_header
             .data_series_encodings()
             .mate_alignment_starts()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateAlignmentStart))?;
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateAlignmentStarts))?;
 
         let position = i32::try_from(
             next_mate_alignment_start
@@ -326,7 +326,7 @@ impl<'a> Writer<'a> {
         encoding.encode(self.core_data_writer, self.external_data_writers, position)
     }
 
-    fn write_template_size(&mut self, template_size: i32) -> io::Result<()> {
+    fn write_template_length(&mut self, template_length: i32) -> io::Result<()> {
         self.compression_header
             .data_series_encodings()
             .template_lengths()
@@ -334,24 +334,24 @@ impl<'a> Writer<'a> {
             .encode(
                 self.core_data_writer,
                 self.external_data_writers,
-                template_size,
+                template_length,
             )
     }
 
-    fn write_mate_distance(&mut self, distance: usize) -> io::Result<()> {
+    fn write_mate_distance(&mut self, mate_distance: usize) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encodings()
             .mate_distances()
             .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateDistances))?;
 
-        let n =
-            i32::try_from(distance).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let n = i32::try_from(mate_distance)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
-    fn write_tags(&mut self, record: &Record) -> io::Result<()> {
+    fn write_data(&mut self, record: &Record) -> io::Result<()> {
         use noodles_bam::record::codec::encoder::data::field::write_value;
 
         let tag_set: Vec<_> = record
@@ -406,7 +406,7 @@ impl<'a> Writer<'a> {
     }
 
     fn write_mapped_read(&mut self, record: &Record) -> io::Result<()> {
-        self.write_number_of_read_features(record.features.len())?;
+        self.write_feature_count(record.features.len())?;
 
         let mut prev_position = 0;
 
@@ -425,7 +425,7 @@ impl<'a> Writer<'a> {
         Ok(())
     }
 
-    fn write_number_of_read_features(&mut self, feature_count: usize) -> io::Result<()> {
+    fn write_feature_count(&mut self, feature_count: usize) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encodings()
@@ -444,7 +444,7 @@ impl<'a> Writer<'a> {
 
     fn write_feature(&mut self, feature: &Feature, position: usize) -> io::Result<()> {
         self.write_feature_code(feature.code())?;
-        self.write_feature_position(position)?;
+        self.write_feature_position_delta(position)?;
 
         match feature {
             Feature::Bases { bases, .. } => {
@@ -467,7 +467,7 @@ impl<'a> Writer<'a> {
                 ..
             } => self.write_base_substitution_code(*reference_base, *read_base)?,
             Feature::Insertion { bases, .. } => {
-                self.write_insertion(bases)?;
+                self.write_insertion_bases(bases)?;
             }
             Feature::Deletion { len, .. } => {
                 self.write_deletion_length(*len)?;
@@ -485,10 +485,10 @@ impl<'a> Writer<'a> {
                 self.write_soft_clip(bases)?;
             }
             Feature::Padding { len, .. } => {
-                self.write_padding(*len)?;
+                self.write_padding_length(*len)?;
             }
             Feature::HardClip { len, .. } => {
-                self.write_hard_clip(*len)?;
+                self.write_hard_clip_length(*len)?;
             }
         }
 
@@ -503,7 +503,7 @@ impl<'a> Writer<'a> {
             .encode(self.core_data_writer, self.external_data_writers, code)
     }
 
-    fn write_feature_position(&mut self, position: usize) -> io::Result<()> {
+    fn write_feature_position_delta(&mut self, position: usize) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encodings()
@@ -587,7 +587,7 @@ impl<'a> Writer<'a> {
         encoding.encode(self.core_data_writer, self.external_data_writers, code)
     }
 
-    fn write_insertion(&mut self, bases: &[u8]) -> io::Result<()> {
+    fn write_insertion_bases(&mut self, bases: &[u8]) -> io::Result<()> {
         self.compression_header
             .data_series_encodings()
             .insertion_bases()
@@ -627,7 +627,7 @@ impl<'a> Writer<'a> {
             .encode(self.core_data_writer, self.external_data_writers, bases)
     }
 
-    fn write_padding(&mut self, len: usize) -> io::Result<()> {
+    fn write_padding_length(&mut self, len: usize) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encodings()
@@ -639,7 +639,7 @@ impl<'a> Writer<'a> {
         encoding.encode(self.core_data_writer, self.external_data_writers, n)
     }
 
-    fn write_hard_clip(&mut self, len: usize) -> io::Result<()> {
+    fn write_hard_clip_length(&mut self, len: usize) -> io::Result<()> {
         let encoding = self
             .compression_header
             .data_series_encodings()
