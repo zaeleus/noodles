@@ -8,40 +8,40 @@ pub(crate) use {key::Key, substitution_matrix::SubstitutionMatrix, tag_sets::Tag
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PreservationMap {
-    pub(crate) read_names_included: bool,
-    pub(crate) ap_data_series_delta: bool,
-    pub(crate) is_reference_required: bool,
+    pub(crate) records_have_names: bool,
+    pub(crate) alignment_starts_are_deltas: bool,
+    pub(crate) external_reference_sequence_is_required: bool,
     pub(crate) substitution_matrix: SubstitutionMatrix,
     pub(crate) tag_sets: TagSets,
 }
 
 impl PreservationMap {
     pub fn new(
-        read_names_included: bool,
-        ap_data_series_delta: bool,
-        is_reference_required: bool,
+        records_have_names: bool,
+        alignment_starts_are_deltas: bool,
+        external_reference_sequence_is_required: bool,
         substitution_matrix: SubstitutionMatrix,
         tag_sets: TagSets,
     ) -> Self {
         Self {
-            read_names_included,
-            ap_data_series_delta,
-            is_reference_required,
+            records_have_names,
+            alignment_starts_are_deltas,
+            external_reference_sequence_is_required,
             substitution_matrix,
             tag_sets,
         }
     }
 
-    pub fn read_names_included(&self) -> bool {
-        self.read_names_included
+    pub fn records_have_names(&self) -> bool {
+        self.records_have_names
     }
 
-    pub fn ap_data_series_delta(&self) -> bool {
-        self.ap_data_series_delta
+    pub fn alignment_starts_are_deltas(&self) -> bool {
+        self.alignment_starts_are_deltas
     }
 
-    pub fn is_reference_required(&self) -> bool {
-        self.is_reference_required
+    pub fn external_reference_sequence_is_required(&self) -> bool {
+        self.external_reference_sequence_is_required
     }
 
     pub fn substitution_matrix(&self) -> &SubstitutionMatrix {
@@ -56,9 +56,9 @@ impl PreservationMap {
 impl Default for PreservationMap {
     fn default() -> Self {
         Self {
-            read_names_included: true,
-            ap_data_series_delta: true,
-            is_reference_required: true,
+            records_have_names: true,
+            alignment_starts_are_deltas: true,
+            external_reference_sequence_is_required: true,
             substitution_matrix: SubstitutionMatrix::default(),
             tag_sets: TagSets::default(),
         }

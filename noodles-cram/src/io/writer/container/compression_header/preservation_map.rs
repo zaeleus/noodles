@@ -44,13 +44,16 @@ where
     write_itf8(writer, MAP_LENGTH)?;
 
     write_key(writer, Key::ReadNamesIncluded)?;
-    write_bool(writer, preservation_map.read_names_included())?;
+    write_bool(writer, preservation_map.records_have_names())?;
 
     write_key(writer, Key::ApDataSeriesDelta)?;
-    write_bool(writer, preservation_map.ap_data_series_delta())?;
+    write_bool(writer, preservation_map.alignment_starts_are_deltas())?;
 
     write_key(writer, Key::ReferenceRequired)?;
-    write_bool(writer, preservation_map.is_reference_required())?;
+    write_bool(
+        writer,
+        preservation_map.external_reference_sequence_is_required(),
+    )?;
 
     write_key(writer, Key::SubstitutionMatrix)?;
     write_substitution_matrix(writer, preservation_map.substitution_matrix())?;
@@ -123,9 +126,9 @@ pub(super) fn build_preservation_map(options: &Options, records: &[Record]) -> P
     // § 8.4 Compression header block (2020-06-22): "The boolean values are optional, defaulting to
     // true when absent, although it is recommended to explicitly set them."
     PreservationMap {
-        read_names_included: options.preserve_read_names,
-        ap_data_series_delta: options.encode_alignment_start_positions_as_deltas,
-        is_reference_required: true,
+        records_have_names: options.preserve_read_names,
+        alignment_starts_are_deltas: options.encode_alignment_start_positions_as_deltas,
+        external_reference_sequence_is_required: true,
         substitution_matrix: build_substitution_matrix(records),
         tag_sets: build_tag_sets(records),
     }

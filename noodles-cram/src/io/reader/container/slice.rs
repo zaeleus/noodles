@@ -335,14 +335,14 @@ fn get_slice_reference_sequence(
         return Ok(None);
     };
 
-    let is_reference_required = compression_header
+    let external_reference_sequence_is_required = compression_header
         .preservation_map()
-        .is_reference_required();
+        .external_reference_sequence_is_required();
 
     let embedded_reference_bases_block_content_id =
         slice_header.embedded_reference_bases_block_content_id();
 
-    if is_reference_required {
+    if external_reference_sequence_is_required {
         let reference_sequence_name = header
             .reference_sequences()
             .get_index(context.reference_sequence_id())

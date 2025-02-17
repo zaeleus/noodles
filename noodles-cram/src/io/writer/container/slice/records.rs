@@ -162,7 +162,7 @@ impl<'a> Writer<'a> {
         let alignment_starts_are_deltas = self
             .compression_header
             .preservation_map()
-            .ap_data_series_delta();
+            .alignment_starts_are_deltas();
 
         let alignment_start_or_delta = if alignment_starts_are_deltas {
             let start = alignment_start
@@ -214,7 +214,7 @@ impl<'a> Writer<'a> {
     fn write_names(&mut self, record: &Record) -> io::Result<()> {
         let preservation_map = self.compression_header.preservation_map();
 
-        if preservation_map.read_names_included() {
+        if preservation_map.records_have_names() {
             let name = record.name.as_ref().map(|s| s.as_ref());
             self.write_name(name)?;
         }
@@ -240,7 +240,7 @@ impl<'a> Writer<'a> {
 
             let preservation_map = self.compression_header.preservation_map();
 
-            if !preservation_map.read_names_included() {
+            if !preservation_map.records_have_names() {
                 let name = record.name.as_ref().map(|s| s.as_ref());
                 self.write_name(name)?;
             }

@@ -160,10 +160,10 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
     }
 
     fn read_alignment_start(&mut self) -> io::Result<Option<Position>> {
-        let ap_data_series_delta = self
+        let alignment_starts_are_deltas = self
             .compression_header
             .preservation_map()
-            .ap_data_series_delta();
+            .alignment_starts_are_deltas();
 
         let alignment_start_or_delta = self
             .compression_header
@@ -172,7 +172,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .ok_or_else(|| missing_data_series_encoding_error(DataSeries::AlignmentStarts))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
-        let alignment_start = if ap_data_series_delta {
+        let alignment_start = if alignment_starts_are_deltas {
             let prev_alignment_start = i32::try_from(
                 self.prev_alignment_start
                     .map(usize::from)
@@ -211,7 +211,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         let preservation_map = self.compression_header.preservation_map();
 
         // Missing read names are generated when resolving mates.
-        if preservation_map.read_names_included() {
+        if preservation_map.records_have_names() {
             record.name = self.read_name()?;
         }
 
@@ -246,7 +246,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
 
             let preservation_map = self.compression_header.preservation_map();
 
-            if !preservation_map.read_names_included() {
+            if !preservation_map.records_have_names() {
                 record.name = self.read_name()?;
             }
 
