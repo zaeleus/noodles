@@ -1,18 +1,11 @@
 use std::{error, fmt};
 
-/// A substitution base.
-#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Base {
-    /// Adenine.
     A,
-    /// Cytosine.
     C,
-    /// Guanine.
     G,
-    /// Thymine.
     T,
-    /// Any base.
-    #[default]
     N,
 }
 
@@ -57,11 +50,6 @@ impl From<Base> for u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_default() {
-        assert_eq!(Base::default(), Base::N);
-    }
 
     #[test]
     fn test_try_from_u8_for_base() {
