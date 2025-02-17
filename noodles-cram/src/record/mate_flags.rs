@@ -11,25 +11,11 @@ bitflags::bitflags! {
 
 impl MateFlags {
     /// Returns whether the `ON_NEGATIVE_STRAND` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram::record::MateFlags;
-    /// assert!(MateFlags::ON_NEGATIVE_STRAND.is_on_negative_strand());
-    /// ```
     pub fn is_on_negative_strand(self) -> bool {
         self.contains(Self::ON_NEGATIVE_STRAND)
     }
 
     /// Returns whether the `IS_UNMAPPED` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram::record::MateFlags;
-    /// assert!(MateFlags::UNMAPPED.is_unmapped());
-    /// ```
     pub fn is_unmapped(self) -> bool {
         self.contains(Self::UNMAPPED)
     }
