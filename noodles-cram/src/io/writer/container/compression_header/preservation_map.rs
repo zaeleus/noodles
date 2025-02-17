@@ -6,14 +6,11 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use self::{
-    substitution_matrix::build_substitution_matrix,
+    substitution_matrix::{build_substitution_matrix, write_substitution_matrix},
     tag_sets::{build_tag_sets, write_tag_sets},
 };
 use crate::{
-    container::compression_header::{
-        preservation_map::{Key, SubstitutionMatrix},
-        PreservationMap,
-    },
+    container::compression_header::{preservation_map::Key, PreservationMap},
     io::writer::{collections::write_array, num::write_itf8, Options, Record},
 };
 
@@ -83,17 +80,6 @@ where
     } else {
         writer.write_u8(FALSE)
     }
-}
-
-fn write_substitution_matrix<W>(
-    writer: &mut W,
-    substitution_matrix: &SubstitutionMatrix,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    let buf = <[u8; 5]>::from(substitution_matrix);
-    writer.write_all(&buf)
 }
 
 pub(super) fn build_preservation_map(options: &Options, records: &[Record]) -> PreservationMap {
