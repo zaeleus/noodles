@@ -127,32 +127,28 @@ impl<'a> Writer<'a> {
     ) -> io::Result<()> {
         const UNMAPPED: i32 = -1;
 
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .reference_sequence_ids()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReferenceSequenceIds))?;
-
         let n = if let Some(id) = reference_sequence_id {
             i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
         } else {
             UNMAPPED
         };
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, n)
+        self.compression_header
+            .data_series_encodings()
+            .reference_sequence_ids()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReferenceSequenceIds))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_read_length(&mut self, read_length: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .read_lengths()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReadLengths))?;
-
-        let len = i32::try_from(read_length)
+        let n = i32::try_from(read_length)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, len)
+        self.compression_header
+            .data_series_encodings()
+            .read_lengths()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReadLengths))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_alignment_start(&mut self, alignment_start: Option<Position>) -> io::Result<()> {
@@ -163,18 +159,12 @@ impl<'a> Writer<'a> {
                 .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
         }
 
-        let ap_data_series_delta = self
+        let alignment_starts_are_deltas = self
             .compression_header
             .preservation_map()
             .ap_data_series_delta();
 
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .alignment_starts()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::AlignmentStarts))?;
-
-        let alignment_start_or_delta = if ap_data_series_delta {
+        let alignment_start_or_delta = if alignment_starts_are_deltas {
             let start = alignment_start
                 .map(position_to_i32)
                 .transpose()?
@@ -193,22 +183,20 @@ impl<'a> Writer<'a> {
             MISSING
         };
 
-        encoding.encode(
-            self.core_data_writer,
-            self.external_data_writers,
-            alignment_start_or_delta,
-        )
+        self.compression_header
+            .data_series_encodings()
+            .alignment_starts()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::AlignmentStarts))?
+            .encode(
+                self.core_data_writer,
+                self.external_data_writers,
+                alignment_start_or_delta,
+            )
     }
 
     fn write_read_group_id(&mut self, read_group_id: Option<usize>) -> io::Result<()> {
         // § 10.2 "CRAM positional data" (2021-10-15): "-1 for no group".
         const MISSING: i32 = -1;
-
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .read_group_ids()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReadGroupIds))?;
 
         let n = if let Some(id) = read_group_id {
             i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
@@ -216,7 +204,11 @@ impl<'a> Writer<'a> {
             MISSING
         };
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, n)
+        self.compression_header
+            .data_series_encodings()
+            .read_group_ids()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReadGroupIds))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_names(&mut self, record: &Record) -> io::Result<()> {
@@ -233,7 +225,7 @@ impl<'a> Writer<'a> {
     fn write_name(&mut self, name: Option<&BStr>) -> io::Result<()> {
         const MISSING: &[u8] = &[b'*', 0x00];
 
-        let buf = name.map(|name| name.as_ref()).unwrap_or(MISSING);
+        let buf = name.map(|s| s.as_ref()).unwrap_or(MISSING);
 
         self.compression_header
             .data_series_encodings()
@@ -254,7 +246,6 @@ impl<'a> Writer<'a> {
             }
 
             self.write_mate_reference_sequence_id(record.mate_reference_sequence_id)?;
-
             self.write_mate_alignment_start(record.mate_alignment_start)?;
             self.write_template_length(record.template_length)?;
         } else if let Some(mate_distance) = record.mate_distance {
@@ -264,66 +255,55 @@ impl<'a> Writer<'a> {
         Ok(())
     }
 
-    fn write_mate_flags(&mut self, next_mate_flags: MateFlags) -> io::Result<()> {
-        let next_mate_bit_flags = i32::from(u8::from(next_mate_flags));
+    fn write_mate_flags(&mut self, mate_flags: MateFlags) -> io::Result<()> {
+        let n = i32::from(u8::from(mate_flags));
 
         self.compression_header
             .data_series_encodings()
             .mate_flags()
             .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateFlags))?
-            .encode(
-                self.core_data_writer,
-                self.external_data_writers,
-                next_mate_bit_flags,
-            )
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_mate_reference_sequence_id(
         &mut self,
-        next_fragment_reference_sequence_id: Option<usize>,
+        mate_reference_sequence_id: Option<usize>,
     ) -> io::Result<()> {
         const UNMAPPED: i32 = -1;
 
-        let encoding = self
-            .compression_header
+        let n = if let Some(id) = mate_reference_sequence_id {
+            i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        } else {
+            UNMAPPED
+        };
+
+        self.compression_header
             .data_series_encodings()
             .mate_reference_sequence_ids()
             .ok_or_else(|| {
                 missing_data_series_encoding_error(DataSeries::MateReferenceSequenceIds)
-            })?;
-
-        let raw_next_fragment_reference_sequence_id =
-            if let Some(id) = next_fragment_reference_sequence_id {
-                i32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
-            } else {
-                UNMAPPED
-            };
-
-        encoding.encode(
-            self.core_data_writer,
-            self.external_data_writers,
-            raw_next_fragment_reference_sequence_id,
-        )
+            })?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_mate_alignment_start(
         &mut self,
-        next_mate_alignment_start: Option<Position>,
+        mate_alignment_start: Option<Position>,
     ) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+        const MISSING: i32 = 0;
+
+        let n = if let Some(position) = mate_alignment_start {
+            i32::try_from(usize::from(position))
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?
+        } else {
+            MISSING
+        };
+
+        self.compression_header
             .data_series_encodings()
             .mate_alignment_starts()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateAlignmentStarts))?;
-
-        let position = i32::try_from(
-            next_mate_alignment_start
-                .map(usize::from)
-                .unwrap_or_default(),
-        )
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        encoding.encode(self.core_data_writer, self.external_data_writers, position)
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateAlignmentStarts))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_template_length(&mut self, template_length: i32) -> io::Result<()> {
@@ -339,16 +319,14 @@ impl<'a> Writer<'a> {
     }
 
     fn write_mate_distance(&mut self, mate_distance: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .mate_distances()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateDistances))?;
-
         let n = i32::try_from(mate_distance)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, n)
+        self.compression_header
+            .data_series_encodings()
+            .mate_distances()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MateDistances))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_data(&mut self, record: &Record) -> io::Result<()> {
@@ -394,9 +372,9 @@ impl<'a> Writer<'a> {
         Ok(())
     }
 
-    fn write_tag_set_id(&mut self, tag_line: usize) -> io::Result<()> {
-        let n =
-            i32::try_from(tag_line).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    fn write_tag_set_id(&mut self, tag_set_id: usize) -> io::Result<()> {
+        let n = i32::try_from(tag_set_id)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         self.compression_header
             .data_series_encodings()
@@ -426,20 +404,14 @@ impl<'a> Writer<'a> {
     }
 
     fn write_feature_count(&mut self, feature_count: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .feature_counts()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::FeatureCounts))?;
-
-        let number_of_read_features = i32::try_from(feature_count)
+        let n = i32::try_from(feature_count)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(
-            self.core_data_writer,
-            self.external_data_writers,
-            number_of_read_features,
-        )
+        self.compression_header
+            .data_series_encodings()
+            .feature_counts()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::FeatureCounts))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_feature(&mut self, feature: &Feature, position: usize) -> io::Result<()> {
@@ -447,11 +419,9 @@ impl<'a> Writer<'a> {
         self.write_feature_position_delta(position)?;
 
         match feature {
-            Feature::Bases { bases, .. } => {
-                self.write_stretches_of_bases(bases)?;
-            }
+            Feature::Bases { bases, .. } => self.write_stretches_of_bases(bases)?,
             Feature::Scores { quality_scores, .. } => {
-                self.write_stretches_of_quality_scores(quality_scores)?;
+                self.write_stretches_of_quality_scores(quality_scores)?
             }
             Feature::ReadBase {
                 base,
@@ -466,30 +436,16 @@ impl<'a> Writer<'a> {
                 read_base,
                 ..
             } => self.write_base_substitution_code(*reference_base, *read_base)?,
-            Feature::Insertion { bases, .. } => {
-                self.write_insertion_bases(bases)?;
-            }
-            Feature::Deletion { len, .. } => {
-                self.write_deletion_length(*len)?;
-            }
-            Feature::InsertBase { base, .. } => {
-                self.write_base(*base)?;
-            }
+            Feature::Insertion { bases, .. } => self.write_insertion_bases(bases)?,
+            Feature::Deletion { len, .. } => self.write_deletion_length(*len)?,
+            Feature::InsertBase { base, .. } => self.write_base(*base)?,
             Feature::QualityScore { quality_score, .. } => {
-                self.write_quality_score(*quality_score)?;
+                self.write_quality_score(*quality_score)?
             }
-            Feature::ReferenceSkip { len, .. } => {
-                self.write_reference_skip_length(*len)?;
-            }
-            Feature::SoftClip { bases, .. } => {
-                self.write_soft_clip(bases)?;
-            }
-            Feature::Padding { len, .. } => {
-                self.write_padding_length(*len)?;
-            }
-            Feature::HardClip { len, .. } => {
-                self.write_hard_clip_length(*len)?;
-            }
+            Feature::ReferenceSkip { len, .. } => self.write_reference_skip_length(*len)?,
+            Feature::SoftClip { bases, .. } => self.write_soft_clip(bases)?,
+            Feature::Padding { len, .. } => self.write_padding_length(*len)?,
+            Feature::HardClip { len, .. } => self.write_hard_clip_length(*len)?,
         }
 
         Ok(())
@@ -503,17 +459,14 @@ impl<'a> Writer<'a> {
             .encode(self.core_data_writer, self.external_data_writers, code)
     }
 
-    fn write_feature_position_delta(&mut self, position: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
+    fn write_feature_position_delta(&mut self, delta: usize) -> io::Result<()> {
+        let n = i32::try_from(delta).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        self.compression_header
             .data_series_encodings()
             .feature_position_deltas()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::FeaturePositionDeltas))?;
-
-        let position =
-            i32::try_from(position).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        encoding.encode(self.core_data_writer, self.external_data_writers, position)
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::FeaturePositionDeltas))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_stretches_of_bases(&mut self, bases: &[u8]) -> io::Result<()> {
@@ -596,27 +549,23 @@ impl<'a> Writer<'a> {
     }
 
     fn write_deletion_length(&mut self, len: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .deletion_lengths()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::DeletionLengths))?;
-
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, n)
+        self.compression_header
+            .data_series_encodings()
+            .deletion_lengths()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::DeletionLengths))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_reference_skip_length(&mut self, len: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .reference_skip_lengths()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReferenceSkipLengths))?;
-
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, n)
+        self.compression_header
+            .data_series_encodings()
+            .reference_skip_lengths()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::ReferenceSkipLengths))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_soft_clip(&mut self, bases: &[u8]) -> io::Result<()> {
@@ -628,27 +577,23 @@ impl<'a> Writer<'a> {
     }
 
     fn write_padding_length(&mut self, len: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .padding_lengths()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::PaddingLengths))?;
-
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, n)
+        self.compression_header
+            .data_series_encodings()
+            .padding_lengths()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::PaddingLengths))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_hard_clip_length(&mut self, len: usize) -> io::Result<()> {
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .hard_clip_lengths()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::HardClipLengths))?;
-
         let n = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        encoding.encode(self.core_data_writer, self.external_data_writers, n)
+        self.compression_header
+            .data_series_encodings()
+            .hard_clip_lengths()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::HardClipLengths))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_mapping_quality(
@@ -657,14 +602,13 @@ impl<'a> Writer<'a> {
     ) -> io::Result<()> {
         const MISSING: u8 = 0xff;
 
-        let encoding = self
-            .compression_header
+        let n = i32::from(mapping_quality.map(u8::from).unwrap_or(MISSING));
+
+        self.compression_header
             .data_series_encodings()
             .mapping_qualities()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MappingQualities))?;
-
-        let n = i32::from(mapping_quality.map(u8::from).unwrap_or(MISSING));
-        encoding.encode(self.core_data_writer, self.external_data_writers, n)
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::MappingQualities))?
+            .encode(self.core_data_writer, self.external_data_writers, n)
     }
 
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
