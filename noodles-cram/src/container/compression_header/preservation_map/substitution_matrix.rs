@@ -1,6 +1,8 @@
+mod base;
+
 use std::{error, fmt};
 
-use crate::record::feature::substitution::Base;
+pub use self::base::Base;
 
 type Substitutions = [[Base; 4]; 5];
 

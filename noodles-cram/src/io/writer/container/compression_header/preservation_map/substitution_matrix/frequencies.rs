@@ -61,11 +61,11 @@ impl From<u8> for Base {
 
 impl From<Frequencies> for SubstitutionMatrix {
     fn from(frequencies: Frequencies) -> Self {
-        use crate::record::feature::substitution;
+        use crate::container::compression_header::preservation_map::substitution_matrix;
 
         const BASES: [u8; 5] = [b'A', b'C', b'G', b'T', b'N'];
 
-        let mut substitution_matrix = [[substitution::Base::N; 4]; 5];
+        let mut substitution_matrix = [[substitution_matrix::Base::N; 4]; 5];
 
         for reference_base in BASES {
             let mut base_frequencies: Vec<_> = BASES
@@ -84,7 +84,8 @@ impl From<Frequencies> for SubstitutionMatrix {
             for (code, (read_base, _)) in base_frequencies.into_iter().enumerate() {
                 let i = usize::from(encode(reference_base));
                 // FIXME
-                substitution_matrix[i][code] = substitution::Base::try_from(read_base).unwrap();
+                substitution_matrix[i][code] =
+                    substitution_matrix::Base::try_from(read_base).unwrap();
             }
         }
 
@@ -133,7 +134,7 @@ mod tests {
 
     #[test]
     fn test_from_frequencies_for_substitution_matrix() {
-        use crate::record::feature::substitution::Base;
+        use crate::container::compression_header::preservation_map::substitution_matrix::Base;
 
         let frequencies = Frequencies([
             [0, 3, 8, 5, 0],

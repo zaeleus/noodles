@@ -516,7 +516,7 @@ impl<'a> Writer<'a> {
         reference_base: u8,
         read_base: u8,
     ) -> io::Result<()> {
-        use crate::record::feature::substitution::Base;
+        use crate::container::compression_header::preservation_map::substitution_matrix::Base;
 
         let encoding = self
             .compression_header

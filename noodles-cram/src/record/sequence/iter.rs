@@ -4,8 +4,10 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 
 use crate::{
-    container::compression_header::preservation_map::SubstitutionMatrix,
-    record::{feature::substitution::Base, Feature},
+    container::compression_header::preservation_map::{
+        substitution_matrix::Base, SubstitutionMatrix,
+    },
+    record::Feature,
 };
 
 pub(super) struct Iter<'r, 'c: 'r> {

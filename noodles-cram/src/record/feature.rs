@@ -1,7 +1,6 @@
 //! CRAM record feature.
 
 pub mod code;
-pub mod substitution;
 
 pub use self::code::Code;
 
