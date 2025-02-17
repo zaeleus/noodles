@@ -21,8 +21,9 @@ use noodles_sam::{
     },
 };
 
+pub(crate) use self::flags::Flags;
 use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
-pub use self::{feature::Feature, flags::Flags, mate_flags::MateFlags};
+pub use self::{feature::Feature, mate_flags::MateFlags};
 use crate::{
     container::compression_header::preservation_map::SubstitutionMatrix,
     io::reader::container::slice::ReferenceSequence,

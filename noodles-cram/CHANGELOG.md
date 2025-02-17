@@ -48,6 +48,10 @@
     necessary, i.e., the sequence is for a mapped record or the quality scores
     are stored as an array.
 
+  * cram/record: Reduce the visibility of `Flags`.
+
+    The CRAM flags field is no longer accessible.
+
 ### Deprecated
 
   * cram: Deprecate `cram::data_container`, `cram::DataContainer`, and

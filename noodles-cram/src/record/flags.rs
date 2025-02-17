@@ -16,51 +16,21 @@ bitflags::bitflags! {
 
 impl Flags {
     /// Returns whether the `QUALITY_SCORES_STORED_AS_ARRAY` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram::record::Flags;
-    /// let flags = Flags::QUALITY_SCORES_STORED_AS_ARRAY;
-    /// assert!(flags.are_quality_scores_stored_as_array());
-    /// ```
     pub fn are_quality_scores_stored_as_array(self) -> bool {
         self.contains(Self::QUALITY_SCORES_STORED_AS_ARRAY)
     }
 
     /// Returns whether the `DETACHED` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram::record::Flags;
-    /// assert!(Flags::DETACHED.is_detached());
-    /// ```
     pub fn is_detached(self) -> bool {
         self.contains(Self::DETACHED)
     }
 
     /// Returns whether the `HAS_MATE_DOWNSTREAM` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram::record::Flags;
-    /// assert!(Flags::HAS_MATE_DOWNSTREAM.has_mate_downstream());
-    /// ```
     pub fn has_mate_downstream(self) -> bool {
         self.contains(Self::HAS_MATE_DOWNSTREAM)
     }
 
     /// Returns whether the `DECODE_SEQUENCE_AS_UNKNOWN` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_cram::record::Flags;
-    /// let flags = Flags::DECODE_SEQUENCE_AS_UNKNOWN;
-    /// assert!(flags.decode_sequence_as_unknown());
-    /// ```
     pub fn decode_sequence_as_unknown(self) -> bool {
         self.contains(Self::DECODE_SEQUENCE_AS_UNKNOWN)
     }
