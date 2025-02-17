@@ -424,7 +424,7 @@ mod tests {
         let mut records = vec![
             Record {
                 id: 1,
-                cram_flags: Flags::HAS_MATE_DOWNSTREAM,
+                cram_flags: Flags::MATE_IS_DOWNSTREAM,
                 reference_sequence_id: Some(2),
                 read_length: 4,
                 alignment_start: Position::new(5),
@@ -433,7 +433,7 @@ mod tests {
             },
             Record {
                 id: 2,
-                cram_flags: Flags::HAS_MATE_DOWNSTREAM,
+                cram_flags: Flags::MATE_IS_DOWNSTREAM,
                 reference_sequence_id: Some(2),
                 read_length: 4,
                 alignment_start: Position::new(8),

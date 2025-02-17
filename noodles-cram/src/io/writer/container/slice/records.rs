@@ -418,7 +418,7 @@ impl<'a> Writer<'a> {
 
         self.write_mapping_quality(record.mapping_quality)?;
 
-        if record.cram_flags.are_quality_scores_stored_as_array() {
+        if record.cram_flags.quality_scores_are_stored_as_array() {
             self.write_quality_scores(&record.quality_scores)?;
         }
 
@@ -670,7 +670,7 @@ impl<'a> Writer<'a> {
     fn write_unmapped_read(&mut self, record: &Record) -> io::Result<()> {
         self.write_sequence(&record.sequence)?;
 
-        if record.cram_flags.are_quality_scores_stored_as_array() {
+        if record.cram_flags.quality_scores_are_stored_as_array() {
             self.write_quality_scores(&record.quality_scores)?;
         }
 

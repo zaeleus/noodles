@@ -254,7 +254,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
 
             record.mate_alignment_start = self.read_mate_alignment_start()?;
             record.template_length = self.read_template_length()?;
-        } else if record.cram_flags.has_mate_downstream() {
+        } else if record.cram_flags.mate_is_downstream() {
             record.mate_distance = self.read_mate_distance().map(Some)?;
         }
 
@@ -385,7 +385,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
 
         record.mapping_quality = self.read_mapping_quality()?;
 
-        if record.cram_flags.are_quality_scores_stored_as_array() {
+        if record.cram_flags.quality_scores_are_stored_as_array() {
             record.quality_scores = self.read_quality_scores(record.read_length)?;
         }
 
@@ -620,7 +620,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
     fn read_unmapped_read(&mut self, record: &mut Record<'c>) -> io::Result<()> {
         record.sequence = self.read_sequence(record.read_length)?;
 
-        if record.cram_flags.are_quality_scores_stored_as_array() {
+        if record.cram_flags.quality_scores_are_stored_as_array() {
             record.quality_scores = self.read_quality_scores(record.read_length)?;
         }
 

@@ -27,7 +27,7 @@ impl Record {
             QualityScores::default()
         } else {
             if bam_flags.is_unmapped() {
-                cram_flags.insert(Flags::QUALITY_SCORES_STORED_AS_ARRAY);
+                cram_flags.insert(Flags::QUALITY_SCORES_ARE_STORED_AS_ARRAY);
             }
 
             QualityScores::from(
@@ -114,7 +114,7 @@ fn cigar_to_features(
                     let bases = sequence[position..end].to_vec();
                     features.push(Feature::Bases { position, bases });
 
-                    if !flags.are_quality_scores_stored_as_array() {
+                    if !flags.quality_scores_are_stored_as_array() {
                         let quality_scores = quality_scores[position..end].to_vec();
 
                         features.push(Feature::Scores {
@@ -129,7 +129,7 @@ fn cigar_to_features(
                     let base = sequence[position];
                     features.push(Feature::InsertBase { position, base });
 
-                    if !flags.are_quality_scores_stored_as_array() {
+                    if !flags.quality_scores_are_stored_as_array() {
                         let quality_score = quality_scores[position];
 
                         features.push(Feature::QualityScore {
@@ -145,7 +145,7 @@ fn cigar_to_features(
                     let bases = sequence[position..end].to_vec();
                     features.push(Feature::Insertion { position, bases });
 
-                    if !flags.are_quality_scores_stored_as_array() {
+                    if !flags.quality_scores_are_stored_as_array() {
                         let quality_scores = quality_scores[position..end].to_vec();
 
                         features.push(Feature::Scores {
@@ -175,7 +175,7 @@ fn cigar_to_features(
                     bases: bases.to_vec(),
                 });
 
-                if !flags.are_quality_scores_stored_as_array() {
+                if !flags.quality_scores_are_stored_as_array() {
                     if bases.len() == 1 {
                         let quality_score = quality_scores[position];
 
@@ -457,7 +457,7 @@ mod tests {
     #[test]
     fn test_cigar_to_features_with_quality_scores_stored_as_array(
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let flags = Flags::QUALITY_SCORES_STORED_AS_ARRAY;
+        let flags = Flags::QUALITY_SCORES_ARE_STORED_AS_ARRAY;
 
         let cigar: Cigar = [Op::new(Kind::Match, 1)].into_iter().collect();
         let sequence = Sequence::from(b"A");

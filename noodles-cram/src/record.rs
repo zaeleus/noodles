@@ -175,7 +175,7 @@ impl sam::alignment::Record for Record<'_> {
     }
 
     fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
-        if self.bam_flags.is_unmapped() || self.cram_flags.are_quality_scores_stored_as_array() {
+        if self.bam_flags.is_unmapped() || self.cram_flags.quality_scores_are_stored_as_array() {
             Box::new(Scores(self.quality_scores))
         } else {
             Box::new(QualityScores::new(&self.features, self.read_length))

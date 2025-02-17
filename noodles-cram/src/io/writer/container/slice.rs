@@ -142,12 +142,12 @@ fn set_mates(records: &mut [Record]) {
 
 fn set_downstream_mate(i: usize, record: &mut Record, j: usize, mate: &mut Record) {
     record.mate_distance = Some(j - i - 1);
-    record.cram_flags.insert(Flags::HAS_MATE_DOWNSTREAM);
-    mate.cram_flags.remove(Flags::DETACHED);
+    record.cram_flags.insert(Flags::MATE_IS_DOWNSTREAM);
+    mate.cram_flags.remove(Flags::IS_DETACHED);
 }
 
 fn set_detached(record: &mut Record) {
-    record.cram_flags.insert(Flags::DETACHED);
+    record.cram_flags.insert(Flags::IS_DETACHED);
 }
 
 #[allow(clippy::type_complexity)]
@@ -209,7 +209,7 @@ fn build_blocks(
 
     for record in records.iter() {
         all_quality_scores_stored_as_arrays = all_quality_scores_stored_as_arrays
-            && record.cram_flags.are_quality_scores_stored_as_array();
+            && record.cram_flags.quality_scores_are_stored_as_array();
     }
 
     let external_data_blocks = external_data_bufs
