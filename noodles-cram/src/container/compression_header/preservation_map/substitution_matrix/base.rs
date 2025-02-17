@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::io;
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Base {
@@ -9,28 +9,20 @@ pub enum Base {
     N,
 }
 
-#[derive(Debug, Eq, PartialEq)]
-pub struct TryFromError;
-
-impl fmt::Display for TryFromError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid substitution matrix base")
-    }
-}
-
-impl error::Error for TryFromError {}
-
 impl TryFrom<u8> for Base {
-    type Error = TryFromError;
+    type Error = io::Error;
 
     fn try_from(n: u8) -> Result<Self, Self::Error> {
-        match n {
+        match n.to_ascii_uppercase() {
             b'A' => Ok(Self::A),
             b'C' => Ok(Self::C),
             b'G' => Ok(Self::G),
             b'T' => Ok(Self::T),
             b'N' => Ok(Self::N),
-            _ => Err(TryFromError),
+            _ => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid substitution base",
+            )),
         }
     }
 }
@@ -52,13 +44,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_u8_for_base() {
-        assert_eq!(Base::try_from(b'A'), Ok(Base::A));
-        assert_eq!(Base::try_from(b'C'), Ok(Base::C));
-        assert_eq!(Base::try_from(b'G'), Ok(Base::G));
-        assert_eq!(Base::try_from(b'T'), Ok(Base::T));
-        assert_eq!(Base::try_from(b'N'), Ok(Base::N));
-        assert_eq!(Base::try_from(b'U'), Err(TryFromError));
+    fn test_try_from_u8_for_base() -> io::Result<()> {
+        fn t(n: u8, expected: Base) -> io::Result<()> {
+            assert_eq!(Base::try_from(n)?, expected);
+            assert_eq!(Base::try_from(n.to_ascii_lowercase())?, expected);
+            Ok(())
+        }
+
+        t(b'A', Base::A)?;
+        t(b'C', Base::C)?;
+        t(b'G', Base::G)?;
+        t(b'T', Base::T)?;
+        t(b'N', Base::N)?;
+
+        assert!(matches!(
+            Base::try_from(b'U'),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
     }
 
     #[test]
