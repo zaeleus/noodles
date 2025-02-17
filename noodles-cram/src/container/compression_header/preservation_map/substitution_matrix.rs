@@ -1,14 +1,18 @@
 mod base;
 
-use std::{error, fmt};
-
 pub use self::base::Base;
 
-type Substitutions = [[Base; 4]; 5];
+pub const READ_BASES: [[Base; 4]; 5] = [
+    [Base::C, Base::G, Base::T, Base::N], // A
+    [Base::A, Base::G, Base::T, Base::N], // C
+    [Base::A, Base::C, Base::T, Base::N], // G
+    [Base::A, Base::C, Base::G, Base::N], // T
+    [Base::A, Base::C, Base::G, Base::T], // N
+];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubstitutionMatrix {
-    pub(crate) substitutions: Substitutions,
+    pub(crate) substitutions: [[Base; 4]; 5],
 }
 
 impl SubstitutionMatrix {
@@ -49,75 +53,6 @@ impl Default for SubstitutionMatrix {
             ],
         }
     }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TryFromByteArrayError([u8; 5]);
-
-impl fmt::Display for TryFromByteArrayError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "invalid substitution matrix: {:#x?}", self.0)
-    }
-}
-
-impl error::Error for TryFromByteArrayError {}
-
-impl TryFrom<[u8; 5]> for SubstitutionMatrix {
-    type Error = TryFromByteArrayError;
-
-    fn try_from(b: [u8; 5]) -> Result<Self, Self::Error> {
-        let mut matrix = Self::default();
-
-        set_substitutions(
-            Base::A,
-            b[0],
-            [Base::C, Base::G, Base::T, Base::N],
-            &mut matrix.substitutions,
-        );
-
-        set_substitutions(
-            Base::C,
-            b[1],
-            [Base::A, Base::G, Base::T, Base::N],
-            &mut matrix.substitutions,
-        );
-
-        set_substitutions(
-            Base::G,
-            b[2],
-            [Base::A, Base::C, Base::T, Base::N],
-            &mut matrix.substitutions,
-        );
-
-        set_substitutions(
-            Base::T,
-            b[3],
-            [Base::A, Base::C, Base::G, Base::N],
-            &mut matrix.substitutions,
-        );
-
-        set_substitutions(
-            Base::N,
-            b[4],
-            [Base::A, Base::C, Base::G, Base::T],
-            &mut matrix.substitutions,
-        );
-
-        Ok(matrix)
-    }
-}
-
-fn set_substitutions(
-    reference_base: Base,
-    codes: u8,
-    read_bases: [Base; 4],
-    substitutions: &mut Substitutions,
-) {
-    let s = &mut substitutions[reference_base as usize];
-    s[((codes >> 6) & 0x03) as usize] = read_bases[0];
-    s[((codes >> 4) & 0x03) as usize] = read_bases[1];
-    s[((codes >> 2) & 0x03) as usize] = read_bases[2];
-    s[((codes) & 0x03) as usize] = read_bases[3];
 }
 
 impl From<SubstitutionMatrix> for [u8; 5] {
@@ -168,25 +103,6 @@ mod tests {
         assert_eq!(matrix.find_code(Base::C, Base::G), 0b01);
         assert_eq!(matrix.find_code(Base::G, Base::C), 0b10);
         assert_eq!(matrix.find_code(Base::T, Base::C), 0b11);
-    }
-
-    #[test]
-    fn test_try_from_u8_slice() -> Result<(), TryFromByteArrayError> {
-        let codes = [0x93, 0x1b, 0x6c, 0xb1, 0xc6];
-        let matrix = SubstitutionMatrix::try_from(codes)?;
-
-        let actual = &matrix.substitutions;
-        let expected = &[
-            [Base::T, Base::G, Base::C, Base::N],
-            [Base::A, Base::G, Base::T, Base::N],
-            [Base::N, Base::A, Base::C, Base::T],
-            [Base::G, Base::N, Base::A, Base::C],
-            [Base::C, Base::G, Base::T, Base::A],
-        ];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
     }
 
     #[test]
