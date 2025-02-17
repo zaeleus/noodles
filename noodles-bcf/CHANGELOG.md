@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bcf/fs: Add indexer (`index`).
+
 ### Fixed
 
   * bcf/record/samples/series: Fix series length ([#328]).
