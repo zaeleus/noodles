@@ -52,6 +52,12 @@
 
     The associated fields are no longer accessible.
 
+  * cram/record/sequence/iter: Maintain reference base case when emitting
+    substitution base.
+
+    This previously emitted all substitution bases as uppercase. The case of
+    the reference base now determines the case of the substitution base.
+
 ### Deprecated
 
   * cram: Deprecate `cram::data_container`, `cram::DataContainer`, and

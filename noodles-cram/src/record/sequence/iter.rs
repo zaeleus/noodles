@@ -113,13 +113,20 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
                         Feature::ReadBase { base, .. } => State::Base(*base),
                         Feature::Substitution { code, .. } => {
                             if let Some(reference_sequence) = self.reference_sequence {
-                                let reference_base =
-                                    Base::try_from(reference_sequence[reference_position])
-                                        .expect("invalid reference base");
+                                let raw_reference_base = reference_sequence[reference_position];
+
+                                let reference_base = Base::try_from(raw_reference_base)
+                                    .expect("invalid reference base");
 
                                 let read_base = self.substitution_matrix.get(reference_base, *code);
 
-                                State::Base(u8::from(read_base))
+                                let raw_read_base = if raw_reference_base.is_ascii_lowercase() {
+                                    u8::from(read_base).to_ascii_lowercase()
+                                } else {
+                                    u8::from(read_base)
+                                };
+
+                                State::Base(raw_read_base)
                             } else {
                                 panic!("missing reference sequence (substitution)");
                             }
