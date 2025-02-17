@@ -7,7 +7,10 @@ use noodles_sam as sam;
 use crate::{
     container::{
         block,
-        compression_header::{data_series_encodings::DataSeries, preservation_map::tag_sets},
+        compression_header::{
+            data_series_encodings::DataSeries,
+            preservation_map::{substitution_matrix::Base, tag_sets},
+        },
         CompressionHeader, ReferenceSequenceContext,
     },
     io::{
@@ -513,31 +516,20 @@ impl<'a> Writer<'a> {
 
     fn write_base_substitution_code(
         &mut self,
-        reference_base: u8,
-        read_base: u8,
+        reference_base: Base,
+        read_base: Base,
     ) -> io::Result<()> {
-        use crate::container::compression_header::preservation_map::substitution_matrix::Base;
-
-        let encoding = self
-            .compression_header
-            .data_series_encodings()
-            .base_substitution_codes()
-            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::BaseSubstitutionCodes))?;
-
-        let substitution_matrix = self
+        let code = self
             .compression_header
             .preservation_map()
-            .substitution_matrix();
+            .substitution_matrix()
+            .find_code(reference_base, read_base);
 
-        let reference_base = Base::try_from(reference_base)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let read_base = Base::try_from(read_base)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        let code = substitution_matrix.find_code(reference_base, read_base);
-
-        encoding.encode(self.core_data_writer, self.external_data_writers, code)
+        self.compression_header
+            .data_series_encodings()
+            .base_substitution_codes()
+            .ok_or_else(|| missing_data_series_encoding_error(DataSeries::BaseSubstitutionCodes))?
+            .encode(self.core_data_writer, self.external_data_writers, code)
     }
 
     fn write_insertion_bases(&mut self, bases: &[u8]) -> io::Result<()> {

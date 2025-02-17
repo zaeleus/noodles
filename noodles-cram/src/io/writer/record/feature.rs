@@ -1,5 +1,7 @@
 use noodles_core::Position;
 
+use crate::container::compression_header::preservation_map::substitution_matrix::Base;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Feature {
     Bases {
@@ -18,8 +20,8 @@ pub enum Feature {
     #[allow(dead_code)]
     Substitution {
         position: Position,
-        reference_base: u8,
-        read_base: u8,
+        reference_base: Base,
+        read_base: Base,
     },
     Insertion {
         position: Position,

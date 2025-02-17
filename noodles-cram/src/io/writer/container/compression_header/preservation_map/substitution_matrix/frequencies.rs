@@ -1,6 +1,8 @@
 use std::cmp;
 
-use crate::container::compression_header::preservation_map::SubstitutionMatrix;
+use crate::container::compression_header::preservation_map::{
+    substitution_matrix::Base, SubstitutionMatrix,
+};
 
 /// A frequency table of reference-read base substitutions.
 ///
@@ -26,46 +28,23 @@ use crate::container::compression_header::preservation_map::SubstitutionMatrix;
 pub struct Frequencies([[u64; 5]; 5]);
 
 impl Frequencies {
-    pub fn hit(&mut self, reference_base: u8, read_base: u8) {
-        let i = usize::from(encode(reference_base));
-        let j = usize::from(encode(read_base));
+    pub fn hit(&mut self, reference_base: Base, read_base: Base) {
+        let i = reference_base as usize;
+        let j = read_base as usize;
         self.0[i][j] += 1;
     }
 
-    fn row(&self, reference_base: u8) -> &[u64] {
-        let i = usize::from(encode(reference_base));
+    fn row(&self, reference_base: Base) -> &[u64] {
+        let i = reference_base as usize;
         &self.0[i]
-    }
-}
-
-#[derive(Eq, Ord, PartialEq, PartialOrd)]
-enum Base {
-    A,
-    C,
-    G,
-    T,
-    N,
-}
-
-impl From<u8> for Base {
-    fn from(n: u8) -> Self {
-        match n {
-            b'A' => Self::A,
-            b'C' => Self::C,
-            b'G' => Self::G,
-            b'T' => Self::T,
-            _ => Self::N,
-        }
     }
 }
 
 impl From<Frequencies> for SubstitutionMatrix {
     fn from(frequencies: Frequencies) -> Self {
-        use crate::container::compression_header::preservation_map::substitution_matrix;
+        const BASES: [Base; 5] = [Base::A, Base::C, Base::G, Base::T, Base::N];
 
-        const BASES: [u8; 5] = [b'A', b'C', b'G', b'T', b'N'];
-
-        let mut substitution_matrix = [[substitution_matrix::Base::N; 4]; 5];
+        let mut substitution_matrix = [[Base::N; 4]; 5];
 
         for reference_base in BASES {
             let mut base_frequencies: Vec<_> = BASES
@@ -77,29 +56,16 @@ impl From<Frequencies> for SubstitutionMatrix {
             // § 10.6 "Mapped reads" (2021-10-15): "the substitutions for each reference base may
             // optionally be sorted by their frequencies, in descending order, with same-frequency
             // ties broken using the fixed order ACGTN."
-            base_frequencies.sort_by_key(|(read_base, frequency)| {
-                (cmp::Reverse(*frequency), Base::from(*read_base))
-            });
+            base_frequencies
+                .sort_by_key(|(read_base, frequency)| (cmp::Reverse(*frequency), *read_base));
 
             for (code, (read_base, _)) in base_frequencies.into_iter().enumerate() {
-                let i = usize::from(encode(reference_base));
-                // FIXME
-                substitution_matrix[i][code] =
-                    substitution_matrix::Base::try_from(read_base).unwrap();
+                let i = reference_base as usize;
+                substitution_matrix[i][code] = read_base;
             }
         }
 
         Self(substitution_matrix)
-    }
-}
-
-fn encode(base: u8) -> u8 {
-    match base {
-        b'A' => 0,
-        b'C' => 1,
-        b'G' => 2,
-        b'T' => 3,
-        _ => 4, // N
     }
 }
 
@@ -111,12 +77,12 @@ mod tests {
     fn test_hit() {
         let mut frequencies = Frequencies::default();
 
-        frequencies.hit(b'A', b'C');
-        frequencies.hit(b'G', b'T');
-        frequencies.hit(b'T', b'A');
+        frequencies.hit(Base::A, Base::C);
+        frequencies.hit(Base::G, Base::T);
+        frequencies.hit(Base::T, Base::A);
 
-        frequencies.hit(b'C', b'G');
-        frequencies.hit(b'C', b'G');
+        frequencies.hit(Base::C, Base::G);
+        frequencies.hit(Base::C, Base::G);
 
         assert_eq!(
             frequencies.0,
@@ -132,8 +98,6 @@ mod tests {
 
     #[test]
     fn test_from_frequencies_for_substitution_matrix() {
-        use crate::container::compression_header::preservation_map::substitution_matrix::Base;
-
         let frequencies = Frequencies([
             [0, 3, 8, 5, 0],
             [2, 0, 5, 5, 2],
