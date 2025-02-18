@@ -109,12 +109,14 @@ impl<'c> Slice<'c> {
         }
 
         let reference_sequence_context = self.header.reference_sequence_context();
+        let initial_id = self.header.record_counter();
 
         let mut reader = Records::new(
             compression_header,
             core_data_reader,
             external_data_readers,
             reference_sequence_context,
+            initial_id,
         );
 
         let slice_reference_sequence = get_slice_reference_sequence(
@@ -125,18 +127,11 @@ impl<'c> Slice<'c> {
             external_data_srcs,
         )?;
 
-        let record_count = self.header.record_count();
-
-        let mut records = vec![Record::default(); record_count];
-
-        let start_id = self.header.record_counter();
-        let end_id = start_id + (record_count as u64);
-        let ids = start_id..end_id;
-
         let substitution_matrix = compression_header.preservation_map().substitution_matrix();
 
-        for (id, record) in ids.zip(&mut records) {
-            record.id = id;
+        let mut records = vec![Record::default(); self.header.record_count()];
+
+        for record in &mut records {
             reader.read_record(record)?;
 
             record.header = Some(header);

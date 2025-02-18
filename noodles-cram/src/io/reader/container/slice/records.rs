@@ -47,6 +47,7 @@ pub struct Records<'c, 'ch: 'c> {
     core_data_reader: BitReader<'c>,
     external_data_readers: ExternalDataReaders<'c>,
     reference_sequence_context: ReferenceSequenceContext,
+    id: u64,
     prev_alignment_start: Option<Position>,
 }
 
@@ -56,6 +57,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         core_data_reader: BitReader<'c>,
         external_data_readers: ExternalDataReaders<'c>,
         reference_sequence_context: ReferenceSequenceContext,
+        initial_id: u64,
     ) -> Self {
         let initial_alignment_start = match reference_sequence_context {
             ReferenceSequenceContext::Some(context) => Some(context.alignment_start()),
@@ -67,11 +69,14 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             core_data_reader,
             external_data_readers,
             reference_sequence_context,
+            id: initial_id,
             prev_alignment_start: initial_alignment_start,
         }
     }
 
     pub fn read_record(&mut self, record: &mut Record<'c>) -> io::Result<()> {
+        record.id = self.id;
+
         record.bam_flags = self.read_bam_flags()?;
         record.cram_flags = self.read_cram_flags()?;
 
@@ -87,6 +92,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             self.read_mapped_read(record)?;
         }
 
+        self.id += 1;
         self.prev_alignment_start = record.alignment_start;
 
         Ok(())
