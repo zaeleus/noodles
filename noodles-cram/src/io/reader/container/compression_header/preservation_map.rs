@@ -62,15 +62,18 @@ fn read_key(src: &mut &[u8]) -> io::Result<Key> {
 // § 2.3 "Writing bytes to a byte stream" (2024-09-04): "Boolean is written as 1-byte with 0x0
 // being 'false' and 0x1 being 'true'."
 fn read_bool(src: &mut &[u8]) -> io::Result<bool> {
+    const FALSE: u8 = 0x00;
+    const TRUE: u8 = 0x01;
+
     let (n, rest) = src
         .split_first()
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     *src = rest;
 
-    match n {
-        0 => Ok(false),
-        1 => Ok(true),
+    match *n {
+        FALSE => Ok(false),
+        TRUE => Ok(true),
         _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid bool")),
     }
 }
