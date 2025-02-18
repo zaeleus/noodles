@@ -244,23 +244,23 @@ fn calculate_template_length(record: &Record, mate: &Record) -> i32 {
 }
 
 fn set_mate_chunk(
-    record_bam_bit_flags: &mut sam::alignment::record::Flags,
-    record_next_fragment_reference_sequence_id: &mut Option<usize>,
-    record_next_mate_alignment_start: &mut Option<Position>,
-    mate_bam_bit_flags: sam::alignment::record::Flags,
+    record_bam_flags: &mut sam::alignment::record::Flags,
+    record_mate_reference_sequence_id: &mut Option<usize>,
+    record_mate_alignment_start: &mut Option<Position>,
+    mate_bam_flags: sam::alignment::record::Flags,
     mate_reference_sequence_id: Option<usize>,
     mate_alignment_start: Option<Position>,
 ) {
-    if mate_bam_bit_flags.is_reverse_complemented() {
-        *record_bam_bit_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
+    if mate_bam_flags.is_reverse_complemented() {
+        *record_bam_flags |= sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED;
     }
 
-    if mate_bam_bit_flags.is_unmapped() {
-        *record_bam_bit_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
+    if mate_bam_flags.is_unmapped() {
+        *record_bam_flags |= sam::alignment::record::Flags::MATE_UNMAPPED;
     }
 
-    *record_next_fragment_reference_sequence_id = mate_reference_sequence_id;
-    *record_next_mate_alignment_start = mate_alignment_start;
+    *record_mate_reference_sequence_id = mate_reference_sequence_id;
+    *record_mate_alignment_start = mate_alignment_start;
 }
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.4.9 "TLEN"
