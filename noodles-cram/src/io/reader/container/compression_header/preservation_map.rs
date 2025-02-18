@@ -15,9 +15,9 @@ pub(super) fn read_preservation_map(src: &mut &[u8]) -> io::Result<PreservationM
 }
 
 fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<PreservationMap> {
-    let mut read_names_included = true;
-    let mut ap_data_series_delta = true;
-    let mut reference_required = true;
+    let mut records_have_names = true;
+    let mut alignment_starts_are_deltas = true;
+    let mut external_reference_sequence_is_required = true;
     let mut substitution_matrix = None;
     let mut tag_sets = None;
 
@@ -25,9 +25,11 @@ fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<Preser
         let key = read_key(src)?;
 
         match key {
-            Key::ReadNamesIncluded => read_names_included = read_bool(src)?,
-            Key::ApDataSeriesDelta => ap_data_series_delta = read_bool(src)?,
-            Key::ReferenceRequired => reference_required = read_bool(src)?,
+            Key::RecordsHaveNames => records_have_names = read_bool(src)?,
+            Key::AlignmentStartsAreDeltas => alignment_starts_are_deltas = read_bool(src)?,
+            Key::ExternalReferenceSequenceIsRequired => {
+                external_reference_sequence_is_required = read_bool(src)?
+            }
             Key::SubstitutionMatrix => {
                 substitution_matrix = read_substitution_matrix(src).map(Some)?
             }
@@ -36,9 +38,9 @@ fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<Preser
     }
 
     Ok(PreservationMap::new(
-        read_names_included,
-        ap_data_series_delta,
-        reference_required,
+        records_have_names,
+        alignment_starts_are_deltas,
+        external_reference_sequence_is_required,
         substitution_matrix.ok_or_else(|| {
             io::Error::new(io::ErrorKind::InvalidData, "missing substitution matrix")
         })?,

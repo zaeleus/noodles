@@ -1,19 +1,11 @@
-//! Container compression header preservation map key.
-
 use std::{error, fmt};
 
-/// A container compression header preservation map key.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Key {
-    /// Read names are preserved for all records (`RN`).
-    ReadNamesIncluded,
-    /// AP data series is delta (`AP`).
-    ApDataSeriesDelta,
-    /// A reference sequence is required to restore data (`RR`).
-    ReferenceRequired,
-    /// Substitution matrix (`SM`).
+    RecordsHaveNames,
+    AlignmentStartsAreDeltas,
+    ExternalReferenceSequenceIsRequired,
     SubstitutionMatrix,
-    /// A list of tag sets (`TD`).
     TagSets,
 }
 
@@ -33,9 +25,9 @@ impl TryFrom<[u8; 2]> for Key {
 
     fn try_from(b: [u8; 2]) -> Result<Self, Self::Error> {
         match b {
-            [b'R', b'N'] => Ok(Self::ReadNamesIncluded),
-            [b'A', b'P'] => Ok(Self::ApDataSeriesDelta),
-            [b'R', b'R'] => Ok(Self::ReferenceRequired),
+            [b'R', b'N'] => Ok(Self::RecordsHaveNames),
+            [b'A', b'P'] => Ok(Self::AlignmentStartsAreDeltas),
+            [b'R', b'R'] => Ok(Self::ExternalReferenceSequenceIsRequired),
             [b'S', b'M'] => Ok(Self::SubstitutionMatrix),
             [b'T', b'D'] => Ok(Self::TagSets),
             _ => Err(TryFromByteArrayError(b)),
@@ -46,9 +38,9 @@ impl TryFrom<[u8; 2]> for Key {
 impl From<Key> for [u8; 2] {
     fn from(key: Key) -> Self {
         match key {
-            Key::ReadNamesIncluded => [b'R', b'N'],
-            Key::ApDataSeriesDelta => [b'A', b'P'],
-            Key::ReferenceRequired => [b'R', b'R'],
+            Key::RecordsHaveNames => [b'R', b'N'],
+            Key::AlignmentStartsAreDeltas => [b'A', b'P'],
+            Key::ExternalReferenceSequenceIsRequired => [b'R', b'R'],
             Key::SubstitutionMatrix => [b'S', b'M'],
             Key::TagSets => [b'T', b'D'],
         }
@@ -60,10 +52,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_try_from_byte_slice_for_key() {
-        assert_eq!(Key::try_from([b'R', b'N']), Ok(Key::ReadNamesIncluded));
-        assert_eq!(Key::try_from([b'A', b'P']), Ok(Key::ApDataSeriesDelta));
-        assert_eq!(Key::try_from([b'R', b'R']), Ok(Key::ReferenceRequired));
+    fn test_try_from_u8_array_for_key() {
+        assert_eq!(Key::try_from([b'R', b'N']), Ok(Key::RecordsHaveNames));
+        assert_eq!(
+            Key::try_from([b'A', b'P']),
+            Ok(Key::AlignmentStartsAreDeltas)
+        );
+        assert_eq!(
+            Key::try_from([b'R', b'R']),
+            Ok(Key::ExternalReferenceSequenceIsRequired)
+        );
         assert_eq!(Key::try_from([b'S', b'M']), Ok(Key::SubstitutionMatrix));
         assert_eq!(Key::try_from([b'T', b'D']), Ok(Key::TagSets));
 
@@ -75,9 +73,12 @@ mod tests {
 
     #[test]
     fn test_from_key_for_u8_array() {
-        assert_eq!(<[u8; 2]>::from(Key::ReadNamesIncluded), [b'R', b'N']);
-        assert_eq!(<[u8; 2]>::from(Key::ApDataSeriesDelta), [b'A', b'P']);
-        assert_eq!(<[u8; 2]>::from(Key::ReferenceRequired), [b'R', b'R']);
+        assert_eq!(<[u8; 2]>::from(Key::RecordsHaveNames), [b'R', b'N']);
+        assert_eq!(<[u8; 2]>::from(Key::AlignmentStartsAreDeltas), [b'A', b'P']);
+        assert_eq!(
+            <[u8; 2]>::from(Key::ExternalReferenceSequenceIsRequired),
+            [b'R', b'R']
+        );
         assert_eq!(<[u8; 2]>::from(Key::SubstitutionMatrix), [b'S', b'M']);
         assert_eq!(<[u8; 2]>::from(Key::TagSets), [b'T', b'D']);
     }

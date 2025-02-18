@@ -42,13 +42,13 @@ where
 {
     write_itf8(writer, MAP_LENGTH)?;
 
-    write_key(writer, Key::ReadNamesIncluded)?;
+    write_key(writer, Key::RecordsHaveNames)?;
     write_bool(writer, preservation_map.records_have_names())?;
 
-    write_key(writer, Key::ApDataSeriesDelta)?;
+    write_key(writer, Key::AlignmentStartsAreDeltas)?;
     write_bool(writer, preservation_map.alignment_starts_are_deltas())?;
 
-    write_key(writer, Key::ReferenceRequired)?;
+    write_key(writer, Key::ExternalReferenceSequenceIsRequired)?;
     write_bool(
         writer,
         preservation_map.external_reference_sequence_is_required(),
