@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/async/io/reader/header/container/block: Add decoder wrapper ([#329]).
+
+    This allows the header reader to be `Send`.
+
+[#329]: https://github.com/zaeleus/noodles/issues/329
+
 ## 0.78.0 - 2025-02-17
 
 ### Changed

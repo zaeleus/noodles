@@ -1,12 +1,18 @@
+use std::{
+    pin::Pin,
+    task::{Context, Poll},
+};
+
 use async_compression::tokio::bufread::GzipDecoder;
-use tokio::io::{self, AsyncRead, AsyncReadExt, BufReader};
+use pin_project_lite::pin_project;
+use tokio::io::{self, AsyncRead, AsyncReadExt, BufReader, ReadBuf, Take};
 
 use crate::{
     container::block::{CompressionMethod, ContentType},
     r#async::io::reader::num::{read_itf8, read_itf8_as},
 };
 
-pub(super) async fn read_block<R>(reader: &mut R) -> io::Result<Box<dyn AsyncRead + Unpin + '_>>
+pub(super) async fn read_block<R>(reader: &mut R) -> io::Result<Decoder<&mut R>>
 where
     R: AsyncRead + Unpin,
 {
@@ -19,11 +25,13 @@ where
     let compressed_size = read_itf8_as(reader).await?;
     let uncompressed_size = read_itf8_as(reader).await?;
 
-    let reader: Box<dyn AsyncRead + Unpin + '_> = match compression_method {
-        CompressionMethod::None => Box::new(reader.take(uncompressed_size)),
-        CompressionMethod::Gzip => Box::new(GzipDecoder::new(BufReader::new(
-            reader.take(compressed_size),
-        ))),
+    let decoder = match compression_method {
+        CompressionMethod::None => Decoder::None {
+            inner: reader.take(uncompressed_size),
+        },
+        CompressionMethod::Gzip => Decoder::Gzip {
+            inner: GzipDecoder::new(BufReader::new(reader.take(compressed_size))),
+        },
         _ => {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -39,7 +47,35 @@ where
 
     // Skip CRC32.
 
-    Ok(reader)
+    Ok(decoder)
+}
+
+pin_project! {
+    /// An async CRAM header container block data decoder.
+    #[allow(missing_docs)]
+    #[project = DecoderProjection]
+    pub enum Decoder<R> {
+        /// Uncompressed.
+        None { #[pin] inner: Take<R> },
+        /// gzip-compressed.
+        Gzip { #[pin] inner: GzipDecoder<BufReader<Take<R>>> },
+    }
+}
+
+impl<R> AsyncRead for Decoder<R>
+where
+    R: AsyncRead + Unpin,
+{
+    fn poll_read(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<io::Result<()>> {
+        match self.project() {
+            DecoderProjection::None { inner } => inner.poll_read(cx, buf),
+            DecoderProjection::Gzip { inner } => inner.poll_read(cx, buf),
+        }
+    }
 }
 
 async fn read_compression_method<R>(reader: &mut R) -> io::Result<CompressionMethod>
