@@ -182,11 +182,11 @@ impl sam::alignment::Record for Record<'_> {
     }
 
     fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
-        Box::new(Data::new(
-            self.header.unwrap(),
-            &self.data,
-            self.read_group_id,
-        ))
+        if let Some(header) = self.header {
+            Box::new(Data::new(header, &self.data, self.read_group_id))
+        } else {
+            Box::new(sam::alignment::record_buf::Data::default())
+        }
     }
 
     fn alignment_span(&self) -> Option<io::Result<usize>> {
