@@ -304,11 +304,13 @@ fn calculate_template_size_chunk(
 
     // "...the absolute value of TLEN equals the distance between the mapped end of the template
     // and the mapped start of the template, inclusively..."
-    if start > end {
-        (start - end + 1) as i32
+    let len = if start > end {
+        start - end + 1
     } else {
-        (end - start + 1) as i32
-    }
+        end - start + 1
+    };
+
+    i32::try_from(len).expect("invalid tempalte length")
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
