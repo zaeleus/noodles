@@ -214,14 +214,22 @@ where
     /// let header = sam::Header::default();
     /// writer.write_file_header(&header).await?;
     ///
-    /// let record = sam::Record::default();
-    /// writer.write_alignment_record(&header, &record).await?;
+    /// let record = cram::Record::default();
+    /// writer.write_record(&header, &record).await?;
     ///
     /// writer.shutdown(&header).await?;
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn write_record(&mut self, header: &sam::Header, record: Record) -> io::Result<()> {
+    pub async fn write_record(
+        &mut self,
+        header: &sam::Header,
+        record: &crate::Record<'_>,
+    ) -> io::Result<()> {
+        self.write_alignment_record(header, record).await
+    }
+
+    async fn add_record(&mut self, header: &sam::Header, record: Record) -> io::Result<()> {
         self.records.push(record);
 
         if self.records.len() >= self.records.capacity() {
@@ -261,7 +269,7 @@ where
         record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
         let record = Record::try_from_alignment_record(header, record)?;
-        self.write_record(header, record).await
+        self.add_record(header, record).await
     }
 
     async fn flush(&mut self, header: &sam::Header) -> io::Result<()> {

@@ -12,6 +12,8 @@
 
   * cram/record: Return empty data when no header is set.
 
+  * cram/io/writer: Take format record (`Record`) for `Writer::write_record`.
+
 [#329]: https://github.com/zaeleus/noodles/issues/329
 
 ## 0.78.0 - 2025-02-17
