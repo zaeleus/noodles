@@ -143,7 +143,9 @@ impl sam::alignment::Record for Record<'_> {
     }
 
     fn sequence(&self) -> Box<dyn sam::alignment::record::Sequence + '_> {
-        if self.sequence.is_empty() {
+        if self.bam_flags.is_unmapped() || self.cram_flags.sequence_is_missing() {
+            Box::new(Bases(self.sequence))
+        } else {
             let (reference_sequence, alignment_start) = match self.reference_sequence.as_ref() {
                 Some(ReferenceSequence::Embedded {
                     reference_start,
@@ -168,8 +170,6 @@ impl sam::alignment::Record for Record<'_> {
                 alignment_start,
                 self.read_length,
             ))
-        } else {
-            Box::new(Bases(self.sequence))
         }
     }
 

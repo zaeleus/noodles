@@ -136,13 +136,15 @@ impl<'c> Slice<'c> {
 
             record.header = Some(header);
 
-            record.reference_sequence = if reference_sequence_context.is_many() {
-                get_record_reference_sequence(&reference_sequence_repository, header, record)?
-            } else {
-                slice_reference_sequence.clone()
-            };
+            if !record.bam_flags.is_unmapped() && !record.cram_flags.sequence_is_missing() {
+                record.reference_sequence = if reference_sequence_context.is_many() {
+                    get_record_reference_sequence(&reference_sequence_repository, header, record)?
+                } else {
+                    slice_reference_sequence.clone()
+                };
 
-            record.substitution_matrix = substitution_matrix.clone();
+                record.substitution_matrix = substitution_matrix.clone();
+            }
         }
 
         resolve_mates(&mut records)?;
