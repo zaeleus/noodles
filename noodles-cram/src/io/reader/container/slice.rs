@@ -205,14 +205,14 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
         // "The TLEN field is positive for the leftmost segment of the template, negative for the
         // rightmost, and the sign for any middle segment is undefined. If segments cover the same
         // coordinates then the choice of which is leftmost and rightmost is arbitrary..."
-        let template_size = calculate_template_size(record, mate);
-        records[i].template_length = template_size;
+        let template_length = calculate_template_length(record, mate);
+        records[i].template_length = template_length;
 
         let mut j = i;
 
         while let Some(mate_index) = mate_indices[j] {
             let record = &mut records[mate_index];
-            record.template_length = -template_size;
+            record.template_length = -template_length;
             mate_indices[j] = None;
             j = mate_index;
         }
@@ -232,8 +232,8 @@ fn set_mate(record: &mut Record, mate: &mut Record) {
     );
 }
 
-fn calculate_template_size(record: &Record, mate: &Record) -> i32 {
-    calculate_template_size_chunk(
+fn calculate_template_length(record: &Record, mate: &Record) -> i32 {
+    calculate_template_length_chunk(
         record.alignment_start,
         record.read_length,
         &record.features,
@@ -264,7 +264,7 @@ fn set_mate_chunk(
 }
 
 // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.4.9 "TLEN"
-fn calculate_template_size_chunk(
+fn calculate_template_length_chunk(
     record_alignment_start: Option<Position>,
     record_read_length: usize,
     record_features: &[Feature],
@@ -490,7 +490,7 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_template_size() {
+    fn test_calculate_template_length() {
         use sam::alignment::record::Flags;
 
         // --> -->
@@ -506,8 +506,8 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(calculate_template_size(&record, &mate), 150);
-        assert_eq!(calculate_template_size(&mate, &record), 150);
+        assert_eq!(calculate_template_length(&record, &mate), 150);
+        assert_eq!(calculate_template_length(&mate, &record), 150);
 
         // --> <--
         // This is the example given in _Sequence Alignment/Map Format Specification_ (2021-06-03)
@@ -525,8 +525,8 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(calculate_template_size(&record, &mate), 150);
-        assert_eq!(calculate_template_size(&mate, &record), 150);
+        assert_eq!(calculate_template_length(&record, &mate), 150);
+        assert_eq!(calculate_template_length(&mate, &record), 150);
 
         // <-- -->
         let record = Record {
@@ -542,8 +542,8 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(calculate_template_size(&record, &mate), 150);
-        assert_eq!(calculate_template_size(&mate, &record), 150);
+        assert_eq!(calculate_template_length(&record, &mate), 150);
+        assert_eq!(calculate_template_length(&mate, &record), 150);
 
         // <-- <--
         let record = Record {
@@ -560,11 +560,11 @@ mod tests {
             ..Default::default()
         };
 
-        assert_eq!(calculate_template_size(&record, &mate), 150);
-        assert_eq!(calculate_template_size(&mate, &record), 150);
+        assert_eq!(calculate_template_length(&record, &mate), 150);
+        assert_eq!(calculate_template_length(&mate, &record), 150);
 
         // No alignment start position.
         let record = Record::default();
-        assert_eq!(calculate_template_size(&record, &record), 0);
+        assert_eq!(calculate_template_length(&record, &record), 0);
     }
 }
