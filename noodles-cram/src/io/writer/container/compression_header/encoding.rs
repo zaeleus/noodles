@@ -52,7 +52,7 @@ where
         ByteArray::ByteArrayLength {
             len_encoding,
             value_encoding,
-        } => write_byte_array_len_codec(writer, len_encoding, value_encoding),
+        } => write_byte_array_length_codec(writer, len_encoding, value_encoding),
         ByteArray::ByteArrayStop {
             stop_byte,
             block_content_id,
@@ -69,7 +69,7 @@ where
         Kind::External => 1,
         Kind::Golomb => 2,
         Kind::Huffman => 3,
-        Kind::ByteArrayLen => 4,
+        Kind::ByteArrayLength => 4,
         Kind::ByteArrayStop => 5,
         Kind::Beta => 6,
         Kind::Subexp => 7,
@@ -147,7 +147,7 @@ where
     Ok(())
 }
 
-fn write_byte_array_len_codec<W>(
+fn write_byte_array_length_codec<W>(
     writer: &mut W,
     len_encoding: &Encoding<Integer>,
     value_encoding: &Encoding<Byte>,
@@ -160,7 +160,7 @@ where
     write_integer_encoding(&mut args, len_encoding)?;
     write_byte_encoding(&mut args, value_encoding)?;
 
-    write_kind(writer, Kind::ByteArrayLen)?;
+    write_kind(writer, Kind::ByteArrayLength)?;
     write_args(writer, &args)?;
 
     Ok(())
@@ -299,7 +299,7 @@ mod tests {
     }
 
     #[test]
-    fn test_write_byte_array_len_codec() -> io::Result<()> {
+    fn test_write_byte_array_length_codec() -> io::Result<()> {
         let mut buf = Vec::new();
 
         let len_encoding = Encoding::new(Integer::External {
@@ -309,7 +309,7 @@ mod tests {
             block_content_id: 21,
         });
 
-        write_byte_array_len_codec(&mut buf, &len_encoding, &value_encoding)?;
+        write_byte_array_length_codec(&mut buf, &len_encoding, &value_encoding)?;
 
         let expected = [
             4,  // byte array len encoding ID

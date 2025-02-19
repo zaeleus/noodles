@@ -4,7 +4,7 @@ pub enum Kind {
     External,
     Golomb,
     Huffman,
-    ByteArrayLen,
+    ByteArrayLength,
     ByteArrayStop,
     Beta,
     Subexp,

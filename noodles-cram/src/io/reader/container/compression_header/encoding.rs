@@ -73,8 +73,8 @@ pub fn read_integer_encoding(src: &mut &[u8]) -> io::Result<Encoding<Integer>> {
 
 pub fn read_byte_array_encoding(src: &mut &[u8]) -> io::Result<Encoding<ByteArray>> {
     match read_kind(src)? {
-        Kind::ByteArrayLen => {
-            let (len_encoding, value_encoding) = read_byte_array_len_codec(src)?;
+        Kind::ByteArrayLength => {
+            let (len_encoding, value_encoding) = read_byte_array_length_codec(src)?;
 
             Ok(Encoding::new(ByteArray::ByteArrayLength {
                 len_encoding,
@@ -108,7 +108,7 @@ fn read_kind(src: &mut &[u8]) -> io::Result<Kind> {
         1 => Ok(Kind::External),
         2 => Ok(Kind::Golomb),
         3 => Ok(Kind::Huffman),
-        4 => Ok(Kind::ByteArrayLen),
+        4 => Ok(Kind::ByteArrayLength),
         5 => Ok(Kind::ByteArrayStop),
         6 => Ok(Kind::Beta),
         7 => Ok(Kind::Subexp),
@@ -136,7 +136,9 @@ fn read_golomb_codec(src: &mut &[u8]) -> io::Result<(i32, i32)> {
     Ok((offset, m))
 }
 
-fn read_byte_array_len_codec(src: &mut &[u8]) -> io::Result<(Encoding<Integer>, Encoding<Byte>)> {
+fn read_byte_array_length_codec(
+    src: &mut &[u8],
+) -> io::Result<(Encoding<Integer>, Encoding<Byte>)> {
     let mut args = read_array(src)?;
 
     let len_encoding = read_integer_encoding(&mut args)?;
@@ -228,7 +230,7 @@ mod tests {
         t(&[0x01], Kind::External)?;
         t(&[0x02], Kind::Golomb)?;
         t(&[0x03], Kind::Huffman)?;
-        t(&[0x04], Kind::ByteArrayLen)?;
+        t(&[0x04], Kind::ByteArrayLength)?;
         t(&[0x05], Kind::ByteArrayStop)?;
         t(&[0x06], Kind::Beta)?;
         t(&[0x07], Kind::Subexp)?;
@@ -289,7 +291,7 @@ mod tests {
     }
 
     #[test]
-    fn test_read_byte_array_len_codec() -> io::Result<()> {
+    fn test_read_byte_array_length_codec() -> io::Result<()> {
         let src = [
             6,  // args.len
             1,  // external encoding ID
@@ -300,7 +302,7 @@ mod tests {
             21, // block content ID
         ];
 
-        let (len_encoding, value_encoding) = read_byte_array_len_codec(&mut &src[..])?;
+        let (len_encoding, value_encoding) = read_byte_array_length_codec(&mut &src[..])?;
 
         assert_eq!(
             len_encoding,
