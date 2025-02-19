@@ -14,11 +14,6 @@ use crate::{
     io::writer::{collections::write_array, num::write_itf8, Options, Record},
 };
 
-const MAP_LENGTH: i32 = 5;
-
-const FALSE: u8 = 0x00;
-const TRUE: u8 = 0x01;
-
 pub(super) fn write_preservation_map<W>(
     writer: &mut W,
     preservation_map: &PreservationMap,
@@ -40,6 +35,8 @@ fn encode_inner<W>(writer: &mut W, preservation_map: &PreservationMap) -> io::Re
 where
     W: Write,
 {
+    const MAP_LENGTH: i32 = 5;
+
     write_itf8(writer, MAP_LENGTH)?;
 
     write_key(writer, Key::RecordsHaveNames)?;
@@ -75,6 +72,9 @@ fn write_bool<W>(writer: &mut W, value: bool) -> io::Result<()>
 where
     W: Write,
 {
+    const FALSE: u8 = 0x00;
+    const TRUE: u8 = 0x01;
+
     if value {
         writer.write_u8(TRUE)
     } else {
