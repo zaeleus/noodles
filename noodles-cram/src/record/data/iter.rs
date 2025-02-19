@@ -1,26 +1,25 @@
 use std::{io, slice};
 
-use noodles_sam::{
-    self as sam,
-    alignment::{record::data::field::Tag, record_buf::data::field::Value},
-};
+use noodles_sam::{self as sam, alignment::record::data::field::Tag};
 
-enum State<'r> {
-    Fields(slice::Iter<'r, (Tag, Value)>),
+use super::field::Value;
+
+enum State<'r, 'c: 'r> {
+    Fields(slice::Iter<'r, (Tag, Value<'c>)>),
     ReadGroup,
     Done,
 }
 
 pub(super) struct Iter<'r, 'c: 'r> {
     header: &'c sam::Header,
-    state: State<'r>,
+    state: State<'r, 'c>,
     read_group_id: Option<usize>,
 }
 
 impl<'r, 'c: 'r> Iter<'r, 'c> {
     pub(super) fn new(
         header: &'c sam::Header,
-        fields: &'r [(Tag, Value)],
+        fields: &'r [(Tag, Value<'c>)],
         read_group_id: Option<usize>,
     ) -> Self {
         Self {

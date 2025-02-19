@@ -1,7 +1,7 @@
 //! CRAM record and fields.
 
 mod cigar;
-mod data;
+pub(crate) mod data;
 pub(crate) mod feature;
 mod flags;
 mod mate_flags;
@@ -15,13 +15,15 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    alignment::{
-        record::{data::field::Tag, MappingQuality},
-        record_buf::data::field::Value,
-    },
+    alignment::record::{data::field::Tag, MappingQuality},
 };
 
-use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
+use self::{
+    cigar::Cigar,
+    data::{field::Value, Data},
+    quality_scores::QualityScores,
+    sequence::Sequence,
+};
 pub(crate) use self::{feature::Feature, flags::Flags, mate_flags::MateFlags};
 use crate::{
     container::compression_header::preservation_map::SubstitutionMatrix,
@@ -47,7 +49,7 @@ pub struct Record<'c> {
     pub(crate) mate_alignment_start: Option<Position>,
     pub(crate) template_length: i32,
     pub(crate) mate_distance: Option<usize>,
-    pub(crate) data: Vec<(Tag, Value)>,
+    pub(crate) data: Vec<(Tag, Value<'c>)>,
     pub(crate) sequence: &'c [u8],
     pub(crate) features: Vec<Feature<'c>>,
     pub(crate) mapping_quality: Option<MappingQuality>,

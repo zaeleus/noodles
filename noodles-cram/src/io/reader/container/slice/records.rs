@@ -1,15 +1,12 @@
+mod data;
 mod external_data_readers;
 
 pub use external_data_readers::ExternalDataReaders;
 
 use std::{borrow::Cow, error, fmt, io};
 
-use noodles_bam as bam;
 use noodles_core::Position;
-use noodles_sam::{
-    self as sam,
-    alignment::{record::data::field::Tag, record_buf::data::field::Value},
-};
+use noodles_sam as sam;
 
 use crate::{
     container::{
@@ -83,8 +80,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         self.read_positions(record)?;
         self.read_names(record)?;
         self.read_mate(record)?;
-
-        record.data = self.read_data()?;
+        self.read_data(record)?;
 
         if record.bam_flags.is_unmapped() {
             self.read_unmapped_read(record)?;
@@ -328,43 +324,38 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             })
     }
 
-    fn read_data(&mut self) -> io::Result<Vec<(Tag, Value)>> {
-        use bam::record::codec::decoder::data::field::read_value;
-
+    fn read_data(&mut self, record: &mut Record<'c>) -> io::Result<()> {
         let tag_set_id = self.read_tag_set_id()?;
 
-        let tag_keys = self
+        let tag_set = self
             .compression_header
             .preservation_map()
             .tag_sets()
             .get(tag_set_id)
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid tag line"))?;
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing tag set"))?;
 
-        let tag_encodings = self.compression_header.tag_encodings();
+        record.data.reserve(tag_set.len());
 
-        let mut fields = Vec::with_capacity(tag_keys.len());
-
-        for &key in tag_keys {
+        for &key in tag_set {
             let id = block::ContentId::from(key);
 
-            let encoding = tag_encodings.get(&id).ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    ReadRecordError::MissingTagEncoding(key),
-                )
-            })?;
+            let value = self
+                .compression_header
+                .tag_encodings()
+                .get(&id)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        ReadRecordError::MissingTagEncoding(key),
+                    )
+                })?
+                .decode(&mut self.core_data_reader, &mut self.external_data_readers)
+                .and_then(|src| self::data::read_value(src, key.ty()))?;
 
-            let mut src =
-                encoding.decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
-
-            let value = read_value(&mut src, key.ty())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-            let field = (key.tag(), value);
-            fields.push(field);
+            record.data.push((key.tag(), value));
         }
 
-        Ok(fields)
+        Ok(())
     }
 
     fn read_tag_set_id(&mut self) -> io::Result<usize> {
