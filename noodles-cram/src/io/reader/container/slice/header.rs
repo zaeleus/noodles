@@ -69,14 +69,18 @@ fn read_embedded_reference_bases_block_content_id(
     })
 }
 
-fn read_reference_md5(src: &mut &[u8]) -> io::Result<[u8; 16]> {
+fn read_reference_md5(src: &mut &[u8]) -> io::Result<Option<[u8; 16]>> {
     let Some((buf, rest)) = split_first_chunk(src) else {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     };
 
     *src = rest;
 
-    Ok(*buf)
+    if buf.iter().all(|&b| b == 0) {
+        Ok(None)
+    } else {
+        Ok(Some(*buf))
+    }
 }
 
 fn read_optional_tags(src: &mut &[u8]) -> Vec<u8> {
@@ -120,10 +124,10 @@ mod tests {
             block_count: 1,
             block_content_ids: vec![21],
             embedded_reference_bases_block_content_id: None,
-            reference_md5: [
+            reference_md5: Some([
                 0x57, 0xb2, 0x96, 0xa3, 0x16, 0x0a, 0x2c, 0xac, 0x9c, 0x83, 0x33, 0x12, 0x6f, 0xf2,
                 0x7e, 0xf7,
-            ],
+            ]),
             optional_tags: Vec::new(),
         };
 

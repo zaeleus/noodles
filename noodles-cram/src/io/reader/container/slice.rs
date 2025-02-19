@@ -362,7 +362,8 @@ fn get_slice_reference_sequence(
         let actual_md5 = calculate_normalized_sequence_digest(&sequence[start..=end]);
         let expected_md5 = slice_header.reference_md5();
 
-        if actual_md5 != expected_md5 {
+        // FIXME
+        if &actual_md5 != expected_md5.unwrap() {
             return Err(io::Error::new(
                         io::ErrorKind::InvalidData,
                         format!(

@@ -8,7 +8,7 @@ pub struct Header {
     pub(crate) block_count: usize,
     pub(crate) block_content_ids: Vec<block::ContentId>,
     pub(crate) embedded_reference_bases_block_content_id: Option<block::ContentId>,
-    pub(crate) reference_md5: [u8; 16],
+    pub(crate) reference_md5: Option<[u8; 16]>,
     pub(crate) optional_tags: Vec<u8>,
 }
 
@@ -37,8 +37,8 @@ impl Header {
         self.embedded_reference_bases_block_content_id
     }
 
-    pub fn reference_md5(&self) -> &[u8] {
-        &self.reference_md5
+    pub fn reference_md5(&self) -> Option<&[u8; 16]> {
+        self.reference_md5.as_ref()
     }
 
     pub fn optional_tags(&self) -> &[u8] {

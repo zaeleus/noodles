@@ -59,8 +59,7 @@ pub(super) fn build_slice(
         reference_sequence_repository,
         header,
         reference_sequence_context,
-    )?
-    .unwrap_or_default();
+    )?;
 
     let header = Header {
         reference_sequence_context,

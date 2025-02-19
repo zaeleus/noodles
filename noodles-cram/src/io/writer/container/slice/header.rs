@@ -90,11 +90,17 @@ where
     write_itf8(writer, embedded_reference_bases_block_content_id)
 }
 
-fn write_reference_md5<W>(writer: &mut W, reference_md5: &[u8]) -> io::Result<()>
+fn write_reference_md5<W>(writer: &mut W, md5: Option<&[u8; 16]>) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(reference_md5)
+    const MISSING: [u8; 16] = [
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00,
+    ];
+
+    let buf = md5.unwrap_or(&MISSING);
+    writer.write_all(buf)
 }
 
 fn write_optional_tags<W>(writer: &mut W, optional_tags: &[u8]) -> io::Result<()>
