@@ -97,6 +97,13 @@ mod tests {
     }
 
     #[test]
+    fn test_row() {
+        let mut frequencies = Frequencies::default();
+        frequencies.hit(Base::C, Base::A);
+        assert_eq!(frequencies.row(Base::C), &[1, 0, 0, 0, 0]);
+    }
+
+    #[test]
     fn test_from_frequencies_for_substitution_matrix() {
         let frequencies = Frequencies([
             [0, 3, 8, 5, 0],
