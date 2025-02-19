@@ -24,23 +24,10 @@ where
     writer.write_i32::<LittleEndian>(length)?;
 
     write_reference_sequence_context(writer, header.reference_sequence_context())?;
-
-    let number_of_records = i32::try_from(header.record_count())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, number_of_records)?;
-
-    let record_counter = i64::try_from(header.record_counter())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_ltf8(writer, record_counter)?;
-
-    let bases = i64::try_from(header.base_count())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_ltf8(writer, bases)?;
-
-    let number_of_blocks = i32::try_from(header.block_count())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, number_of_blocks)?;
-
+    write_record_count(writer, header.record_count())?;
+    write_record_counter(writer, header.record_counter())?;
+    write_base_count(writer, header.base_count())?;
+    write_block_count(writer, header.block_count())?;
     write_landmarks(writer, header.landmarks())?;
 
     let crc32 = writer.crc().sum();
@@ -83,6 +70,42 @@ where
     write_itf8(writer, alignment_span)?;
 
     Ok(())
+}
+
+fn write_record_count<W>(writer: &mut W, record_count: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let n =
+        i32::try_from(record_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, n)
+}
+
+fn write_record_counter<W>(writer: &mut W, record_counter: u64) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = i64::try_from(record_counter)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_ltf8(writer, n)
+}
+
+fn write_base_count<W>(writer: &mut W, base_count: u64) -> io::Result<()>
+where
+    W: Write,
+{
+    let n =
+        i64::try_from(base_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_ltf8(writer, n)
+}
+
+fn write_block_count<W>(writer: &mut W, block_count: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let n =
+        i32::try_from(block_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, n)
 }
 
 fn write_landmarks<W>(writer: &mut W, landmarks: &[usize]) -> io::Result<()>
