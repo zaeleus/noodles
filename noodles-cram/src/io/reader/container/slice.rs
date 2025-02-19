@@ -353,23 +353,12 @@ fn get_slice_reference_sequence(
             .transpose()?
             .expect("invalid slice reference sequence name");
 
-        // § 11 "Reference sequences" (2021-11-15): "All CRAM reader implementations are
-        // expected to check for reference MD5 checksums and report any missing or
-        // mismatching entries."
-        let start = context.alignment_start();
-        let end = context.alignment_end();
-
-        let actual_md5 = calculate_normalized_sequence_digest(&sequence[start..=end]);
-        let expected_md5 = slice_header.reference_md5();
-
-        // FIXME
-        if &actual_md5 != expected_md5.unwrap() {
-            return Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!(
-                            "reference sequence checksum mismatch: expected {expected_md5:?}, got {actual_md5:?}"
-                        ),
-                    ));
+        // § 8.5 "Slice header block" (2024-09-04): "MD5sums should not be validated if the stored
+        // checksum is all-zero."
+        if let Some(expected_md5) = slice_header.reference_md5() {
+            let interval = context.alignment_start()..=context.alignment_end();
+            let subsequence = &sequence[interval];
+            validate_sequence(subsequence, expected_md5)?;
         }
 
         Ok(Some(ReferenceSequence::External { sequence }))
@@ -410,6 +399,19 @@ fn get_record_reference_sequence(
         .expect("invalid reference sequence name");
 
     Ok(Some(ReferenceSequence::External { sequence }))
+}
+
+fn validate_sequence(sequence: &[u8], expected_checksum: &[u8; 16]) -> io::Result<()> {
+    let actual_checksum = calculate_normalized_sequence_digest(sequence);
+
+    if &actual_checksum == expected_checksum {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("reference sequence checksum mismatch: expected {expected_checksum:?}, got {actual_checksum:?}"),
+        ))
+    }
 }
 
 #[cfg(test)]
