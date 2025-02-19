@@ -13,33 +13,38 @@ where
     W: Write,
 {
     let mut crc_writer = CrcWriter::new(writer);
+    write_header_inner(&mut crc_writer, header, len)
+}
 
+fn write_header_inner<W>(writer: &mut CrcWriter<W>, header: &Header, len: usize) -> io::Result<()>
+where
+    W: Write,
+{
     let length = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    crc_writer.write_i32::<LittleEndian>(length)?;
+    writer.write_i32::<LittleEndian>(length)?;
 
-    write_reference_sequence_context(&mut crc_writer, header.reference_sequence_context())?;
+    write_reference_sequence_context(writer, header.reference_sequence_context())?;
 
     let number_of_records = i32::try_from(header.record_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(&mut crc_writer, number_of_records)?;
+    write_itf8(writer, number_of_records)?;
 
     let record_counter = i64::try_from(header.record_counter())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_ltf8(&mut crc_writer, record_counter)?;
+    write_ltf8(writer, record_counter)?;
 
     let bases = i64::try_from(header.base_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_ltf8(&mut crc_writer, bases)?;
+    write_ltf8(writer, bases)?;
 
     let number_of_blocks = i32::try_from(header.block_count())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(&mut crc_writer, number_of_blocks)?;
+    write_itf8(writer, number_of_blocks)?;
 
-    write_landmarks(&mut crc_writer, header.landmarks())?;
+    write_landmarks(writer, header.landmarks())?;
 
-    let crc32 = crc_writer.crc().sum();
-    let writer = crc_writer.into_inner();
-    writer.write_u32::<LittleEndian>(crc32)?;
+    let crc32 = writer.crc().sum();
+    writer.get_mut().write_u32::<LittleEndian>(crc32)?;
 
     Ok(())
 }
