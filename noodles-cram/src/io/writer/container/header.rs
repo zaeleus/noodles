@@ -44,7 +44,7 @@ where
     Ok(())
 }
 
-fn write_reference_sequence_context<W>(
+pub(super) fn write_reference_sequence_context<W>(
     writer: &mut W,
     reference_sequence_context: ReferenceSequenceContext,
 ) -> io::Result<()>

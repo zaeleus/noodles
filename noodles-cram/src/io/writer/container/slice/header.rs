@@ -1,8 +1,11 @@
 use std::io::{self, Write};
 
 use crate::{
-    container::{block, slice, ReferenceSequenceContext},
-    io::writer::num::{write_itf8, write_ltf8},
+    container::{block, slice},
+    io::writer::{
+        container::header::write_reference_sequence_context,
+        num::{write_itf8, write_ltf8},
+    },
 };
 
 pub fn write_header<W>(writer: &mut W, header: &slice::Header) -> io::Result<()>
@@ -35,42 +38,6 @@ where
     if !header.optional_tags().is_empty() {
         write_optional_tags(writer, header.optional_tags())?;
     }
-
-    Ok(())
-}
-
-fn write_reference_sequence_context<W>(
-    writer: &mut W,
-    reference_sequence_context: ReferenceSequenceContext,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    const MISSING: i32 = 0;
-    const UNMAPPED: i32 = -1;
-    const MULTIREF: i32 = -2;
-
-    let (reference_sequence_id, alignment_start, alignment_span) = match reference_sequence_context
-    {
-        ReferenceSequenceContext::Some(context) => {
-            let id = i32::try_from(context.reference_sequence_id())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-            let start = i32::try_from(usize::from(context.alignment_start()))
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-            let span = i32::try_from(context.alignment_span())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-            (id, start, span)
-        }
-        ReferenceSequenceContext::None => (UNMAPPED, MISSING, MISSING),
-        ReferenceSequenceContext::Many => (MULTIREF, MISSING, MISSING),
-    };
-
-    write_itf8(writer, reference_sequence_id)?;
-    write_itf8(writer, alignment_start)?;
-    write_itf8(writer, alignment_span)?;
 
     Ok(())
 }
