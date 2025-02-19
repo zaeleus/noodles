@@ -13,19 +13,9 @@ where
     W: Write,
 {
     write_reference_sequence_context(writer, header.reference_sequence_context())?;
-
-    let record_count = i32::try_from(header.record_count())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, record_count)?;
-
-    let record_counter = i64::try_from(header.record_counter())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_ltf8(writer, record_counter)?;
-
-    let block_count = i32::try_from(header.block_count())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, block_count)?;
-
+    write_record_count(writer, header.record_count())?;
+    write_record_counter(writer, header.record_counter())?;
+    write_block_count(writer, header.block_count())?;
     write_block_content_ids(writer, header.block_content_ids())?;
 
     write_embedded_reference_bases_block_content_id(
@@ -40,6 +30,33 @@ where
     }
 
     Ok(())
+}
+
+fn write_record_count<W>(writer: &mut W, record_count: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let n =
+        i32::try_from(record_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, n)
+}
+
+fn write_record_counter<W>(writer: &mut W, record_counter: u64) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = i64::try_from(record_counter)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_ltf8(writer, n)
+}
+
+fn write_block_count<W>(writer: &mut W, block_count: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let n =
+        i32::try_from(block_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_itf8(writer, n)
 }
 
 fn write_block_content_ids<W>(
