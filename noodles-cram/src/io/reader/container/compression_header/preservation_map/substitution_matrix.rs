@@ -38,6 +38,7 @@ mod tests {
 
     #[test]
     fn test_read_substitution_matrix() -> io::Result<()> {
+        // § 10.6.4 "Mapped reads: Substitution Matrix Format" (2024-09-04)
         let src = [0x93, 0x1b, 0x6c, 0xb1, 0xc6];
         let actual = read_substitution_matrix(&mut &src[..])?;
 
