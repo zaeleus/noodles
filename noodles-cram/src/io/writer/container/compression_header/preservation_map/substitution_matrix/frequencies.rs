@@ -34,7 +34,7 @@ impl Frequencies {
         self.0[i][j] += 1;
     }
 
-    fn row(&self, reference_base: Base) -> &[u64] {
+    fn row(&self, reference_base: Base) -> &[u64; 5] {
         let i = reference_base as usize;
         &self.0[i]
     }
