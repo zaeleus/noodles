@@ -13,9 +13,9 @@ pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let (order, _, data_len) = read_header(reader)?;
+    let (order, _, uncompressed_size) = read_header(reader)?;
 
-    let mut dst = vec![0; data_len];
+    let mut dst = vec![0; uncompressed_size];
 
     match order {
         Order::Zero => order_0::decode(reader, &mut dst)?,
