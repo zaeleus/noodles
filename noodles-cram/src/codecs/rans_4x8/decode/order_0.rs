@@ -1,10 +1,10 @@
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::ReadBytesExt;
 
 use crate::io::reader::num::read_itf8;
 
-use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm};
+use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm, read_states};
 
 pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
@@ -17,8 +17,7 @@ where
 
     let cumulative_freqs_symbols_table = build_cumulative_freqs_symbols_table_0(&cumulative_freqs);
 
-    let mut states = [0; 4];
-    reader.read_u32_into::<LittleEndian>(&mut states)?;
+    let mut states = read_states(reader)?;
 
     for chunk in dst.chunks_mut(states.len()) {
         for (d, state) in chunk.iter_mut().zip(states.iter_mut()) {

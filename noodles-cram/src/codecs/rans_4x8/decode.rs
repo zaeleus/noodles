@@ -4,7 +4,7 @@ mod order_1;
 
 use std::io::{self, Read};
 
-use byteorder::ReadBytesExt;
+use byteorder::{LittleEndian, ReadBytesExt};
 
 use self::header::read_header;
 use super::Order;
@@ -23,6 +23,15 @@ where
     }
 
     Ok(dst)
+}
+
+fn read_states<R>(reader: &mut R) -> io::Result<[u32; 4]>
+where
+    R: Read,
+{
+    let mut buf = [0; 4];
+    reader.read_u32_into::<LittleEndian>(&mut buf)?;
+    Ok(buf)
 }
 
 pub fn rans_get_cumulative_freq(r: u32) -> u32 {
