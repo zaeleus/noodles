@@ -200,7 +200,7 @@ where
     let b2 = models.len[2].decode(reader, range_coder).map(u32::from)?;
     let b3 = models.len[3].decode(reader, range_coder).map(u32::from)?;
 
-    Ok(b3 << 24 | b2 << 16 | b1 << 8 | b0)
+    Ok((b3 << 24) | (b2 << 16) | (b1 << 8) | b0)
 }
 
 fn reverse_qualities(qual: &mut [u8], qual_len: usize, rev_len: &[(bool, usize)]) {

@@ -86,7 +86,7 @@ where
 {
     const MISSING: i32 = -1;
 
-    let embedded_reference_bases_block_content_id = id.map(i32::from).unwrap_or(MISSING);
+    let embedded_reference_bases_block_content_id = id.unwrap_or(MISSING);
     write_itf8(writer, embedded_reference_bases_block_content_id)
 }
 

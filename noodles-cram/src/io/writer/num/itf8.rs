@@ -9,19 +9,19 @@ where
     if value >> (8 - 1) == 0 {
         writer.write_u8(value as u8)?;
     } else if value >> (16 - 2) == 0 {
-        writer.write_u8((value >> 8 | 0x80) as u8)?;
+        writer.write_u8(((value >> 8) | 0x80) as u8)?;
         writer.write_u8(value as u8)?;
     } else if value >> (24 - 3) == 0 {
-        writer.write_u8((value >> 16 | 0xc0) as u8)?;
+        writer.write_u8(((value >> 16) | 0xc0) as u8)?;
         writer.write_u8((value >> 8) as u8)?;
         writer.write_u8(value as u8)?;
     } else if value >> (32 - 4) == 0 {
-        writer.write_u8((value >> 24 | 0xe0) as u8)?;
+        writer.write_u8(((value >> 24) | 0xe0) as u8)?;
         writer.write_u8((value >> 16) as u8)?;
         writer.write_u8((value >> 8) as u8)?;
         writer.write_u8(value as u8)?;
     } else {
-        writer.write_u8((value >> 28 | 0xf0) as u8)?;
+        writer.write_u8(((value >> 28) | 0xf0) as u8)?;
         writer.write_u8((value >> 20) as u8)?;
         writer.write_u8((value >> 12) as u8)?;
         writer.write_u8((value >> 4) as u8)?;

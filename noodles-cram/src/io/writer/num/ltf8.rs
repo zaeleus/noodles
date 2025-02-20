@@ -9,32 +9,32 @@ where
     if value >> (8 - 1) == 0 {
         writer.write_u8(value as u8)?;
     } else if value >> (16 - 2) == 0 {
-        writer.write_u8((value >> 8 | 0x80) as u8)?;
+        writer.write_u8(((value >> 8) | 0x80) as u8)?;
         writer.write_u8(value as u8)?;
     } else if value >> (24 - 3) == 0 {
-        writer.write_u8((value >> 16 | 0xc0) as u8)?;
+        writer.write_u8(((value >> 16) | 0xc0) as u8)?;
         writer.write_u8((value >> 8) as u8)?;
         writer.write_u8(value as u8)?;
     } else if value >> (32 - 4) == 0 {
-        writer.write_u8((value >> 24 | 0xe0) as u8)?;
+        writer.write_u8(((value >> 24) | 0xe0) as u8)?;
         writer.write_u8((value >> 16) as u8)?;
         writer.write_u8((value >> 8) as u8)?;
         writer.write_u8(value as u8)?;
     } else if value >> (40 - 5) == 0 {
-        writer.write_u8((value >> 32 | 0xf0) as u8)?;
+        writer.write_u8(((value >> 32) | 0xf0) as u8)?;
         writer.write_u8((value >> 24) as u8)?;
         writer.write_u8((value >> 16) as u8)?;
         writer.write_u8((value >> 8) as u8)?;
         writer.write_u8(value as u8)?;
     } else if value >> (48 - 6) == 0 {
-        writer.write_u8((value >> 40 | 0xf8) as u8)?;
+        writer.write_u8(((value >> 40) | 0xf8) as u8)?;
         writer.write_u8((value >> 32) as u8)?;
         writer.write_u8((value >> 24) as u8)?;
         writer.write_u8((value >> 16) as u8)?;
         writer.write_u8((value >> 8) as u8)?;
         writer.write_u8(value as u8)?;
     } else if value >> (56 - 7) == 0 {
-        writer.write_u8((value >> 48 | 0xfc) as u8)?;
+        writer.write_u8(((value >> 48) | 0xfc) as u8)?;
         writer.write_u8((value >> 40) as u8)?;
         writer.write_u8((value >> 32) as u8)?;
         writer.write_u8((value >> 24) as u8)?;
@@ -42,7 +42,7 @@ where
         writer.write_u8((value >> 8) as u8)?;
         writer.write_u8(value as u8)?;
     } else if value >> (64 - 8) == 0 {
-        writer.write_u8((value >> 56 | 0xfe) as u8)?;
+        writer.write_u8(((value >> 56) | 0xfe) as u8)?;
         writer.write_u8((value >> 48) as u8)?;
         writer.write_u8((value >> 40) as u8)?;
         writer.write_u8((value >> 32) as u8)?;

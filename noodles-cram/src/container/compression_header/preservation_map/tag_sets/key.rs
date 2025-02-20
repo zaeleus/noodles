@@ -58,7 +58,7 @@ impl From<Key> for block::ContentId {
 
         let [l, r]: [u8; 2] = key.tag.into();
         let ty = encode(key.ty);
-        i32::from(l) << 16 | i32::from(r) << 8 | i32::from(ty)
+        (i32::from(l) << 16) | (i32::from(r) << 8) | i32::from(ty)
     }
 }
 

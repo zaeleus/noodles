@@ -52,7 +52,9 @@ impl VirtualPosition {
     pub const fn new(compressed_pos: u64, uncompressed_pos: u16) -> Option<Self> {
         if compressed_pos <= MAX_COMPRESSED_POSITION {
             // SAFETY: 0 <= `uncompressed_pos` <= `u64`
-            let virtual_pos = compressed_pos << COMPRESSED_POSITION_SHIFT | uncompressed_pos as u64;
+            let virtual_pos =
+                (compressed_pos << COMPRESSED_POSITION_SHIFT) | uncompressed_pos as u64;
+
             Some(Self(virtual_pos))
         } else {
             None
@@ -137,7 +139,7 @@ impl TryFrom<(u64, u16)> for VirtualPosition {
         }
 
         Ok(Self(
-            compressed_pos << COMPRESSED_POSITION_SHIFT | u64::from(uncompressed_pos),
+            (compressed_pos << COMPRESSED_POSITION_SHIFT) | u64::from(uncompressed_pos),
         ))
     }
 }

@@ -90,7 +90,6 @@ fn count(counts: &mut Counts, record: &bam::Record) -> io::Result<()> {
 
                         if record
                             .mapping_quality()
-                            .map(MappingQuality::from)
                             .map(|mapq| mapq >= MIN_HQ_MAPPING_QUALITY)
                             .unwrap_or(true)
                         {

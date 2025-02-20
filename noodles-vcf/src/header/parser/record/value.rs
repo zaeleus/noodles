@@ -206,7 +206,6 @@ pub(super) fn parse_value(
                     .map_err(|e| ParseError::InvalidOtherMap(k.clone(), e))?
             } else {
                 parse_string(src)
-                    .map(String::from)
                     .map(Value::from)
                     .map_err(|e| ParseError::InvalidOtherString(k.clone(), e))?
             };

@@ -63,7 +63,7 @@ impl FromStr for Md5Checksum {
         for (digits, value) in s.as_bytes().chunks(2).zip(checksum.iter_mut()) {
             let l = parse_digit(digits[0])?;
             let r = parse_digit(digits[1])?;
-            *value = l << 4 | r;
+            *value = (l << 4) | r;
         }
 
         Ok(Self(checksum))

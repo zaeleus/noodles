@@ -30,7 +30,7 @@ pub(super) fn encode_op(op: Op) -> Result<u32, EncodeError> {
         // SAFETY: `op.len() <= MAX_LENGTH <= u32::MAX`.
         let len = op.len() as u32;
         let k = encode_kind(op.kind());
-        Ok(len << 4 | k)
+        Ok((len << 4) | k)
     } else {
         Err(EncodeError::InvalidLength(op.len()))
     }

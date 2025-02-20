@@ -38,7 +38,7 @@ where
         // § 4.2.3 "SEQ and QUAL encoding" (2021-06-03): "When `l_seq` is odd the bottom 4 bits of
         // the last byte are undefined, but we recommend writing these as zero."
         let r = bases.next().unwrap_or(EQ);
-        let n = encode_base(l) << 4 | encode_base(r);
+        let n = (encode_base(l) << 4) | encode_base(r);
         write_u8(dst, n);
     }
 

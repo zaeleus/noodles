@@ -22,7 +22,7 @@ where
     };
 
     let len = ty_len.clamp(0, MAX_TYPE_LEN) as u8;
-    let encoding = len << 4 | raw_ty;
+    let encoding = (len << 4) | raw_ty;
 
     writer.write_u8(encoding)?;
 

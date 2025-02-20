@@ -15,22 +15,22 @@ where
         b0
     } else if b0 & 0x40 == 0 {
         let b1 = read_u8_as_i32(reader)?;
-        (b0 & 0x7f) << 8 | b1
+        ((b0 & 0x7f) << 8) | b1
     } else if b0 & 0x20 == 0 {
         let b1 = read_u8_as_i32(reader)?;
         let b2 = read_u8_as_i32(reader)?;
-        (b0 & 0x3f) << 16 | b1 << 8 | b2
+        ((b0 & 0x3f) << 16) | (b1 << 8) | b2
     } else if b0 & 0x10 == 0 {
         let b1 = read_u8_as_i32(reader)?;
         let b2 = read_u8_as_i32(reader)?;
         let b3 = read_u8_as_i32(reader)?;
-        (b0 & 0x1f) << 24 | b1 << 16 | b2 << 8 | b3
+        ((b0 & 0x1f) << 24) | (b1 << 16) | (b2 << 8) | b3
     } else {
         let b1 = read_u8_as_i32(reader)?;
         let b2 = read_u8_as_i32(reader)?;
         let b3 = read_u8_as_i32(reader)?;
         let b4 = read_u8_as_i32(reader)?;
-        (b0 & 0x0f) << 28 | b1 << 20 | b2 << 12 | b3 << 4 | b4 & 0x0f
+        ((b0 & 0x0f) << 28) | (b1 << 20) | (b2 << 12) | (b3 << 4) | b4 & 0x0f
     };
 
     Ok(value)
