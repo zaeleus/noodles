@@ -2,9 +2,8 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use super::{
-    build_cumulative_frequencies, normalize, normalize_frequencies, update, BASE, LOWER_BOUND,
-};
+use super::{build_cumulative_frequencies, normalize, normalize_frequencies, update};
+use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     use super::{write_header, Order};
@@ -12,12 +11,12 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     // Order-1 encoding does not support input smaller than 4 bytes.
     assert!(src.len() >= 4);
 
-    let contexts = build_contexts(src, BASE);
+    let contexts = build_contexts(src, ALPHABET_SIZE);
     let freq = normalize_contexts(&contexts);
     let cfreq = build_cumulative_contexts(&freq);
 
     let mut buf = Vec::new();
-    let mut states = [LOWER_BOUND; 4];
+    let mut states = [LOWER_BOUND; STATE_COUNT];
 
     // The input data is split into 4 equally sized chunks.
     let quarter = src.len() / states.len();

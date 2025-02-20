@@ -5,13 +5,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use super::Order;
-
-// Base `b`.
-const BASE: usize = 256;
-
-// Lower bound `L`.
-const LOWER_BOUND: u32 = 0x800000;
+use super::{Order, LOWER_BOUND};
 
 pub fn encode(order: Order, src: &[u8]) -> io::Result<Vec<u8>> {
     match order {
@@ -45,7 +39,9 @@ where
 fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
     use std::cmp::Ordering;
 
-    const SCALE: u32 = 4095;
+    // § 2.1 "Frequency table" (2023-03-15): "The total sum of symbol frequencies are normalised to
+    // add up to 4095."
+    const SCALING_FACTOR: u32 = 4095;
 
     let mut sum = 0;
     let mut max = 0;
@@ -72,7 +68,7 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
             continue;
         }
 
-        let mut normalized_frequency = f * SCALE / sum;
+        let mut normalized_frequency = f * SCALING_FACTOR / sum;
 
         if normalized_frequency == 0 {
             normalized_frequency = 1;
@@ -82,10 +78,10 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
         normalized_sum += normalized_frequency;
     }
 
-    match normalized_sum.cmp(&SCALE) {
-        Ordering::Less => normalized_frequencies[max_index] += SCALE - normalized_sum,
+    match normalized_sum.cmp(&SCALING_FACTOR) {
+        Ordering::Less => normalized_frequencies[max_index] += SCALING_FACTOR - normalized_sum,
         Ordering::Equal => {}
-        Ordering::Greater => normalized_frequencies[max_index] -= normalized_sum - SCALE,
+        Ordering::Greater => normalized_frequencies[max_index] -= normalized_sum - SCALING_FACTOR,
     }
 
     normalized_frequencies

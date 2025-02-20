@@ -4,20 +4,19 @@ use byteorder::{LittleEndian, WriteBytesExt};
 
 use crate::io::writer::num::write_itf8;
 
-use super::{
-    build_cumulative_frequencies, normalize, normalize_frequencies, update, BASE, LOWER_BOUND,
-};
+use super::{build_cumulative_frequencies, normalize, normalize_frequencies, update};
+use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     use super::{write_header, Order};
 
-    let frequencies = build_frequencies(src, BASE);
+    let frequencies = build_frequencies(src, ALPHABET_SIZE);
 
     let freq = normalize_frequencies(&frequencies);
     let cfreq = build_cumulative_frequencies(&freq);
 
     let mut buf = Vec::new();
-    let mut states = [LOWER_BOUND; 4];
+    let mut states = [LOWER_BOUND; STATE_COUNT];
 
     for (i, &sym) in src.iter().enumerate().rev() {
         let j = i % states.len();

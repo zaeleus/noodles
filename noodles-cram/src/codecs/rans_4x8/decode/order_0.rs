@@ -5,13 +5,14 @@ use byteorder::ReadBytesExt;
 use crate::io::reader::num::read_itf8;
 
 use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm, read_states};
+use crate::codecs::rans_4x8::ALPHABET_SIZE;
 
 pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let mut freqs = [0; 256];
-    let mut cumulative_freqs = [0; 256];
+    let mut freqs = [0; ALPHABET_SIZE];
+    let mut cumulative_freqs = [0; ALPHABET_SIZE];
 
     read_frequencies_0(reader, &mut freqs, &mut cumulative_freqs)?;
 
@@ -41,8 +42,8 @@ where
 
 pub fn read_frequencies_0<R>(
     reader: &mut R,
-    freqs: &mut [u32; 256],
-    cumulative_freqs: &mut [u32; 256],
+    freqs: &mut [u32; ALPHABET_SIZE],
+    cumulative_freqs: &mut [u32; ALPHABET_SIZE],
 ) -> io::Result<()>
 where
     R: Read,
@@ -83,7 +84,9 @@ where
     Ok(())
 }
 
-pub fn build_cumulative_freqs_symbols_table_0(cumulative_freqs: &[u32; 256]) -> [u8; 4096] {
+pub fn build_cumulative_freqs_symbols_table_0(
+    cumulative_freqs: &[u32; ALPHABET_SIZE],
+) -> [u8; 4096] {
     let mut table = [0; 4096];
     let mut sym = 0;
 

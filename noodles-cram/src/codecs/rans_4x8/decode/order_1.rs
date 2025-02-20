@@ -3,13 +3,14 @@ use std::io::{self, Read};
 use byteorder::ReadBytesExt;
 
 use super::{order_0, rans_advance_step, rans_get_cumulative_freq, rans_renorm, read_states};
+use crate::codecs::rans_4x8::ALPHABET_SIZE;
 
 pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let mut freqs = [[0; 256]; 256];
-    let mut cumulative_freqs = [[0; 256]; 256];
+    let mut freqs = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+    let mut cumulative_freqs = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
     read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
 
@@ -71,8 +72,8 @@ where
 
 fn read_frequencies_1<R>(
     reader: &mut R,
-    freqs: &mut [[u32; 256]; 256],
-    cumulative_freqs: &mut [[u32; 256]; 256],
+    freqs: &mut [[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
+    cumulative_freqs: &mut [[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
 ) -> io::Result<()>
 where
     R: Read,
@@ -110,8 +111,8 @@ where
 }
 
 pub fn build_cumulative_freqs_symbols_table_1(
-    cumulative_freqs: &[[u32; 256]; 256],
-) -> Box<[[u8; 4096]; 256]> {
+    cumulative_freqs: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
+) -> Box<[[u8; 4096]; ALPHABET_SIZE]> {
     let mut tables = Box::new([[0; 4096]; 256]);
 
     for (table, cumulative_freqs) in tables.iter_mut().zip(cumulative_freqs) {

@@ -7,6 +7,11 @@ mod order;
 pub use self::order::Order;
 pub(crate) use self::{decode::decode, encode::encode};
 
+// § 2.2 "rANS entropy encoding" (2023-03-15)
+const ALPHABET_SIZE: usize = 256; // b
+const STATE_COUNT: usize = 4; // |R|
+const LOWER_BOUND: u32 = 1 << 23; // L
+
 #[cfg(test)]
 mod tests {
     use std::io;

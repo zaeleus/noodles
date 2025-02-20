@@ -7,7 +7,7 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use self::header::read_header;
-use super::Order;
+use super::{Order, LOWER_BOUND, STATE_COUNT};
 
 pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
@@ -29,7 +29,7 @@ fn read_states<R>(reader: &mut R) -> io::Result<[u32; 4]>
 where
     R: Read,
 {
-    let mut buf = [0; 4];
+    let mut buf = [0; STATE_COUNT];
     reader.read_u32_into::<LittleEndian>(&mut buf)?;
     Ok(buf)
 }
@@ -46,7 +46,7 @@ pub fn rans_renorm<R>(reader: &mut R, mut r: u32) -> io::Result<u32>
 where
     R: Read,
 {
-    while r < (1 << 23) {
+    while r < LOWER_BOUND {
         r = (r << 8) + reader.read_u8().map(u32::from)?;
     }
 
