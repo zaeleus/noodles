@@ -1,10 +1,12 @@
+mod header;
 mod order_0;
 mod order_1;
 
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::ReadBytesExt;
 
+use self::header::read_header;
 use super::Order;
 
 pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
@@ -21,25 +23,6 @@ where
     }
 
     Ok(dst)
-}
-
-fn read_header<R>(reader: &mut R) -> io::Result<(Order, usize, usize)>
-where
-    R: Read,
-{
-    let order = reader.read_u8().and_then(|order| {
-        Order::try_from(order).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let compressed_len = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let data_len = reader.read_u32::<LittleEndian>().and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    Ok((order, compressed_len, data_len))
 }
 
 pub fn rans_get_cumulative_freq(r: u32) -> u32 {
