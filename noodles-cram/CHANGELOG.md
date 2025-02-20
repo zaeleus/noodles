@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.79.0 - 2025-02-20
 
 ### Changed
 

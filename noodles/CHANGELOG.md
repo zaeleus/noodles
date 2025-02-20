@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.93.0 - 2025-02-20
+
+  * [noodles-cram 0.79.0](https://github.com/zaeleus/noodles/blob/noodles-cram-0.79.0/noodles-cram/CHANGELOG.md)
+  * [noodles-util 0.63.0](https://github.com/zaeleus/noodles/blob/noodles-util-0.63.0/noodles-util/CHANGELOG.md)
+
 ## 0.92.0 - 2025-02-17
 
   * [noodles-bcf 0.71.0](https://github.com/zaeleus/noodles/blob/noodles-bcf-0.71.0/noodles-bcf/CHANGELOG.md)
