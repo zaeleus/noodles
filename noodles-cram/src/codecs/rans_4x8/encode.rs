@@ -4,16 +4,27 @@ mod order_1;
 
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
+use byteorder::{LittleEndian, WriteBytesExt};
 
 use self::header::write_header;
-use super::{Order, LOWER_BOUND};
+use super::{Order, LOWER_BOUND, STATE_COUNT};
 
 pub fn encode(order: Order, src: &[u8]) -> io::Result<Vec<u8>> {
     match order {
         Order::Zero => order_0::encode(src),
         Order::One => order_1::encode(src),
     }
+}
+
+fn write_states<W>(writer: &mut W, states: &[u32; STATE_COUNT]) -> io::Result<()>
+where
+    W: Write,
+{
+    for state in states {
+        writer.write_u32::<LittleEndian>(*state)?;
+    }
+
+    Ok(())
 }
 
 fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {

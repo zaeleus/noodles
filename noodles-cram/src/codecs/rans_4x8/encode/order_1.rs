@@ -1,8 +1,8 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use byteorder::WriteBytesExt;
 
-use super::{build_cumulative_frequencies, normalize, normalize_frequencies, update};
+use super::{build_cumulative_frequencies, normalize, normalize_frequencies, update, write_states};
 use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
@@ -76,11 +76,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = vec![0; 9];
 
     write_contexts(&mut dst, &freq)?;
-
-    for &state in &states {
-        dst.write_u32::<LittleEndian>(state)?;
-    }
-
+    write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
     let compressed_len = dst[9..].len();
