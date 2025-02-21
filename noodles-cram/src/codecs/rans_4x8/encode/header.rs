@@ -7,23 +7,31 @@ use crate::codecs::rans_4x8::Order;
 pub fn write_header<W>(
     writer: &mut W,
     order: Order,
-    compressed_len: usize,
-    uncompressed_len: usize,
+    compressed_size: usize,
+    uncompressed_size: usize,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_u8(u8::from(order))?;
-
-    let compressed_size = u32::try_from(compressed_len)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(compressed_size)?;
-
-    let data_size = u32::try_from(uncompressed_len)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(data_size)?;
-
+    write_order(writer, order)?;
+    write_size(writer, compressed_size)?;
+    write_size(writer, uncompressed_size)?;
     Ok(())
+}
+
+fn write_order<W>(writer: &mut W, order: Order) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_u8(u8::from(order))
+}
+
+fn write_size<W>(writer: &mut W, size: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = u32::try_from(size).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_u32::<LittleEndian>(n)
 }
 
 #[cfg(test)]
