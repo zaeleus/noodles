@@ -236,7 +236,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_next() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_next() {
         let features = [
             Feature::Bases {
                 position: Position::MIN,
@@ -255,7 +255,5 @@ mod tests {
             Some(((Position::MIN, Position::MIN), &features[0]))
         );
         assert!(iter.next().is_none());
-
-        Ok(())
     }
 }
