@@ -188,7 +188,7 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
             set_mate(record, mate);
 
             if mate.name.is_none() {
-                mate.name = record.name.as_ref().map(|name| name.to_vec().into());
+                mate.name = record.name.clone();
             }
 
             j = mate_index;
