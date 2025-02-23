@@ -2,7 +2,10 @@
 //!
 //! The result matches the output of `samtools view <src>`.
 
-use std::{env, io};
+use std::{
+    env,
+    io::{self, BufWriter},
+};
 
 use noodles_bam as bam;
 use noodles_sam::{self as sam, alignment::io::Write};
@@ -14,7 +17,7 @@ fn main() -> io::Result<()> {
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
-    let mut writer = sam::io::Writer::new(stdout);
+    let mut writer = sam::io::Writer::new(BufWriter::new(stdout));
 
     for result in reader.records() {
         let record = result?;
