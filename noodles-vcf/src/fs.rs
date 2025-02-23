@@ -22,6 +22,13 @@ where
     P: AsRef<Path>,
 {
     let mut reader = File::open(src).map(bgzf::Reader::new).map(Reader::new)?;
+    index_inner(&mut reader)
+}
+
+fn index_inner<R>(reader: &mut Reader<R>) -> io::Result<tabix::Index>
+where
+    R: bgzf::io::BufRead,
+{
     let header = reader.read_header()?;
 
     let mut indexer = tabix::index::Indexer::default();
