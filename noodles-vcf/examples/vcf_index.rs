@@ -1,4 +1,4 @@
-//! Builds and write a tabix index from a bgzipped VCF file.
+//! Builds and writes a tabix index from a bgzipped VCF file.
 //!
 //! This writes the output to stdout rather than `<src>.tbi`.
 //!
