@@ -14,9 +14,7 @@ documentation = "https://docs.rs/noodles-bed"
 bstr.workspace = true
 lexical-core.workspace = true
 memchr.workspace = true
-noodles-core = { path = "../noodles-core", version = "0.16.0" }
-
-[dev-dependencies]
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.36.0" }
+noodles-core = { path = "../noodles-core", version = "0.16.0" }
 noodles-csi = { path = "../noodles-csi", version = "0.44.0" }
 noodles-tabix = { path = "../noodles-tabix", version = "0.50.0" }

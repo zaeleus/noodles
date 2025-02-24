@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bed/fs: Add file indexer.
+
 ## 0.21.0 - 2025-02-06
 
 ### Changed
