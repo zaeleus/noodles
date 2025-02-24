@@ -18,9 +18,11 @@ fn read_order<R>(reader: &mut R) -> io::Result<Order>
 where
     R: Read,
 {
-    reader.read_u8().and_then(|order| {
-        Order::try_from(order).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })
+    match reader.read_u8()? {
+        0 => Ok(Order::Zero),
+        1 => Ok(Order::One),
+        _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid order")),
+    }
 }
 
 fn read_size<R>(reader: &mut R) -> io::Result<usize>
