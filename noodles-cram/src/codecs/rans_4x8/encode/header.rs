@@ -23,7 +23,12 @@ fn write_order<W>(writer: &mut W, order: Order) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_u8(u8::from(order))
+    let n = match order {
+        Order::Zero => 0,
+        Order::One => 1,
+    };
+
+    writer.write_u8(n)
 }
 
 fn write_size<W>(writer: &mut W, size: usize) -> io::Result<()>
