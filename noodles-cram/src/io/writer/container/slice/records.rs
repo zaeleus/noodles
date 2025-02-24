@@ -523,7 +523,7 @@ impl<'a> Writer<'a> {
             .compression_header
             .preservation_map()
             .substitution_matrix()
-            .find_code(reference_base, read_base);
+            .find(reference_base, read_base);
 
         self.compression_header
             .data_series_encodings()
