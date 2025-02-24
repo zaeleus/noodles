@@ -40,16 +40,31 @@ mod tests {
 
     #[test]
     fn test_write_header() -> io::Result<()> {
-        let mut writer = Vec::new();
-        write_header(&mut writer, Order::One, 14930352, 9227465)?;
+        let mut buf = Vec::new();
+        write_header(&mut buf, Order::Zero, 8, 13)?;
 
         let expected = [
-            0x01, // order
-            0xb0, 0xd1, 0xe3, 0x00, // compressed length
-            0xc9, 0xcc, 0x8c, 0x00, // data length
+            0x00, // order 0
+            0x08, 0x00, 0x00, 0x00, // compressed size = 8
+            0x0d, 0x00, 0x00, 0x00, // uncompressed size = 13
         ];
 
-        assert_eq!(writer, expected);
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_order() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        write_order(&mut buf, Order::Zero)?;
+        assert_eq!(buf, [0x00]);
+
+        buf.clear();
+        write_order(&mut buf, Order::One)?;
+        assert_eq!(buf, [0x01]);
 
         Ok(())
     }
