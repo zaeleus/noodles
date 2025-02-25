@@ -1,4 +1,4 @@
-use std::{io, iter};
+use std::{io, iter, mem};
 
 use noodles_vcf as vcf;
 
@@ -27,14 +27,14 @@ impl<'r> Filters<'r> {
                 src.iter()
                     .map(|&n| usize::try_from(n as i8).map_err(|_| invalid_value_error())),
             ),
-            Some(Type::Int16(_)) => Box::new(
-                src.iter()
-                    .map(|&n| usize::try_from(n as i16).map_err(|_| invalid_value_error())),
-            ),
-            Some(Type::Int32(_)) => Box::new(
-                src.iter()
-                    .map(|&n| usize::try_from(n as i32).map_err(|_| invalid_value_error())),
-            ),
+            Some(Type::Int16(_)) => Box::new(src.chunks(mem::size_of::<i16>()).map(|chunk| {
+                let buf = chunk.try_into().map_err(|_| invalid_value_error())?;
+                usize::try_from(i16::from_le_bytes(buf)).map_err(|_| invalid_value_error())
+            })),
+            Some(Type::Int32(_)) => Box::new(src.chunks(mem::size_of::<i32>()).map(|chunk| {
+                let buf = chunk.try_into().map_err(|_| invalid_value_error())?;
+                usize::try_from(i32::from_le_bytes(buf)).map_err(|_| invalid_value_error())
+            })),
             _ => unreachable!(),
         };
 
@@ -80,5 +80,40 @@ impl vcf::variant::record::Filters for Filters<'_> {
                 })
             })
         }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_indices() -> io::Result<()> {
+        fn t(src: &[u8], expected: &[usize]) -> io::Result<()> {
+            let filters = Filters(src);
+            let actual = filters.indices().collect::<io::Result<Vec<usize>>>()?;
+            assert_eq!(actual, expected);
+            Ok(())
+        }
+
+        // None
+        t(&[0x00], &[])?;
+
+        // Some(Type::Int8(_))
+        t(&[0x11, 0x00], &[0])?;
+        t(&[0x21, 0x00, 0x01], &[0, 1])?;
+
+        // Some(Type::Int16(_))
+        t(&[0x12, 0x80, 0x00], &[128])?;
+        t(&[0x22, 0x00, 0x00, 0x80, 0x00], &[0, 128])?;
+
+        // Some(Type::Int32(_))
+        t(&[0x13, 0x00, 0x80, 0x00, 0x00], &[32768])?;
+        t(
+            &[0x23, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00],
+            &[0, 32768],
+        )?;
+
+        Ok(())
     }
 }

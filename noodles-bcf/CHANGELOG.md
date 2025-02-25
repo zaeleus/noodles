@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bcf/record/filters: Fix indices iterator.
+
+    This fixes decoding lists with indices > `i8::MAX`.
+
 ## 0.71.0 - 2025-02-17
 
 ### Added
