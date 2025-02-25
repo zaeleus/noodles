@@ -42,7 +42,6 @@ mod tests {
 
     #[test]
     fn test_from_i16_for_int16() {
-        assert_eq!(Int16::from(0), Int16::Value(0));
         assert_eq!(Int16::from(-32768), Int16::Missing);
         assert_eq!(Int16::from(-32767), Int16::EndOfVector);
         assert_eq!(Int16::from(-32766), Int16::Reserved(-32766));
@@ -51,11 +50,13 @@ mod tests {
         assert_eq!(Int16::from(-32763), Int16::Reserved(-32763));
         assert_eq!(Int16::from(-32762), Int16::Reserved(-32762));
         assert_eq!(Int16::from(-32761), Int16::Reserved(-32761));
+        assert_eq!(Int16::from(-32760), Int16::Value(-32760));
+        assert_eq!(Int16::from(0), Int16::Value(0));
+        assert_eq!(Int16::from(i16::MAX), Int16::Value(i16::MAX));
     }
 
     #[test]
     fn test_from_int16_for_i16() {
-        assert_eq!(i16::from(Int16::Value(0)), 0);
         assert_eq!(i16::from(Int16::Missing), -32768);
         assert_eq!(i16::from(Int16::EndOfVector), -32767);
         assert_eq!(i16::from(Int16::Reserved(-32766)), -32766);
@@ -64,5 +65,8 @@ mod tests {
         assert_eq!(i16::from(Int16::Reserved(-32763)), -32763);
         assert_eq!(i16::from(Int16::Reserved(-32762)), -32762);
         assert_eq!(i16::from(Int16::Reserved(-32761)), -32761);
+        assert_eq!(i16::from(Int16::Value(-32760)), -32760);
+        assert_eq!(i16::from(Int16::Value(0)), 0);
+        assert_eq!(i16::from(Int16::Value(i16::MAX)), i16::MAX);
     }
 }

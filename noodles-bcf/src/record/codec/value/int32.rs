@@ -42,7 +42,6 @@ mod tests {
 
     #[test]
     fn test_from_i32_for_int32() {
-        assert_eq!(Int32::from(0), Int32::Value(0));
         assert_eq!(Int32::from(-2147483648), Int32::Missing);
         assert_eq!(Int32::from(-2147483647), Int32::EndOfVector);
         assert_eq!(Int32::from(-2147483646), Int32::Reserved(-2147483646));
@@ -51,11 +50,13 @@ mod tests {
         assert_eq!(Int32::from(-2147483643), Int32::Reserved(-2147483643));
         assert_eq!(Int32::from(-2147483642), Int32::Reserved(-2147483642));
         assert_eq!(Int32::from(-2147483641), Int32::Reserved(-2147483641));
+        assert_eq!(Int32::from(-2147483640), Int32::Value(-2147483640));
+        assert_eq!(Int32::from(0), Int32::Value(0));
+        assert_eq!(Int32::from(i32::MAX), Int32::Value(i32::MAX));
     }
 
     #[test]
     fn test_from_int32_for_i32() {
-        assert_eq!(i32::from(Int32::Value(0)), 0);
         assert_eq!(i32::from(Int32::Missing), -2147483648);
         assert_eq!(i32::from(Int32::EndOfVector), -2147483647);
         assert_eq!(i32::from(Int32::Reserved(-2147483646)), -2147483646);
@@ -64,5 +65,8 @@ mod tests {
         assert_eq!(i32::from(Int32::Reserved(-2147483643)), -2147483643);
         assert_eq!(i32::from(Int32::Reserved(-2147483642)), -2147483642);
         assert_eq!(i32::from(Int32::Reserved(-2147483641)), -2147483641);
+        assert_eq!(i32::from(Int32::Value(-2147483640)), -2147483640);
+        assert_eq!(i32::from(Int32::Value(0)), 0);
+        assert_eq!(i32::from(Int32::Value(i32::MAX)), i32::MAX);
     }
 }
