@@ -8,10 +8,7 @@ pub enum Int32 {
 }
 
 impl Int32 {
-    /// The smallest value that can be represented by [`Self::Value`].
     pub const MIN_VALUE: i32 = i32::MIN + 8;
-
-    /// The largest value that can be represented by [`Self::Value`].
     pub const MAX_VALUE: i32 = i32::MAX;
 }
 

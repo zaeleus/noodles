@@ -8,10 +8,7 @@ pub enum Int16 {
 }
 
 impl Int16 {
-    /// The smallest value that can be represented by [`Self::Value`].
     pub const MIN_VALUE: i16 = i16::MIN + 8;
-
-    /// The largest value that can be represented by [`Self::Value`].
     pub const MAX_VALUE: i16 = i16::MAX;
 }
 
