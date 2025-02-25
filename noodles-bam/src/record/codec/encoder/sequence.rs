@@ -48,24 +48,32 @@ where
 // § 4.2.3 "SEQ and QUAL encoding" (2023-11-16): "The case-insensitive base codes [...] are mapped
 // to [0, 15] respectively with all other characters mapping to 'N' (value 15)".
 fn encode_base(n: u8) -> u8 {
-    match n.to_ascii_uppercase() {
-        b'=' => 0,
-        b'A' => 1,
-        b'C' => 2,
-        b'M' => 3,
-        b'G' => 4,
-        b'R' => 5,
-        b'S' => 6,
-        b'V' => 7,
-        b'T' => 8,
-        b'W' => 9,
-        b'Y' => 10,
-        b'H' => 11,
-        b'K' => 12,
-        b'D' => 13,
-        b'B' => 14,
-        _ => 15,
+    const CODES: [u8; 256] = build_codes();
+    CODES[usize::from(n)]
+}
+
+const fn build_codes() -> [u8; 256] {
+    // § 4.2.3 "SEQ and QUAL encoding" (2024-11-06)
+    const BASES: [u8; 16] = *b"=ACMGRSVTWYHKDBN";
+    const N: u8 = 0x0f;
+
+    let mut i = 0;
+    let mut codes = [N; 256];
+
+    while i < BASES.len() {
+        let base = BASES[i];
+
+        // SAFETY: `i < BASES.len() <= u8::MAX`.
+        let code = i as u8;
+
+        // SAFETY: `base <= codes.len() <= u8::MAX`.
+        codes[base as usize] = code;
+        codes[base.to_ascii_lowercase() as usize] = code;
+
+        i += 1;
     }
+
+    codes
 }
 
 #[cfg(test)]
