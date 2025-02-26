@@ -111,6 +111,11 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let n = self.read_length - (usize::from(self.read_position) - 1);
+        (n, Some(n))
+    }
 }
 
 #[cfg(test)]
@@ -139,5 +144,17 @@ mod tests {
         assert_eq!(actual, [MISSING, 5, 8, MISSING, 13, 21, MISSING, MISSING]);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_size_hint() {
+        let mut iter = Iter::new(&[], 2);
+        assert_eq!(iter.size_hint(), (2, Some(2)));
+
+        iter.next();
+        assert_eq!(iter.size_hint(), (1, Some(1)));
+
+        iter.next();
+        assert_eq!(iter.size_hint(), (0, Some(0)));
     }
 }
