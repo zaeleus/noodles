@@ -1,3 +1,9 @@
+// § 6.3.3.2 "Type encoding: Integers" (2024-10-09)
+const MISSING: i8 = i8::MIN;
+const END_OF_VECTOR: i8 = i8::MIN + 1;
+const RESERVED_0: i8 = i8::MIN + 2;
+const RESERVED_5: i8 = i8::MIN + 7;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum Int8 {
@@ -14,10 +20,10 @@ impl Int8 {
 
 impl From<i8> for Int8 {
     fn from(value: i8) -> Self {
-        match value as u8 {
-            0x80 => Self::Missing,
-            0x81 => Self::EndOfVector,
-            0x82..=0x87 => Self::Reserved(value),
+        match value {
+            MISSING => Self::Missing,
+            END_OF_VECTOR => Self::EndOfVector,
+            RESERVED_0..=RESERVED_5 => Self::Reserved(value),
             _ => Self::Value(value),
         }
     }
@@ -26,8 +32,8 @@ impl From<i8> for Int8 {
 impl From<Int8> for i8 {
     fn from(value: Int8) -> Self {
         match value {
-            Int8::Missing => -128,
-            Int8::EndOfVector => -127,
+            Int8::Missing => MISSING,
+            Int8::EndOfVector => END_OF_VECTOR,
             Int8::Value(n) | Int8::Reserved(n) => n,
         }
     }

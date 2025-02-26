@@ -1,3 +1,10 @@
+// § 6.3.3.3 "Type encoding: Floats" (2024-10-09)
+const NAN: u32 = 0x7fc00000;
+const MISSING: u32 = 0x7f800001;
+const END_OF_VECTOR: u32 = 0x7f800002;
+const RESERVED_0: u32 = 0x7f800003;
+const RESERVED_4: u32 = 0x7f800007;
+
 #[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum Float {
@@ -10,10 +17,10 @@ pub enum Float {
 impl From<f32> for Float {
     fn from(value: f32) -> Self {
         match value.to_bits() {
-            0x7fc00000 => Self::Value(f32::NAN),
-            0x7f800001 => Self::Missing,
-            0x7f800002 => Self::EndOfVector,
-            0x7f800003..=0x7f800007 => Self::Reserved(value),
+            NAN => Self::Value(f32::NAN),
+            MISSING => Self::Missing,
+            END_OF_VECTOR => Self::EndOfVector,
+            RESERVED_0..=RESERVED_4 => Self::Reserved(value),
             _ => Self::Value(value),
         }
     }
@@ -22,8 +29,8 @@ impl From<f32> for Float {
 impl From<Float> for f32 {
     fn from(value: Float) -> Self {
         match value {
-            Float::Missing => f32::from_bits(0x7f800001),
-            Float::EndOfVector => f32::from_bits(0x7f800002),
+            Float::Missing => f32::from_bits(MISSING),
+            Float::EndOfVector => f32::from_bits(END_OF_VECTOR),
             Float::Value(n) | Float::Reserved(n) => n,
         }
     }
