@@ -207,4 +207,107 @@ mod tests {
             2
         );
     }
+
+    #[test]
+    fn test_iter() -> io::Result<()> {
+        assert!(Values::<'_, i8>::new(&[]).iter().next().is_none());
+        assert_eq!(
+            Values::<'_, i8>::new(&[0x05])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [5]
+        );
+        assert_eq!(
+            Values::<'_, i8>::new(&[0xf8, 0x0d])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [-8, 13]
+        );
+
+        assert!(Values::<'_, u8>::new(&[]).iter().next().is_none());
+        assert_eq!(
+            Values::<'_, u8>::new(&[0x05])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [5]
+        );
+        assert_eq!(
+            Values::<'_, u8>::new(&[0x08, 0x0d])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [8, 13]
+        );
+
+        assert!(Values::<'_, i16>::new(&[]).iter().next().is_none());
+        assert_eq!(
+            Values::<'_, i16>::new(&[0x05, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [5]
+        );
+        assert_eq!(
+            Values::<'_, i16>::new(&[0xf8, 0xff, 0x0d, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [-8, 13]
+        );
+
+        assert!(Values::<'_, u16>::new(&[]).iter().next().is_none());
+        assert_eq!(
+            Values::<'_, u16>::new(&[0x05, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [5]
+        );
+        assert_eq!(
+            Values::<'_, u16>::new(&[0x08, 0x00, 0x0d, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [8, 13]
+        );
+
+        assert!(Values::<'_, i32>::new(&[]).iter().next().is_none());
+        assert_eq!(
+            Values::<'_, i32>::new(&[0x05, 0x00, 0x00, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [5]
+        );
+        assert_eq!(
+            Values::<'_, i32>::new(&[0xf8, 0xff, 0xff, 0xff, 0x0d, 0x00, 0x00, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [-8, 13]
+        );
+
+        assert!(Values::<'_, u32>::new(&[]).iter().next().is_none());
+        assert_eq!(
+            Values::<'_, u32>::new(&[0x05, 0x00, 0x00, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [5]
+        );
+        assert_eq!(
+            Values::<'_, u32>::new(&[0x08, 0x00, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [8, 13]
+        );
+
+        assert!(Values::<'_, f32>::new(&[]).iter().next().is_none());
+        assert_eq!(
+            Values::<'_, f32>::new(&[0x00, 0x00, 0x00, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [0.0]
+        );
+        assert_eq!(
+            Values::<'_, f32>::new(&[0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [0.0, 0.0]
+        );
+
+        Ok(())
+    }
 }

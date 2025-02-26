@@ -57,61 +57,26 @@ mod tests {
 
     #[test]
     fn test_decode_array() -> io::Result<()> {
-        let mut src = &[b'c', 0x01, 0x00, 0x00, 0x00, 0x00][..];
-        if let Array::Int8(values) = decode_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = [b'c', 0x01, 0x00, 0x00, 0x00, 0x00];
+        assert!(matches!(decode_array(&mut &src[..])?, Array::Int8(_)));
 
-        let mut src = &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00][..];
-        if let Array::UInt8(values) = decode_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = [b'C', 0x01, 0x00, 0x00, 0x00, 0x00];
+        assert!(matches!(decode_array(&mut &src[..])?, Array::UInt8(_)));
 
-        let mut src = &[b's', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00][..];
-        if let Array::Int16(values) = decode_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = [b's', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00];
+        assert!(matches!(decode_array(&mut &src[..])?, Array::Int16(_)));
 
-        let mut src = &[b'S', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00][..];
-        if let Array::UInt16(values) = decode_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = [b'S', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00];
+        assert!(matches!(decode_array(&mut &src[..])?, Array::UInt16(_)));
 
-        let mut src = &[b'i', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00][..];
-        if let Array::Int32(values) = decode_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = [b'i', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+        assert!(matches!(decode_array(&mut &src[..])?, Array::Int32(_)));
 
-        let mut src = &[b'I', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00][..];
-        if let Array::UInt32(values) = decode_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = [b'I', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+        assert!(matches!(decode_array(&mut &src[..])?, Array::UInt32(_)));
 
-        let mut src = &[b'f', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00][..];
-        if let Array::Float(values) = decode_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0.0]);
-        } else {
-            panic!();
-        }
+        let src = [b'f', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+        assert!(matches!(decode_array(&mut &src[..])?, Array::Float(_)));
 
         Ok(())
     }
