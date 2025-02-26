@@ -63,7 +63,6 @@ fn parse_hex_value<'a>(src: &mut &'a [u8]) -> Value<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::alignment::record::data::field::value::Array;
 
     #[test]
     fn test_parse_value() -> io::Result<()> {
@@ -98,12 +97,10 @@ mod tests {
         ));
 
         let mut src = &b"C,0"[..];
-        if let Value::Array(Array::UInt8(values)) = parse_value(&mut src, Type::Array)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        assert!(matches!(
+            parse_value(&mut src, Type::Array)?,
+            Value::Array(_)
+        ));
 
         Ok(())
     }

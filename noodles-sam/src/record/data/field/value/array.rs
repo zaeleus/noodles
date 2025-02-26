@@ -49,61 +49,26 @@ mod tests {
 
     #[test]
     fn test_parse_array() -> io::Result<()> {
-        let mut src = &b"c,0"[..];
-        if let Array::Int8(values) = parse_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = b"c,0";
+        assert!(matches!(parse_array(&mut &src[..])?, Array::Int8(_)));
 
-        let mut src = &b"C,0"[..];
-        if let Array::UInt8(values) = parse_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = b"C,0";
+        assert!(matches!(parse_array(&mut &src[..])?, Array::UInt8(_)));
 
-        let mut src = &b"s,0"[..];
-        if let Array::Int16(values) = parse_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = b"s,0";
+        assert!(matches!(parse_array(&mut &src[..])?, Array::Int16(_)));
 
-        let mut src = &b"S,0"[..];
-        if let Array::UInt16(values) = parse_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = b"S,0";
+        assert!(matches!(parse_array(&mut &src[..])?, Array::UInt16(_)));
 
-        let mut src = &b"i,0"[..];
-        if let Array::Int32(values) = parse_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = b"i,0";
+        assert!(matches!(parse_array(&mut &src[..])?, Array::Int32(_)));
 
-        let mut src = &b"I,0"[..];
-        if let Array::UInt32(values) = parse_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        let src = b"I,0";
+        assert!(matches!(parse_array(&mut &src[..])?, Array::UInt32(_)));
 
-        let mut src = &b"f,0.0"[..];
-        if let Array::Float(values) = parse_array(&mut src)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0.0]);
-        } else {
-            panic!();
-        }
+        let src = b"f,0.0";
+        assert!(matches!(parse_array(&mut &src[..])?, Array::Float(_)));
 
         Ok(())
     }

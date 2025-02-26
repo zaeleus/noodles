@@ -69,22 +69,26 @@ mod tests {
 
     #[test]
     fn test_len() {
-        let values = Values::<'_, u8>::new(b"");
-        assert_eq!(values.len(), 0);
-
-        let values = Values::<'_, u8>::new(b"8,13");
-        assert_eq!(values.len(), 2);
+        assert_eq!(Values::<'_, u8>::new(b"").len(), 0);
+        assert_eq!(Values::<'_, u8>::new(b"0").len(), 1);
+        assert_eq!(Values::<'_, u8>::new(b"0,0").len(), 2);
     }
 
     #[test]
     fn test_iter() -> io::Result<()> {
-        let values = Values::<'_, u8>::new(b"");
-        let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-        assert!(actual.is_empty());
-
-        let values = Values::<'_, u8>::new(b"8,13");
-        let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-        assert_eq!(actual, [8, 13]);
+        assert!(Values::<'_, u8>::new(b"").iter().next().is_none());
+        assert_eq!(
+            Values::<'_, u8>::new(b"5")
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [5]
+        );
+        assert_eq!(
+            Values::<'_, u8>::new(b"5,8")
+                .iter()
+                .collect::<io::Result<Vec<_>>>()?,
+            [5, 8]
+        );
 
         Ok(())
     }
