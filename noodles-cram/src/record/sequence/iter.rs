@@ -165,3 +165,84 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
         (self.read_length, Some(self.read_length))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_next() -> Result<(), Box<dyn std::error::Error>> {
+        let reference_sequence = fasta::record::Sequence::from(b"CGTCCGTAACACTAGG".to_vec());
+
+        let features = [
+            Feature::Bases {
+                position: Position::try_from(2)?,
+                bases: b"A",
+            },
+            Feature::Scores {
+                position: Position::try_from(2)?,
+                quality_scores: &[0],
+            },
+            Feature::ReadBase {
+                position: Position::try_from(3)?,
+                base: b'C',
+                quality_score: 0,
+            },
+            Feature::Substitution {
+                position: Position::try_from(4)?,
+                code: 0b00,
+            },
+            Feature::Insertion {
+                position: Position::try_from(5)?,
+                bases: b"G",
+            },
+            Feature::Deletion {
+                position: Position::try_from(6)?,
+                len: 1,
+            },
+            Feature::InsertBase {
+                position: Position::try_from(6)?,
+                base: b'A',
+            },
+            Feature::QualityScore {
+                position: Position::try_from(6)?,
+                quality_score: 0,
+            },
+            Feature::ReferenceSkip {
+                position: Position::try_from(7)?,
+                len: 1,
+            },
+            Feature::SoftClip {
+                position: Position::try_from(7)?,
+                bases: b"T",
+            },
+            Feature::Padding {
+                position: Position::try_from(8)?,
+                len: 1,
+            },
+            Feature::HardClip {
+                position: Position::try_from(8)?,
+                len: 1,
+            },
+        ];
+
+        let iter = Iter::new(
+            Some(&reference_sequence),
+            SubstitutionMatrix::default(),
+            &features,
+            Position::MIN,
+            8,
+        );
+
+        let actual: Vec<_> = iter.collect();
+        assert_eq!(actual, b"CACAGATT");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_size_hint() {
+        let iter = Iter::new(None, SubstitutionMatrix::default(), &[], Position::MIN, 4);
+        assert_eq!(iter.size_hint(), (4, Some(4)));
+    }
+}
