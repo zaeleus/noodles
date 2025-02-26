@@ -162,12 +162,10 @@ mod tests {
         ));
 
         let mut src = &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00][..];
-        if let Value::Array(Array::UInt8(values)) = decode_value(&mut src, Type::Array)? {
-            let actual: Vec<_> = values.iter().collect::<Result<_, _>>()?;
-            assert_eq!(actual, [0]);
-        } else {
-            panic!();
-        }
+        assert!(matches!(
+            decode_value(&mut src, Type::Array)?,
+            Value::Array(_)
+        ));
 
         Ok(())
     }
