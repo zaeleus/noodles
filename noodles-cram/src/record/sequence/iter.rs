@@ -160,4 +160,8 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (self.read_length, Some(self.read_length))
+    }
 }
