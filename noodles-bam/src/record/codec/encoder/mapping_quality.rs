@@ -2,7 +2,7 @@ use noodles_sam::alignment::record::MappingQuality;
 
 use super::num::write_u8;
 
-pub fn write_mapping_quality(dst: &mut Vec<u8>, mapping_quality: Option<MappingQuality>) {
+pub(super) fn write_mapping_quality(dst: &mut Vec<u8>, mapping_quality: Option<MappingQuality>) {
     const MISSING: u8 = 0xff;
     let n = mapping_quality.map(u8::from).unwrap_or(MISSING);
     write_u8(dst, n);

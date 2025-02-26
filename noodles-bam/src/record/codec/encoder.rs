@@ -13,19 +13,16 @@ mod reference_sequence_id;
 mod sequence;
 mod template_length;
 
-use self::{cigar::overflowing_write_cigar_op_count, template_length::write_template_length};
-pub(crate) use self::{
-    cigar::write_cigar, data::write_data, mapping_quality::write_mapping_quality, name::write_name,
-    quality_scores::write_quality_scores, sequence::write_sequence,
-};
-
 use std::{error, fmt, io};
 
 use noodles_sam::{self as sam, alignment::Record};
 
 use self::{
-    bin::write_bin, flags::write_flags, position::write_position,
-    reference_sequence_id::write_reference_sequence_id,
+    bin::write_bin, cigar::overflowing_write_cigar_op_count, cigar::write_cigar, data::write_data,
+    flags::write_flags, mapping_quality::write_mapping_quality, name::write_name,
+    position::write_position, quality_scores::write_quality_scores,
+    reference_sequence_id::write_reference_sequence_id, sequence::write_sequence,
+    template_length::write_template_length,
 };
 
 /// An error when a BAM record fails to encode.

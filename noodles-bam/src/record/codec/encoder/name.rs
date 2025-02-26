@@ -19,7 +19,7 @@ pub(super) fn write_length(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result
     Ok(())
 }
 
-pub fn write_name(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
+pub(super) fn write_name(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
     const NUL: u8 = 0x00;
 
     if let Some(name) = name {

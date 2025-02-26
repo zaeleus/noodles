@@ -13,7 +13,11 @@ pub(super) fn write_length(dst: &mut Vec<u8>, base_count: usize) -> io::Result<(
     Ok(())
 }
 
-pub fn write_sequence<S>(dst: &mut Vec<u8>, read_length: usize, sequence: S) -> io::Result<()>
+pub(super) fn write_sequence<S>(
+    dst: &mut Vec<u8>,
+    read_length: usize,
+    sequence: S,
+) -> io::Result<()>
 where
     S: Sequence,
 {

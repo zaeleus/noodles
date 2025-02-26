@@ -8,7 +8,7 @@ use noodles_sam::alignment::record::{data::field::Tag, Data};
 
 use self::field::write_field;
 
-pub(crate) fn write_data<D>(dst: &mut Vec<u8>, data: D) -> io::Result<()>
+pub(super) fn write_data<D>(dst: &mut Vec<u8>, data: D) -> io::Result<()>
 where
     D: Data,
 {

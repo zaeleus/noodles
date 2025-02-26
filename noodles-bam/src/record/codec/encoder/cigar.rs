@@ -43,7 +43,7 @@ where
     }
 }
 
-pub fn write_cigar<C>(dst: &mut Vec<u8>, cigar: &C) -> io::Result<()>
+pub(super) fn write_cigar<C>(dst: &mut Vec<u8>, cigar: &C) -> io::Result<()>
 where
     C: Cigar,
 {
