@@ -77,35 +77,35 @@ fn read_frequencies_1<R>(reader: &mut R) -> io::Result<Frequencies>
 where
     R: Read,
 {
-    let mut freqs = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+    let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
     let mut sym = reader.read_u8()?;
-    let mut last_sym = sym;
-    let mut rle = 0;
+    let mut prev_sym = sym;
 
     loop {
         let f = order_0::read_frequencies_0(reader)?;
-        freqs[usize::from(sym)] = f;
+        frequencies[usize::from(sym)] = f;
 
-        if rle > 0 {
-            rle -= 1;
-            sym += 1;
-        } else {
-            sym = reader.read_u8()?;
-
-            if last_sym < 255 && sym == last_sym + 1 {
-                rle = reader.read_u8()?;
-            }
-        }
-
-        last_sym = sym;
+        sym = reader.read_u8()?;
 
         if sym == 0 {
             break;
         }
+
+        if sym - 1 == prev_sym {
+            let len = reader.read_u8()?;
+
+            for _ in 0..len {
+                let f = order_0::read_frequencies_0(reader)?;
+                frequencies[usize::from(sym)] = f;
+                sym += 1;
+            }
+        }
+
+        prev_sym = sym;
     }
 
-    Ok(freqs)
+    Ok(frequencies)
 }
 
 fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
