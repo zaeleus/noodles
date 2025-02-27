@@ -5,7 +5,7 @@ use byteorder::ReadBytesExt;
 use super::{order_0, rans_advance_step, rans_get_cumulative_freq, rans_renorm, read_states};
 use crate::codecs::rans_4x8::ALPHABET_SIZE;
 
-type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE]; // F
+type Frequencies = [[u16; ALPHABET_SIZE]; ALPHABET_SIZE]; // F
 type CumulativeFrequencies = Frequencies; // C
 type CumulativeFrequenciesSymbolsTable = [[u8; 4096]; ALPHABET_SIZE];
 
@@ -43,8 +43,8 @@ where
 
             *r = rans_advance_step(
                 *r,
-                cumulative_freqs[usize::from(*last_sym)][usize::from(s)],
                 freqs[usize::from(*last_sym)][usize::from(s)],
+                cumulative_freqs[usize::from(*last_sym)][usize::from(s)],
             );
             *r = rans_renorm(reader, *r)?;
 
@@ -63,8 +63,8 @@ where
 
         r = rans_advance_step(
             r,
-            cumulative_freqs[usize::from(last_sym)][usize::from(s)],
             freqs[usize::from(last_sym)][usize::from(s)],
+            cumulative_freqs[usize::from(last_sym)][usize::from(s)],
         );
         r = rans_renorm(reader, r)?;
 

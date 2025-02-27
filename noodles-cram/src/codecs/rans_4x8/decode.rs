@@ -34,12 +34,12 @@ where
     Ok(buf)
 }
 
-pub fn rans_get_cumulative_freq(r: u32) -> u32 {
-    r & 0x0fff
+pub fn rans_get_cumulative_freq(r: u32) -> u16 {
+    (r & 0x0fff) as u16
 }
 
-pub fn rans_advance_step(r: u32, c: u32, f: u32) -> u32 {
-    f * (r >> 12) + (r & 0x0fff) - c
+pub fn rans_advance_step(s: u32, f: u16, g: u16) -> u32 {
+    u32::from(f) * (s >> 12) + (s & 0x0fff) - u32::from(g)
 }
 
 pub fn rans_renorm<R>(reader: &mut R, mut r: u32) -> io::Result<u32>

@@ -5,7 +5,7 @@ use byteorder::ReadBytesExt;
 use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm, read_states};
 use crate::{codecs::rans_4x8::ALPHABET_SIZE, io::reader::num::read_itf8_as};
 
-type Frequencies = [u32; ALPHABET_SIZE]; // F
+type Frequencies = [u16; ALPHABET_SIZE]; // F
 type CumulativeFrequencies = Frequencies; // C
 type CumulativeFrequenciesSymbolsTable = [u8; 4096];
 
@@ -31,8 +31,8 @@ where
 
             *state = rans_advance_step(
                 *state,
-                cumulative_freqs[usize::from(s)],
                 freqs[usize::from(s)],
+                cumulative_freqs[usize::from(s)],
             );
 
             *state = rans_renorm(reader, *state)?;
@@ -91,14 +91,12 @@ pub fn build_cumulative_freqs_symbols_table_0(
     let mut table = [0; 4096];
     let mut sym = 0;
 
-    for (freq, cumulative_freq) in table.iter_mut().enumerate() {
-        let freq = freq as u32;
-
-        while sym < 255 && freq >= cumulative_freqs[usize::from(sym + 1)] {
+    for (f, g) in (0u16..).zip(&mut table) {
+        while sym < u8::MAX && f >= cumulative_freqs[usize::from(sym + 1)] {
             sym += 1;
         }
 
-        *cumulative_freq = sym;
+        *g = sym;
     }
 
     table
