@@ -1,5 +1,6 @@
 use std::{io, slice};
 
+use bstr::BStr;
 use noodles_sam::{self as sam, alignment::record::data::field::Tag};
 
 use super::field::Value;
@@ -44,25 +45,12 @@ impl<'r, 'c: 'r> Iterator for Iter<'r, 'c> {
                     self.state = State::Done;
 
                     if let Some(id) = self.read_group_id {
-                        return Some(
-                            self.header
-                                .read_groups()
-                                .get_index(id)
-                                .map(|(name, _)| {
-                                    (
-                                        Tag::READ_GROUP,
-                                        sam::alignment::record::data::field::Value::String(
-                                            name.as_ref(),
-                                        ),
-                                    )
-                                })
-                                .ok_or_else(|| {
-                                    io::Error::new(
-                                        io::ErrorKind::InvalidData,
-                                        "invalid read group ID",
-                                    )
-                                }),
-                        );
+                        return Some(get_read_group_name(self.header, id).map(|name| {
+                            (
+                                Tag::READ_GROUP,
+                                sam::alignment::record::data::field::Value::String(name),
+                            )
+                        }));
                     }
                 }
                 State::Done => return None,
@@ -91,6 +79,14 @@ impl<'r, 'c: 'r> Iterator for Iter<'r, 'c> {
             State::Done => (0, Some(0)),
         }
     }
+}
+
+fn get_read_group_name(header: &sam::Header, read_group_id: usize) -> io::Result<&BStr> {
+    header
+        .read_groups()
+        .get_index(read_group_id)
+        .map(|(name, _)| name.as_ref())
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid read group ID"))
 }
 
 #[cfg(test)]
