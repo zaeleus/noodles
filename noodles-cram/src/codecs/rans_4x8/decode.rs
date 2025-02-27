@@ -34,23 +34,24 @@ where
     Ok(buf)
 }
 
-pub fn rans_get_cumulative_freq(r: u32) -> u16 {
-    (r & 0x0fff) as u16
+pub fn state_cumulative_frequency(s: u32) -> u16 {
+    (s & 0x0fff) as u16
 }
 
-pub fn rans_advance_step(s: u32, f: u16, g: u16) -> u32 {
+pub fn state_step(s: u32, f: u16, g: u16) -> u32 {
     u32::from(f) * (s >> 12) + (s & 0x0fff) - u32::from(g)
 }
 
-pub fn rans_renorm<R>(reader: &mut R, mut r: u32) -> io::Result<u32>
+pub fn state_renormalize<R>(mut s: u32, reader: &mut R) -> io::Result<u32>
 where
     R: Read,
 {
-    while r < LOWER_BOUND {
-        r = (r << 8) + reader.read_u8().map(u32::from)?;
+    while s < LOWER_BOUND {
+        let b = reader.read_u8().map(u32::from)?;
+        s = (s << 8) | b;
     }
 
-    Ok(r)
+    Ok(s)
 }
 
 #[cfg(test)]

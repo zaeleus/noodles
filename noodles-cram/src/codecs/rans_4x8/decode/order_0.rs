@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm, read_states};
+use super::{read_states, state_cumulative_frequency, state_renormalize, state_step};
 use crate::{codecs::rans_4x8::ALPHABET_SIZE, io::reader::num::read_itf8_as};
 
 type Frequencies = [u16; ALPHABET_SIZE]; // F
@@ -13,35 +13,31 @@ pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let freqs = read_frequencies_0(reader)?;
-    let cumulative_frequencies = build_cumulative_frequencies(&freqs);
+    let frequencies = read_frequencies(reader)?;
+    let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
 
-    let cumulative_freqs_symbols_table =
-        build_cumulative_freqs_symbols_table_0(&cumulative_frequencies);
+    let cumulative_frequencies_symbols_table =
+        build_cumulative_frequencies_symbols_table(&cumulative_frequencies);
 
     let mut states = read_states(reader)?;
 
     for chunk in dst.chunks_mut(states.len()) {
         for (d, state) in chunk.iter_mut().zip(states.iter_mut()) {
-            let f = rans_get_cumulative_freq(*state);
-            let s = cumulative_freqs_symbols_table[f as usize];
+            let f = state_cumulative_frequency(*state);
+            let sym = cumulative_frequencies_symbols_table[usize::from(f)];
 
-            *d = s;
+            *d = sym;
 
-            *state = rans_advance_step(
-                *state,
-                freqs[usize::from(s)],
-                cumulative_frequencies[usize::from(s)],
-            );
-
-            *state = rans_renorm(reader, *state)?;
+            let i = usize::from(sym);
+            *state = state_step(*state, frequencies[i], cumulative_frequencies[i]);
+            *state = state_renormalize(*state, reader)?;
         }
     }
 
     Ok(())
 }
 
-pub fn read_frequencies_0<R>(reader: &mut R) -> io::Result<Frequencies>
+pub(super) fn read_frequencies<R>(reader: &mut R) -> io::Result<Frequencies>
 where
     R: Read,
 {
@@ -78,7 +74,7 @@ where
     Ok(frequencies)
 }
 
-pub fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
+pub(super) fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
     let mut cumulative_frequencies = [0; ALPHABET_SIZE];
 
     let mut f = cumulative_frequencies[0];
@@ -91,7 +87,7 @@ pub fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFreq
     cumulative_frequencies
 }
 
-pub fn build_cumulative_freqs_symbols_table_0(
+pub(super) fn build_cumulative_frequencies_symbols_table(
     cumulative_freqs: &CumulativeFrequencies,
 ) -> CumulativeFrequenciesSymbolsTable {
     let mut table = [0; 4096];
