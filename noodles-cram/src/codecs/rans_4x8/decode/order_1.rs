@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use byteorder::ReadBytesExt;
 
 use super::{order_0, read_states, state_cumulative_frequency, state_renormalize, state_step};
-use crate::codecs::rans_4x8::ALPHABET_SIZE;
+use crate::codecs::rans_4x8::{ALPHABET_SIZE, STATE_COUNT};
 
 type Frequencies = [[u16; ALPHABET_SIZE]; ALPHABET_SIZE]; // F
 type CumulativeFrequencies = Frequencies; // C
@@ -21,11 +21,9 @@ where
 
     let states = read_states(reader)?;
 
-    let state_count = states.len();
-    let chunk_size = dst.len() / state_count;
-    let (left, right) = dst.split_at_mut(2 * chunk_size);
-    let (chunk_0, chunk_1) = left.split_at_mut(chunk_size);
-    let (chunk_2, chunk_3) = right.split_at_mut(chunk_size);
+    let (chunk_0, chunk_1, chunk_2, chunk_3) = split_chunks(dst);
+    let chunk_size = chunk_0.len();
+
     let mut chunks = [
         (states[0], 0, chunk_0),
         (states[1], 0, chunk_1),
@@ -124,4 +122,14 @@ pub fn build_cumulative_frequencies_symbols_table(
     }
 
     tables
+}
+
+fn split_chunks(dst: &mut [u8]) -> (&mut [u8], &mut [u8], &mut [u8], &mut [u8]) {
+    let chunk_size = dst.len() / STATE_COUNT;
+
+    let (left_chunk, right_chunk) = dst.split_at_mut(2 * chunk_size);
+    let (chunk_0, chunk_1) = left_chunk.split_at_mut(chunk_size);
+    let (chunk_2, chunk_3) = right_chunk.split_at_mut(chunk_size);
+
+    (chunk_0, chunk_1, chunk_2, chunk_3)
 }
