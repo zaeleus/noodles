@@ -224,14 +224,14 @@ fn get_filtered_data(
         let (tag, value) = result?;
 
         if tag == Tag::READ_GROUP {
-            if let Value::String(s) = value {
-                read_group_name = Some(s);
-            } else {
+            let Value::String(s) = value else {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     "invalid read group field value",
                 ));
             };
+
+            read_group_name = Some(s);
         }
 
         data_buf.push((tag, value.try_into()?));
