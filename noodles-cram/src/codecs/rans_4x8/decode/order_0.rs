@@ -13,9 +13,7 @@ pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let mut freqs = [0; ALPHABET_SIZE];
-    read_frequencies_0(reader, &mut freqs)?;
-
+    let freqs = read_frequencies_0(reader)?;
     let cumulative_frequencies = build_cumulative_frequencies(&freqs);
 
     let cumulative_freqs_symbols_table =
@@ -43,10 +41,12 @@ where
     Ok(())
 }
 
-pub fn read_frequencies_0<R>(reader: &mut R, freqs: &mut Frequencies) -> io::Result<()>
+pub fn read_frequencies_0<R>(reader: &mut R) -> io::Result<Frequencies>
 where
     R: Read,
 {
+    let mut freqs = [0; ALPHABET_SIZE];
+
     let mut sym = reader.read_u8()?;
     let mut last_sym = sym;
     let mut rle = 0;
@@ -73,7 +73,7 @@ where
         }
     }
 
-    Ok(())
+    Ok(freqs)
 }
 
 pub fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
