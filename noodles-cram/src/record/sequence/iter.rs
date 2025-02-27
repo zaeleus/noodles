@@ -162,7 +162,25 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.read_length, Some(self.read_length))
+        let n = self.read_length - (usize::from(self.last_read_position) - 1);
+
+        match &self.state {
+            State::Next => (n, Some(n)),
+            State::Prepare(iter, ..) => {
+                let m = n + iter.len() + 1;
+                (m, Some(m))
+            }
+            State::Base(_) => {
+                let m = n + 1;
+                (m, Some(m))
+            }
+            State::Bases(iter) => {
+                let m = n + iter.len();
+                (m, Some(m))
+            }
+            State::Finish(iter) => iter.size_hint(),
+            State::Done => (0, Some(0)),
+        }
     }
 }
 
