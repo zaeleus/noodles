@@ -2,10 +2,8 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use crate::io::reader::num::read_itf8;
-
 use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm, read_states};
-use crate::codecs::rans_4x8::ALPHABET_SIZE;
+use crate::{codecs::rans_4x8::ALPHABET_SIZE, io::reader::num::read_itf8_as};
 
 type Frequencies = [u32; ALPHABET_SIZE]; // F
 type CumulativeFrequencies = Frequencies; // C
@@ -57,8 +55,7 @@ where
     let mut rle = 0;
 
     loop {
-        let f = read_itf8(reader)? as u32;
-
+        let f = read_itf8_as(reader)?;
         freqs[usize::from(sym)] = f;
 
         if rle > 0 {
