@@ -7,6 +7,10 @@ use crate::io::reader::num::read_itf8;
 use super::{rans_advance_step, rans_get_cumulative_freq, rans_renorm, read_states};
 use crate::codecs::rans_4x8::ALPHABET_SIZE;
 
+type Frequencies = [u32; ALPHABET_SIZE]; // F
+type CumulativeFrequencies = Frequencies; // C
+type CumulativeFrequenciesSymbolsTable = [u8; 4096];
+
 pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
@@ -42,8 +46,8 @@ where
 
 pub fn read_frequencies_0<R>(
     reader: &mut R,
-    freqs: &mut [u32; ALPHABET_SIZE],
-    cumulative_freqs: &mut [u32; ALPHABET_SIZE],
+    freqs: &mut Frequencies,
+    cumulative_freqs: &mut CumulativeFrequencies,
 ) -> io::Result<()>
 where
     R: Read,
@@ -85,8 +89,8 @@ where
 }
 
 pub fn build_cumulative_freqs_symbols_table_0(
-    cumulative_freqs: &[u32; ALPHABET_SIZE],
-) -> [u8; 4096] {
+    cumulative_freqs: &CumulativeFrequencies,
+) -> CumulativeFrequenciesSymbolsTable {
     let mut table = [0; 4096];
     let mut sym = 0;
 

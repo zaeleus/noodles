@@ -5,6 +5,10 @@ use byteorder::ReadBytesExt;
 use super::{order_0, rans_advance_step, rans_get_cumulative_freq, rans_renorm, read_states};
 use crate::codecs::rans_4x8::ALPHABET_SIZE;
 
+type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE]; // F
+type CumulativeFrequencies = Frequencies; // C
+type CumulativeFrequenciesSymbolsTable = [[u8; 4096]; ALPHABET_SIZE];
+
 pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
@@ -72,8 +76,8 @@ where
 
 fn read_frequencies_1<R>(
     reader: &mut R,
-    freqs: &mut [[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
-    cumulative_freqs: &mut [[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
+    freqs: &mut Frequencies,
+    cumulative_freqs: &mut CumulativeFrequencies,
 ) -> io::Result<()>
 where
     R: Read,
@@ -111,8 +115,8 @@ where
 }
 
 pub fn build_cumulative_freqs_symbols_table_1(
-    cumulative_freqs: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
-) -> Box<[[u8; 4096]; ALPHABET_SIZE]> {
+    cumulative_freqs: &CumulativeFrequencies,
+) -> Box<CumulativeFrequenciesSymbolsTable> {
     let mut tables = Box::new([[0; 4096]; 256]);
 
     for (table, cumulative_freqs) in tables.iter_mut().zip(cumulative_freqs) {
