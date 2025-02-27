@@ -69,4 +69,38 @@ impl<'r, 'c: 'r> Iterator for Iter<'r, 'c> {
             }
         }
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        match self.state {
+            State::Fields(ref iter) => {
+                let (lower, upper) = iter.size_hint();
+
+                if self.read_group_id.is_none() {
+                    (lower, upper)
+                } else {
+                    (lower + 1, upper.map(|n| n + 1))
+                }
+            }
+            State::ReadGroup => {
+                if self.read_group_id.is_none() {
+                    (0, Some(0))
+                } else {
+                    (1, Some(1))
+                }
+            }
+            State::Done => (0, Some(0)),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_size_hint() {
+        let header = sam::Header::default();
+        assert_eq!(Iter::new(&header, &[], None).size_hint(), (0, Some(0)));
+        assert_eq!(Iter::new(&header, &[], Some(0)).size_hint(), (1, Some(1)));
+    }
 }
