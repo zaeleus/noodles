@@ -14,11 +14,12 @@ where
     R: Read,
 {
     let mut freqs = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
-    let mut cumulative_freqs = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+    read_frequencies_1(reader, &mut freqs)?;
 
-    read_frequencies_1(reader, &mut freqs, &mut cumulative_freqs)?;
+    let cumulative_frequencies = build_cumulative_frequencies(&freqs);
 
-    let cumulative_freqs_symbols_tables = build_cumulative_freqs_symbols_table_1(&cumulative_freqs);
+    let cumulative_freqs_symbols_tables =
+        build_cumulative_freqs_symbols_table_1(&cumulative_frequencies);
 
     let states = read_states(reader)?;
 
@@ -44,7 +45,7 @@ where
             *r = rans_advance_step(
                 *r,
                 freqs[usize::from(*last_sym)][usize::from(s)],
-                cumulative_freqs[usize::from(*last_sym)][usize::from(s)],
+                cumulative_frequencies[usize::from(*last_sym)][usize::from(s)],
             );
             *r = rans_renorm(reader, *r)?;
 
@@ -64,7 +65,7 @@ where
         r = rans_advance_step(
             r,
             freqs[usize::from(last_sym)][usize::from(s)],
-            cumulative_freqs[usize::from(last_sym)][usize::from(s)],
+            cumulative_frequencies[usize::from(last_sym)][usize::from(s)],
         );
         r = rans_renorm(reader, r)?;
 
@@ -74,11 +75,7 @@ where
     Ok(())
 }
 
-fn read_frequencies_1<R>(
-    reader: &mut R,
-    freqs: &mut Frequencies,
-    cumulative_freqs: &mut CumulativeFrequencies,
-) -> io::Result<()>
+fn read_frequencies_1<R>(reader: &mut R, freqs: &mut Frequencies) -> io::Result<()>
 where
     R: Read,
 {
@@ -87,11 +84,7 @@ where
     let mut rle = 0;
 
     loop {
-        order_0::read_frequencies_0(
-            reader,
-            &mut freqs[usize::from(sym)],
-            &mut cumulative_freqs[usize::from(sym)],
-        )?;
+        order_0::read_frequencies_0(reader, &mut freqs[usize::from(sym)])?;
 
         if rle > 0 {
             rle -= 1;
@@ -112,6 +105,16 @@ where
     }
 
     Ok(())
+}
+
+fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
+    let mut cumulative_frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+
+    for (f, g) in frequencies.iter().zip(&mut cumulative_frequencies) {
+        *g = order_0::build_cumulative_frequencies(f);
+    }
+
+    cumulative_frequencies
 }
 
 pub fn build_cumulative_freqs_symbols_table_1(

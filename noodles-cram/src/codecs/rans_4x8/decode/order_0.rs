@@ -14,11 +14,12 @@ where
     R: Read,
 {
     let mut freqs = [0; ALPHABET_SIZE];
-    let mut cumulative_freqs = [0; ALPHABET_SIZE];
+    read_frequencies_0(reader, &mut freqs)?;
 
-    read_frequencies_0(reader, &mut freqs, &mut cumulative_freqs)?;
+    let cumulative_frequencies = build_cumulative_frequencies(&freqs);
 
-    let cumulative_freqs_symbols_table = build_cumulative_freqs_symbols_table_0(&cumulative_freqs);
+    let cumulative_freqs_symbols_table =
+        build_cumulative_freqs_symbols_table_0(&cumulative_frequencies);
 
     let mut states = read_states(reader)?;
 
@@ -32,7 +33,7 @@ where
             *state = rans_advance_step(
                 *state,
                 freqs[usize::from(s)],
-                cumulative_freqs[usize::from(s)],
+                cumulative_frequencies[usize::from(s)],
             );
 
             *state = rans_renorm(reader, *state)?;
@@ -42,11 +43,7 @@ where
     Ok(())
 }
 
-pub fn read_frequencies_0<R>(
-    reader: &mut R,
-    freqs: &mut Frequencies,
-    cumulative_freqs: &mut CumulativeFrequencies,
-) -> io::Result<()>
+pub fn read_frequencies_0<R>(reader: &mut R, freqs: &mut Frequencies) -> io::Result<()>
 where
     R: Read,
 {
@@ -76,13 +73,20 @@ where
         }
     }
 
-    cumulative_freqs[0] = 0;
+    Ok(())
+}
 
-    for i in 0..255 {
-        cumulative_freqs[i + 1] = cumulative_freqs[i] + freqs[i];
+pub fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
+    let mut cumulative_frequencies = [0; ALPHABET_SIZE];
+
+    let mut f = cumulative_frequencies[0];
+
+    for (next_f, g) in cumulative_frequencies[1..].iter_mut().zip(frequencies) {
+        *next_f = f + g;
+        f = *next_f;
     }
 
-    Ok(())
+    cumulative_frequencies
 }
 
 pub fn build_cumulative_freqs_symbols_table_0(
