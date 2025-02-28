@@ -19,25 +19,21 @@ where
     let cumulative_frequencies_symbols_table =
         build_cumulative_frequencies_symbols_table(&cumulative_frequencies);
 
-    let states = read_states(reader)?;
+    let mut states = read_states(reader)?;
+    let mut prev_syms = [0; STATE_COUNT];
 
     let [chunk_0, chunk_1, chunk_2, chunk_3, chunk_4] = split_chunks(dst);
-    let chunk_size = chunk_0.len();
+    let chunks = chunk_0.iter_mut().zip(chunk_1).zip(chunk_2).zip(chunk_3);
 
-    let mut chunks = [
-        (states[0], 0, chunk_0),
-        (states[1], 0, chunk_1),
-        (states[2], 0, chunk_2),
-        (states[3], 0, chunk_3),
-    ];
+    for (((d0, d1), d2), d3) in chunks {
+        let dsts = [d0, d1, d2, d3];
 
-    for k in 0..chunk_size {
-        for (state, prev_sym, chunk) in &mut chunks {
+        for (state, (prev_sym, d)) in states.iter_mut().zip(prev_syms.iter_mut().zip(dsts)) {
             let i = usize::from(*prev_sym);
             let f = state_cumulative_frequency(*state);
             let sym = cumulative_frequencies_symbols_table[i][usize::from(f)];
 
-            chunk[k] = sym;
+            *d = sym;
 
             let j = usize::from(sym);
             *state = state_step(*state, frequencies[i][j], cumulative_frequencies[i][j]);
@@ -47,7 +43,8 @@ where
         }
     }
 
-    let &mut (mut state, mut prev_sym, _) = &mut chunks[3];
+    let mut state = states[3];
+    let mut prev_sym = prev_syms[3];
 
     for d in chunk_4 {
         let i = usize::from(prev_sym);
