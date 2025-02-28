@@ -1,6 +1,6 @@
 mod with_positions;
 
-use std::slice;
+use std::{iter::FusedIterator, slice};
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
@@ -183,6 +183,10 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
         }
     }
 }
+
+impl<'r: 'c, 'c: 'r> ExactSizeIterator for Iter<'r, 'c> {}
+
+impl<'r: 'c, 'c: 'r> FusedIterator for Iter<'r, 'c> {}
 
 #[cfg(test)]
 mod tests {
