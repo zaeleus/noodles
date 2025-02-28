@@ -1,4 +1,4 @@
-use std::{io, slice};
+use std::{io, iter::FusedIterator, slice};
 
 use bstr::BStr;
 use noodles_sam::{self as sam, alignment::record::data::field::Tag};
@@ -80,6 +80,8 @@ impl<'r, 'c: 'r> Iterator for Iter<'r, 'c> {
         }
     }
 }
+
+impl<'r, 'c: 'r> FusedIterator for Iter<'r, 'c> {}
 
 fn get_read_group_name(header: &sam::Header, read_group_id: usize) -> io::Result<&BStr> {
     header
