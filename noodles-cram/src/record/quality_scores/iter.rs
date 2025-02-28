@@ -1,4 +1,4 @@
-use std::{io, slice};
+use std::{io, iter::FusedIterator, slice};
 
 use noodles_core::Position;
 
@@ -117,6 +117,10 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
         (n, Some(n))
     }
 }
+
+impl<'r: 'c, 'c: 'r> ExactSizeIterator for Iter<'r, 'c> {}
+
+impl<'r: 'c, 'c: 'r> FusedIterator for Iter<'r, 'c> {}
 
 #[cfg(test)]
 mod tests {
