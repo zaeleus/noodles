@@ -5,7 +5,6 @@ use super::decode_base;
 /// A BAM record sequence bases iterator.
 pub struct Iter<'a> {
     iter: slice::Iter<'a, u8>,
-    base_count: usize,
     front: Option<array::IntoIter<u8, 2>>,
     back: Option<array::IntoIter<u8, 2>>,
 }
@@ -32,12 +31,7 @@ impl<'a> Iter<'a> {
             None
         };
 
-        Self {
-            iter,
-            base_count,
-            front,
-            back,
-        }
+        Self { iter, front, back }
     }
 }
 
@@ -58,7 +52,17 @@ impl Iterator for Iter<'_> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.base_count, Some(self.base_count))
+        let mut n = self.iter.len() * 2;
+
+        if let Some(ref iter) = self.front {
+            n += iter.len();
+        }
+
+        if let Some(ref iter) = self.back {
+            n += iter.len();
+        }
+
+        (n, Some(n))
     }
 }
 
@@ -118,8 +122,19 @@ mod tests {
 
     #[test]
     fn test_size_hint() {
-        let iter = Iter::new(&[0x12, 0x48], 0, 4);
-        assert_eq!(iter.size_hint(), (4, Some(4)));
+        fn t(mut iter: Iter, mut len: usize) {
+            assert_eq!(iter.size_hint(), (len, Some(len)));
+
+            while iter.next().is_some() {
+                len -= 1;
+                assert_eq!(iter.size_hint(), (len, Some(len)));
+            }
+        }
+
+        t(Iter::new(&[], 0, 0), 0);
+        t(Iter::new(&[0x12, 0x48], 0, 3), 3);
+        t(Iter::new(&[0x12, 0x48], 0, 4), 4);
+        t(Iter::new(&[0x12, 0x48], 1, 3), 2);
     }
 
     #[test]

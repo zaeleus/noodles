@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bam/record/sequence/iter: Fix size hint calcuation.
+
 ## 0.76.0 - 2025-02-06
 
 ### Changed
