@@ -3,12 +3,9 @@ use std::{io, ops::Range};
 use bstr::{BStr, ByteSlice};
 use noodles_sam::alignment::record::data::field::Type;
 
-use crate::{
-    io::reader::split_first_chunk,
-    record::data::field::{
-        value::{array::Values, Array},
-        Value,
-    },
+use crate::record::data::field::{
+    value::{array::Values, Array},
+    Value,
 };
 
 pub(super) fn read_value(src: &[u8], ty: Type) -> io::Result<Value<'_>> {
@@ -35,19 +32,19 @@ fn read_u8(src: &[u8]) -> io::Result<u8> {
 }
 
 fn read_u16(src: &[u8]) -> io::Result<u16> {
-    split_first_chunk(src)
+    src.split_first_chunk()
         .map(|(buf, _)| u16::from_le_bytes(*buf))
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
 fn read_u32(src: &[u8]) -> io::Result<u32> {
-    split_first_chunk(src)
+    src.split_first_chunk()
         .map(|(buf, _)| u32::from_le_bytes(*buf))
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
 fn read_f32(src: &[u8]) -> io::Result<f32> {
-    split_first_chunk(src)
+    src.split_first_chunk()
         .map(|(buf, _)| f32::from_le_bytes(*buf))
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }

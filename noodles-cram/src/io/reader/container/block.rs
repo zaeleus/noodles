@@ -9,10 +9,7 @@ use flate2::Crc;
 use self::{compression_method::read_compression_method, content_type::read_content_type};
 use crate::{
     container::block::{CompressionMethod, ContentId, ContentType},
-    io::reader::{
-        num::{read_itf8, read_itf8_as},
-        split_at_checked,
-    },
+    io::reader::num::{read_itf8, read_itf8_as},
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -69,7 +66,8 @@ fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     let compressed_size = read_itf8_as(src)?;
     let uncompressed_size = read_itf8_as(src)?;
 
-    let (data, rest) = split_at_checked(src, compressed_size)
+    let (data, rest) = src
+        .split_at_checked(compressed_size)
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     *src = rest;

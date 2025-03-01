@@ -1,15 +1,13 @@
 use std::io;
 
-use crate::{
-    container::compression_header::preservation_map::{
-        substitution_matrix::READ_BASES, SubstitutionMatrix,
-    },
-    io::reader::split_first_chunk,
+use crate::container::compression_header::preservation_map::{
+    substitution_matrix::READ_BASES, SubstitutionMatrix,
 };
 
 pub(super) fn read_substitution_matrix(src: &mut &[u8]) -> io::Result<SubstitutionMatrix> {
-    let (buf, rest) =
-        split_first_chunk(src).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+    let (buf, rest) = src
+        .split_first_chunk()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     *src = rest;
 

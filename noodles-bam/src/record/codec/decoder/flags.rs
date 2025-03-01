@@ -2,8 +2,6 @@ use std::{error, fmt};
 
 use noodles_sam::alignment::record::Flags;
 
-use super::split_first_chunk;
-
 /// An error when raw BAM record flags fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DecodeError {
@@ -26,7 +24,7 @@ pub(super) fn read_flags(src: &mut &[u8]) -> Result<Flags, DecodeError> {
 }
 
 fn read_u16_le(src: &mut &[u8]) -> Result<u16, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(u16::from_le_bytes(*buf))
 }

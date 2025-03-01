@@ -8,7 +8,6 @@ use noodles_sam::alignment::{
 };
 
 use self::subtype::read_subtype;
-use crate::record::codec::decoder::split_first_chunk;
 
 // An error when a raw BAM record data field array value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -97,31 +96,31 @@ fn read_u8(src: &mut &[u8]) -> Result<u8, DecodeError> {
 }
 
 fn read_i16_le(src: &mut &[u8]) -> Result<i16, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(i16::from_le_bytes(*buf))
 }
 
 fn read_u16_le(src: &mut &[u8]) -> Result<u16, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(u16::from_le_bytes(*buf))
 }
 
 fn read_i32_le(src: &mut &[u8]) -> Result<i32, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(i32::from_le_bytes(*buf))
 }
 
 fn read_u32_le(src: &mut &[u8]) -> Result<u32, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(u32::from_le_bytes(*buf))
 }
 
 fn read_f32_le(src: &mut &[u8]) -> Result<f32, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(f32::from_le_bytes(*buf))
 }

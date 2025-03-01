@@ -12,7 +12,6 @@ use noodles_sam::{
 };
 
 pub(crate) use self::op::decode_op;
-use super::{split_at_checked, split_first_chunk};
 
 /// An error when a raw BAM record CIGAR fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -54,7 +53,9 @@ pub(super) fn read_cigar(
     op_count: usize,
 ) -> Result<(), DecodeError> {
     let len = mem::size_of::<u32>() * op_count;
-    let (mut buf, rest) = split_at_checked(src, len).ok_or(DecodeError::UnexpectedEof)?;
+    let (mut buf, rest) = src
+        .split_at_checked(len)
+        .ok_or(DecodeError::UnexpectedEof)?;
 
     *src = rest;
 
@@ -101,13 +102,13 @@ pub(super) fn resolve(record: &mut RecordBuf) -> Result<(), DecodeError> {
 }
 
 fn read_u16_le(src: &mut &[u8]) -> Result<u16, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(u16::from_le_bytes(*buf))
 }
 
 fn read_u32_le(src: &mut &[u8]) -> Result<u32, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(u32::from_le_bytes(*buf))
 }

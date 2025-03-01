@@ -6,8 +6,6 @@ use bstr::BString;
 use memchr::memchr;
 use noodles_sam::alignment::{record::data::field::Type, record_buf::data::field::Value};
 
-use crate::record::codec::decoder::split_first_chunk;
-
 use self::array::get_array;
 
 /// An error when a raw BAM record data field value fails to parse.
@@ -79,31 +77,31 @@ fn read_u8(src: &mut &[u8]) -> Result<Value, DecodeError> {
 }
 
 fn read_i16(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(Value::Int16(i16::from_le_bytes(*buf)))
 }
 
 fn read_u16(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(Value::UInt16(u16::from_le_bytes(*buf)))
 }
 
 fn read_i32(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(Value::Int32(i32::from_le_bytes(*buf)))
 }
 
 fn read_u32(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(Value::UInt32(u32::from_le_bytes(*buf)))
 }
 
 fn read_f32(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(Value::Float(f32::from_le_bytes(*buf)))
 }

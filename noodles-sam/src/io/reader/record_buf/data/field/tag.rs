@@ -26,20 +26,9 @@ impl fmt::Display for ParseError {
 }
 
 pub(super) fn parse_tag(src: &mut &[u8]) -> Result<Tag, ParseError> {
-    let (buf, rest) = split_first_chunk::<2>(src).ok_or(ParseError::UnexpectedEof)?;
+    let ([b0, b1], rest) = src.split_first_chunk().ok_or(ParseError::UnexpectedEof)?;
     *src = rest;
-    Ok(Tag::new(buf[0], buf[1]))
-}
-
-// TODO: Use `slice::split_first_chunk` when the MSRV is raised to or above Rust 1.77.0.
-fn split_first_chunk<const N: usize>(src: &[u8]) -> Option<(&[u8; N], &[u8])> {
-    if src.len() < N {
-        None
-    } else {
-        // SAFETY: `src.len` >= `N`.
-        let (head, tail) = src.split_at(N);
-        <&[u8; N]>::try_from(head).ok().map(|chunk| (chunk, tail))
-    }
+    Ok(Tag::new(*b0, *b1))
 }
 
 #[cfg(test)]

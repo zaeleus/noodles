@@ -2,8 +2,6 @@ use std::{error, fmt};
 
 use noodles_sam::alignment::record::data::field::Tag;
 
-use crate::record::codec::decoder::split_first_chunk;
-
 /// An error when a raw BAM record data field tag fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DecodeError {
@@ -28,7 +26,7 @@ impl fmt::Display for DecodeError {
 }
 
 pub fn read_tag(src: &mut &[u8]) -> Result<Tag, DecodeError> {
-    let ([b0, b1], rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let ([b0, b1], rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(Tag::new(*b0, *b1))
 }

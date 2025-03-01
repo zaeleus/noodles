@@ -1,7 +1,5 @@
 use std::{error, fmt};
 
-use super::split_first_chunk;
-
 /// An error when a raw BAM record reference sequence ID fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DecodeError {
@@ -34,7 +32,7 @@ pub(super) fn read_reference_sequence_id(src: &mut &[u8]) -> Result<Option<usize
 }
 
 fn read_i32_le(src: &mut &[u8]) -> Result<i32, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(i32::from_le_bytes(*buf))
 }

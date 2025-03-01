@@ -1,7 +1,5 @@
 use std::{error, fmt, mem};
 
-use super::split_at_checked;
-
 /// An error when raw BAM record bin fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DecodeError {
@@ -20,8 +18,9 @@ impl fmt::Display for DecodeError {
 }
 
 pub(super) fn consume_bin(src: &mut &[u8]) -> Result<(), DecodeError> {
-    let (_, rest) =
-        split_at_checked(src, mem::size_of::<u16>()).ok_or(DecodeError::UnexpectedEof)?;
+    let (_, rest) = src
+        .split_at_checked(mem::size_of::<u16>())
+        .ok_or(DecodeError::UnexpectedEof)?;
 
     *src = rest;
 

@@ -9,7 +9,6 @@ use crate::{
     io::reader::{
         container::read_block_as,
         num::{read_itf8, read_itf8_as, read_ltf8_as},
-        split_first_chunk,
     },
 };
 
@@ -70,7 +69,7 @@ fn read_embedded_reference_bases_block_content_id(
 }
 
 fn read_reference_md5(src: &mut &[u8]) -> io::Result<Option<[u8; 16]>> {
-    let Some((buf, rest)) = split_first_chunk(src) else {
+    let Some((buf, rest)) = src.split_first_chunk() else {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     };
 

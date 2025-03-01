@@ -49,37 +49,15 @@ fn split_frame(buf: &[u8]) -> io::Result<(&HeaderBuf, &[u8], &TrailerBuf)> {
     }
 
     // SAFETY: `buf.len() >= BGZF_HEADER_SIZE`.
-    let (header, _) = split_first_chunk(buf).unwrap();
+    let (header, _) = buf.split_first_chunk().unwrap();
 
     let end = buf.len() - gz::TRAILER_SIZE;
     let cdata = &buf[BGZF_HEADER_SIZE..end];
 
     // SAFETY: `buf.len() >= gz::TRAILER_SIZE`.
-    let (_, trailer) = split_last_chunk(buf).unwrap();
+    let (_, trailer) = buf.split_last_chunk().unwrap();
 
     Ok((header, cdata, trailer))
-}
-
-// TODO: Use `slice::split_first_chunk` when the MSRV is raised to or above Rust 1.77.0.
-fn split_first_chunk<const N: usize>(src: &[u8]) -> Option<(&[u8; N], &[u8])> {
-    if src.len() < N {
-        None
-    } else {
-        // SAFETY: `src.len >= N`.
-        let (head, tail) = src.split_at(N);
-        <&[u8; N]>::try_from(head).ok().map(|chunk| (chunk, tail))
-    }
-}
-
-// TODO: Use `slice::split_last_chunk` when the MSRV is raised to or above Rust 1.77.0.
-fn split_last_chunk<const N: usize>(src: &[u8]) -> Option<(&[u8], &[u8; N])> {
-    if src.len() < N {
-        None
-    } else {
-        // SAFETY: `src.len() >= N`.
-        let (head, tail) = src.split_at(src.len() - N);
-        <&[u8; N]>::try_from(tail).ok().map(|chunk| (head, chunk))
-    }
 }
 
 fn parse_header(src: &HeaderBuf) -> io::Result<()> {
@@ -210,7 +188,7 @@ mod tests {
 
     #[test]
     fn test_parse_trailer() -> io::Result<()> {
-        let (_, src) = split_last_chunk(&BGZF_EOF).unwrap();
+        let (_, src) = BGZF_EOF.split_last_chunk().unwrap();
 
         let (crc32, r#isize) = parse_trailer(src)?;
         assert_eq!(crc32, 0);

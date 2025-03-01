@@ -2,8 +2,6 @@ use std::{error, fmt, num};
 
 use noodles_sam::alignment::record_buf::Sequence;
 
-use super::{split_at_checked, split_first_chunk};
-
 /// An error when a raw BAM record sequence fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DecodeError {
@@ -42,7 +40,9 @@ pub(super) fn read_sequence(
 ) -> Result<(), DecodeError> {
     let len = (base_count + 1) / 2;
 
-    let (buf, rest) = split_at_checked(src, len).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or(DecodeError::UnexpectedEof)?;
 
     *src = rest;
 
@@ -81,7 +81,7 @@ fn decode_base(n: u8) -> u8 {
 }
 
 fn read_u32_le(src: &mut &[u8]) -> Result<u32, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(u32::from_le_bytes(*buf))
 }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+  * bam: Raise minimum supported Rust version (MSRV) to 1.81.0.
+
 ### Fixed
 
   * bam/record/sequence/iter: Fix size hint calcuation.

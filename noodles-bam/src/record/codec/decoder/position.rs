@@ -2,9 +2,6 @@ use std::{error, fmt, num};
 
 use noodles_core::Position;
 
-use super::split_first_chunk;
-
-/// An error when raw BAM record flags fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DecodeError {
     /// Unexpected EOF.
@@ -44,7 +41,7 @@ pub(super) fn read_position(src: &mut &[u8]) -> Result<Option<Position>, DecodeE
 }
 
 fn read_i32_le(src: &mut &[u8]) -> Result<i32, DecodeError> {
-    let (buf, rest) = split_first_chunk(src).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(i32::from_le_bytes(*buf))
 }

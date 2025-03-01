@@ -5,8 +5,6 @@ use std::{
 
 use bstr::BString;
 
-use crate::record::codec::decoder::split_at_checked;
-
 const NUL: u8 = 0x00;
 
 /// An error when a raw BAM record name fails to parse.
@@ -56,7 +54,9 @@ pub(super) fn read_name(
 ) -> Result<(), DecodeError> {
     const MISSING: [u8; 2] = [b'*', NUL];
 
-    let (buf, rest) = split_at_checked(src, len.get()).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src
+        .split_at_checked(len.get())
+        .ok_or(DecodeError::UnexpectedEof)?;
 
     *src = rest;
 

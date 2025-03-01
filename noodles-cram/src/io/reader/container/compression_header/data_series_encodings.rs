@@ -6,7 +6,7 @@ use super::{
 };
 use crate::{
     container::compression_header::{data_series_encodings::DataSeries, DataSeriesEncodings},
-    io::reader::{collections::read_map, split_first_chunk},
+    io::reader::collections::read_map,
 };
 
 pub(super) fn read_data_series_encodings(src: &mut &[u8]) -> io::Result<DataSeriesEncodings> {
@@ -101,8 +101,9 @@ fn read_data_series_encodings_inner(
 }
 
 fn read_key(src: &mut &[u8]) -> io::Result<DataSeries> {
-    let (buf, rest) =
-        split_first_chunk(src).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+    let (buf, rest) = src
+        .split_first_chunk()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     *src = rest;
 

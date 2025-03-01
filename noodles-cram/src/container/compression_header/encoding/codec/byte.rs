@@ -7,9 +7,8 @@ use crate::{
     },
     huffman::CanonicalHuffmanDecoder,
     io::{
-        reader::{container::slice::records::ExternalDataReaders, split_at_checked},
-        writer::container::slice::records::ExternalDataWriters,
-        BitReader, BitWriter,
+        reader::container::slice::records::ExternalDataReaders,
+        writer::container::slice::records::ExternalDataWriters, BitReader, BitWriter,
     },
 };
 
@@ -42,7 +41,8 @@ impl Byte {
                         )
                     })?;
 
-                let (buf, rest) = split_at_checked(src, len)
+                let (buf, rest) = src
+                    .split_at_checked(len)
                     .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
                 *src = rest;

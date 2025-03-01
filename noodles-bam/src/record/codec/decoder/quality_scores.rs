@@ -2,8 +2,6 @@ use std::{error, fmt};
 
 use noodles_sam::alignment::record_buf::QualityScores;
 
-use super::split_at_checked;
-
 /// An error when raw BAM record quality scores fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum DecodeError {
@@ -36,7 +34,9 @@ pub fn read_quality_scores(
         return Ok(());
     }
 
-    let (buf, rest) = split_at_checked(src, base_count).ok_or(DecodeError::UnexpectedEof)?;
+    let (buf, rest) = src
+        .split_at_checked(base_count)
+        .ok_or(DecodeError::UnexpectedEof)?;
 
     *src = rest;
 

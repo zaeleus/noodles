@@ -1,12 +1,13 @@
 use std::io;
 
-use super::{num::read_itf8_as, split_at_checked};
+use super::num::read_itf8_as;
 
 pub(super) fn read_array<'a>(src: &mut &'a [u8]) -> io::Result<&'a [u8]> {
     let len = read_itf8_as(src)?;
 
-    let (buf, rest) =
-        split_at_checked(src, len).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     *src = rest;
 

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+  * bcf: Raise minimum supported Rust version (MSRV) to 1.81.0.
+
 ### Fixed
 
   * bcf/record/filters: Fix indices iterator.

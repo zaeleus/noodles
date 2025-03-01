@@ -6,7 +6,7 @@ use std::io;
 use self::{substitution_matrix::read_substitution_matrix, tag_sets::read_tag_sets};
 use crate::{
     container::compression_header::{preservation_map::Key, PreservationMap},
-    io::reader::{collections::read_map, split_first_chunk},
+    io::reader::collections::read_map,
 };
 
 pub(super) fn read_preservation_map(src: &mut &[u8]) -> io::Result<PreservationMap> {
@@ -51,8 +51,9 @@ fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<Preser
 }
 
 fn read_key(src: &mut &[u8]) -> io::Result<Key> {
-    let (buf, rest) =
-        split_first_chunk(src).ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+    let (buf, rest) = src
+        .split_first_chunk()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     *src = rest;
 
