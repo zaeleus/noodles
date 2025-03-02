@@ -144,7 +144,7 @@ fn decode_positions(
                 .iter()
                 .enumerate()
                 .rev()
-                .filter(move |(_, &base)| base == unmodified_base)
+                .filter(move |&(_, &base)| base == unmodified_base)
                 .map(|(i, _)| i),
         )
     } else {
@@ -155,7 +155,7 @@ fn decode_positions(
                 .as_ref()
                 .iter()
                 .enumerate()
-                .filter(move |(_, &base)| base == unmodified_base)
+                .filter(move |&(_, &base)| base == unmodified_base)
                 .map(|(i, _)| i),
         )
     };
