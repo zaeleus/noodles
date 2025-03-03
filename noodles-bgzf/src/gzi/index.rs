@@ -6,8 +6,8 @@ use crate::VirtualPosition;
 ///
 /// A gzip index holds compressed-uncompressed position pairs.
 ///
-/// Like this physical index, this does _not_ include the position of the first block, which is
-/// implicity at 0.
+/// Like the physical index, this does _not_ include the position of the first block, which is
+/// implicitly at 0.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Index(Vec<(u64, u64)>);
 
