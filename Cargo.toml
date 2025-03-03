@@ -31,7 +31,7 @@ bitflags = "2.0.2"
 bstr = { version = "1.9.0", default-features = false, features = ["std"] }
 byteorder = "1.2.3"
 bytes = "1.10.0"
-flate2 = "1.0.1"
+flate2 = { version = "1.1.0", features = ["zlib-rs"] }
 futures = { version = "0.3.15", default-features = false }
 indexmap = "2.0.0"
 lexical-core = "1.0.0"
