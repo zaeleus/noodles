@@ -27,34 +27,23 @@ where
     Ok(())
 }
 
-fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
+fn normalize_frequencies(raw_frequencies: &[u32]) -> Vec<u32> {
     use std::cmp::Ordering;
 
     // § 2.1 "Frequency table" (2023-03-15): "The total sum of symbol frequencies are normalised to
     // add up to 4095."
     const SCALING_FACTOR: u32 = 4095;
 
-    let mut sum = 0;
-    let mut max = 0;
-    let mut max_index = 0;
-
-    for (i, &f) in frequencies.iter().enumerate() {
-        if f >= max {
-            max = f;
-            max_index = i;
-        }
-
-        sum += f;
-    }
+    let (max_index, sum) = describe_frequencies(raw_frequencies);
 
     if sum == 0 {
-        return vec![0; frequencies.len()];
+        return vec![0; raw_frequencies.len()];
     }
 
     let mut normalized_sum = 0;
-    let mut normalized_frequencies = vec![0; frequencies.len()];
+    let mut normalized_frequencies = vec![0; raw_frequencies.len()];
 
-    for (i, &f) in frequencies.iter().enumerate() {
+    for (i, &f) in raw_frequencies.iter().enumerate() {
         if f == 0 {
             continue;
         }
@@ -76,6 +65,23 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
     }
 
     normalized_frequencies
+}
+
+fn describe_frequencies(raw_frequencies: &[u32]) -> (usize, u32) {
+    let mut max = u32::MIN;
+    let mut max_index = 0;
+    let mut sum = 0;
+
+    for (i, &f) in raw_frequencies.iter().enumerate() {
+        if f >= max {
+            max = f;
+            max_index = i;
+        }
+
+        sum += f;
+    }
+
+    (max_index, sum)
 }
 
 fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
@@ -108,6 +114,7 @@ fn update(x: u32, freq_i: u32, cfreq_i: u32) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::codecs::rans_4x8::ALPHABET_SIZE;
 
     #[test]
     fn test_encode_with_order_0() -> io::Result<()> {
@@ -146,11 +153,26 @@ mod tests {
 
     #[test]
     fn test_normalize_frequencies() {
-        let frequencies = [1, 2, 3, 0];
-        assert_eq!(normalize_frequencies(&frequencies), [682, 1365, 2048, 0]);
+        let mut raw_frequencies = [0; ALPHABET_SIZE];
+        raw_frequencies[usize::from(b'a')] = 5;
+        raw_frequencies[usize::from(b'b')] = 2;
+        raw_frequencies[usize::from(b'c')] = 1;
+        raw_frequencies[usize::from(b'd')] = 1;
+        raw_frequencies[usize::from(b'r')] = 2;
 
-        let frequencies = [0, 0, 0, 0];
-        assert_eq!(normalize_frequencies(&frequencies), [0, 0, 0, 0]);
+        let actual = normalize_frequencies(&raw_frequencies);
+
+        let mut expected = [0; ALPHABET_SIZE];
+        expected[usize::from(b'a')] = 1863;
+        expected[usize::from(b'b')] = 744;
+        expected[usize::from(b'c')] = 372;
+        expected[usize::from(b'd')] = 372;
+        expected[usize::from(b'r')] = 744;
+
+        assert_eq!(actual, expected);
+
+        let raw_frequencies = [0; ALPHABET_SIZE];
+        assert_eq!(normalize_frequencies(&raw_frequencies), [0; ALPHABET_SIZE]);
     }
 
     #[test]
