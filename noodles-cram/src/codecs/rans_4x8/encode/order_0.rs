@@ -2,15 +2,16 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
-use super::write_states;
-use crate::io::writer::num::write_itf8;
-
-use super::{build_cumulative_frequencies, normalize, normalize_frequencies, update};
-use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
+use super::{
+    build_cumulative_frequencies, normalize, normalize_frequencies, update, write_header,
+    write_states,
+};
+use crate::{
+    codecs::rans_4x8::{Order, ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT},
+    io::writer::num::write_itf8,
+};
 
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
-    use super::{write_header, Order};
-
     let frequencies = build_frequencies(src, ALPHABET_SIZE);
 
     let freq = normalize_frequencies(&frequencies);
