@@ -12,9 +12,9 @@ use crate::{
 };
 
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
-    let frequencies = build_frequencies(src, ALPHABET_SIZE);
+    let raw_frequencies = build_raw_frequencies(src);
 
-    let freq = normalize_frequencies(&frequencies);
+    let freq = normalize_frequencies(&raw_frequencies);
     let cfreq = build_cumulative_frequencies(&freq);
 
     let mut buf = Vec::new();
@@ -78,8 +78,8 @@ where
     Ok(())
 }
 
-fn build_frequencies(src: &[u8], bin_count: usize) -> Vec<u32> {
-    let mut frequencies = vec![0; bin_count];
+fn build_raw_frequencies(src: &[u8]) -> [u32; ALPHABET_SIZE] {
+    let mut frequencies = [0; ALPHABET_SIZE];
 
     for &b in src {
         let i = usize::from(b);
@@ -128,8 +128,17 @@ mod tests {
     }
 
     #[test]
-    fn test_build_frequencies() {
-        let data = [0, 1, 1, 2, 2, 2];
-        assert_eq!(build_frequencies(&data, 4), [1, 2, 3, 0]);
+    fn test_build_raw_frequencies() {
+        // § 2.1.1 "Frequency table: Order-0 encoding" (2023-03-15)
+        let src = b"abracadabra";
+
+        let mut expected = [0; ALPHABET_SIZE];
+        expected[usize::from(b'a')] = 5;
+        expected[usize::from(b'b')] = 2;
+        expected[usize::from(b'c')] = 1;
+        expected[usize::from(b'd')] = 1;
+        expected[usize::from(b'r')] = 2;
+
+        assert_eq!(build_raw_frequencies(src), expected);
     }
 }
