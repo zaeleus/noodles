@@ -27,12 +27,12 @@ where
     Ok(())
 }
 
-fn normalize_frequencies(raw_frequencies: &[u32]) -> Vec<u32> {
+fn normalize_frequencies(raw_frequencies: &[u32]) -> Vec<u16> {
     use std::cmp::Ordering;
 
     // § 2.1 "Frequency table" (2023-03-15): "The total sum of symbol frequencies are normalised to
     // add up to 4095."
-    const SCALING_FACTOR: u32 = 4095;
+    const SCALING_FACTOR: u16 = 4095;
 
     let (max_index, sum) = describe_frequencies(raw_frequencies);
 
@@ -48,14 +48,15 @@ fn normalize_frequencies(raw_frequencies: &[u32]) -> Vec<u32> {
             continue;
         }
 
-        let mut normalized_frequency = f * SCALING_FACTOR / sum;
+        let mut normalized_frequency = f * u32::from(SCALING_FACTOR) / sum;
 
         if normalized_frequency == 0 {
             normalized_frequency = 1;
         }
 
-        normalized_frequencies[i] = normalized_frequency;
-        normalized_sum += normalized_frequency;
+        // SAFETY: `normalized_frequency <= SCALING_FACTOR`.
+        normalized_frequencies[i] = normalized_frequency as u16;
+        normalized_sum += normalized_frequencies[i];
     }
 
     match normalized_sum.cmp(&SCALING_FACTOR) {
@@ -84,7 +85,7 @@ fn describe_frequencies(raw_frequencies: &[u32]) -> (usize, u32) {
     (max_index, sum)
 }
 
-fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
+fn build_cumulative_frequencies(frequencies: &[u16]) -> Vec<u16> {
     let mut cumulative_frequencies = vec![0; frequencies.len()];
 
     for i in 0..frequencies.len() - 1 {
@@ -94,11 +95,11 @@ fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
     cumulative_frequencies
 }
 
-fn normalize<W>(writer: &mut W, mut x: u32, freq_i: u32) -> io::Result<u32>
+fn normalize<W>(writer: &mut W, mut x: u32, freq_i: u16) -> io::Result<u32>
 where
     W: Write,
 {
-    while x >= (LOWER_BOUND >> 4) * freq_i {
+    while x >= (LOWER_BOUND >> 4) * u32::from(freq_i) {
         let b = (x & 0xff) as u8;
         writer.write_u8(b)?;
         x >>= 8;
@@ -107,8 +108,9 @@ where
     Ok(x)
 }
 
-fn update(x: u32, freq_i: u32, cfreq_i: u32) -> u32 {
-    (x / freq_i) * 0x1000 + cfreq_i + (x % freq_i)
+fn update(x: u32, freq_i: u16, cfreq_i: u16) -> u32 {
+    let (q, r) = (x / u32::from(freq_i), x % u32::from(freq_i));
+    (q << 12) + r + u32::from(cfreq_i)
 }
 
 #[cfg(test)]

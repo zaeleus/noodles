@@ -86,13 +86,13 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-fn write_contexts<W>(writer: &mut W, contexts: &[Vec<u32>]) -> io::Result<()>
+fn write_contexts<W>(writer: &mut W, contexts: &[Vec<u16>]) -> io::Result<()>
 where
     W: Write,
 {
     use super::order_0;
 
-    let sums: Vec<u32> = contexts
+    let sums: Vec<u16> = contexts
         .iter()
         .map(|frequencies| frequencies.iter().sum())
         .collect();
@@ -141,14 +141,14 @@ fn build_contexts(src: &[u8], bin_count: usize) -> Vec<Vec<u32>> {
     frequencies
 }
 
-fn normalize_contexts(contexts: &[Vec<u32>]) -> Vec<Vec<u32>> {
+fn normalize_contexts(contexts: &[Vec<u32>]) -> Vec<Vec<u16>> {
     contexts
         .iter()
         .map(|frequencies| normalize_frequencies(frequencies))
         .collect()
 }
 
-fn build_cumulative_contexts(contexts: &[Vec<u32>]) -> Vec<Vec<u32>> {
+fn build_cumulative_contexts(contexts: &[Vec<u16>]) -> Vec<Vec<u16>> {
     contexts
         .iter()
         .map(|frequencies| build_cumulative_frequencies(frequencies))

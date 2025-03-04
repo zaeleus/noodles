@@ -44,7 +44,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-pub fn write_frequencies<W>(writer: &mut W, frequencies: &[u32]) -> io::Result<()>
+pub fn write_frequencies<W>(writer: &mut W, frequencies: &[u16]) -> io::Result<()>
 where
     W: Write,
 {
