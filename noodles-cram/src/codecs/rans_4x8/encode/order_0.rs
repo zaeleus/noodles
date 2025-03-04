@@ -48,32 +48,44 @@ pub fn write_frequencies<W>(writer: &mut W, frequencies: &[u16]) -> io::Result<(
 where
     W: Write,
 {
-    let mut rle = 0;
+    assert_eq!(frequencies.len(), ALPHABET_SIZE);
 
-    for (sym, &f) in frequencies.iter().enumerate() {
+    const NUL: u8 = 0x00;
+
+    let mut iter = frequencies.iter().enumerate();
+    let mut prev_sym = 0;
+
+    while let Some((sym, &f)) = iter.next() {
         if f == 0 {
             continue;
         }
 
-        if rle > 0 {
-            rle -= 1;
-        } else {
-            writer.write_u8(sym as u8)?;
+        // SAFETY: `sym <= ALPHABET_SIZE`.
+        writer.write_u8(sym as u8)?;
 
-            if sym > 0 && frequencies[sym - 1] > 0 {
-                rle = frequencies[sym + 1..]
-                    .iter()
-                    .position(|&f| f == 0)
-                    .unwrap_or(0);
+        if sym > 0 && sym - 1 == prev_sym {
+            let i = sym + 1;
+            let len = frequencies[i..].iter().position(|&g| g == 0).unwrap_or(0);
 
-                writer.write_u8(rle as u8)?;
+            // SAFETY: `len < ALPHABET_SIZE`.
+            writer.write_u8(len as u8)?;
+
+            write_itf8(writer, i32::from(f))?;
+
+            for (sym, &g) in iter.by_ref().take(len) {
+                write_itf8(writer, i32::from(g))?;
+                prev_sym = sym;
             }
+
+            continue;
         }
 
-        write_itf8(writer, f as i32)?;
+        write_itf8(writer, i32::from(f))?;
+
+        prev_sym = sym;
     }
 
-    writer.write_u8(0x00)?;
+    writer.write_u8(NUL)?;
 
     Ok(())
 }
