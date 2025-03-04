@@ -1,4 +1,4 @@
-//! CRAM record and fields.
+//! CRAM record.
 
 mod cigar;
 pub(crate) mod data;
