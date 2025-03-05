@@ -56,8 +56,8 @@ impl Builder {
             request = request.query(&query);
         }
 
-        let response = request.send().await.map_err(Error::Request)?;
-        let sequence = response.bytes().await.map_err(Error::Request)?;
+        let response = request.send().await?.error_for_status()?;
+        let sequence = response.bytes().await?;
 
         Ok(Sequence::new(self.client, self.id, sequence))
     }

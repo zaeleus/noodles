@@ -33,14 +33,15 @@ impl Builder {
             .http_client()
             .get(endpoint)
             .send()
-            .await
-            .map_err(Error::Request)?;
+            .await?
+            .error_for_status()?;
 
-        response
+        let metadata = response
             .json()
             .await
-            .map(|data: MetadataResponse| data.metadata)
-            .map_err(Error::Request)
+            .map(|data: MetadataResponse| data.metadata)?;
+
+        Ok(metadata)
     }
 }
 
