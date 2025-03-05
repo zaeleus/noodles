@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
-use super::{build_cumulative_frequencies, normalize, update, write_states};
+use super::{normalize, order_0, update, write_states};
 use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
 const NUL: u8 = 0x00;
@@ -159,7 +159,7 @@ fn normalize_frequencies(
     let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
     for (f, g) in raw_frequencies.iter().zip(&mut frequencies) {
-        *g = super::normalize_frequencies(f);
+        *g = order_0::normalize_frequencies(f);
     }
 
     frequencies
@@ -168,7 +168,7 @@ fn normalize_frequencies(
 fn build_cumulative_contexts(contexts: &[[u16; ALPHABET_SIZE]; ALPHABET_SIZE]) -> Vec<Vec<u16>> {
     contexts
         .iter()
-        .map(|frequencies| build_cumulative_frequencies(frequencies))
+        .map(|frequencies| order_0::build_cumulative_frequencies(frequencies))
         .collect()
 }
 
