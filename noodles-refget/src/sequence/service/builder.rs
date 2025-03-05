@@ -26,14 +26,15 @@ impl Builder {
             .http_client()
             .get(endpoint)
             .send()
-            .await
-            .map_err(Error::Request)?;
+            .await?
+            .error_for_status()?;
 
-        response
+        let service = response
             .json()
             .await
-            .map(|data: ServiceInfoResponse| data.refget)
-            .map_err(Error::Request)
+            .map(|data: ServiceInfoResponse| data.refget)?;
+
+        Ok(service)
     }
 }
 

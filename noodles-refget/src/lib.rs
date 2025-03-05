@@ -20,6 +20,8 @@ pub enum Error {
     Url(url::ParseError),
     /// The request failed to process.
     Request(reqwest::Error),
+    /// The response had an unsuccessful HTTP status code.  
+    Response(reqwest::Error),
 }
 
 impl error::Error for Error {
@@ -28,6 +30,17 @@ impl error::Error for Error {
             Self::Input => None,
             Self::Url(e) => Some(e),
             Self::Request(e) => Some(e),
+            Self::Response(e) => Some(e),
+        }
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Self {
+        if err.is_status() {
+            Error::Response(err)
+        } else {
+            Error::Request(err)
         }
     }
 }
@@ -38,6 +51,7 @@ impl fmt::Display for Error {
             Self::Input => f.write_str("invalid input"),
             Self::Url(_) => f.write_str("URL error"),
             Self::Request(_) => f.write_str("request error"),
+            Self::Response(_) => f.write_str("response error"),
         }
     }
 }
