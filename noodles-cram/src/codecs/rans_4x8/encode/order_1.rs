@@ -15,7 +15,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
 
     let raw_frequencies = build_raw_frequencies(src);
     let frequencies = normalize_frequencies(&raw_frequencies);
-    let cfreq = build_cumulative_contexts(&frequencies);
+    let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
 
     let mut buf = Vec::new();
     let mut states = [LOWER_BOUND; STATE_COUNT];
@@ -38,7 +38,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
 
         for syms in remainder.windows(2).rev() {
             let freq_i = frequencies[usize::from(syms[0])][usize::from(syms[1])];
-            let cfreq_i = cfreq[usize::from(syms[0])][usize::from(syms[1])];
+            let cfreq_i = cumulative_frequencies[usize::from(syms[0])][usize::from(syms[1])];
             let x = normalize(&mut buf, states[3], freq_i)?;
             states[3] = update(x, freq_i, cfreq_i);
         }
@@ -58,7 +58,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
         for (state, ws) in states.iter_mut().rev().zip(windows.iter_mut().rev()) {
             let syms = ws.next().unwrap();
             let freq_i = frequencies[usize::from(syms[0])][usize::from(syms[1])];
-            let cfreq_i = cfreq[usize::from(syms[0])][usize::from(syms[1])];
+            let cfreq_i = cumulative_frequencies[usize::from(syms[0])][usize::from(syms[1])];
             let x = normalize(&mut buf, *state, freq_i)?;
             *state = update(x, freq_i, cfreq_i);
         }
@@ -70,7 +70,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
         let sym = usize::from(chunk[0]);
         let freq_i = frequencies[0][sym];
-        let cfreq_i = cfreq[0][sym];
+        let cfreq_i = cumulative_frequencies[0][sym];
         let x = normalize(&mut buf, *state, freq_i)?;
         *state = update(x, freq_i, cfreq_i);
     }
@@ -165,11 +165,16 @@ fn normalize_frequencies(
     frequencies
 }
 
-fn build_cumulative_contexts(contexts: &[[u16; ALPHABET_SIZE]; ALPHABET_SIZE]) -> Vec<Vec<u16>> {
-    contexts
-        .iter()
-        .map(|frequencies| order_0::build_cumulative_frequencies(frequencies).to_vec())
-        .collect()
+fn build_cumulative_frequencies(
+    frequencies: &[[u16; ALPHABET_SIZE]; ALPHABET_SIZE],
+) -> [[u16; ALPHABET_SIZE]; ALPHABET_SIZE] {
+    let mut cumulative_frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+
+    for (f, g) in frequencies.iter().zip(&mut cumulative_frequencies) {
+        *g = order_0::build_cumulative_frequencies(f);
+    }
+
+    cumulative_frequencies
 }
 
 #[cfg(test)]
