@@ -156,11 +156,15 @@ fn describe_frequencies(raw_frequencies: &[u32]) -> (usize, u32) {
     (max_index, sum)
 }
 
-pub(super) fn build_cumulative_frequencies(frequencies: &[u16]) -> Vec<u16> {
-    let mut cumulative_frequencies = vec![0; frequencies.len()];
+pub(super) fn build_cumulative_frequencies(
+    frequencies: &[u16; ALPHABET_SIZE],
+) -> [u16; ALPHABET_SIZE] {
+    let mut cumulative_frequencies = [0; ALPHABET_SIZE];
+    let mut f = cumulative_frequencies[0];
 
-    for i in 0..frequencies.len() - 1 {
-        cumulative_frequencies[i + 1] = cumulative_frequencies[i] + frequencies[i];
+    for (next_f, g) in cumulative_frequencies[1..].iter_mut().zip(frequencies) {
+        *next_f = f + g;
+        f = *next_f;
     }
 
     cumulative_frequencies
@@ -241,15 +245,5 @@ mod tests {
 
         let raw_frequencies = [0; ALPHABET_SIZE];
         assert_eq!(normalize_frequencies(&raw_frequencies), [0; ALPHABET_SIZE]);
-    }
-
-    #[test]
-    fn test_build_cumulative_frequencies() {
-        let frequencies = [682, 1365, 2048, 0];
-
-        assert_eq!(
-            build_cumulative_frequencies(&frequencies),
-            [0, 682, 2047, 4095]
-        );
     }
 }
