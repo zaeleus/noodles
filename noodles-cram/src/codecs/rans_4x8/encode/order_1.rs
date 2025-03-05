@@ -7,6 +7,10 @@ use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
 const NUL: u8 = 0x00;
 
+type RawFrequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
+type Frequencies = [[u16; ALPHABET_SIZE]; ALPHABET_SIZE]; // F
+type CumulativeFrequencies = Frequencies; // C
+
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     use super::{write_header, Order};
 
@@ -88,10 +92,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-fn write_contexts<W>(
-    writer: &mut W,
-    contexts: &[[u16; ALPHABET_SIZE]; ALPHABET_SIZE],
-) -> io::Result<()>
+fn write_contexts<W>(writer: &mut W, contexts: &Frequencies) -> io::Result<()>
 where
     W: Write,
 {
@@ -128,7 +129,7 @@ where
     Ok(())
 }
 
-fn build_raw_frequencies(src: &[u8]) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
+fn build_raw_frequencies(src: &[u8]) -> RawFrequencies {
     const CONTEXT_SIZE: usize = 2;
 
     assert!(src.len() >= STATE_COUNT);
@@ -153,9 +154,7 @@ fn build_raw_frequencies(src: &[u8]) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
     frequencies
 }
 
-fn normalize_frequencies(
-    raw_frequencies: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
-) -> [[u16; ALPHABET_SIZE]; ALPHABET_SIZE] {
+fn normalize_frequencies(raw_frequencies: &RawFrequencies) -> Frequencies {
     let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
     for (f, g) in raw_frequencies.iter().zip(&mut frequencies) {
@@ -165,9 +164,7 @@ fn normalize_frequencies(
     frequencies
 }
 
-fn build_cumulative_frequencies(
-    frequencies: &[[u16; ALPHABET_SIZE]; ALPHABET_SIZE],
-) -> [[u16; ALPHABET_SIZE]; ALPHABET_SIZE] {
+fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
     let mut cumulative_frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
     for (f, g) in frequencies.iter().zip(&mut cumulative_frequencies) {

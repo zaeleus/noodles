@@ -8,6 +8,10 @@ use crate::{
     io::writer::num::write_itf8,
 };
 
+type RawFrequencies = [u32; ALPHABET_SIZE];
+type Frequencies = [u16; ALPHABET_SIZE]; // F
+type CumulativeFrequencies = Frequencies; // C
+
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     let raw_frequencies = build_raw_frequencies(src);
 
@@ -87,7 +91,7 @@ where
     Ok(())
 }
 
-fn build_raw_frequencies(src: &[u8]) -> [u32; ALPHABET_SIZE] {
+fn build_raw_frequencies(src: &[u8]) -> RawFrequencies {
     let mut frequencies = [0; ALPHABET_SIZE];
 
     for &b in src {
@@ -98,7 +102,7 @@ fn build_raw_frequencies(src: &[u8]) -> [u32; ALPHABET_SIZE] {
     frequencies
 }
 
-pub(super) fn normalize_frequencies(raw_frequencies: &[u32]) -> [u16; ALPHABET_SIZE] {
+pub(super) fn normalize_frequencies(raw_frequencies: &RawFrequencies) -> Frequencies {
     use std::cmp::Ordering;
 
     // § 2.1 "Frequency table" (2023-03-15): "The total sum of symbol frequencies are normalised to
@@ -156,9 +160,7 @@ fn describe_frequencies(raw_frequencies: &[u32]) -> (usize, u32) {
     (max_index, sum)
 }
 
-pub(super) fn build_cumulative_frequencies(
-    frequencies: &[u16; ALPHABET_SIZE],
-) -> [u16; ALPHABET_SIZE] {
+pub(super) fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
     let mut cumulative_frequencies = [0; ALPHABET_SIZE];
     let mut f = cumulative_frequencies[0];
 
