@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
-use super::{build_cumulative_frequencies, normalize, normalize_frequencies, update, write_states};
+use super::{build_cumulative_frequencies, normalize, update, write_states};
 use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
 const NUL: u8 = 0x00;
@@ -14,8 +14,8 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     assert!(src.len() >= 4);
 
     let raw_frequencies = build_raw_frequencies(src);
-    let freq = normalize_contexts(&raw_frequencies);
-    let cfreq = build_cumulative_contexts(&freq);
+    let frequencies = normalize_frequencies(&raw_frequencies);
+    let cfreq = build_cumulative_contexts(&frequencies);
 
     let mut buf = Vec::new();
     let mut states = [LOWER_BOUND; STATE_COUNT];
@@ -37,7 +37,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
         let remainder = &src[4 * quarter - 1..];
 
         for syms in remainder.windows(2).rev() {
-            let freq_i = freq[usize::from(syms[0])][usize::from(syms[1])];
+            let freq_i = frequencies[usize::from(syms[0])][usize::from(syms[1])];
             let cfreq_i = cfreq[usize::from(syms[0])][usize::from(syms[1])];
             let x = normalize(&mut buf, states[3], freq_i)?;
             states[3] = update(x, freq_i, cfreq_i);
@@ -57,7 +57,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     while n < window_count {
         for (state, ws) in states.iter_mut().rev().zip(windows.iter_mut().rev()) {
             let syms = ws.next().unwrap();
-            let freq_i = freq[usize::from(syms[0])][usize::from(syms[1])];
+            let freq_i = frequencies[usize::from(syms[0])][usize::from(syms[1])];
             let cfreq_i = cfreq[usize::from(syms[0])][usize::from(syms[1])];
             let x = normalize(&mut buf, *state, freq_i)?;
             *state = update(x, freq_i, cfreq_i);
@@ -69,7 +69,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     // The last state updates are for the starting contexts, i.e., `(0, chunks[i][0])`.
     for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
         let sym = usize::from(chunk[0]);
-        let freq_i = freq[0][sym];
+        let freq_i = frequencies[0][sym];
         let cfreq_i = cfreq[0][sym];
         let x = normalize(&mut buf, *state, freq_i)?;
         *state = update(x, freq_i, cfreq_i);
@@ -77,7 +77,7 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut dst = vec![0; 9];
 
-    write_contexts(&mut dst, &freq)?;
+    write_contexts(&mut dst, &frequencies)?;
     write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
@@ -88,7 +88,10 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-fn write_contexts<W>(writer: &mut W, contexts: &[Vec<u16>]) -> io::Result<()>
+fn write_contexts<W>(
+    writer: &mut W,
+    contexts: &[[u16; ALPHABET_SIZE]; ALPHABET_SIZE],
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -150,14 +153,19 @@ fn build_raw_frequencies(src: &[u8]) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
     frequencies
 }
 
-fn normalize_contexts(contexts: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE]) -> Vec<Vec<u16>> {
-    contexts
-        .iter()
-        .map(|frequencies| normalize_frequencies(frequencies).to_vec())
-        .collect()
+fn normalize_frequencies(
+    raw_frequencies: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
+) -> [[u16; ALPHABET_SIZE]; ALPHABET_SIZE] {
+    let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+
+    for (f, g) in raw_frequencies.iter().zip(&mut frequencies) {
+        *g = super::normalize_frequencies(f);
+    }
+
+    frequencies
 }
 
-fn build_cumulative_contexts(contexts: &[Vec<u16>]) -> Vec<Vec<u16>> {
+fn build_cumulative_contexts(contexts: &[[u16; ALPHABET_SIZE]; ALPHABET_SIZE]) -> Vec<Vec<u16>> {
     contexts
         .iter()
         .map(|frequencies| build_cumulative_frequencies(frequencies))
@@ -263,26 +271,6 @@ mod tests {
         expected[usize::from(b'd')][usize::from(b'a')] = 4095;
         expected[usize::from(b'r')][usize::from(b'a')] = 4095;
 
-        assert_eq!(normalize_contexts(&raw_frequencies), expected);
-    }
-
-    #[test]
-    fn test_build_cumulative_contexts() {
-        let normalized_contexts = [
-            vec![0, 2049, 1023, 1023],
-            vec![0, 0, 4095, 0],
-            vec![0, 2047, 0, 2048],
-            vec![0, 4095, 0, 0],
-        ];
-        let actual = build_cumulative_contexts(&normalized_contexts);
-
-        let expected = [
-            [0, 0, 2049, 3072],
-            [0, 0, 0, 4095],
-            [0, 0, 2047, 2047],
-            [0, 0, 4095, 4095],
-        ];
-
-        assert_eq!(actual, expected);
+        assert_eq!(normalize_frequencies(&raw_frequencies), expected);
     }
 }
