@@ -5,14 +5,16 @@ use byteorder::WriteBytesExt;
 use super::{build_cumulative_frequencies, normalize, normalize_frequencies, update, write_states};
 use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
+const NUL: u8 = 0x00;
+
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     use super::{write_header, Order};
 
     // Order-1 encoding does not support input smaller than 4 bytes.
     assert!(src.len() >= 4);
 
-    let contexts = build_contexts(src, ALPHABET_SIZE);
-    let freq = normalize_contexts(&contexts);
+    let raw_frequencies = build_raw_frequencies(src);
+    let freq = normalize_contexts(&raw_frequencies);
     let cfreq = build_cumulative_contexts(&freq);
 
     let mut buf = Vec::new();
@@ -123,25 +125,32 @@ where
     Ok(())
 }
 
-fn build_contexts(src: &[u8], bin_count: usize) -> Vec<Vec<u32>> {
-    let mut frequencies = vec![vec![0; bin_count]; bin_count];
+fn build_raw_frequencies(src: &[u8]) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
+    const CONTEXT_SIZE: usize = 2;
 
-    let quarter = src.len() / 4;
+    assert!(src.len() >= STATE_COUNT);
 
-    for i in 0..4 {
-        frequencies[0][usize::from(src[i * quarter])] += 1;
+    let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+
+    // § 2.1.2 "Frequency table: Order-1 encoding": "We use the ASCII value (`\0`) as the starting
+    // context for each interleaved rANS state..."
+    let chunk_size = src.len() / STATE_COUNT;
+
+    for chunk in src.chunks_exact(chunk_size).take(STATE_COUNT) {
+        // SAFETY: `chunk.len() > 0`.
+        let (i, j) = (usize::from(NUL), usize::from(chunk[0]));
+        frequencies[i][j] += 1;
     }
 
-    for window in src.windows(2) {
-        let sym_0 = usize::from(window[0]);
-        let sym_1 = usize::from(window[1]);
-        frequencies[sym_0][sym_1] += 1;
+    for syms in src.windows(CONTEXT_SIZE) {
+        let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
+        frequencies[i][j] += 1;
     }
 
     frequencies
 }
 
-fn normalize_contexts(contexts: &[Vec<u32>]) -> Vec<Vec<u16>> {
+fn normalize_contexts(contexts: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE]) -> Vec<Vec<u16>> {
     contexts
         .iter()
         .map(|frequencies| normalize_frequencies(frequencies))
@@ -215,31 +224,46 @@ mod tests {
     }
 
     #[test]
-    fn test_build_contexts() {
-        let data = [1, 2, 3, 1, 2, 1, 2];
-        let actual = build_contexts(&data, 4);
-        let expected = [[0, 2, 1, 1], [0, 0, 3, 0], [0, 1, 0, 1], [0, 1, 0, 0]];
-        assert_eq!(actual, expected);
+    fn test_build_raw_frequencies() {
+        // § 2.1.2 "Frequency table: Order-1 encoding" (2023-03-15)
+        let src = b"abracadabraabracadabraabracadabraabracadabr";
+
+        let mut expected = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+        expected[usize::from(NUL)][usize::from(b'a')] = 2;
+        expected[usize::from(NUL)][usize::from(b'r')] = 1;
+        expected[usize::from(NUL)][usize::from(b'b')] = 1;
+        expected[usize::from(b'a')][usize::from(b'a')] = 3;
+        expected[usize::from(b'a')][usize::from(b'b')] = 8;
+        expected[usize::from(b'a')][usize::from(b'c')] = 4;
+        expected[usize::from(b'a')][usize::from(b'd')] = 4;
+        expected[usize::from(b'b')][usize::from(b'r')] = 8;
+        expected[usize::from(b'c')][usize::from(b'a')] = 4;
+        expected[usize::from(b'd')][usize::from(b'a')] = 4;
+        expected[usize::from(b'r')][usize::from(b'a')] = 7;
+
+        assert_eq!(build_raw_frequencies(src), expected);
     }
 
     #[test]
     fn test_normalize_contexts() {
-        let contexts = [
-            vec![0, 2, 1, 1],
-            vec![0, 0, 3, 0],
-            vec![0, 1, 0, 1],
-            vec![0, 1, 0, 0],
-        ];
-        let actual = normalize_contexts(&contexts);
+        // § 2.1.2 "Frequency table: Order-1 encoding" (2023-03-15)
+        // let src = b"abracadabraabracadabraabracadabraabracadabr";
 
-        let expected = [
-            [0, 2049, 1023, 1023],
-            [0, 0, 4095, 0],
-            [0, 2047, 0, 2048],
-            [0, 4095, 0, 0],
-        ];
+        let src = b"abracadabraabracadabraabracadabraabracadabra";
+        let raw_frequencies = build_raw_frequencies(src);
 
-        assert_eq!(actual, expected);
+        let mut expected = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+        expected[usize::from(NUL)][usize::from(b'a')] = 4095;
+        expected[usize::from(b'a')][usize::from(b'a')] = 646;
+        expected[usize::from(b'a')][usize::from(b'b')] = 1725;
+        expected[usize::from(b'a')][usize::from(b'c')] = 862;
+        expected[usize::from(b'a')][usize::from(b'd')] = 862;
+        expected[usize::from(b'b')][usize::from(b'r')] = 4095;
+        expected[usize::from(b'c')][usize::from(b'a')] = 4095;
+        expected[usize::from(b'd')][usize::from(b'a')] = 4095;
+        expected[usize::from(b'r')][usize::from(b'a')] = 4095;
+
+        assert_eq!(normalize_contexts(&raw_frequencies), expected);
     }
 
     #[test]
