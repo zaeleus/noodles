@@ -153,7 +153,7 @@ fn build_raw_frequencies(src: &[u8]) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
 fn normalize_contexts(contexts: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE]) -> Vec<Vec<u16>> {
     contexts
         .iter()
-        .map(|frequencies| normalize_frequencies(frequencies))
+        .map(|frequencies| normalize_frequencies(frequencies).to_vec())
         .collect()
 }
 

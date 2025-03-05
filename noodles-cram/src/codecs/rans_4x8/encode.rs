@@ -7,7 +7,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use self::header::write_header;
-use super::{Order, LOWER_BOUND, STATE_COUNT};
+use super::{Order, ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
 pub fn encode(order: Order, src: &[u8]) -> io::Result<Vec<u8>> {
     match order {
@@ -27,7 +27,7 @@ where
     Ok(())
 }
 
-fn normalize_frequencies(raw_frequencies: &[u32]) -> Vec<u16> {
+fn normalize_frequencies(raw_frequencies: &[u32]) -> [u16; ALPHABET_SIZE] {
     use std::cmp::Ordering;
 
     // § 2.1 "Frequency table" (2023-03-15): "The total sum of symbol frequencies are normalised to
@@ -37,11 +37,11 @@ fn normalize_frequencies(raw_frequencies: &[u32]) -> Vec<u16> {
     let (max_index, sum) = describe_frequencies(raw_frequencies);
 
     if sum == 0 {
-        return vec![0; raw_frequencies.len()];
+        return [0; ALPHABET_SIZE];
     }
 
+    let mut normalized_frequencies = [0; ALPHABET_SIZE];
     let mut normalized_sum = 0;
-    let mut normalized_frequencies = vec![0; raw_frequencies.len()];
 
     for (i, &f) in raw_frequencies.iter().enumerate() {
         if f == 0 {
