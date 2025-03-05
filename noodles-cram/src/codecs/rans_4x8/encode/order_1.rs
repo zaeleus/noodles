@@ -92,35 +92,46 @@ fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Result
 where
     W: Write,
 {
-    use super::order_0;
+    let mut statuses = [false; ALPHABET_SIZE];
 
-    let sums: Vec<u16> = frequencies
-        .iter()
-        .map(|frequencies| frequencies.iter().sum())
-        .collect();
+    for (s, f) in statuses.iter_mut().zip(frequencies) {
+        *s = !f.iter().any(|&g| g > 0);
+    }
 
-    let mut rle = 0;
+    let mut iter = frequencies.iter().zip(&statuses).enumerate();
+    let mut prev_sym = 0;
 
-    for (sym, (f, &sum)) in frequencies.iter().zip(sums.iter()).enumerate() {
-        if sum == 0 {
+    while let Some((sym, (f, &is_empty))) = iter.next() {
+        if is_empty {
             continue;
         }
 
-        if rle > 0 {
-            rle -= 1;
-        } else {
-            writer.write_u8(sym as u8)?;
+        // SAFETY: `sym <= ALPHABET_SIZE`.
+        writer.write_u8(sym as u8)?;
 
-            if sym > 0 && sums[sym - 1] > 0 {
-                rle = sums[sym + 1..].iter().position(|&s| s == 0).unwrap_or(0);
-                writer.write_u8(rle as u8)?;
+        if sym > 0 && sym - 1 == prev_sym {
+            let i = sym + 1;
+            let len = statuses[i..].iter().position(|s| *s).unwrap_or(0);
+
+            // SAFETY: `len < ALPHABET_SIZE`.
+            writer.write_u8(len as u8)?;
+
+            order_0::write_frequencies(writer, f)?;
+
+            for (sym, (g, _)) in iter.by_ref().take(len) {
+                order_0::write_frequencies(writer, g)?;
+                prev_sym = sym;
             }
+
+            continue;
         }
 
         order_0::write_frequencies(writer, f)?;
+
+        prev_sym = sym;
     }
 
-    writer.write_u8(0x00)?;
+    writer.write_u8(NUL)?;
 
     Ok(())
 }
