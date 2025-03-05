@@ -6,6 +6,12 @@
 
   * refget: Raise minimum supported Rust version (MSRV) to 1.81.0.
 
+  * refget/sequence: Handle response failures ([#322]).
+
+    Response errors now wrap the HTTP client error as `Error::Response`.
+
+[#322]: https://github.com/zaeleus/noodles/issues/332
+
 ## 0.6.0 - 2025-01-19
 
 ### Changed
