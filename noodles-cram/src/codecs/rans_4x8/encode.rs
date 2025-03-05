@@ -27,22 +27,22 @@ where
     Ok(())
 }
 
-fn normalize<W>(writer: &mut W, mut x: u32, freq_i: u16) -> io::Result<u32>
+fn state_renormalize<W>(mut s: u32, f: u16, writer: &mut W) -> io::Result<u32>
 where
     W: Write,
 {
-    while x >= (LOWER_BOUND >> 4) * u32::from(freq_i) {
-        let b = (x & 0xff) as u8;
+    while s >= (LOWER_BOUND >> 4) * u32::from(f) {
+        let b = (s & 0xff) as u8;
         writer.write_u8(b)?;
-        x >>= 8;
+        s >>= 8;
     }
 
-    Ok(x)
+    Ok(s)
 }
 
-fn update(x: u32, freq_i: u16, cfreq_i: u16) -> u32 {
-    let (q, r) = (x / u32::from(freq_i), x % u32::from(freq_i));
-    (q << 12) + r + u32::from(cfreq_i)
+fn state_step(s: u32, f: u16, g: u16) -> u32 {
+    let (q, r) = (s / u32::from(f), s % u32::from(f));
+    (q << 12) + r + u32::from(g)
 }
 
 #[cfg(test)]

@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
-use super::{normalize, order_0, update, write_states};
+use super::{order_0, state_renormalize, state_step, write_states};
 use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
 const NUL: u8 = 0x00;
@@ -41,10 +41,9 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
         let remainder = &src[4 * quarter - 1..];
 
         for syms in remainder.windows(2).rev() {
-            let freq_i = frequencies[usize::from(syms[0])][usize::from(syms[1])];
-            let cfreq_i = cumulative_frequencies[usize::from(syms[0])][usize::from(syms[1])];
-            let x = normalize(&mut buf, states[3], freq_i)?;
-            states[3] = update(x, freq_i, cfreq_i);
+            let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
+            states[3] = state_renormalize(states[3], frequencies[i][j], &mut buf)?;
+            states[3] = state_step(states[3], frequencies[i][j], cumulative_frequencies[i][j]);
         }
     }
 
@@ -61,10 +60,9 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     while n < window_count {
         for (state, ws) in states.iter_mut().rev().zip(windows.iter_mut().rev()) {
             let syms = ws.next().unwrap();
-            let freq_i = frequencies[usize::from(syms[0])][usize::from(syms[1])];
-            let cfreq_i = cumulative_frequencies[usize::from(syms[0])][usize::from(syms[1])];
-            let x = normalize(&mut buf, *state, freq_i)?;
-            *state = update(x, freq_i, cfreq_i);
+            let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
+            *state = state_renormalize(*state, frequencies[i][j], &mut buf)?;
+            *state = state_step(*state, frequencies[i][j], cumulative_frequencies[i][j]);
         }
 
         n += 1;
@@ -72,16 +70,14 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
 
     // The last state updates are for the starting contexts, i.e., `(0, chunks[i][0])`.
     for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
-        let sym = usize::from(chunk[0]);
-        let freq_i = frequencies[0][sym];
-        let cfreq_i = cumulative_frequencies[0][sym];
-        let x = normalize(&mut buf, *state, freq_i)?;
-        *state = update(x, freq_i, cfreq_i);
+        let (i, j) = (usize::from(NUL), usize::from(chunk[0]));
+        *state = state_renormalize(*state, frequencies[i][j], &mut buf)?;
+        *state = state_step(*state, frequencies[i][j], cumulative_frequencies[i][j]);
     }
 
     let mut dst = vec![0; 9];
 
-    write_contexts(&mut dst, &frequencies)?;
+    write_frequencies(&mut dst, &frequencies)?;
     write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
@@ -92,20 +88,20 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-fn write_contexts<W>(writer: &mut W, contexts: &Frequencies) -> io::Result<()>
+fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Result<()>
 where
     W: Write,
 {
     use super::order_0;
 
-    let sums: Vec<u16> = contexts
+    let sums: Vec<u16> = frequencies
         .iter()
         .map(|frequencies| frequencies.iter().sum())
         .collect();
 
     let mut rle = 0;
 
-    for (sym, (frequencies, &sum)) in contexts.iter().zip(sums.iter()).enumerate() {
+    for (sym, (f, &sum)) in frequencies.iter().zip(sums.iter()).enumerate() {
         if sum == 0 {
             continue;
         }
@@ -121,7 +117,7 @@ where
             }
         }
 
-        order_0::write_frequencies(writer, frequencies)?;
+        order_0::write_frequencies(writer, f)?;
     }
 
     writer.write_u8(0x00)?;
@@ -255,7 +251,7 @@ mod tests {
     }
 
     #[test]
-    fn test_normalize_contexts() {
+    fn test_normalize_frequencies() {
         // § 2.1.2 "Frequency table: Order-1 encoding" (2023-03-15)
         // let src = b"abracadabraabracadabraabracadabraabracadabr";
 

@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
-use super::{normalize, update, write_header, write_states};
+use super::{state_renormalize, state_step, write_header, write_states};
 use crate::{
     codecs::rans_4x8::{Order, ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT},
     io::writer::num::write_itf8,
@@ -14,38 +14,33 @@ type CumulativeFrequencies = Frequencies; // C
 
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     let raw_frequencies = build_raw_frequencies(src);
-
-    let freq = normalize_frequencies(&raw_frequencies);
-    let cfreq = build_cumulative_frequencies(&freq);
+    let frequencies = normalize_frequencies(&raw_frequencies);
+    let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
 
     let mut buf = Vec::new();
     let mut states = [LOWER_BOUND; STATE_COUNT];
 
     for (i, &sym) in src.iter().enumerate().rev() {
-        let j = i % states.len();
-
-        let mut x = states[j];
-        let freq_i = freq[usize::from(sym)];
-        let cfreq_i = cfreq[usize::from(sym)];
-
-        x = normalize(&mut buf, x, freq_i)?;
-        states[j] = update(x, freq_i, cfreq_i);
+        let state = &mut states[i % STATE_COUNT];
+        let j = usize::from(sym);
+        *state = state_renormalize(*state, frequencies[j], &mut buf)?;
+        *state = state_step(*state, frequencies[j], cumulative_frequencies[j]);
     }
 
     let mut dst = vec![0; 9];
 
-    write_frequencies(&mut dst, &freq)?;
+    write_frequencies(&mut dst, &frequencies)?;
     write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
-    let compressed_len = dst[9..].len();
+    let compressed_size = dst[9..].len();
     let mut writer = &mut dst[..9];
-    write_header(&mut writer, Order::Zero, compressed_len, src.len())?;
+    write_header(&mut writer, Order::Zero, compressed_size, src.len())?;
 
     Ok(dst)
 }
 
-pub fn write_frequencies<W>(writer: &mut W, frequencies: &[u16]) -> io::Result<()>
+pub fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Result<()>
 where
     W: Write,
 {
