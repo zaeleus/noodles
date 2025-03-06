@@ -5,6 +5,7 @@ use byteorder::WriteBytesExt;
 use super::{order_0, state_renormalize, state_step, write_states};
 use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
+const CONTEXT_SIZE: usize = 2;
 const NUL: u8 = 0x00;
 
 type RawFrequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
@@ -28,31 +29,27 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
 
     // § 2.2.1 "rANS entropy encoding: Interleaving" (2023-03-15): "Any remainder, when the input
     // buffer is not divisible by 4, is processed ... by the 4th rANS state."
-    for syms in chunk_4.windows(2).rev() {
+    for syms in chunk_4.windows(CONTEXT_SIZE).rev() {
         let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
         states[3] = state_renormalize(states[3], frequencies[i][j], &mut buf)?;
         states[3] = state_step(states[3], frequencies[i][j], cumulative_frequencies[i][j]);
     }
 
-    let mut windows = [
-        chunk_0.windows(2).rev(),
-        chunk_1.windows(2).rev(),
-        chunk_2.windows(2).rev(),
-        chunk_3.windows(2).rev(),
-    ];
+    let mut windows_rev = chunk_0
+        .windows(CONTEXT_SIZE)
+        .rev()
+        .zip(chunk_1.windows(CONTEXT_SIZE).rev())
+        .zip(chunk_2.windows(CONTEXT_SIZE).rev())
+        .zip(chunk_3.windows(CONTEXT_SIZE).rev());
 
-    let mut n = 0;
-    let window_count = windows[0].size_hint().0;
+    for (((w0, w1), w2), w3) in &mut windows_rev {
+        let windows = [w0, w1, w2, w3];
 
-    while n < window_count {
-        for (state, ws) in states.iter_mut().rev().zip(windows.iter_mut().rev()) {
-            let syms = ws.next().unwrap();
+        for (state, syms) in states.iter_mut().rev().zip(windows.iter().rev()) {
             let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
             *state = state_renormalize(*state, frequencies[i][j], &mut buf)?;
             *state = state_step(*state, frequencies[i][j], cumulative_frequencies[i][j]);
         }
-
-        n += 1;
     }
 
     let chunks = [chunk_0, chunk_1, chunk_2, chunk_3];
@@ -125,8 +122,6 @@ where
 }
 
 fn build_raw_frequencies(src: &[u8]) -> RawFrequencies {
-    const CONTEXT_SIZE: usize = 2;
-
     assert!(src.len() >= STATE_COUNT);
 
     let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
