@@ -15,8 +15,11 @@ type CumulativeFrequencies = Frequencies; // C
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     use super::{write_header, Order};
 
-    // Order-1 encoding does not support input smaller than 4 bytes.
-    assert!(src.len() >= 4);
+    // § 2.2.1 "rANS entropy encoding: Interleaving" (2023-03-15): "We do not permit Order-1
+    // encoding of data streams smaller than 4 bytes."
+    if src.len() < STATE_COUNT {
+        return Err(io::Error::from(io::ErrorKind::InvalidInput));
+    }
 
     let raw_frequencies = build_raw_frequencies(src);
     let frequencies = normalize_frequencies(&raw_frequencies);
@@ -122,8 +125,6 @@ where
 }
 
 fn build_raw_frequencies(src: &[u8]) -> RawFrequencies {
-    assert!(src.len() >= STATE_COUNT);
-
     let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
     // § 2.1.2 "Frequency table: Order-1 encoding": "We use the ASCII value (`\0`) as the starting
