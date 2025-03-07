@@ -2,8 +2,8 @@ use std::io::{self, Write};
 
 use byteorder::WriteBytesExt;
 
-use super::{order_0, state_renormalize, state_step, write_states};
-use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
+use super::{order_0, state_renormalize, state_step, write_header, write_states};
+use crate::codecs::rans_4x8::{Order, ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
 
 const CONTEXT_SIZE: usize = 2;
 const NUL: u8 = 0x00;
@@ -13,8 +13,6 @@ type Frequencies = [[u16; ALPHABET_SIZE]; ALPHABET_SIZE]; // F
 type CumulativeFrequencies = Frequencies; // C
 
 pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
-    use super::{write_header, Order};
-
     // § 2.2.1 "rANS entropy encoding: Interleaving" (2023-03-15): "We do not permit Order-1
     // encoding of data streams smaller than 4 bytes."
     if src.len() < STATE_COUNT {
