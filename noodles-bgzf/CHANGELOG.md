@@ -6,6 +6,11 @@
 
   * bgzf: Raise minimum supported Rust version (MSRV) to 1.81.0.
 
+  * bgzf: Change default DEFLATE backend to [zlib-rs] ([#331]).
+
+[zlib-rs]: https://github.com/trifectatechfoundation/zlib-rs
+[#331]: https://github.com/zaeleus/noodles/pull/331
+
 ## 0.36.0 - 2025-02-06
 
 ### Changed
