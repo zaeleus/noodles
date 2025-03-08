@@ -1,6 +1,6 @@
 [package]
 name = "noodles-refget"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -12,7 +12,7 @@ documentation = "https://docs.rs/noodles-refget"
 
 [dependencies]
 bytes.workspace = true
-noodles-core = { path = "../noodles-core", version = "0.16.0" }
+noodles-core = { path = "../noodles-core", version = "0.17.0" }
 reqwest.workspace = true
 serde.workspace = true
 url.workspace = true

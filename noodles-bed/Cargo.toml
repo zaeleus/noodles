@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bed"
-version = "0.21.0"
+version = "0.22.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -14,7 +14,7 @@ documentation = "https://docs.rs/noodles-bed"
 bstr.workspace = true
 lexical-core.workspace = true
 memchr.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.36.0" }
-noodles-core = { path = "../noodles-core", version = "0.16.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.44.0" }
-noodles-tabix = { path = "../noodles-tabix", version = "0.50.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.37.0" }
+noodles-core = { path = "../noodles-core", version = "0.17.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.45.0" }
+noodles-tabix = { path = "../noodles-tabix", version = "0.51.0" }
