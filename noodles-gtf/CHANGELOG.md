@@ -8,6 +8,10 @@
 
     This also changes `Line` to `LineBuf`.
 
+  * gtf/io/reader: Rename line to line buf.
+
+    This changes `Reader::read_line` to `Reader::read_line_buf`.
+
 ## 0.40.0 - 2025-03-08
 
 ### Changed

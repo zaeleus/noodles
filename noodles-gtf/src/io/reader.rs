@@ -112,7 +112,7 @@ where
     /// ";
     /// let mut reader = gtf::io::Reader::new(&data[..]);
     ///
-    /// let mut lines = reader.lines();
+    /// let mut lines = reader.line_bufs();
     ///
     /// let line = lines.next().transpose()?;
     /// assert_eq!(line, Some(gtf::LineBuf::Comment(String::from("#format: gtf"))));
@@ -123,7 +123,7 @@ where
     /// assert!(lines.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn lines(&mut self) -> impl Iterator<Item = io::Result<LineBuf>> + '_ {
+    pub fn line_bufs(&mut self) -> impl Iterator<Item = io::Result<LineBuf>> + '_ {
         let mut buf = String::new();
 
         iter::from_fn(move || {
@@ -164,7 +164,7 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn records(&mut self) -> impl Iterator<Item = io::Result<RecordBuf>> + '_ {
-        let mut lines = self.lines();
+        let mut lines = self.line_bufs();
 
         iter::from_fn(move || loop {
             match lines.next()? {
