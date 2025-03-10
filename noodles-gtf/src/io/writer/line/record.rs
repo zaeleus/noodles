@@ -5,7 +5,7 @@ use std::io::{self, Write};
 use self::attributes::write_attributes;
 use crate::RecordBuf;
 
-pub(super) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
+pub(crate) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
 where
     W: Write,
 {
