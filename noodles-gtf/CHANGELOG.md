@@ -13,6 +13,13 @@
     This changes `Reader::read_line` to `Reader::read_line_buf` and
     `Reader::read_record` to `Reader::read_record_buf`.
 
+### Removed
+
+  * gtf/record_buf: Remove formatter.
+
+    This also removes the formatter for `LineBuf`. Use a serializer (e.g.,
+    `gtf::io::Writer`) instead.
+
 ## 0.40.0 - 2025-03-08
 
 ### Changed

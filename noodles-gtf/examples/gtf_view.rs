@@ -5,7 +5,7 @@
 use std::{
     env,
     fs::File,
-    io::{self, BufReader},
+    io::{self, BufReader, BufWriter},
 };
 
 use noodles_gtf as gtf;
@@ -17,9 +17,12 @@ fn main() -> io::Result<()> {
         .map(BufReader::new)
         .map(gtf::io::Reader::new)?;
 
+    let stdout = io::stdout().lock();
+    let mut writer = gtf::io::Writer::new(BufWriter::new(stdout));
+
     for result in reader.records() {
         let record = result?;
-        println!("{record}");
+        writer.write_record(&record)?;
     }
 
     Ok(())

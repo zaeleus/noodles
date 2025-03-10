@@ -4,13 +4,7 @@ pub mod entry;
 
 pub use self::entry::Entry;
 
-use std::{
-    error,
-    fmt::{self, Write},
-    str::FromStr,
-};
-
-const DELIMITER: char = ' ';
+use std::{error, fmt, str::FromStr};
 
 /// GTF record attributes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -75,22 +69,6 @@ impl From<Vec<Entry>> for Attributes {
     }
 }
 
-impl fmt::Display for Attributes {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for (i, entry) in self.0.iter().enumerate() {
-            write!(f, "{entry}")?;
-
-            f.write_char(entry::DELIMITER)?;
-
-            if i < self.0.len() - 1 {
-                f.write_char(DELIMITER)?;
-            }
-        }
-
-        Ok(())
-    }
-}
-
 /// An error returned when raw GTF attributes fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -145,21 +123,6 @@ impl FromStr for Attributes {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let attributes = Attributes::from(vec![Entry::new("gene_id", "g0")]);
-        assert_eq!(attributes.to_string(), r#"gene_id "g0";"#);
-
-        let attributes = Attributes::from(vec![
-            Entry::new("gene_id", "g0"),
-            Entry::new("transcript_id", "t0"),
-        ]);
-        assert_eq!(
-            attributes.to_string(),
-            r#"gene_id "g0"; transcript_id "t0";"#
-        );
-    }
 
     #[test]
     fn test_from_str() {

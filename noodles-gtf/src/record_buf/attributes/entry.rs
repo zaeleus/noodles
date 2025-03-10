@@ -60,12 +60,6 @@ impl Entry {
     }
 }
 
-impl fmt::Display for Entry {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, r#"{}{}"{}""#, self.key(), SEPARATOR, self.value())
-    }
-}
-
 /// An error returned when a raw GTF record attribute entry fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -158,12 +152,6 @@ fn discard_delimiter(s: &mut &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let entry = Entry::new("gene_id", "g0");
-        assert_eq!(entry.to_string(), r#"gene_id "g0""#);
-    }
 
     #[test]
     fn test_from_str() {

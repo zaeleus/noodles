@@ -174,42 +174,6 @@ impl Default for RecordBuf {
     }
 }
 
-impl fmt::Display for RecordBuf {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{seqname}\t{source}\t{feature}\t{start}\t{end}\t",
-            seqname = self.reference_sequence_name(),
-            source = self.source(),
-            feature = self.ty(),
-            start = self.start(),
-            end = self.end()
-        )?;
-
-        if let Some(score) = self.score() {
-            write!(f, "{score}\t")?;
-        } else {
-            write!(f, "{MISSING_FIELD}\t")?;
-        }
-
-        if let Some(strand) = self.strand() {
-            write!(f, "{strand}\t")?;
-        } else {
-            write!(f, "{MISSING_FIELD}\t")?;
-        }
-
-        if let Some(frame) = self.frame() {
-            write!(f, "{frame}\t")?;
-        } else {
-            write!(f, "{MISSING_FIELD}\t")?;
-        }
-
-        write!(f, "{}", self.attributes())?;
-
-        Ok(())
-    }
-}
-
 /// An error returned when a raw GTF record fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -384,31 +348,6 @@ mod tests {
     use attributes::Entry;
 
     use super::*;
-
-    #[test]
-    fn test_fmt() -> Result<(), noodles_core::position::TryFromIntError> {
-        let record = RecordBuf {
-            reference_sequence_name: String::from("sq0"),
-            source: String::from("NOODLES"),
-            ty: String::from("gene"),
-            start: Position::try_from(8)?,
-            end: Position::try_from(13)?,
-            score: None,
-            strand: Some(Strand::Forward),
-            frame: None,
-            attributes: Attributes::from(vec![
-                Entry::new("gene_id", "g0"),
-                Entry::new("transcript_id", "t0"),
-            ]),
-        };
-
-        let actual = record.to_string();
-        let expected = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";";
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
 
     #[test]
     fn test_from_str() -> Result<(), noodles_core::position::TryFromIntError> {

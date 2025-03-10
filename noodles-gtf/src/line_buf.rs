@@ -15,15 +15,6 @@ pub enum LineBuf {
     Record(RecordBuf),
 }
 
-impl fmt::Display for LineBuf {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Comment(comment) => write!(f, "{COMMENT_PREFIX}{comment}"),
-            Self::Record(record) => write!(f, "{record}"),
-        }
-    }
-}
-
 /// An error returns when a raw GFF line fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -64,15 +55,6 @@ impl FromStr for LineBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let line = LineBuf::Comment(String::from("format: gtf"));
-        assert_eq!(line.to_string(), "#format: gtf");
-
-        let line = LineBuf::Record(RecordBuf::default());
-        assert_eq!(line.to_string(), ".\t.\t.\t1\t1\t.\t.\t.\t");
-    }
 
     #[test]
     fn test_from_str() {
