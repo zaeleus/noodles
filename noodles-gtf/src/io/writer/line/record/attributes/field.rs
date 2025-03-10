@@ -1,15 +1,14 @@
 use std::io::{self, Write};
 
 use super::write_separator;
-use crate::record_buf::attributes::Entry;
 
-pub(super) fn write_field<W>(writer: &mut W, field: &Entry) -> io::Result<()>
+pub(super) fn write_field<W>(writer: &mut W, key: &str, value: &str) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(field.key().as_bytes())?;
+    writer.write_all(key.as_bytes())?;
     write_separator(writer)?;
-    write!(writer, r#""{}""#, field.value())?;
+    write!(writer, r#""{}""#, value)?;
     write_terminator(writer)?;
     Ok(())
 }
@@ -29,8 +28,7 @@ mod tests {
     #[test]
     fn test_write_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        let field = Entry::new("gene_id", "g0");
-        write_field(&mut buf, &field)?;
+        write_field(&mut buf, "gene_id", "g0")?;
         assert_eq!(buf, br#"gene_id "g0";"#);
         Ok(())
     }

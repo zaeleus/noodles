@@ -9,12 +9,12 @@ pub(super) fn write_attributes<W>(writer: &mut W, attributes: &Attributes) -> io
 where
     W: Write,
 {
-    for (i, field) in attributes.as_ref().iter().enumerate() {
+    for (i, (key, value)) in attributes.as_ref().iter().enumerate() {
         if i > 0 {
             write_separator(writer)?;
         }
 
-        write_field(writer, field)?;
+        write_field(writer, key, value)?;
     }
 
     Ok(())
@@ -31,7 +31,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record_buf::attributes::Entry;
 
     #[test]
     fn test_write_attributes() -> io::Result<()> {
@@ -44,12 +43,12 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let attributes = Attributes::from(vec![Entry::new("gene_id", "g0")]);
+        let attributes = Attributes::from(vec![(String::from("gene_id"), String::from("g0"))]);
         t(&mut buf, &attributes, br#"gene_id "g0";"#)?;
 
         let attributes = Attributes::from(vec![
-            Entry::new("gene_id", "g0"),
-            Entry::new("gene_name", "n0"),
+            (String::from("gene_id"), String::from("g0")),
+            (String::from("gene_name"), String::from("n0")),
         ]);
         t(&mut buf, &attributes, br#"gene_id "g0"; gene_name "n0";"#)?;
 

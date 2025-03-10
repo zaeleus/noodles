@@ -13,6 +13,10 @@
     This changes `Reader::read_line` to `Reader::read_line_buf` and
     `Reader::read_record` to `Reader::read_record_buf`.
 
+  * gtf/record_buf/attributes: Replace `Entry` with a key-value pair.
+
+    `Entry` is now `(String, String)`.
+
 ### Removed
 
   * gtf/record_buf: Remove formatter.

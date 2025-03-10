@@ -345,8 +345,6 @@ fn parse_attributes(s: &str) -> Result<Attributes, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use attributes::Entry;
-
     use super::*;
 
     #[test]
@@ -361,8 +359,8 @@ mod tests {
             strand: Some(Strand::Forward),
             frame: None,
             attributes: Attributes::from(vec![
-                Entry::new("gene_id", "g0"),
-                Entry::new("transcript_id", "t0"),
+                (String::from("gene_id"), String::from("g0")),
+                (String::from("transcript_id"), String::from("t0")),
             ]),
         };
 

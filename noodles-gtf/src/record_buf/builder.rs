@@ -149,8 +149,8 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::{self as gtf, record_buf::{attributes::Entry, Attributes}};
-    /// let attributes = Attributes::from(vec![Entry::new("gene_id", "g0")]);
+    /// use noodles_gtf::{self as gtf, record_buf::Attributes};
+    /// let attributes = Attributes::from(vec![(String::from("gene_id"), String::from("g0"))]);
     /// let record = gtf::RecordBuf::builder().set_attributes(attributes.clone()).build();
     /// assert_eq!(record.attributes(), &attributes);
     /// ```

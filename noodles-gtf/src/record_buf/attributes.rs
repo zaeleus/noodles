@@ -1,14 +1,12 @@
 //! GTF record attributes.
 
-pub mod entry;
-
-pub use self::entry::Entry;
+mod field;
 
 use std::{error, fmt, str::FromStr};
 
 /// GTF record attributes.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Attributes(Vec<Entry>);
+pub struct Attributes(Vec<(String, String)>);
 
 impl Attributes {
     /// Returns whether there are any entries.
@@ -44,27 +42,27 @@ impl Attributes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::record_buf::{attributes::Entry, Attributes};
-    /// let attributes = Attributes::from(vec![Entry::new("id", "g0")]);
+    /// use noodles_gtf::record_buf::Attributes;
+    /// let attributes = Attributes::from(vec![(String::from("id"), String::from("g0"))]);
     /// assert_eq!(attributes.get("id"), Some("g0"));
     /// assert!(attributes.get("source").is_none());
     /// ```
     pub fn get<'a>(&'a self, key: &str) -> Option<&'a str> {
         self.0
             .iter()
-            .find(|entry| entry.key() == key)
-            .map(|entry| entry.value())
+            .find(|(k, _)| k == key)
+            .map(|(_, v)| v.as_str())
     }
 }
 
-impl AsRef<[Entry]> for Attributes {
-    fn as_ref(&self) -> &[Entry] {
+impl AsRef<[(String, String)]> for Attributes {
+    fn as_ref(&self) -> &[(String, String)] {
         &self.0
     }
 }
 
-impl From<Vec<Entry>> for Attributes {
-    fn from(entries: Vec<Entry>) -> Self {
+impl From<Vec<(String, String)>> for Attributes {
+    fn from(entries: Vec<(String, String)>) -> Self {
         Self(entries)
     }
 }
@@ -77,7 +75,7 @@ pub enum ParseError {
     /// The input is invalid.
     Invalid,
     /// The input has an invalid entry.
-    InvalidEntry(entry::ParseError),
+    InvalidEntry(field::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -103,7 +101,7 @@ impl FromStr for Attributes {
     type Err = ParseError;
 
     fn from_str(mut s: &str) -> Result<Self, Self::Err> {
-        use self::entry::parse_entry;
+        use self::field::parse_field;
 
         if s.is_empty() {
             return Err(ParseError::Empty);
@@ -112,7 +110,7 @@ impl FromStr for Attributes {
         let mut entries = Vec::new();
 
         while !s.is_empty() {
-            let entry = parse_entry(&mut s).map_err(ParseError::InvalidEntry)?;
+            let entry = parse_field(&mut s).map_err(ParseError::InvalidEntry)?;
             entries.push(entry);
         }
 
@@ -128,35 +126,41 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             r#"gene_id "g0";"#.parse(),
-            Ok(Attributes::from(vec![Entry::new("gene_id", "g0")]))
+            Ok(Attributes::from(vec![(
+                String::from("gene_id"),
+                String::from("g0")
+            )]))
         );
 
         assert_eq!(
             r#"gene_id "g0""#.parse::<Attributes>(),
-            Ok(Attributes::from(vec![Entry::new("gene_id", "g0")]))
+            Ok(Attributes::from(vec![(
+                String::from("gene_id"),
+                String::from("g0")
+            )]))
         );
 
         assert_eq!(
             r#"gene_id "g0"; transcript_id "t0";"#.parse(),
             Ok(Attributes::from(vec![
-                Entry::new("gene_id", "g0"),
-                Entry::new("transcript_id", "t0")
+                (String::from("gene_id"), String::from("g0")),
+                (String::from("transcript_id"), String::from("t0"))
             ]))
         );
 
         assert_eq!(
             r#"gene_id "g0";transcript_id "t0";"#.parse::<Attributes>(),
             Ok(Attributes::from(vec![
-                Entry::new("gene_id", "g0"),
-                Entry::new("transcript_id", "t0")
+                (String::from("gene_id"), String::from("g0")),
+                (String::from("transcript_id"), String::from("t0"))
             ]))
         );
 
         assert_eq!(
             r#"gene_id "g0";  transcript_id "t0";"#.parse::<Attributes>(),
             Ok(Attributes::from(vec![
-                Entry::new("gene_id", "g0"),
-                Entry::new("transcript_id", "t0")
+                (String::from("gene_id"), String::from("g0")),
+                (String::from("transcript_id"), String::from("t0"))
             ]))
         );
 
