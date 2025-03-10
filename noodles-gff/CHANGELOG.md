@@ -83,8 +83,9 @@
 
   * gff/io/reader: Rename line to line buf and lazy line to line.
 
-    This changes `Lines` to `LineBufs` and `Reader::read_line` to
-    `Reader::read_line_buf`, `Reader::read_lazy_line` to `Reader::read_line`.
+    This changes `Lines` to `LineBufs`, `Reader::read_line` to
+    `Reader::read_line_buf`, and `Reader::read_lazy_line` to
+    `Reader::read_line`.
 
   * gff/io/reader: Rename record to record buf.
 
