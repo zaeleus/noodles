@@ -7,7 +7,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
-use crate::{Line, Record};
+use crate::{LineBuf, RecordBuf};
 
 /// A GTF reader.
 pub struct Reader<R> {
@@ -115,15 +115,15 @@ where
     /// let mut lines = reader.lines();
     ///
     /// let line = lines.next().transpose()?;
-    /// assert_eq!(line, Some(gtf::Line::Comment(String::from("#format: gtf"))));
+    /// assert_eq!(line, Some(gtf::LineBuf::Comment(String::from("#format: gtf"))));
     ///
     /// let line = lines.next().transpose()?;
-    /// assert!(matches!(line, Some(gtf::Line::Record(_))));
+    /// assert!(matches!(line, Some(gtf::LineBuf::Record(_))));
     ///
     /// assert!(lines.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn lines(&mut self) -> impl Iterator<Item = io::Result<Line>> + '_ {
+    pub fn lines(&mut self) -> impl Iterator<Item = io::Result<LineBuf>> + '_ {
         let mut buf = String::new();
 
         iter::from_fn(move || {
@@ -163,12 +163,12 @@ where
     /// assert!(records.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<RecordBuf>> + '_ {
         let mut lines = self.lines();
 
         iter::from_fn(move || loop {
             match lines.next()? {
-                Ok(Line::Record(r)) => return Some(Ok(r)),
+                Ok(LineBuf::Record(r)) => return Some(Ok(r)),
                 Ok(_) => {}
                 Err(e) => return Some(Err(e)),
             }
@@ -185,7 +185,7 @@ where
         &'r mut self,
         index: &I,
         region: &'r Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
+    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'r>
     where
         I: BinningIndex,
     {

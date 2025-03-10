@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gtf: Rename `Record` to `RecordBuf`.
+
+    This also changes `Line` to `LineBuf`.
+
 ## 0.40.0 - 2025-03-08
 
 ### Changed

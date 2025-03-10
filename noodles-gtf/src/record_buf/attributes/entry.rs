@@ -19,7 +19,7 @@ impl Entry {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::record::attributes::Entry;
+    /// use noodles_gtf::record_buf::attributes::Entry;
     /// let entry = Entry::new("gene_id", "gene0");
     /// ```
     pub fn new<K, V>(key: K, value: V) -> Self
@@ -38,7 +38,7 @@ impl Entry {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::record::attributes::Entry;
+    /// use noodles_gtf::record_buf::attributes::Entry;
     /// let entry = Entry::new("gene_id", "gene0");
     /// assert_eq!(entry.key(), "gene_id");
     /// ```
@@ -51,7 +51,7 @@ impl Entry {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::record::attributes::Entry;
+    /// use noodles_gtf::record_buf::attributes::Entry;
     /// let entry = Entry::new("gene_id", "gene0");
     /// assert_eq!(entry.value(), "gene0");
     /// ```

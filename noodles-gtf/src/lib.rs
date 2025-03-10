@@ -3,10 +3,10 @@
 //! **noodles-gtf** handles the reading and writing of the Gene Transfer Format (GTF).
 
 pub mod io;
-pub mod line;
-pub mod record;
+pub mod line_buf;
+pub mod record_buf;
 
-pub use self::{line::Line, record::Record};
+pub use self::{line_buf::LineBuf, record_buf::RecordBuf};
 
 #[deprecated(since = "0.32.0", note = "Use `noodles_gtf::io::Reader` instead.")]
 pub use self::io::Reader;

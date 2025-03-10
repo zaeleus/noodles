@@ -3,7 +3,7 @@ mod line;
 use std::io::{self, Write};
 
 use self::line::write_line;
-use crate::{Line, Record};
+use crate::{LineBuf, RecordBuf};
 
 /// A GTF writer.
 pub struct Writer<W> {
@@ -76,18 +76,17 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_gtf as gtf;
-    /// use gtf::line::Line;
+    /// use noodles_gtf::{self as gtf, LineBuf};
     ///
     /// let mut writer = gtf::io::Writer::new(Vec::new());
     ///
-    /// let version = Line::Comment(String::from("#format: gtf"));
+    /// let version = LineBuf::Comment(String::from("#format: gtf"));
     /// writer.write_line(&version)?;
     ///
-    /// let comment = Line::Comment(String::from("noodles"));
+    /// let comment = LineBuf::Comment(String::from("noodles"));
     /// writer.write_line(&comment)?;
     ///
-    /// let record = Line::Record(gtf::Record::default());
+    /// let record = LineBuf::Record(gtf::RecordBuf::default());
     /// writer.write_line(&record)?;
     ///
     /// let expected = b"##format: gtf
@@ -97,7 +96,7 @@ where
     ///
     /// assert_eq!(&writer.get_ref()[..], &expected[..]);
     /// # Ok::<(), io::Error>(())
-    pub fn write_line(&mut self, line: &Line) -> io::Result<()> {
+    pub fn write_line(&mut self, line: &LineBuf) -> io::Result<()> {
         write_line(&mut self.inner, line)
     }
 
@@ -111,14 +110,14 @@ where
     ///
     /// let mut writer = gtf::io::Writer::new(Vec::new());
     ///
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// writer.write_record(&record)?;
     ///
     /// let expected = b".\t.\t.\t1\t1\t.\t.\t.\t\n";
     /// assert_eq!(writer.into_inner(), expected);
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
+    pub fn write_record(&mut self, record: &RecordBuf) -> io::Result<()> {
         writeln!(self.inner, "{record}")
     }
 }

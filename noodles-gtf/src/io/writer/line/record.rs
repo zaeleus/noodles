@@ -3,9 +3,9 @@ mod attributes;
 use std::io::{self, Write};
 
 use self::attributes::write_attributes;
-use crate::Record;
+use crate::RecordBuf;
 
-pub(super) fn write_record<W>(writer: &mut W, record: &Record) -> io::Result<()>
+pub(super) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
 where
     W: Write,
 {

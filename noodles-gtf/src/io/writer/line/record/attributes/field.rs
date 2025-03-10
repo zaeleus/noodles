@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::write_separator;
-use crate::record::attributes::Entry;
+use crate::record_buf::attributes::Entry;
 
 pub(super) fn write_field<W>(writer: &mut W, field: &Entry) -> io::Result<()>
 where

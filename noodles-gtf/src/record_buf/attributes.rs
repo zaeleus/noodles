@@ -22,7 +22,7 @@ impl Attributes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::record::Attributes;
+    /// use noodles_gtf::record_buf::Attributes;
     /// let attributes = Attributes::default();
     /// assert!(attributes.is_empty());
     /// ```
@@ -35,7 +35,7 @@ impl Attributes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::record::Attributes;
+    /// use noodles_gtf::record_buf::Attributes;
     /// let attributes = Attributes::default();
     /// assert_eq!(attributes.len(), 0);
     /// ```
@@ -50,7 +50,7 @@ impl Attributes {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::record::{attributes::Entry, Attributes};
+    /// use noodles_gtf::record_buf::{attributes::Entry, Attributes};
     /// let attributes = Attributes::from(vec![Entry::new("id", "g0")]);
     /// assert_eq!(attributes.get("id"), Some("g0"));
     /// assert!(attributes.get("source").is_none());

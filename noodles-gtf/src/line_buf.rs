@@ -2,24 +2,24 @@
 
 use std::{error, fmt, str::FromStr};
 
-use super::{record, Record};
+use super::{record_buf, RecordBuf};
 
 const COMMENT_PREFIX: char = '#';
 
 /// A GTF line.
 #[derive(Clone, Debug, PartialEq)]
-pub enum Line {
+pub enum LineBuf {
     /// A comment (`#`).
     Comment(String),
     /// A record.
-    Record(Record),
+    Record(RecordBuf),
 }
 
-impl fmt::Display for Line {
+impl fmt::Display for LineBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Line::Comment(comment) => write!(f, "{COMMENT_PREFIX}{comment}"),
-            Line::Record(record) => write!(f, "{record}"),
+            Self::Comment(comment) => write!(f, "{COMMENT_PREFIX}{comment}"),
+            Self::Record(record) => write!(f, "{record}"),
         }
     }
 }
@@ -28,7 +28,7 @@ impl fmt::Display for Line {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The record is invalid.
-    InvalidRecord(record::ParseError),
+    InvalidRecord(record_buf::ParseError),
 }
 
 impl error::Error for ParseError {
@@ -47,7 +47,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Line {
+impl FromStr for LineBuf {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -67,10 +67,10 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let line = Line::Comment(String::from("format: gtf"));
+        let line = LineBuf::Comment(String::from("format: gtf"));
         assert_eq!(line.to_string(), "#format: gtf");
 
-        let line = Line::Record(Record::default());
+        let line = LineBuf::Record(RecordBuf::default());
         assert_eq!(line.to_string(), ".\t.\t.\t1\t1\t.\t.\t.\t");
     }
 
@@ -78,10 +78,10 @@ mod tests {
     fn test_from_str() {
         assert_eq!(
             "##format: gtf".parse(),
-            Ok(Line::Comment(String::from("#format: gtf")))
+            Ok(LineBuf::Comment(String::from("#format: gtf")))
         );
 
         let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; transcript_id \"ndls0\";";
-        assert!(matches!(s.parse(), Ok(Line::Record(_))));
+        assert!(matches!(s.parse(), Ok(LineBuf::Record(_))));
     }
 }

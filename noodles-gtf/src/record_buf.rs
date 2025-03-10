@@ -15,7 +15,7 @@ pub(crate) const MISSING_FIELD: &str = ".";
 
 /// A GTF record.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Record {
+pub struct RecordBuf {
     reference_sequence_name: String,
     source: String,
     ty: String,
@@ -27,14 +27,14 @@ pub struct Record {
     attributes: Attributes,
 }
 
-impl Record {
+impl RecordBuf {
     /// Returns a record builder.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let builder = gtf::Record::builder();
+    /// let builder = gtf::RecordBuf::builder();
     /// ```
     pub fn builder() -> Builder {
         Builder::default()
@@ -48,7 +48,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// assert_eq!(record.reference_sequence_name(), ".");
     /// ```
     pub fn reference_sequence_name(&self) -> &str {
@@ -61,7 +61,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// assert_eq!(record.source(), ".");
     /// ```
     pub fn source(&self) -> &str {
@@ -76,7 +76,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// assert_eq!(record.ty(), ".");
     /// ```
     pub fn ty(&self) -> &str {
@@ -92,7 +92,7 @@ impl Record {
     /// ```
     /// use noodles_core::Position;
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// assert_eq!(record.start(), Position::MIN);
     /// ```
     pub fn start(&self) -> Position {
@@ -108,7 +108,7 @@ impl Record {
     /// ```
     /// use noodles_core::Position;
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// assert_eq!(record.end(), Position::MIN);
     /// ```
     pub fn end(&self) -> Position {
@@ -121,7 +121,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// assert!(record.score().is_none());
     /// ```
     pub fn score(&self) -> Option<f32> {
@@ -134,7 +134,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// assert!(record.strand().is_none());
     /// ```
     pub fn strand(&self) -> Option<Strand> {
@@ -147,7 +147,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// assert!(record.frame().is_none());
     /// ```
     pub fn frame(&self) -> Option<Frame> {
@@ -160,7 +160,7 @@ impl Record {
     ///
     /// ```
     /// use noodles_gtf as gtf;
-    /// let record = gtf::Record::default();
+    /// let record = gtf::RecordBuf::default();
     /// assert!(record.attributes().is_empty());
     /// ```
     pub fn attributes(&self) -> &Attributes {
@@ -168,13 +168,13 @@ impl Record {
     }
 }
 
-impl Default for Record {
+impl Default for RecordBuf {
     fn default() -> Self {
         Self::builder().build()
     }
 }
 
-impl fmt::Display for Record {
+impl fmt::Display for RecordBuf {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -283,7 +283,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-impl FromStr for Record {
+impl FromStr for RecordBuf {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -387,7 +387,7 @@ mod tests {
 
     #[test]
     fn test_fmt() -> Result<(), noodles_core::position::TryFromIntError> {
-        let record = Record {
+        let record = RecordBuf {
             reference_sequence_name: String::from("sq0"),
             source: String::from("NOODLES"),
             ty: String::from("gene"),
@@ -412,7 +412,7 @@ mod tests {
 
     #[test]
     fn test_from_str() -> Result<(), noodles_core::position::TryFromIntError> {
-        let expected = Record {
+        let expected = RecordBuf {
             reference_sequence_name: String::from("sq0"),
             source: String::from("NOODLES"),
             ty: String::from("gene"),
