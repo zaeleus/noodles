@@ -150,8 +150,13 @@ impl Builder {
     ///
     /// ```
     /// use noodles_gtf::{self as gtf, record_buf::Attributes};
-    /// let attributes = Attributes::from(vec![(String::from("gene_id"), String::from("g0"))]);
+    ///
+    /// let attributes: Attributes = [(String::from("gene_id"), String::from("g0"))]
+    ///     .into_iter()
+    ///     .collect();
+    ///
     /// let record = gtf::RecordBuf::builder().set_attributes(attributes.clone()).build();
+    ///
     /// assert_eq!(record.attributes(), &attributes);
     /// ```
     pub fn set_attributes(mut self, attributes: Attributes) -> Self {

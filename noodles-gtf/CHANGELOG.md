@@ -6,6 +6,8 @@
 
   * gtf: Add lazy record (`Record`).
 
+  * gtf/record_buf/attributes: Implement `FromIterator<(String, String)>`.
+
 ### Changed
 
   * gtf: Rename `Record` to `RecordBuf`.

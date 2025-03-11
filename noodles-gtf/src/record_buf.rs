@@ -359,10 +359,12 @@ mod tests {
             score: None,
             strand: Some(Strand::Forward),
             frame: None,
-            attributes: Attributes::from(vec![
+            attributes: [
                 (String::from("gene_id"), String::from("g0")),
                 (String::from("transcript_id"), String::from("t0")),
-            ]),
+            ]
+            .into_iter()
+            .collect(),
         };
 
         let s = "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";";

@@ -43,7 +43,11 @@ impl Attributes {
     ///
     /// ```
     /// use noodles_gtf::record_buf::Attributes;
-    /// let attributes = Attributes::from(vec![(String::from("id"), String::from("g0"))]);
+    ///
+    /// let attributes: Attributes = [(String::from("id"), String::from("g0"))]
+    ///     .into_iter()
+    ///     .collect();
+    ///
     /// assert_eq!(attributes.get("id"), Some("g0"));
     /// assert!(attributes.get("source").is_none());
     /// ```
@@ -64,6 +68,20 @@ impl AsRef<[(String, String)]> for Attributes {
 impl From<Vec<(String, String)>> for Attributes {
     fn from(entries: Vec<(String, String)>) -> Self {
         Self(entries)
+    }
+}
+
+impl Extend<(String, String)> for Attributes {
+    fn extend<T: IntoIterator<Item = (String, String)>>(&mut self, iter: T) {
+        self.0.extend(iter);
+    }
+}
+
+impl FromIterator<(String, String)> for Attributes {
+    fn from_iter<T: IntoIterator<Item = (String, String)>>(iter: T) -> Self {
+        let mut attributes = Self::default();
+        attributes.extend(iter);
+        attributes
     }
 }
 
@@ -125,43 +143,47 @@ mod tests {
     #[test]
     fn test_from_str() {
         assert_eq!(
-            r#"gene_id "g0";"#.parse(),
-            Ok(Attributes::from(vec![(
-                String::from("gene_id"),
-                String::from("g0")
-            )]))
+            r#"gene_id "g0";"#.parse::<Attributes>(),
+            Ok([(String::from("gene_id"), String::from("g0"))]
+                .into_iter()
+                .collect())
         );
 
         assert_eq!(
             r#"gene_id "g0""#.parse::<Attributes>(),
-            Ok(Attributes::from(vec![(
-                String::from("gene_id"),
-                String::from("g0")
-            )]))
+            Ok([(String::from("gene_id"), String::from("g0"))]
+                .into_iter()
+                .collect())
         );
 
         assert_eq!(
-            r#"gene_id "g0"; transcript_id "t0";"#.parse(),
-            Ok(Attributes::from(vec![
+            r#"gene_id "g0"; transcript_id "t0";"#.parse::<Attributes>(),
+            Ok([
                 (String::from("gene_id"), String::from("g0")),
                 (String::from("transcript_id"), String::from("t0"))
-            ]))
+            ]
+            .into_iter()
+            .collect())
         );
 
         assert_eq!(
             r#"gene_id "g0";transcript_id "t0";"#.parse::<Attributes>(),
-            Ok(Attributes::from(vec![
+            Ok([
                 (String::from("gene_id"), String::from("g0")),
                 (String::from("transcript_id"), String::from("t0"))
-            ]))
+            ]
+            .into_iter()
+            .collect())
         );
 
         assert_eq!(
             r#"gene_id "g0";  transcript_id "t0";"#.parse::<Attributes>(),
-            Ok(Attributes::from(vec![
+            Ok([
                 (String::from("gene_id"), String::from("g0")),
                 (String::from("transcript_id"), String::from("t0"))
-            ]))
+            ]
+            .into_iter()
+            .collect())
         );
 
         assert_eq!("".parse::<Attributes>(), Err(ParseError::Empty));

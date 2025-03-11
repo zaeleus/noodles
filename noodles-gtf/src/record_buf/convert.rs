@@ -1,6 +1,6 @@
 use std::io;
 
-use super::{Attributes, RecordBuf};
+use super::RecordBuf;
 use crate::Record;
 
 impl<'l> TryFrom<Record<'l>> for RecordBuf {
@@ -28,13 +28,12 @@ impl<'l> TryFrom<Record<'l>> for RecordBuf {
             builder = builder.set_frame(frame);
         }
 
-        let fields: Vec<_> = record
+        let attributes = record
             .attributes()
             .iter()
             .map(|result| result.map(|(k, v)| (k.into(), v.into())))
             .collect::<io::Result<_>>()?;
 
-        let attributes = Attributes::from(fields);
         builder = builder.set_attributes(attributes);
 
         Ok(builder.build())
@@ -63,10 +62,11 @@ mod tests {
             .set_start(START)
             .set_end(END)
             .set_strand(Strand::Forward)
-            .set_attributes(Attributes::from(vec![(
-                String::from("id"),
-                String::from("0"),
-            )]))
+            .set_attributes(
+                [(String::from("id"), String::from("0"))]
+                    .into_iter()
+                    .collect(),
+            )
             .build();
 
         assert_eq!(actual, expected);

@@ -43,13 +43,17 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let attributes = Attributes::from(vec![(String::from("gene_id"), String::from("g0"))]);
+        let attributes = [(String::from("gene_id"), String::from("g0"))]
+            .into_iter()
+            .collect();
         t(&mut buf, &attributes, br#"gene_id "g0";"#)?;
 
-        let attributes = Attributes::from(vec![
+        let attributes = [
             (String::from("gene_id"), String::from("g0")),
             (String::from("gene_name"), String::from("n0")),
-        ]);
+        ]
+        .into_iter()
+        .collect();
         t(&mut buf, &attributes, br#"gene_id "g0"; gene_name "n0";"#)?;
 
         Ok(())
