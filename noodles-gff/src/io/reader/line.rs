@@ -13,6 +13,7 @@ where
 
         let n = super::read_line(reader, buf)?;
 
+        // § 4 "The Canonical Gene" (2020-08-18): "Blank lines should be ignored by parsers..."
         if n == 0 || !is_blank(buf) {
             return Ok(n);
         }
