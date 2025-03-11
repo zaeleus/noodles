@@ -18,7 +18,6 @@ pub struct Record<'l>(Fields<'l>);
 const MISSING: &str = ".";
 
 impl<'l> Record<'l> {
-    #[expect(dead_code)]
     pub(super) fn try_new(src: &'l str) -> io::Result<Self> {
         Fields::try_new(src).map(Self)
     }
