@@ -2,6 +2,7 @@
 
 pub mod attributes;
 mod builder;
+mod convert;
 pub mod frame;
 pub mod strand;
 
