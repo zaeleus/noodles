@@ -1,3 +1,5 @@
+mod line;
+
 use std::{
     io::{self, BufRead, Read, Seek},
     iter,
@@ -7,7 +9,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
-use crate::{LineBuf, RecordBuf};
+use crate::{Line, LineBuf, RecordBuf};
 
 /// A GTF reader.
 pub struct Reader<R> {
@@ -75,7 +77,7 @@ where
         Self { inner }
     }
 
-    /// Reads a raw GTF line.
+    /// Reads a GTF line.
     ///
     /// # Examples
     ///
@@ -83,20 +85,22 @@ where
     /// # use std::io;
     /// use noodles_gtf as gtf;
     ///
-    /// let data = b"sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; transcript_id \"ndls0\";";
-    /// let mut reader = gtf::io::Reader::new(&data[..]);
+    /// let src = b"##format: gtf\nsq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tid 0;\n";
+    /// let mut reader = gtf::io::Reader::new(&src[..]);
     ///
-    /// let mut buf = String::new();
-    /// reader.read_line(&mut buf)?;
+    /// let mut line = gtf::Line::default();
     ///
-    /// assert_eq!(
-    ///     buf,
-    ///     "sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"ndls0\"; transcript_id \"ndls0\";"
-    /// );
+    /// reader.read_line(&mut line)?;
+    /// assert_eq!(line.kind(), gtf::line::Kind::Comment);
+    ///
+    /// reader.read_line(&mut line)?;
+    /// assert_eq!(line.kind(), gtf::line::Kind::Record);
+    ///
+    /// assert_eq!(reader.read_line(&mut line)?, 0);
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn read_line(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf)
+    pub fn read_line(&mut self, line: &mut Line) -> io::Result<usize> {
+        line::read_line(&mut self.inner, line)
     }
 
     /// Returns an iterator over lines starting from the current stream position.
@@ -124,19 +128,16 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn line_bufs(&mut self) -> impl Iterator<Item = io::Result<LineBuf>> + '_ {
-        let mut buf = String::new();
+        let mut line = Line::default();
 
-        iter::from_fn(move || {
-            buf.clear();
-
-            match self.read_line(&mut buf) {
-                Ok(0) => None,
-                Ok(_) => Some(
-                    buf.parse()
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-                ),
-                Err(e) => Some(Err(e)),
-            }
+        iter::from_fn(move || match self.read_line(&mut line) {
+            Ok(0) => None,
+            Ok(_) => Some(
+                line.as_ref()
+                    .parse()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            ),
+            Err(e) => Some(Err(e)),
         })
     }
 
@@ -227,9 +228,9 @@ where
     const LINE_FEED: char = '\n';
     const CARRIAGE_RETURN: char = '\r';
 
-    match reader.read_line(buf) {
-        Ok(0) => Ok(0),
-        Ok(n) => {
+    match reader.read_line(buf)? {
+        0 => Ok(0),
+        n => {
             if buf.ends_with(LINE_FEED) {
                 buf.pop();
 
@@ -240,7 +241,6 @@ where
 
             Ok(n)
         }
-        Err(e) => Err(e),
     }
 }
 

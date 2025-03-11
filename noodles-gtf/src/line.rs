@@ -1,3 +1,5 @@
+//! GTF line.
+
 mod kind;
 
 use std::io;

@@ -3,7 +3,7 @@
 //! **noodles-gtf** handles the reading and writing of the Gene Transfer Format (GTF).
 
 pub mod io;
-mod line;
+pub mod line;
 pub mod line_buf;
 pub mod record;
 pub mod record_buf;
