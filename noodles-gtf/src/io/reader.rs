@@ -141,7 +141,7 @@ where
         })
     }
 
-    /// Returns an iterator over records starting from the current stream position.
+    /// Returns an iterator over record buffers starting from the current stream position.
     ///
     /// # Examples
     ///
@@ -150,21 +150,21 @@ where
     /// use noodles_core::Position;
     /// use noodles_gtf as gtf;
     ///
-    /// let data = b"##format: gtf
+    /// let src = b"##format: gtf
     /// sq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tgene_id \"g0\"; transcript_id \"t0\";
     /// ";
-    /// let mut reader = gtf::io::Reader::new(&data[..]);
+    /// let mut reader = gtf::io::Reader::new(&src[..]);
     ///
-    /// let mut records = reader.records();
+    /// let mut record_bufs = reader.record_bufs();
     ///
-    /// let record = records.next().transpose()?;
+    /// let record = record_bufs.next().transpose()?;
     /// assert_eq!(record.map(|r| r.start()), Position::new(8));
     /// // ...
     ///
-    /// assert!(records.next().is_none());
+    /// assert!(record_bufs.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records(&mut self) -> impl Iterator<Item = io::Result<RecordBuf>> + '_ {
+    pub fn record_bufs(&mut self) -> impl Iterator<Item = io::Result<RecordBuf>> + '_ {
         let mut lines = self.line_bufs();
 
         iter::from_fn(move || loop {

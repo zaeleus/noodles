@@ -19,7 +19,7 @@ fn main() -> io::Result<()> {
 
     let mut n = 0;
 
-    for result in reader.records() {
+    for result in reader.record_bufs() {
         let _ = result?;
         n += 1;
     }

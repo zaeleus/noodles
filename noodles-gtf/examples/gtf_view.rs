@@ -20,7 +20,7 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = gtf::io::Writer::new(BufWriter::new(stdout));
 
-    for result in reader.records() {
+    for result in reader.record_bufs() {
         let record = result?;
         writer.write_record(&record)?;
     }

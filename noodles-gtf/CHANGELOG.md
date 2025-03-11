@@ -16,8 +16,9 @@
 
   * gtf/io/reader: Rename line to line buf and record to record buf.
 
-    This changes `Reader::read_line` to `Reader::read_line_buf` and
-    `Reader::read_record` to `Reader::read_record_buf`.
+    This changes `Reader::read_line` to `Reader::read_line_buf`,
+    `Reader::read_record` to `Reader::read_record_buf`, and `Reader::records`
+    to `Reader::record_bufs`.
 
   * gtf/io/reader: Read line into `Line`.
 
