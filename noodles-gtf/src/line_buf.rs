@@ -1,8 +1,8 @@
 //! GTF lines.
 
-use std::{error, fmt, str::FromStr};
+use std::{error, fmt, io, str::FromStr};
 
-use super::{record_buf, RecordBuf};
+use super::{record_buf, Line, RecordBuf};
 
 const COMMENT_PREFIX: char = '#';
 
@@ -13,6 +13,20 @@ pub enum LineBuf {
     Comment(String),
     /// A record.
     Record(RecordBuf),
+}
+
+impl TryFrom<Line> for LineBuf {
+    type Error = io::Error;
+
+    fn try_from(line: Line) -> Result<Self, Self::Error> {
+        if let Some(s) = line.as_comment() {
+            Ok(Self::Comment(s.into()))
+        } else if let Some(result) = line.as_record() {
+            result.and_then(RecordBuf::try_from).map(Self::Record)
+        } else {
+            unreachable!()
+        }
+    }
 }
 
 /// An error returns when a raw GFF line fails to parse.
