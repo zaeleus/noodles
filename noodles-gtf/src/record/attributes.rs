@@ -78,24 +78,22 @@ mod tests {
 
     #[test]
     fn test_iter() -> io::Result<()> {
-        assert_eq!(
-            Attributes::new("").iter().collect::<io::Result<Vec<_>>>()?,
-            []
-        );
-
-        assert_eq!(
-            Attributes::new("id 0;")
+        fn f(src: &str, expected: &[(&str, &str)]) -> io::Result<()> {
+            let actual = Attributes::new(src)
                 .iter()
-                .collect::<io::Result<Vec<_>>>()?,
-            [("id", "0")]
-        );
+                .collect::<io::Result<Vec<_>>>()?;
 
-        assert_eq!(
-            Attributes::new(r#"id 0; name "ndls";"#)
-                .iter()
-                .collect::<io::Result<Vec<_>>>()?,
-            [("id", "0"), ("name", "ndls")]
-        );
+            assert_eq!(actual, expected);
+
+            Ok(())
+        }
+
+        f("", &[])?;
+        f("id 0;", &[("id", "0")])?;
+        f("id 0", &[("id", "0")])?;
+        f(r#"id 0; name "ndls";"#, &[("id", "0"), ("name", "ndls")])?;
+        f(r#"id 0;name "ndls";"#, &[("id", "0"), ("name", "ndls")])?;
+        f(r#"id 0;  name "ndls";  "#, &[("id", "0"), ("name", "ndls")])?;
 
         Ok(())
     }

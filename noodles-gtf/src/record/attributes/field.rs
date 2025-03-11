@@ -41,13 +41,10 @@ fn parse_string<'a>(s: &mut &'a str) -> io::Result<&'a str> {
 }
 
 fn parse_raw_value<'a>(s: &mut &'a str) -> io::Result<&'a str> {
-    if let Some(i) = s.find(TERMINATOR) {
-        let (t, rest) = s.split_at(i);
-        *s = rest;
-        Ok(t)
-    } else {
-        Ok(s)
-    }
+    let i = s.find(TERMINATOR).unwrap_or(s.len());
+    let (t, rest) = s.split_at(i);
+    *s = rest;
+    Ok(t)
 }
 
 fn maybe_consume_terminator(s: &mut &str) {
@@ -64,11 +61,12 @@ mod tests {
 
     #[test]
     fn test_parse_field() -> io::Result<()> {
-        assert_eq!(parse_field(&mut r#"id "g0""#)?, ("id", "g0"));
-        assert_eq!(parse_field(&mut r#"id "g0";"#)?, ("id", "g0"));
-        assert_eq!(parse_field(&mut r#"id "g0" ; "#)?, ("id", "g0"));
-        assert_eq!(parse_field(&mut r#"id "g0;g1";"#)?, ("id", "g0;g1"));
-        assert_eq!(parse_field(&mut r#"id 0;"#)?, ("id", "0"));
+        assert_eq!(parse_field(&mut r#"id "0""#)?, ("id", "0"));
+        assert_eq!(parse_field(&mut "id 0")?, ("id", "0"));
+        assert_eq!(parse_field(&mut r#"id "0";"#)?, ("id", "0"));
+        assert_eq!(parse_field(&mut "id 0;")?, ("id", "0"));
+        assert_eq!(parse_field(&mut r#"id "0" ; "#)?, ("id", "0"));
+        assert_eq!(parse_field(&mut r#"id "0;1";"#)?, ("id", "0;1"));
 
         assert!(matches!(
             parse_field(&mut ""),
