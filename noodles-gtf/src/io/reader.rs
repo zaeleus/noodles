@@ -108,6 +108,37 @@ where
     /// # Examples
     ///
     /// ```
+    /// use noodles_gtf as gtf;
+    ///
+    /// let src = b"##format: gtf\nsq0\tNOODLES\tgene\t8\t13\t.\t+\t.\tid 0;\n";
+    /// let mut reader = gtf::io::Reader::new(&src[..]);
+    ///
+    /// let mut lines = reader.lines();
+    ///
+    /// let line = lines.next().transpose()?;
+    /// assert_eq!(line.map(|l| l.kind()), Some(gtf::line::Kind::Comment));
+    ///
+    /// let line = lines.next().transpose()?;
+    /// assert_eq!(line.map(|l| l.kind()), Some(gtf::line::Kind::Record));
+    ///
+    /// assert!(lines.next().is_none());
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn lines(&mut self) -> impl Iterator<Item = io::Result<Line>> + '_ {
+        let mut line = Line::default();
+
+        iter::from_fn(move || match self.read_line(&mut line) {
+            Ok(0) => None,
+            Ok(_) => Some(Ok(line.clone())),
+            Err(e) => Some(Err(e)),
+        })
+    }
+
+    /// Returns an iterator over line buffers starting from the current stream position.
+    ///
+    /// # Examples
+    ///
+    /// ```
     /// # use std::io;
     /// use noodles_gtf as gtf;
     ///
