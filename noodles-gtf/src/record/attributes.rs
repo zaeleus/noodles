@@ -17,6 +17,22 @@ impl<'r> Attributes<'r> {
         self.0.is_empty()
     }
 
+    /// Returns the value of the given key.
+    pub fn get(&self, key: &str) -> Option<io::Result<&str>> {
+        for result in self.iter() {
+            match result {
+                Ok((k, value)) => {
+                    if k == key {
+                        return Some(Ok(value));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
+    }
+
     /// Returns an iterator over key-value pairs.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<(&'r str, &'r str)>> {
         let mut src = self.0;
@@ -46,6 +62,18 @@ mod tests {
         assert!(Attributes::new("").is_empty());
         assert!(!Attributes::new("id 0;").is_empty());
         assert!(!Attributes::new(r#"id 0; name "ndls";"#).is_empty());
+    }
+
+    #[test]
+    fn test_get() -> io::Result<()> {
+        let attributes = Attributes::new(r#"id 0; name "ndls";"#);
+
+        assert_eq!(attributes.get("id").transpose()?, Some("0"));
+        assert_eq!(attributes.get("name").transpose()?, Some("ndls"));
+
+        assert!(attributes.get("comment").transpose()?.is_none());
+
+        Ok(())
     }
 
     #[test]
