@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * gtf: Add lazy record (`Record`).
+
 ### Changed
 
   * gtf: Rename `Record` to `RecordBuf`.

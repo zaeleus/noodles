@@ -4,9 +4,10 @@
 
 pub mod io;
 pub mod line_buf;
+pub mod record;
 pub mod record_buf;
 
-pub use self::{line_buf::LineBuf, record_buf::RecordBuf};
+pub use self::{line_buf::LineBuf, record::Record, record_buf::RecordBuf};
 
 #[deprecated(since = "0.32.0", note = "Use `noodles_gtf::io::Reader` instead.")]
 pub use self::io::Reader;

@@ -13,7 +13,7 @@ use noodles_core::Position;
 
 pub(crate) const MISSING_FIELD: &str = ".";
 
-/// A GTF record.
+/// A GTF record buffer.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
     reference_sequence_name: String,
