@@ -9,7 +9,7 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
-use crate::{Line, LineBuf, RecordBuf};
+use crate::{Line, LineBuf, Record, RecordBuf};
 
 /// A GTF reader.
 pub struct Reader<R> {
@@ -164,8 +164,7 @@ where
         iter::from_fn(move || match self.read_line(&mut line) {
             Ok(0) => None,
             Ok(_) => Some(
-                line.as_ref()
-                    .parse()
+                LineBuf::try_from(line.clone())
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
             ),
             Err(e) => Some(Err(e)),
@@ -242,8 +241,8 @@ where
             .filter_by_region(region)
             .map(|result| {
                 result.and_then(|r| {
-                    r.as_ref()
-                        .parse()
+                    Record::try_new(r.as_ref())
+                        .and_then(RecordBuf::try_from)
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
                 })
             });

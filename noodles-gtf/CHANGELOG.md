@@ -28,10 +28,11 @@
 
 ### Removed
 
-  * gtf/record_buf: Remove formatter.
+  * gtf/record_buf: Remove parser and formatter.
 
-    This also removes the formatter for `LineBuf`. Use a serializer (e.g.,
-    `gtf::io::Writer`) instead.
+    This also removes the parser and formatter for `LineBuf`. Use a
+    deserializer (e.g., `gtf::io::Reader`) and serializer (e.g.,
+    `gtf::io::Writer`), respectively, instead.
 
 ## 0.40.0 - 2025-03-08
 

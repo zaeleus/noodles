@@ -4,7 +4,7 @@
 
 pub mod io;
 pub mod line;
-pub mod line_buf;
+mod line_buf;
 pub mod record;
 pub mod record_buf;
 
