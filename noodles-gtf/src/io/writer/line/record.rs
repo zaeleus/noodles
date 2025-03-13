@@ -1,9 +1,10 @@
 mod attributes;
+mod position;
 mod score;
 
 use std::io::{self, Write};
 
-use self::{attributes::write_attributes, score::write_score};
+use self::{attributes::write_attributes, position::write_position, score::write_score};
 use crate::RecordBuf;
 
 pub(crate) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
@@ -19,10 +20,10 @@ where
     writer.write_all(record.ty().as_bytes())?;
 
     write_separator(writer)?;
-    write!(writer, "{}", record.start())?;
+    write_position(writer, record.start())?;
 
     write_separator(writer)?;
-    write!(writer, "{}", record.end())?;
+    write_position(writer, record.end())?;
 
     write_separator(writer)?;
     write_score(writer, record.score())?;
