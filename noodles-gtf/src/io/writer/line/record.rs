@@ -1,8 +1,9 @@
 mod attributes;
+mod score;
 
 use std::io::{self, Write};
 
-use self::attributes::write_attributes;
+use self::{attributes::write_attributes, score::write_score};
 use crate::RecordBuf;
 
 pub(crate) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
@@ -24,12 +25,7 @@ where
     write!(writer, "{}", record.end())?;
 
     write_separator(writer)?;
-
-    if let Some(n) = record.score() {
-        write!(writer, "{n}")?;
-    } else {
-        write_missing(writer)?;
-    }
+    write_score(writer, record.score())?;
 
     write_separator(writer)?;
 
