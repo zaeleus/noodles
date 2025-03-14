@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::percent_encode;
-use crate::record_buf::attributes::field::Value;
+use crate::feature::record_buf::attributes::field::Value;
 
 pub(super) fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
 where

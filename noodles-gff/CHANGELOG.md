@@ -6,6 +6,10 @@
 
   * gff/feature: Add record trait.
 
+### Changed
+
+  * gff: Move `RecordBuf` to `feature` module.
+
 ## 0.45.0 - 2025-03-08
 
 ### Changed

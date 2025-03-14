@@ -3,7 +3,7 @@ mod line;
 use futures::{stream, Stream, TryStreamExt};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
-use crate::{directive_buf::key, Line, LineBuf, RecordBuf};
+use crate::{directive_buf::key, feature::RecordBuf, Line, LineBuf};
 
 /// An async GFF reader.
 pub struct Reader<R> {

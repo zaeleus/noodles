@@ -4,7 +4,7 @@ use std::io::{self, Write};
 
 use self::field::write_field;
 use super::write_missing;
-use crate::record_buf::Attributes;
+use crate::feature::record_buf::Attributes;
 
 pub(super) fn write_attributes<W>(writer: &mut W, attributes: &Attributes) -> io::Result<()>
 where
@@ -36,7 +36,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::record_buf::attributes::field::Value;
+    use crate::feature::record_buf::attributes::field::Value;
 
     #[test]
     fn test_write_attributes() -> io::Result<()> {

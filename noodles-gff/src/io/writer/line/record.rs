@@ -12,7 +12,7 @@ use self::{
     reference_sequence_name::write_reference_sequence_name, score::write_score,
     strand::write_strand,
 };
-use crate::RecordBuf;
+use crate::feature::RecordBuf;
 
 pub(crate) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
 where

@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::{directive_buf::key, LineBuf, RecordBuf};
+use crate::{directive_buf::key, feature::RecordBuf, LineBuf};
 
 use super::LineBufs;
 

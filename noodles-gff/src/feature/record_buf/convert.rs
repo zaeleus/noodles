@@ -57,7 +57,7 @@ mod tests {
     use noodles_core::Position;
 
     use super::*;
-    use crate::record_buf::Strand;
+    use crate::feature::record_buf::Strand;
 
     #[test]
     fn test_try_from_record_for_record_buf() -> Result<(), Box<dyn std::error::Error>> {

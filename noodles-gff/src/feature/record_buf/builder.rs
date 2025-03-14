@@ -26,7 +26,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let builder = gff::RecordBuf::builder();
+    /// let builder = gff::feature::RecordBuf::builder();
     /// ```
     pub fn new() -> Self {
         Self::default()
@@ -39,7 +39,7 @@ impl Builder {
     /// ```
     /// use noodles_gff as gff;
     ///
-    /// let record = gff::RecordBuf::builder()
+    /// let record = gff::feature::RecordBuf::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .build();
     ///
@@ -60,7 +60,7 @@ impl Builder {
     /// ```
     /// use noodles_gff as gff;
     ///
-    /// let record = gff::RecordBuf::builder()
+    /// let record = gff::feature::RecordBuf::builder()
     ///     .set_source("NOODLES")
     ///     .build();
     ///
@@ -81,7 +81,7 @@ impl Builder {
     /// ```
     /// use noodles_gff as gff;
     ///
-    /// let record = gff::RecordBuf::builder()
+    /// let record = gff::feature::RecordBuf::builder()
     ///     .set_type("gene")
     ///     .build();
     ///
@@ -103,7 +103,7 @@ impl Builder {
     /// use noodles_core::Position;
     /// use noodles_gff as gff;
     /// let start = Position::MIN;
-    /// let record = gff::RecordBuf::builder().set_start(start).build();
+    /// let record = gff::feature::RecordBuf::builder().set_start(start).build();
     /// assert_eq!(record.start(), start);
     /// ```
     pub fn set_start(mut self, start: Position) -> Self {
@@ -119,7 +119,7 @@ impl Builder {
     /// use noodles_core::Position;
     /// use noodles_gff as gff;
     /// let end = Position::MIN;
-    /// let record = gff::RecordBuf::builder().set_end(end).build();
+    /// let record = gff::feature::RecordBuf::builder().set_end(end).build();
     /// assert_eq!(record.end(), end);
     /// ```
     pub fn set_end(mut self, end: Position) -> Self {
@@ -133,7 +133,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::builder().set_score(21.0).build();
+    /// let record = gff::feature::RecordBuf::builder().set_score(21.0).build();
     /// assert_eq!(record.score(), Some(21.0));
     /// ```
     pub fn set_score(mut self, score: f32) -> Self {
@@ -148,7 +148,7 @@ impl Builder {
     /// ```
     /// use noodles_gff::{self as gff, record::Strand};
     ///
-    /// let record = gff::RecordBuf::builder()
+    /// let record = gff::feature::RecordBuf::builder()
     ///     .set_strand(Strand::Forward)
     ///     .build();
     ///
@@ -165,7 +165,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_gff::{self as gff, record::Phase};
-    /// let record = gff::RecordBuf::builder().set_phase(Phase::Zero).build();
+    /// let record = gff::feature::RecordBuf::builder().set_phase(Phase::Zero).build();
     /// assert_eq!(record.phase(), Some(Phase::Zero));
     /// ```
     pub fn set_phase(mut self, phase: Phase) -> Self {
@@ -180,7 +180,7 @@ impl Builder {
     /// ```
     /// use noodles_gff::{
     ///     self as gff,
-    ///     record_buf::{
+    ///     feature::record_buf::{
     ///         attributes::field::{Tag, Value},
     ///         Attributes,
     ///     },
@@ -190,7 +190,7 @@ impl Builder {
     ///     .into_iter()
     ///     .collect();
     ///
-    /// let record = gff::RecordBuf::builder()
+    /// let record = gff::feature::RecordBuf::builder()
     ///     .set_attributes(attributes.clone())
     ///     .build();
     ///
@@ -207,7 +207,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::builder().build();
+    /// let record = gff::feature::RecordBuf::builder().build();
     /// ```
     pub fn build(self) -> RecordBuf {
         RecordBuf {
@@ -263,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), noodles_core::position::TryFromIntError> {
-        use crate::record_buf::attributes::field::{Tag, Value};
+        use crate::feature::record_buf::attributes::field::{Tag, Value};
 
         let attributes: Attributes = [(Tag::from("gene_id"), Value::from("ndls0"))]
             .into_iter()

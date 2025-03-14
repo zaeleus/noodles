@@ -1,6 +1,6 @@
 //! GFF lines.
 
-use super::{DirectiveBuf, RecordBuf};
+use super::{feature::RecordBuf, DirectiveBuf};
 
 /// A GFF line.
 #[derive(Clone, Debug, PartialEq)]

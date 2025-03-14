@@ -3,7 +3,7 @@ mod line;
 use std::io::{self, Write};
 
 use self::line::write_line;
-use crate::{DirectiveBuf, LineBuf, RecordBuf};
+use crate::{feature::RecordBuf, DirectiveBuf, LineBuf};
 
 /// A GFF writer.
 pub struct Writer<W> {
@@ -89,7 +89,7 @@ where
     /// let comment = LineBuf::Comment(String::from("noodles"));
     /// writer.write_line(&comment)?;
     ///
-    /// let record = LineBuf::Record(gff::RecordBuf::default());
+    /// let record = LineBuf::Record(gff::feature::RecordBuf::default());
     /// writer.write_line(&record)?;
     ///
     /// let expected = b"##gff-version 3
@@ -143,7 +143,7 @@ where
     /// );
     /// writer.write_directive(&version)?;
     ///
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// writer.write_record(&record)?;
     ///
     /// let expected = b"##gff-version 3

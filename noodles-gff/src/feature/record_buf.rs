@@ -9,7 +9,7 @@ use std::io;
 use noodles_core::Position;
 
 pub use self::{attributes::Attributes, builder::Builder};
-use super::record::{Phase, Strand};
+use crate::record::{Phase, Strand};
 
 /// A GFF record.
 #[derive(Clone, Debug, PartialEq)]
@@ -33,7 +33,7 @@ impl RecordBuf {
     /// ```
     /// use noodles_gff as gff;
     ///
-    /// let record = gff::RecordBuf::builder()
+    /// let record = gff::feature::RecordBuf::builder()
     ///     .set_reference_sequence_name("sq0")
     ///     .build();
     ///
@@ -49,7 +49,7 @@ impl RecordBuf {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.reference_sequence_name(), ".");
     /// ```
     pub fn reference_sequence_name(&self) -> &str {
@@ -62,7 +62,7 @@ impl RecordBuf {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.source(), ".");
     /// ```
     pub fn source(&self) -> &str {
@@ -75,7 +75,7 @@ impl RecordBuf {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.ty(), ".");
     /// ```
     pub fn ty(&self) -> &str {
@@ -91,7 +91,7 @@ impl RecordBuf {
     /// ```
     /// use noodles_core::Position;
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.start(), Position::MIN);
     /// ```
     pub fn start(&self) -> Position {
@@ -107,7 +107,7 @@ impl RecordBuf {
     /// ```
     /// use noodles_core::Position;
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.end(), Position::MIN);
     /// ```
     pub fn end(&self) -> Position {
@@ -120,7 +120,7 @@ impl RecordBuf {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// assert!(record.score().is_none());
     /// ```
     pub fn score(&self) -> Option<f32> {
@@ -133,7 +133,7 @@ impl RecordBuf {
     ///
     /// ```
     /// use noodles_gff::{self as gff, record::Strand};
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.strand(), Strand::None);
     /// ```
     pub fn strand(&self) -> Strand {
@@ -146,7 +146,7 @@ impl RecordBuf {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// assert!(record.phase().is_none());
     /// ```
     pub fn phase(&self) -> Option<Phase> {
@@ -159,7 +159,7 @@ impl RecordBuf {
     ///
     /// ```
     /// use noodles_gff as gff;
-    /// let record = gff::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// assert!(record.attributes().is_empty());
     /// ```
     pub fn attributes(&self) -> &Attributes {
@@ -173,7 +173,7 @@ impl Default for RecordBuf {
     }
 }
 
-impl crate::feature::Record for RecordBuf {
+impl super::Record for RecordBuf {
     fn reference_sequence_name(&self) -> &str {
         self.reference_sequence_name()
     }
@@ -206,7 +206,7 @@ impl crate::feature::Record for RecordBuf {
         self.phase().map(Ok)
     }
 
-    fn attributes(&self) -> Box<dyn crate::feature::record::Attributes + '_> {
+    fn attributes(&self) -> Box<dyn super::record::Attributes + '_> {
         Box::new(self.attributes())
     }
 }

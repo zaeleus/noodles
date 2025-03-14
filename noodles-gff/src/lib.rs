@@ -41,11 +41,10 @@ pub mod io;
 pub mod line;
 pub mod line_buf;
 pub mod record;
-pub mod record_buf;
 
 pub use self::{
     directive::Directive, directive_buf::DirectiveBuf, line::Line, line_buf::LineBuf,
-    record::Record, record_buf::RecordBuf,
+    record::Record,
 };
 
 #[deprecated(since = "0.33.0", note = "Use `noodles_gff::io::Reader` instead.")]

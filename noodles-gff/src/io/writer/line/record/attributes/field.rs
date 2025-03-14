@@ -9,7 +9,7 @@ use std::{
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 
 use self::{tag::write_tag, value::write_value};
-use crate::record_buf::attributes::field::Value;
+use crate::feature::record_buf::attributes::field::Value;
 
 pub(super) fn write_field<W>(writer: &mut W, key: &str, value: &Value) -> io::Result<()>
 where
