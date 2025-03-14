@@ -118,3 +118,20 @@ impl<'a> IntoIterator for &'a Value {
         self.iter()
     }
 }
+
+impl<'a> From<&'a Value> for crate::feature::record::attributes::field::Value<'a> {
+    fn from(value_buf: &'a Value) -> Self {
+        match value_buf {
+            Value::String(value) => Self::String(value),
+            Value::Array(values) => Self::Array(Box::new(Array(values))),
+        }
+    }
+}
+
+struct Array<'a>(&'a [String]);
+
+impl crate::feature::record::attributes::field::value::Array for Array<'_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+        Box::new(self.0.iter().map(|value| value.as_str()))
+    }
+}

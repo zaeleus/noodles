@@ -36,6 +36,7 @@ pub mod r#async;
 
 mod directive;
 pub mod directive_buf;
+pub mod feature;
 pub mod io;
 pub mod line;
 pub mod line_buf;
