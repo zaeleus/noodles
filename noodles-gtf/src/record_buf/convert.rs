@@ -1,7 +1,7 @@
 use std::io;
 
 use super::RecordBuf;
-use crate::Record;
+use crate::{record_buf::Attributes, Record};
 
 impl<'l> TryFrom<Record<'l>> for RecordBuf {
     type Error = io::Error;
@@ -28,12 +28,17 @@ impl<'l> TryFrom<Record<'l>> for RecordBuf {
             builder = builder.set_frame(frame);
         }
 
-        let attributes = record
-            .attributes()
-            .iter()
-            .map(|result| result.map(|(k, v)| (k.into(), v.into())))
-            .collect::<io::Result<_>>()?;
+        let mut raw_attributes = Vec::new();
 
+        for result in record.attributes()?.iter() {
+            let (key, value) = result?;
+
+            for v in value.iter() {
+                raw_attributes.push((key.into(), v.into()));
+            }
+        }
+
+        let attributes = Attributes::from(raw_attributes);
         builder = builder.set_attributes(attributes);
 
         Ok(builder.build())

@@ -63,8 +63,8 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the attributes.
-    pub fn attributes(&self) -> Attributes<'_> {
-        Attributes::new(self.0.attributes())
+    pub fn attributes(&self) -> io::Result<Attributes<'_>> {
+        Attributes::try_new(self.0.attributes())
     }
 }
 

@@ -1,4 +1,8 @@
+mod value;
+
 use std::io;
+
+pub use self::value::Value;
 
 const SEPARATOR: char = ' ';
 const DOUBLE_QUOTES: char = '"';
