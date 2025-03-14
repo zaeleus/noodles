@@ -10,7 +10,7 @@
 
   * gff: Move `RecordBuf` to `feature` module.
 
-  * gff/record: Move `Strand` under `feature::record`.
+  * gff/record: Move `Phase` and `Strand` under `feature::record`.
 
 ## 0.45.0 - 2025-03-08
 

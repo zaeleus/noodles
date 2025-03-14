@@ -9,7 +9,7 @@ use std::io;
 use noodles_core::Position;
 
 pub use self::{attributes::Attributes, builder::Builder};
-use crate::{feature::record::Strand, record::Phase};
+use super::record::{Phase, Strand};
 
 /// A GFF record.
 #[derive(Clone, Debug, PartialEq)]
