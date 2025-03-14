@@ -87,3 +87,33 @@ impl crate::feature::record::Attributes for Attributes {
         )
     }
 }
+
+impl crate::feature::record::Attributes for &Attributes {
+    fn is_empty(&self) -> bool {
+        Attributes::is_empty(self)
+    }
+
+    fn get(
+        &self,
+        tag: &str,
+    ) -> Option<io::Result<crate::feature::record::attributes::field::Value<'_>>> {
+        Attributes::get(self, tag).map(|value| Ok(value.into()))
+    }
+
+    fn iter(
+        &self,
+    ) -> Box<
+        dyn Iterator<
+                Item = io::Result<(
+                    Cow<'_, str>,
+                    crate::feature::record::attributes::field::Value<'_>,
+                )>,
+            > + '_,
+    > {
+        Box::new(
+            self.0
+                .iter()
+                .map(|(tag, value)| Ok((Cow::from(tag), value.into()))),
+        )
+    }
+}

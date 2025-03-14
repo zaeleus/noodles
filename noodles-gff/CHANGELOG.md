@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * gff/feature: Add record trait.
+
 ## 0.45.0 - 2025-03-08
 
 ### Changed

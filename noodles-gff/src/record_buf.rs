@@ -4,6 +4,8 @@ pub mod attributes;
 mod builder;
 mod convert;
 
+use std::io;
+
 use noodles_core::Position;
 
 pub use self::{attributes::Attributes, builder::Builder};
@@ -168,5 +170,43 @@ impl RecordBuf {
 impl Default for RecordBuf {
     fn default() -> Self {
         Builder::new().build()
+    }
+}
+
+impl crate::feature::Record for RecordBuf {
+    fn reference_sequence_name(&self) -> &str {
+        self.reference_sequence_name()
+    }
+
+    fn source(&self) -> &str {
+        self.source()
+    }
+
+    fn ty(&self) -> &str {
+        self.ty()
+    }
+
+    fn feature_start(&self) -> io::Result<Position> {
+        Ok(self.start())
+    }
+
+    fn feature_end(&self) -> io::Result<Position> {
+        Ok(self.end())
+    }
+
+    fn score(&self) -> Option<io::Result<f32>> {
+        self.score().map(Ok)
+    }
+
+    fn strand(&self) -> io::Result<Strand> {
+        Ok(self.strand())
+    }
+
+    fn phase(&self) -> Option<io::Result<Phase>> {
+        self.phase().map(Ok)
+    }
+
+    fn attributes(&self) -> Box<dyn crate::feature::record::Attributes + '_> {
+        Box::new(self.attributes())
     }
 }
