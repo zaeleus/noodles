@@ -1,4 +1,5 @@
 mod attributes;
+mod frame;
 mod position;
 mod score;
 mod strand;
@@ -6,7 +7,7 @@ mod strand;
 use std::io::{self, Write};
 
 use self::{
-    attributes::write_attributes, position::write_position, score::write_score,
+    attributes::write_attributes, frame::write_frame, position::write_position, score::write_score,
     strand::write_strand,
 };
 use crate::RecordBuf;
@@ -36,12 +37,7 @@ where
     write_strand(writer, record.strand())?;
 
     write_separator(writer)?;
-
-    if let Some(frame) = record.frame() {
-        write!(writer, "{frame}")?;
-    } else {
-        write_missing(writer)?;
-    }
+    write_frame(writer, record.frame())?;
 
     write_separator(writer)?;
     write_attributes(writer, record.attributes())?;
