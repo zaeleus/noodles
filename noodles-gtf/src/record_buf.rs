@@ -4,7 +4,7 @@ mod attributes;
 mod builder;
 mod convert;
 pub mod frame;
-pub mod strand;
+mod strand;
 
 use noodles_core::Position;
 
