@@ -9,7 +9,7 @@ use std::io;
 use noodles_core::Position;
 
 pub use self::{attributes::Attributes, builder::Builder};
-use crate::record::{Phase, Strand};
+use crate::{feature::record::Strand, record::Phase};
 
 /// A GFF record.
 #[derive(Clone, Debug, PartialEq)]
@@ -132,7 +132,7 @@ impl RecordBuf {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gff::{self as gff, record::Strand};
+    /// use noodles_gff::{self as gff, feature::record::Strand};
     /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.strand(), Strand::None);
     /// ```

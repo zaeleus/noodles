@@ -1,13 +1,14 @@
 //! Feature record.
 
 pub mod attributes;
+mod strand;
 
 use std::io;
 
 use noodles_core::Position;
 
-pub use self::attributes::Attributes;
-use crate::record::{Phase, Strand};
+pub use self::{attributes::Attributes, strand::Strand};
+use crate::record::Phase;
 
 /// A feature record.
 pub trait Record {

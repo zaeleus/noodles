@@ -1,4 +1,4 @@
-/// A GFF record strand.
+/// A feature record strand.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub enum Strand {
     /// Unstranded (`.`).

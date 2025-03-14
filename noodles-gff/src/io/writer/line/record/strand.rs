@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::write_missing;
-use crate::record::Strand;
+use crate::feature::record::Strand;
 
 const FORWARD: &[u8] = b"+";
 const REVERSE: &[u8] = b"-";
