@@ -10,6 +10,9 @@
 
   * gff: Move `RecordBuf` to `feature` module.
 
+  * gff/feature/record_buf: Replace conversion from `crate::Record` with any
+    implemention of `feature::Record`.
+
   * gff/record: Move `Phase` and `Strand` under `feature::record`.
 
 ## 0.45.0 - 2025-03-08

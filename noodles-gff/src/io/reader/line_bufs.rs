@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::{line::Kind, Line, LineBuf};
+use crate::{feature::RecordBuf, line::Kind, Line, LineBuf};
 
 use super::Reader;
 
@@ -47,7 +47,9 @@ where
                     self.line
                         .as_record()
                         .unwrap() // SAFETY: `self.line` is a record.
-                        .and_then(|record| record.try_into().map(LineBuf::Record)),
+                        .and_then(|record| {
+                            RecordBuf::try_from_feature_record(&record).map(LineBuf::Record)
+                        }),
                 ),
             },
             Err(e) => Some(Err(e)),

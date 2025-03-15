@@ -254,7 +254,7 @@ where
                         .ok_or_else(|| {
                             io::Error::new(io::ErrorKind::InvalidData, "line is not a record")
                         })?
-                        .and_then(|record| record.try_into())
+                        .and_then(|record| RecordBuf::try_from_feature_record(&record))
                 })
             });
 

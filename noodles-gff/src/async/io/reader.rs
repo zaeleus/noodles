@@ -181,7 +181,9 @@ where
                             let record = line
                                 .as_record()
                                 .unwrap() // SAFETY: `line` is a record.
-                                .and_then(|record| record.try_into().map(LineBuf::Record))?;
+                                .and_then(|record| {
+                                    RecordBuf::try_from_feature_record(&record).map(LineBuf::Record)
+                                })?;
 
                             Ok(Some((record, (reader, line))))
                         }

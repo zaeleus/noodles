@@ -90,7 +90,10 @@ impl crate::feature::record::Attributes for Attributes<'_> {
                 )>,
             > + '_,
     > {
-        todo!()
+        Box::new(
+            self.iter()
+                .map(|result| result.map(|(tag, value)| (tag, value.into()))),
+        )
     }
 }
 
