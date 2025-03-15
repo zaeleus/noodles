@@ -12,7 +12,7 @@ impl<'a> Array<'a> {
     }
 
     /// Returns an iterator over values.
-    pub fn iter(&self) -> impl Iterator<Item = io::Result<Cow<'_, str>>> {
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<Cow<'a, str>>> {
         const DELIMITER: char = ',';
 
         self.0
@@ -30,6 +30,12 @@ impl AsRef<str> for Array<'_> {
 impl fmt::Debug for Array<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl<'a> crate::feature::record::attributes::field::value::Array<'a> for Array<'a> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'a, str>>> + 'a> {
+        Box::new(self.iter())
     }
 }
 

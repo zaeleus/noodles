@@ -2,29 +2,29 @@
 
 mod array;
 
-use std::iter;
+use std::{borrow::Cow, io, iter};
 
 pub use self::array::Array;
 
 /// A feature record attributes field value.
 pub enum Value<'r> {
     /// A string.
-    String(&'r str),
+    String(Cow<'r, str>),
     /// An array.
-    Array(Box<dyn Array + 'r>),
+    Array(Box<dyn Array<'r> + 'r>),
 }
 
-impl Value<'_> {
+impl<'r> Value<'r> {
     /// Returns the value as a string, if the value is a string.
     pub fn as_string(&self) -> Option<&str> {
         match self {
-            Self::String(value) => Some(value),
+            Self::String(value) => Some(value.as_ref()),
             Self::Array(_) => None,
         }
     }
 
     /// Returns the value as an array, if the value is an array.
-    pub fn as_array(&self) -> Option<&dyn Array> {
+    pub fn as_array(&self) -> Option<&'r dyn Array> {
         match self {
             Self::String(_) => None,
             Self::Array(array) => Some(array.as_ref()),
@@ -32,9 +32,9 @@ impl Value<'_> {
     }
 
     /// Returns an iterator over values.
-    pub fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
+    pub fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'r, str>>> + '_> {
         match self {
-            Self::String(value) => Box::new(iter::once(*value)),
+            Self::String(value) => Box::new(iter::once(Ok(value.clone()))),
             Self::Array(array) => Box::new(array.iter()),
         }
     }

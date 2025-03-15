@@ -1,6 +1,6 @@
 //! GFF record attributes field value.
 
-use std::{iter, mem};
+use std::{borrow::Cow, io, iter, mem};
 
 /// A GFF record attribute field value.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -122,7 +122,7 @@ impl<'a> IntoIterator for &'a Value {
 impl<'a> From<&'a Value> for crate::feature::record::attributes::field::Value<'a> {
     fn from(value_buf: &'a Value) -> Self {
         match value_buf {
-            Value::String(value) => Self::String(value),
+            Value::String(value) => Self::String(Cow::from(value)),
             Value::Array(values) => Self::Array(Box::new(Array(values))),
         }
     }
@@ -130,8 +130,8 @@ impl<'a> From<&'a Value> for crate::feature::record::attributes::field::Value<'a
 
 struct Array<'a>(&'a [String]);
 
-impl crate::feature::record::attributes::field::value::Array for Array<'_> {
-    fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
-        Box::new(self.0.iter().map(|value| value.as_str()))
+impl<'a> crate::feature::record::attributes::field::value::Array<'a> for Array<'a> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'a, str>>> + 'a> {
+        Box::new(self.0.iter().map(|value| Ok(Cow::from(value))))
     }
 }

@@ -68,6 +68,32 @@ impl fmt::Debug for Attributes<'_> {
     }
 }
 
+impl crate::feature::record::Attributes for Attributes<'_> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn get(
+        &self,
+        tag: &str,
+    ) -> Option<io::Result<crate::feature::record::attributes::field::Value<'_>>> {
+        self.get(tag).map(|result| result.map(|value| value.into()))
+    }
+
+    fn iter(
+        &self,
+    ) -> Box<
+        dyn Iterator<
+                Item = io::Result<(
+                    Cow<'_, str>,
+                    crate::feature::record::attributes::field::Value<'_>,
+                )>,
+            > + '_,
+    > {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

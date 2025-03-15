@@ -23,6 +23,15 @@ impl AsRef<str> for Value<'_> {
     }
 }
 
+impl<'a> From<Value<'a>> for crate::feature::record::attributes::field::Value<'a> {
+    fn from(value: Value<'a>) -> Self {
+        match value {
+            Value::String(s) => Self::String(s),
+            Value::Array(array) => Self::Array(Box::new(array)),
+        }
+    }
+}
+
 pub(super) fn parse_value(s: &str) -> io::Result<Value<'_>> {
     if is_array(s) {
         Ok(Value::Array(Array::new(s)))
