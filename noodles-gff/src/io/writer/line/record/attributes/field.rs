@@ -9,7 +9,7 @@ use std::{
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 
 use self::{tag::write_tag, value::write_value};
-use crate::feature::record_buf::attributes::field::Value;
+use crate::feature::record::attributes::field::Value;
 
 pub(super) fn write_field<W>(writer: &mut W, key: &str, value: &Value) -> io::Result<()>
 where
@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn test_write_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_field(&mut buf, "ID", &Value::from("0"))?;
+        write_field(&mut buf, "ID", &Value::String(Cow::from("0")))?;
         assert_eq!(buf, b"ID=0");
         Ok(())
     }

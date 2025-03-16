@@ -12,11 +12,12 @@ use self::{
     reference_sequence_name::write_reference_sequence_name, score::write_score,
     strand::write_strand,
 };
-use crate::feature::RecordBuf;
+use crate::feature::Record;
 
-pub(crate) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
+pub(crate) fn write_record<W, R>(writer: &mut W, record: &R) -> io::Result<()>
 where
     W: Write,
+    R: Record,
 {
     write_reference_sequence_name(writer, record.reference_sequence_name())?;
     write_separator(writer)?;
@@ -28,22 +29,22 @@ where
     writer.write_all(ty.as_bytes())?;
     write_separator(writer)?;
 
-    write_position(writer, record.start())?;
+    write_position(writer, record.feature_start()?)?;
     write_separator(writer)?;
 
-    write_position(writer, record.end())?;
+    write_position(writer, record.feature_end()?)?;
     write_separator(writer)?;
 
-    write_score(writer, record.score())?;
+    write_score(writer, record.score().transpose()?)?;
     write_separator(writer)?;
 
-    write_strand(writer, record.strand())?;
+    write_strand(writer, record.strand()?)?;
     write_separator(writer)?;
 
-    write_phase(writer, ty, record.phase())?;
+    write_phase(writer, ty, record.phase().transpose()?)?;
     write_separator(writer)?;
 
-    write_attributes(writer, record.attributes())?;
+    write_attributes(writer, record.attributes().as_ref())?;
 
     Ok(())
 }
@@ -67,6 +68,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::feature::RecordBuf;
 
     #[test]
     fn test_write_record() -> io::Result<()> {
