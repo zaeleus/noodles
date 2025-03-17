@@ -6,16 +6,17 @@ mod strand;
 
 use std::io::{self, Write};
 
-use noodles_gff::feature::RecordBuf;
+use noodles_gff::feature::Record;
 
 use self::{
     attributes::write_attributes, phase::write_phase, position::write_position, score::write_score,
     strand::write_strand,
 };
 
-pub(crate) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
+pub(crate) fn write_record<W, R>(writer: &mut W, record: &R) -> io::Result<()>
 where
     W: Write,
+    R: Record,
 {
     writer.write_all(record.reference_sequence_name().as_bytes())?;
 
@@ -26,22 +27,22 @@ where
     writer.write_all(record.ty().as_bytes())?;
 
     write_separator(writer)?;
-    write_position(writer, record.start())?;
+    write_position(writer, record.feature_start()?)?;
 
     write_separator(writer)?;
-    write_position(writer, record.end())?;
+    write_position(writer, record.feature_end()?)?;
 
     write_separator(writer)?;
-    write_score(writer, record.score())?;
+    write_score(writer, record.score().transpose()?)?;
 
     write_separator(writer)?;
-    write_strand(writer, record.strand())?;
+    write_strand(writer, record.strand()?)?;
 
     write_separator(writer)?;
-    write_phase(writer, record.phase())?;
+    write_phase(writer, record.phase().transpose()?)?;
 
     write_separator(writer)?;
-    write_attributes(writer, record.attributes())?;
+    write_attributes(writer, record.attributes().as_ref())?;
 
     Ok(())
 }
