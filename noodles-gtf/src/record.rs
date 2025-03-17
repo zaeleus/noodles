@@ -60,9 +60,15 @@ impl<'l> Record<'l> {
         parse_strand(self.0.strand())
     }
 
-    /// Returns the frame.
+    /// Returns the phase.
+    #[deprecated(since = "0.41.0", note = "Use `Record::phase` instead.")]
     pub fn frame(&self) -> Option<io::Result<Phase>> {
-        parse_frame(self.0.frame())
+        self.phase()
+    }
+
+    /// Returns the phase.
+    pub fn phase(&self) -> Option<io::Result<Phase>> {
+        parse_phase(self.0.phase())
     }
 
     /// Returns the attributes.
@@ -101,7 +107,7 @@ impl gff::feature::Record for Record<'_> {
     }
 
     fn phase(&self) -> Option<io::Result<Phase>> {
-        self.frame()
+        self.phase()
     }
 
     fn attributes(&self) -> Box<dyn gff::feature::record::Attributes + '_> {
@@ -128,7 +134,7 @@ fn parse_strand(s: &str) -> io::Result<Strand> {
     }
 }
 
-fn parse_frame(s: &str) -> Option<io::Result<Phase>> {
+fn parse_phase(s: &str) -> Option<io::Result<Phase>> {
     match s {
         MISSING => None,
         "0" => Some(Ok(Phase::Zero)),
@@ -136,7 +142,7 @@ fn parse_frame(s: &str) -> Option<io::Result<Phase>> {
         "2" => Some(Ok(Phase::Two)),
         _ => Some(Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            "invalid frame",
+            "invalid phase",
         ))),
     }
 }

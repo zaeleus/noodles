@@ -47,8 +47,8 @@ impl<'l> Fields<'l> {
         &self.src[self.bounds.strand_range()]
     }
 
-    pub fn frame(&self) -> &str {
-        &self.src[self.bounds.frame_range()]
+    pub fn phase(&self) -> &str {
+        &self.src[self.bounds.phase_range()]
     }
 
     pub fn attributes(&self) -> &str {

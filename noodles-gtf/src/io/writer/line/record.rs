@@ -1,5 +1,5 @@
 mod attributes;
-mod frame;
+mod phase;
 mod position;
 mod score;
 mod strand;
@@ -9,7 +9,7 @@ use std::io::{self, Write};
 use noodles_gff::feature::RecordBuf;
 
 use self::{
-    attributes::write_attributes, frame::write_frame, position::write_position, score::write_score,
+    attributes::write_attributes, phase::write_phase, position::write_position, score::write_score,
     strand::write_strand,
 };
 
@@ -38,7 +38,7 @@ where
     write_strand(writer, record.strand())?;
 
     write_separator(writer)?;
-    write_frame(writer, record.phase())?;
+    write_phase(writer, record.phase())?;
 
     write_separator(writer)?;
     write_attributes(writer, record.attributes())?;

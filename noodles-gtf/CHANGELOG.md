@@ -26,6 +26,12 @@
 
     `Entry` is now `(String, String)`.
 
+### Deprecated
+
+  * gtf/record: Deprecate frame usage.
+
+    Use phase instead.
+
 ### Removed
 
   * gtf/record_buf: Remove parser and formatter.

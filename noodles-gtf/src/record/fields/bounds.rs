@@ -12,7 +12,7 @@ pub(super) struct Bounds {
     end_end: usize,
     score_end: usize,
     strand_end: usize,
-    frame_end: usize,
+    phase_end: usize,
 }
 
 impl Bounds {
@@ -42,7 +42,7 @@ impl Bounds {
         bounds.strand_end = len;
 
         len += read_required_field(&mut src)?;
-        bounds.frame_end = len;
+        bounds.phase_end = len;
 
         Ok(bounds)
     }
@@ -75,12 +75,12 @@ impl Bounds {
         self.score_end..sans_delimiter(self.strand_end)
     }
 
-    pub fn frame_range(&self) -> Range<usize> {
-        self.strand_end..sans_delimiter(self.frame_end)
+    pub fn phase_range(&self) -> Range<usize> {
+        self.strand_end..sans_delimiter(self.phase_end)
     }
 
     pub fn attributes_range(&self) -> RangeFrom<usize> {
-        self.frame_end..
+        self.phase_end..
     }
 }
 
@@ -94,7 +94,7 @@ impl Default for Bounds {
             end_end: 5,
             score_end: 6,
             strand_end: 7,
-            frame_end: 8,
+            phase_end: 8,
         }
     }
 }

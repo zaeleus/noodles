@@ -4,7 +4,7 @@ use noodles_gff::feature::record::Phase;
 
 use super::write_missing;
 
-pub(super) fn write_frame<W>(writer: &mut W, frame: Option<Phase>) -> io::Result<()>
+pub(super) fn write_phase<W>(writer: &mut W, phase: Option<Phase>) -> io::Result<()>
 where
     W: Write,
 {
@@ -12,7 +12,7 @@ where
     const ONE: &[u8] = b"1";
     const TWO: &[u8] = b"2";
 
-    match frame {
+    match phase {
         None => write_missing(writer),
         Some(Phase::Zero) => writer.write_all(ZERO),
         Some(Phase::One) => writer.write_all(ONE),
@@ -25,10 +25,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_frame() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, frame: Option<Phase>, expected: &[u8]) -> io::Result<()> {
+    fn test_write_phase() -> Result<(), Box<dyn std::error::Error>> {
+        fn t(buf: &mut Vec<u8>, phase: Option<Phase>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_frame(buf, frame)?;
+            write_phase(buf, phase)?;
             assert_eq!(buf, expected);
             Ok(())
         }
