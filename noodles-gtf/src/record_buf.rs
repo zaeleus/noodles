@@ -1,13 +1,15 @@
 //! GTF record and fields.
 
-mod attributes;
 mod builder;
 mod convert;
 
 use noodles_core::Position;
-use noodles_gff::feature::record::{Phase, Strand};
+use noodles_gff::feature::{
+    record::{Phase, Strand},
+    record_buf::Attributes,
+};
 
-pub use self::{attributes::Attributes, builder::Builder};
+pub use self::builder::Builder;
 
 pub(crate) const MISSING_FIELD: &str = ".";
 

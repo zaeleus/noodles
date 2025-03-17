@@ -1,7 +1,7 @@
 use std::io;
 
 use super::RecordBuf;
-use crate::{record_buf::Attributes, Record};
+use crate::Record;
 
 impl<'l> TryFrom<Record<'l>> for RecordBuf {
     type Error = io::Error;
@@ -36,7 +36,7 @@ impl<'l> TryFrom<Record<'l>> for RecordBuf {
             }
         }
 
-        let attributes = Attributes::from(raw_attributes);
+        let attributes = raw_attributes.into_iter().collect();
         builder = builder.set_attributes(attributes);
 
         Ok(builder.build())
@@ -46,6 +46,7 @@ impl<'l> TryFrom<Record<'l>> for RecordBuf {
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
+    use noodles_gff::feature::record_buf::attributes::field::Value;
 
     use super::*;
     use crate::record_buf::Strand;
@@ -66,7 +67,7 @@ mod tests {
             .set_end(END)
             .set_strand(Strand::Forward)
             .set_attributes(
-                [(String::from("id"), String::from("0"))]
+                [(String::from("id"), Value::from("0"))]
                     .into_iter()
                     .collect(),
             )

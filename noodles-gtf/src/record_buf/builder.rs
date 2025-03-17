@@ -1,7 +1,10 @@
 use noodles_core::Position;
-use noodles_gff::feature::record::{Phase, Strand};
+use noodles_gff::feature::{
+    record::{Phase, Strand},
+    record_buf::Attributes,
+};
 
-use super::{Attributes, RecordBuf, MISSING_FIELD};
+use super::{RecordBuf, MISSING_FIELD};
 
 /// A GTF record builder.
 #[derive(Debug)]
@@ -150,9 +153,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::{self as gtf, record_buf::Attributes};
+    /// use noodles_gff::feature::record_buf::{attributes::field::Value, Attributes};
+    /// use noodles_gtf as gtf;
     ///
-    /// let attributes: Attributes = [(String::from("gene_id"), String::from("g0"))]
+    /// let attributes: Attributes = [(String::from("gene_id"), Value::from("g0"))]
     ///     .into_iter()
     ///     .collect();
     ///

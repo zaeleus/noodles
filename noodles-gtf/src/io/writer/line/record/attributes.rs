@@ -2,8 +2,9 @@ mod field;
 
 use std::io::{self, Write};
 
+use noodles_gff::feature::record_buf::Attributes;
+
 use self::field::write_field;
-use crate::record_buf::Attributes;
 
 pub(super) fn write_attributes<W>(writer: &mut W, attributes: &Attributes) -> io::Result<()>
 where
@@ -30,6 +31,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_gff::feature::record_buf::attributes::field::Value;
+
     use super::*;
 
     #[test]
@@ -43,14 +46,14 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let attributes = [(String::from("gene_id"), String::from("g0"))]
+        let attributes = [(String::from("gene_id"), Value::from("g0"))]
             .into_iter()
             .collect();
         t(&mut buf, &attributes, br#"gene_id "g0";"#)?;
 
         let attributes = [
-            (String::from("gene_id"), String::from("g0")),
-            (String::from("gene_name"), String::from("n0")),
+            (String::from("gene_id"), Value::from("g0")),
+            (String::from("gene_name"), Value::from("n0")),
         ]
         .into_iter()
         .collect();

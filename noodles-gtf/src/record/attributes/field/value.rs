@@ -1,5 +1,7 @@
 use std::{iter, mem};
 
+use noodles_gff as gff;
+
 #[derive(Debug, Eq, PartialEq)]
 pub enum Value<'r> {
     String(&'r str),
@@ -22,6 +24,18 @@ impl<'r> Value<'r> {
                 mem::swap(self, &mut Self::Array(values));
             }
             Self::Array(array) => array.push(s),
+        }
+    }
+}
+
+impl From<&Value<'_>> for gff::feature::record_buf::attributes::field::Value {
+    fn from(value: &Value<'_>) -> Self {
+        match value {
+            Value::String(value) => Self::from(*value),
+            Value::Array(values) => {
+                let vs: Vec<_> = values.iter().map(|s| String::from(*s)).collect();
+                Self::from(vs)
+            }
         }
     }
 }
