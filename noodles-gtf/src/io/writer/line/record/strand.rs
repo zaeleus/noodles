@@ -1,9 +1,10 @@
 use std::io::{self, Write};
 
-use super::write_missing;
-use crate::record_buf::Strand;
+use noodles_gff::feature::record::Strand;
 
-pub(super) fn write_strand<W>(writer: &mut W, strand: Option<Strand>) -> io::Result<()>
+use super::write_missing;
+
+pub(super) fn write_strand<W>(writer: &mut W, strand: Strand) -> io::Result<()>
 where
     W: Write,
 {
@@ -11,9 +12,10 @@ where
     const REVERSE: &[u8] = b"-";
 
     match strand {
-        Some(Strand::Forward) => writer.write_all(FORWARD),
-        Some(Strand::Reverse) => writer.write_all(REVERSE),
-        None => write_missing(writer),
+        Strand::None => write_missing(writer),
+        Strand::Forward => writer.write_all(FORWARD),
+        Strand::Reverse => writer.write_all(REVERSE),
+        Strand::Unknown => Err(io::Error::from(io::ErrorKind::InvalidInput)),
     }
 }
 
@@ -23,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_write_strand() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, strand: Option<Strand>, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, strand: Strand, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_strand(buf, strand)?;
             assert_eq!(buf, expected);
@@ -32,9 +34,9 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, Some(Strand::Forward), b"+")?;
-        t(&mut buf, Some(Strand::Reverse), b"-")?;
-        t(&mut buf, None, b".")?;
+        t(&mut buf, Strand::None, b".")?;
+        t(&mut buf, Strand::Forward, b"+")?;
+        t(&mut buf, Strand::Reverse, b"-")?;
 
         Ok(())
     }

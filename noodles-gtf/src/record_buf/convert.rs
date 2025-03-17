@@ -20,9 +20,7 @@ impl<'l> TryFrom<Record<'l>> for RecordBuf {
             builder = builder.set_score(score);
         }
 
-        if let Some(strand) = record.strand().transpose()? {
-            builder = builder.set_strand(strand);
-        }
+        builder = builder.set_strand(record.strand()?);
 
         if let Some(frame) = record.frame().transpose()? {
             builder = builder.set_frame(frame);

@@ -6,10 +6,11 @@ mod fields;
 use std::io;
 
 use noodles_core::Position;
+use noodles_gff::feature::record::Strand;
 
 pub use self::attributes::Attributes;
 use self::fields::Fields;
-use super::record_buf::{Frame, Strand};
+use super::record_buf::Frame;
 
 /// A GTF record.
 #[derive(Clone, Eq, PartialEq)]
@@ -53,7 +54,7 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the strand.
-    pub fn strand(&self) -> Option<io::Result<Strand>> {
+    pub fn strand(&self) -> io::Result<Strand> {
         parse_strand(self.0.strand())
     }
 
@@ -78,15 +79,12 @@ fn parse_score(s: &str) -> Option<io::Result<f32>> {
     }
 }
 
-fn parse_strand(s: &str) -> Option<io::Result<Strand>> {
+fn parse_strand(s: &str) -> io::Result<Strand> {
     match s {
-        MISSING => None,
-        "+" => Some(Ok(Strand::Forward)),
-        "-" => Some(Ok(Strand::Reverse)),
-        _ => Some(Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid strand",
-        ))),
+        MISSING => Ok(Strand::None),
+        "+" => Ok(Strand::Forward),
+        "-" => Ok(Strand::Reverse),
+        _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid strand")),
     }
 }
 

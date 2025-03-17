@@ -1,6 +1,7 @@
 use noodles_core::Position;
+use noodles_gff::feature::record::Strand;
 
-use super::{Attributes, Frame, RecordBuf, Strand, MISSING_FIELD};
+use super::{Attributes, Frame, RecordBuf, MISSING_FIELD};
 
 /// A GTF record builder.
 #[derive(Debug)]
@@ -11,7 +12,7 @@ pub struct Builder {
     start: Position,
     end: Position,
     score: Option<f32>,
-    strand: Option<Strand>,
+    strand: Strand,
     frame: Option<Frame>,
     attributes: Attributes,
 }
@@ -119,12 +120,13 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::{self as gtf, record_buf::Strand};
+    /// use noodles_gff::feature::record::Strand;
+    /// use noodles_gtf as gtf;
     /// let record = gtf::RecordBuf::builder().set_strand(Strand::Forward).build();
-    /// assert_eq!(record.strand(), Some(Strand::Forward));
+    /// assert_eq!(record.strand(), Strand::Forward);
     /// ```
     pub fn set_strand(mut self, strand: Strand) -> Self {
-        self.strand = Some(strand);
+        self.strand = strand;
         self
     }
 
@@ -196,7 +198,7 @@ impl Default for Builder {
             start: Position::MIN,
             end: Position::MIN,
             score: None,
-            strand: None,
+            strand: Strand::None,
             frame: None,
             attributes: Attributes::default(),
         }
@@ -217,7 +219,7 @@ mod tests {
         assert_eq!(builder.start, Position::MIN);
         assert_eq!(builder.end, Position::MIN);
         assert!(builder.score.is_none());
-        assert!(builder.strand.is_none());
+        assert_eq!(builder.strand, Strand::None);
         assert!(builder.frame.is_none());
         assert!(builder.attributes.is_empty());
     }
