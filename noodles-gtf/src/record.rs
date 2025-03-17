@@ -6,7 +6,10 @@ mod fields;
 use std::io;
 
 use noodles_core::Position;
-use noodles_gff::feature::record::{Phase, Strand};
+use noodles_gff::{
+    self as gff,
+    feature::record::{Phase, Strand},
+};
 
 pub use self::attributes::Attributes;
 use self::fields::Fields;
@@ -65,6 +68,44 @@ impl<'l> Record<'l> {
     /// Returns the attributes.
     pub fn attributes(&self) -> io::Result<Attributes<'_>> {
         Attributes::try_new(self.0.attributes())
+    }
+}
+
+impl gff::feature::Record for Record<'_> {
+    fn reference_sequence_name(&self) -> &str {
+        self.reference_sequence_name()
+    }
+
+    fn source(&self) -> &str {
+        self.source()
+    }
+
+    fn ty(&self) -> &str {
+        self.ty()
+    }
+
+    fn feature_start(&self) -> io::Result<Position> {
+        self.start()
+    }
+
+    fn feature_end(&self) -> io::Result<Position> {
+        self.end()
+    }
+
+    fn score(&self) -> Option<io::Result<f32>> {
+        self.score()
+    }
+
+    fn strand(&self) -> io::Result<Strand> {
+        self.strand()
+    }
+
+    fn phase(&self) -> Option<io::Result<Phase>> {
+        self.frame()
+    }
+
+    fn attributes(&self) -> Box<dyn gff::feature::record::Attributes + '_> {
+        Box::new(self.attributes().unwrap()) // TODO
     }
 }
 
