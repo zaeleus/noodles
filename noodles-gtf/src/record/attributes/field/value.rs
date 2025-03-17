@@ -1,4 +1,4 @@
-use std::{iter, mem};
+use std::{borrow::Cow, io, iter, mem};
 
 use noodles_gff as gff;
 
@@ -25,6 +25,23 @@ impl<'r> Value<'r> {
             }
             Self::Array(array) => array.push(s),
         }
+    }
+}
+
+impl<'r> From<&'r Value<'r>> for gff::feature::record::attributes::field::Value<'r> {
+    fn from(value: &'r Value<'_>) -> Self {
+        match value {
+            Value::String(value) => Self::String(Cow::from(*value)),
+            Value::Array(values) => Self::Array(Box::new(Array(values))),
+        }
+    }
+}
+
+struct Array<'r>(&'r [&'r str]);
+
+impl<'r> gff::feature::record::attributes::field::value::Array<'r> for Array<'r> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'r, str>>> + 'r> {
+        Box::new(self.0.iter().map(|value| Ok(Cow::from(*value))))
     }
 }
 

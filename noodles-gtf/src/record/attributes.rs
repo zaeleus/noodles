@@ -1,8 +1,9 @@
 mod field;
 
-use std::io;
+use std::{borrow::Cow, io};
 
 use indexmap::IndexMap;
+use noodles_gff as gff;
 
 use self::field::{parse_field, Value};
 
@@ -27,6 +28,35 @@ impl<'r> Attributes<'r> {
     /// Returns an iterator over key-value pairs.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<(&'r str, &Value<'r>)>> + '_ {
         self.0.iter().map(|(k, v)| Ok((*k, v)))
+    }
+}
+
+impl gff::feature::record::Attributes for Attributes<'_> {
+    fn is_empty(&self) -> bool {
+        self.is_empty()
+    }
+
+    fn get(
+        &self,
+        tag: &str,
+    ) -> Option<io::Result<gff::feature::record::attributes::field::Value<'_>>> {
+        self.get(tag).map(|result| result.map(|value| value.into()))
+    }
+
+    fn iter(
+        &self,
+    ) -> Box<
+        dyn Iterator<
+                Item = io::Result<(
+                    Cow<'_, str>,
+                    gff::feature::record::attributes::field::Value<'_>,
+                )>,
+            > + '_,
+    > {
+        Box::new(
+            self.iter()
+                .map(|result| result.map(|(key, value)| (Cow::from(key), value.into()))),
+        )
     }
 }
 
