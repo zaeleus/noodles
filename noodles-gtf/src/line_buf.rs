@@ -1,6 +1,8 @@
 use std::io;
 
-use super::{Line, RecordBuf};
+use noodles_gff::feature::RecordBuf;
+
+use super::Line;
 
 /// A GTF line.
 #[derive(Clone, Debug, PartialEq)]
@@ -18,7 +20,9 @@ impl TryFrom<Line> for LineBuf {
         if let Some(s) = line.as_comment() {
             Ok(Self::Comment(s.into()))
         } else if let Some(result) = line.as_record() {
-            result.and_then(RecordBuf::try_from).map(Self::Record)
+            result
+                .and_then(|record| RecordBuf::try_from_feature_record(&record))
+                .map(Self::Record)
         } else {
             unreachable!()
         }

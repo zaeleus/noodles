@@ -10,9 +10,9 @@
 
 ### Changed
 
-  * gtf: Rename `Record` to `RecordBuf`.
+  * gtf: Replace `Record` with `gff::feature::RecordBuf`.
 
-    This also changes `Line` to `LineBuf`.
+  * gtf: Rename `Line` to `LineBuf`.
 
   * gtf/io/reader: Rename line to line buf and record to record buf.
 

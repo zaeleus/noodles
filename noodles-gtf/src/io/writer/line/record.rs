@@ -6,11 +6,12 @@ mod strand;
 
 use std::io::{self, Write};
 
+use noodles_gff::feature::RecordBuf;
+
 use self::{
     attributes::write_attributes, frame::write_frame, position::write_position, score::write_score,
     strand::write_strand,
 };
-use crate::RecordBuf;
 
 pub(crate) fn write_record<W>(writer: &mut W, record: &RecordBuf) -> io::Result<()>
 where
@@ -37,7 +38,7 @@ where
     write_strand(writer, record.strand())?;
 
     write_separator(writer)?;
-    write_frame(writer, record.frame())?;
+    write_frame(writer, record.phase())?;
 
     write_separator(writer)?;
     write_attributes(writer, record.attributes())?;

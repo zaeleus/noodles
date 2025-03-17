@@ -6,9 +6,8 @@ pub mod io;
 pub mod line;
 mod line_buf;
 pub mod record;
-pub mod record_buf;
 
-pub use self::{line::Line, line_buf::LineBuf, record::Record, record_buf::RecordBuf};
+pub use self::{line::Line, line_buf::LineBuf, record::Record};
 
 #[deprecated(since = "0.32.0", note = "Use `noodles_gtf::io::Reader` instead.")]
 pub use self::io::Reader;

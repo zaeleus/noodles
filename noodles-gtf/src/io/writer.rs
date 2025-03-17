@@ -2,8 +2,10 @@ mod line;
 
 use std::io::{self, Write};
 
+use noodles_gff::feature::RecordBuf;
+
 use self::line::write_line;
-use crate::{LineBuf, RecordBuf};
+use crate::LineBuf;
 
 /// A GTF writer.
 pub struct Writer<W> {
@@ -76,17 +78,18 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_gtf::{self as gtf, LineBuf};
+    /// use noodles_gff as gff;
+    /// use noodles_gtf as gtf;
     ///
     /// let mut writer = gtf::io::Writer::new(Vec::new());
     ///
-    /// let version = LineBuf::Comment(String::from("#format: gtf"));
+    /// let version = gtf::LineBuf::Comment(String::from("#format: gtf"));
     /// writer.write_line(&version)?;
     ///
-    /// let comment = LineBuf::Comment(String::from("noodles"));
+    /// let comment = gtf::LineBuf::Comment(String::from("noodles"));
     /// writer.write_line(&comment)?;
     ///
-    /// let record = LineBuf::Record(gtf::RecordBuf::default());
+    /// let record = gtf::LineBuf::Record(gff::feature::RecordBuf::default());
     /// writer.write_line(&record)?;
     ///
     /// let expected = b"##format: gtf
@@ -106,11 +109,12 @@ where
     ///
     /// ```
     /// # use std::io;
+    /// use noodles_gff as gff;
     /// use noodles_gtf as gtf;
     ///
     /// let mut writer = gtf::io::Writer::new(Vec::new());
     ///
-    /// let record = gtf::RecordBuf::default();
+    /// let record = gff::feature::RecordBuf::default();
     /// writer.write_record(&record)?;
     ///
     /// let expected = b".\t.\t.\t1\t1\t.\t.\t.\t\n";

@@ -8,8 +8,9 @@ use std::{
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
+use noodles_gff::feature::RecordBuf;
 
-use crate::{Line, LineBuf, Record, RecordBuf};
+use crate::{Line, LineBuf, Record};
 
 /// A GTF reader.
 pub struct Reader<R> {
@@ -242,7 +243,7 @@ where
             .map(|result| {
                 result.and_then(|r| {
                     Record::try_new(r.as_ref())
-                        .and_then(RecordBuf::try_from)
+                        .and_then(|record| RecordBuf::try_from_feature_record(&record))
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
                 })
             });
