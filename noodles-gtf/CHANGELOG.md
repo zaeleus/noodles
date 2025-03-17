@@ -6,8 +6,6 @@
 
   * gtf: Add lazy record (`Record`).
 
-  * gtf/record_buf/attributes: Implement `FromIterator<(String, String)>`.
-
 ### Changed
 
   * gtf: Replace `Record` with `gff::feature::RecordBuf`.
@@ -22,10 +20,6 @@
 
   * gtf/io/reader: Read line into `Line`.
 
-  * gtf/record_buf/attributes: Replace `Entry` with a key-value pair.
-
-    `Entry` is now `(String, String)`.
-
 ### Deprecated
 
   * gtf/record: Deprecate frame usage.
@@ -34,10 +28,9 @@
 
 ### Removed
 
-  * gtf/record_buf: Remove parser and formatter.
+  * gtf/line_buf: Remove parser and formatter.
 
-    This also removes the parser and formatter for `LineBuf`. Use a
-    deserializer (e.g., `gtf::io::Reader`) and serializer (e.g.,
+    Use a deserializer (e.g., `gtf::io::Reader`) and serializer (e.g.,
     `gtf::io::Writer`), respectively, instead.
 
 ## 0.40.0 - 2025-03-08
