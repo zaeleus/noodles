@@ -6,11 +6,10 @@ mod fields;
 use std::io;
 
 use noodles_core::Position;
-use noodles_gff::feature::record::Strand;
+use noodles_gff::feature::record::{Phase, Strand};
 
 pub use self::attributes::Attributes;
 use self::fields::Fields;
-use super::record_buf::Frame;
 
 /// A GTF record.
 #[derive(Clone, Eq, PartialEq)]
@@ -59,7 +58,7 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the frame.
-    pub fn frame(&self) -> Option<io::Result<Frame>> {
+    pub fn frame(&self) -> Option<io::Result<Phase>> {
         parse_frame(self.0.frame())
     }
 
@@ -88,12 +87,15 @@ fn parse_strand(s: &str) -> io::Result<Strand> {
     }
 }
 
-fn parse_frame(s: &str) -> Option<io::Result<Frame>> {
+fn parse_frame(s: &str) -> Option<io::Result<Phase>> {
     match s {
         MISSING => None,
-        _ => Some(
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-        ),
+        "0" => Some(Ok(Phase::Zero)),
+        "1" => Some(Ok(Phase::One)),
+        "2" => Some(Ok(Phase::Two)),
+        _ => Some(Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid frame",
+        ))),
     }
 }

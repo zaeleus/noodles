@@ -1,16 +1,22 @@
 use std::io::{self, Write};
 
-use super::write_missing;
-use crate::record_buf::Frame;
+use noodles_gff::feature::record::Phase;
 
-pub(super) fn write_frame<W>(writer: &mut W, frame: Option<Frame>) -> io::Result<()>
+use super::write_missing;
+
+pub(super) fn write_frame<W>(writer: &mut W, frame: Option<Phase>) -> io::Result<()>
 where
     W: Write,
 {
-    if let Some(frame) = frame {
-        write!(writer, "{frame}")
-    } else {
-        write_missing(writer)
+    const ZERO: &[u8] = b"0";
+    const ONE: &[u8] = b"1";
+    const TWO: &[u8] = b"2";
+
+    match frame {
+        None => write_missing(writer),
+        Some(Phase::Zero) => writer.write_all(ZERO),
+        Some(Phase::One) => writer.write_all(ONE),
+        Some(Phase::Two) => writer.write_all(TWO),
     }
 }
 
@@ -20,7 +26,7 @@ mod tests {
 
     #[test]
     fn test_write_frame() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, frame: Option<Frame>, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, frame: Option<Phase>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_frame(buf, frame)?;
             assert_eq!(buf, expected);
@@ -29,10 +35,10 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, Some(Frame::try_from(0)?), b"0")?;
-        t(&mut buf, Some(Frame::try_from(1)?), b"1")?;
-        t(&mut buf, Some(Frame::try_from(2)?), b"2")?;
         t(&mut buf, None, b".")?;
+        t(&mut buf, Some(Phase::Zero), b"0")?;
+        t(&mut buf, Some(Phase::One), b"1")?;
+        t(&mut buf, Some(Phase::Two), b"2")?;
 
         Ok(())
     }

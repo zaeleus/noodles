@@ -1,7 +1,7 @@
 use noodles_core::Position;
-use noodles_gff::feature::record::Strand;
+use noodles_gff::feature::record::{Phase, Strand};
 
-use super::{Attributes, Frame, RecordBuf, MISSING_FIELD};
+use super::{Attributes, RecordBuf, MISSING_FIELD};
 
 /// A GTF record builder.
 #[derive(Debug)]
@@ -13,7 +13,7 @@ pub struct Builder {
     end: Position,
     score: Option<f32>,
     strand: Strand,
-    frame: Option<Frame>,
+    frame: Option<Phase>,
     attributes: Attributes,
 }
 
@@ -135,13 +135,12 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_gtf::{self as gtf, record_buf::Frame};
-    /// let frame = Frame::try_from(0)?;
-    /// let record = gtf::RecordBuf::builder().set_frame(frame).build();
-    /// assert_eq!(record.frame(), Some(frame));
-    /// Ok::<_, gtf::record_buf::frame::ParseError>(())
+    /// use noodles_gff::feature::record::Phase;
+    /// use noodles_gtf as gtf;
+    /// let record = gtf::RecordBuf::builder().set_frame(Phase::One).build();
+    /// assert_eq!(record.frame(), Some(Phase::One));
     /// ```
-    pub fn set_frame(mut self, frame: Frame) -> Self {
+    pub fn set_frame(mut self, frame: Phase) -> Self {
         self.frame = Some(frame);
         self
     }

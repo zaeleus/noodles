@@ -3,12 +3,11 @@
 mod attributes;
 mod builder;
 mod convert;
-pub mod frame;
 
 use noodles_core::Position;
-use noodles_gff::feature::record::Strand;
+use noodles_gff::feature::record::{Phase, Strand};
 
-pub use self::{attributes::Attributes, builder::Builder, frame::Frame};
+pub use self::{attributes::Attributes, builder::Builder};
 
 pub(crate) const MISSING_FIELD: &str = ".";
 
@@ -22,7 +21,7 @@ pub struct RecordBuf {
     end: Position,
     score: Option<f32>,
     strand: Strand,
-    frame: Option<Frame>,
+    frame: Option<Phase>,
     attributes: Attributes,
 }
 
@@ -150,7 +149,7 @@ impl RecordBuf {
     /// let record = gtf::RecordBuf::default();
     /// assert!(record.frame().is_none());
     /// ```
-    pub fn frame(&self) -> Option<Frame> {
+    pub fn frame(&self) -> Option<Phase> {
         self.frame
     }
 
