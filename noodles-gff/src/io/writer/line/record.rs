@@ -21,30 +21,30 @@ where
     R: Record,
 {
     write_reference_sequence_name(writer, record.reference_sequence_name())?;
-    write_separator(writer)?;
 
+    write_separator(writer)?;
     write_source(writer, record.source())?;
-    write_separator(writer)?;
 
+    write_separator(writer)?;
     let ty = record.ty();
     writer.write_all(ty.as_bytes())?;
-    write_separator(writer)?;
 
+    write_separator(writer)?;
     write_position(writer, record.feature_start()?)?;
-    write_separator(writer)?;
 
+    write_separator(writer)?;
     write_position(writer, record.feature_end()?)?;
-    write_separator(writer)?;
 
+    write_separator(writer)?;
     write_score(writer, record.score().transpose()?)?;
-    write_separator(writer)?;
 
+    write_separator(writer)?;
     write_strand(writer, record.strand()?)?;
-    write_separator(writer)?;
 
+    write_separator(writer)?;
     write_phase(writer, ty, record.phase().transpose()?)?;
-    write_separator(writer)?;
 
+    write_separator(writer)?;
     write_attributes(writer, record.attributes().as_ref())?;
 
     Ok(())
