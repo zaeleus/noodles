@@ -5,13 +5,14 @@ mod reference_sequence_name;
 mod score;
 mod source;
 mod strand;
+mod ty;
 
 use std::io::{self, Write};
 
 use self::{
     attributes::write_attributes, phase::write_phase, position::write_position,
     reference_sequence_name::write_reference_sequence_name, score::write_score,
-    source::write_source, strand::write_strand,
+    source::write_source, strand::write_strand, ty::write_type,
 };
 use crate::feature::Record;
 
@@ -27,7 +28,7 @@ where
 
     write_separator(writer)?;
     let ty = record.ty();
-    writer.write_all(ty.as_bytes())?;
+    write_type(writer, ty)?;
 
     write_separator(writer)?;
     write_position(writer, record.feature_start()?)?;
