@@ -154,6 +154,36 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &RecordBuf) -> io::Result<()> {
+        self.write_feature_record(record)
+    }
+
+    /// Writes a feature record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff::{self as gff, directive_buf::{key, Value}};
+    ///
+    /// let mut writer = gff::io::Writer::new(Vec::new());
+    ///
+    /// let version = gff::DirectiveBuf::new(
+    ///     key::GFF_VERSION,
+    ///     Some(Value::GffVersion(Default::default())),
+    /// );
+    /// writer.write_directive(&version)?;
+    ///
+    /// let record = gff::feature::RecordBuf::default();
+    /// writer.write_feature_record(&record)?;
+    ///
+    /// let expected = b"##gff-version 3
+    /// .\t.\t.\t1\t1\t.\t.\t.\t.
+    /// ";
+    ///
+    /// assert_eq!(&writer.get_ref()[..], &expected[..]);
+    /// # Ok::<(), io::Error>(())
+    /// ```
+    pub fn write_feature_record(&mut self, record: &dyn crate::feature::Record) -> io::Result<()> {
         line::write_record(&mut self.inner, record)?;
         line::write_newline(&mut self.inner)
     }

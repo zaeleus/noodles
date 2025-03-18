@@ -19,7 +19,7 @@ use crate::feature::Record;
 pub(crate) fn write_record<W, R>(writer: &mut W, record: &R) -> io::Result<()>
 where
     W: Write,
-    R: Record,
+    R: Record + ?Sized,
 {
     write_reference_sequence_name(writer, record.reference_sequence_name())?;
 

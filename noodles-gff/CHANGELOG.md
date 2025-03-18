@@ -6,6 +6,8 @@
 
   * gff/feature: Add record trait.
 
+  * gff/io/writer: Add feature record writer (`Writer::write_feature_record`).
+
 ### Changed
 
   * gff: Move `RecordBuf` to `feature` module.
