@@ -1,6 +1,7 @@
 mod attributes;
 mod phase;
 mod position;
+mod reference_sequence_name;
 mod score;
 mod strand;
 
@@ -9,7 +10,8 @@ use std::io::{self, Write};
 use noodles_gff::feature::Record;
 
 use self::{
-    attributes::write_attributes, phase::write_phase, position::write_position, score::write_score,
+    attributes::write_attributes, phase::write_phase, position::write_position,
+    reference_sequence_name::write_reference_sequence_name, score::write_score,
     strand::write_strand,
 };
 
@@ -18,7 +20,7 @@ where
     W: Write,
     R: Record,
 {
-    writer.write_all(record.reference_sequence_name().as_bytes())?;
+    write_reference_sequence_name(writer, record.reference_sequence_name())?;
 
     write_separator(writer)?;
     writer.write_all(record.source().as_bytes())?;
