@@ -6,6 +6,8 @@
 
   * gtf: Add lazy record (`Record`).
 
+  * gtf/io/writer: Add feature record writer (`Writer::write_feature_record`).
+
 ### Changed
 
   * gtf: Replace `Record` with `gff::feature::RecordBuf`.

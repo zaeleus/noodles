@@ -2,7 +2,7 @@ mod line;
 
 use std::io::{self, Write};
 
-use noodles_gff::feature::RecordBuf;
+use noodles_gff::{self as gff, feature::RecordBuf};
 
 use self::line::write_line;
 use crate::LineBuf;
@@ -122,6 +122,28 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_record(&mut self, record: &RecordBuf) -> io::Result<()> {
+        self.write_feature_record(record)
+    }
+
+    /// Writes a feature record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_gff as gff;
+    /// use noodles_gtf as gtf;
+    ///
+    /// let mut writer = gtf::io::Writer::new(Vec::new());
+    ///
+    /// let record = gff::feature::RecordBuf::default();
+    /// writer.write_feature_record(&record)?;
+    ///
+    /// let expected = b".\t.\t.\t1\t1\t.\t.\t.\t\n";
+    /// assert_eq!(writer.into_inner(), expected);
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn write_feature_record(&mut self, record: &dyn gff::feature::Record) -> io::Result<()> {
         line::write_record(&mut self.inner, record)?;
         line::write_newline(&mut self.inner)
     }
