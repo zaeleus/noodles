@@ -5,6 +5,7 @@ mod reference_sequence_name;
 mod score;
 mod source;
 mod strand;
+mod ty;
 
 use std::io::{self, Write};
 
@@ -13,7 +14,7 @@ use noodles_gff::feature::Record;
 use self::{
     attributes::write_attributes, phase::write_phase, position::write_position,
     reference_sequence_name::write_reference_sequence_name, score::write_score,
-    source::write_source, strand::write_strand,
+    source::write_source, strand::write_strand, ty::write_type,
 };
 
 pub(crate) fn write_record<W, R>(writer: &mut W, record: &R) -> io::Result<()>
@@ -27,7 +28,7 @@ where
     write_source(writer, record.source())?;
 
     write_separator(writer)?;
-    writer.write_all(record.ty().as_bytes())?;
+    write_type(writer, record.ty())?;
 
     write_separator(writer)?;
     write_position(writer, record.feature_start()?)?;
