@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.95.0 - 2025-03-20
+
+  * [noodles-gff 0.46.0](https://github.com/zaeleus/noodles/blob/noodles-gff-0.46.0/noodles-gff/CHANGELOG.md)
+  * [noodles-gtf 0.41.0](https://github.com/zaeleus/noodles/blob/noodles-gtf-0.41.0/noodles-gtf/CHANGELOG.md)
+
 ## 0.94.0 - 2025-03-08
 
   * [noodles-bam 0.77.0](https://github.com/zaeleus/noodles/blob/noodles-bam-0.77.0/noodles-bam/CHANGELOG.md)
