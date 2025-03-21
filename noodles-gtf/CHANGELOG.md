@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gtf/record/attributes: Unescape backslashes (`\`) and quotation marks
+    (`"`).
+
 ## 0.41.0 - 2025-03-20
 
 ### Added
