@@ -7,6 +7,10 @@
   * gtf/record/attributes: Unescape backslashes (`\`) and quotation marks
     (`"`).
 
+  * gtf/io/writer/line/record/attributes/field/value: Escape backslashes (`\`)
+    and quotation marks (`"`).
+
+
 ## 0.41.0 - 2025-03-20
 
 ### Added
