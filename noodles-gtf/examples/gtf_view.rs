@@ -20,9 +20,13 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = gtf::io::Writer::new(BufWriter::new(stdout));
 
-    for result in reader.record_bufs() {
-        let record = result?;
-        writer.write_record(&record)?;
+    let mut line = gtf::Line::default();
+
+    while reader.read_line(&mut line)? != 0 {
+        if let Some(result) = line.as_record() {
+            let record = result?;
+            writer.write_feature_record(&record)?;
+        }
     }
 
     Ok(())
