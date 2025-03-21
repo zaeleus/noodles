@@ -1,7 +1,10 @@
+mod value;
+
 use std::io::{self, Write};
 
 use noodles_gff::feature::record::attributes::field::Value;
 
+use self::value::write_value;
 use super::write_separator;
 
 pub(super) fn write_field<W>(writer: &mut W, key: &str, value: &Value) -> io::Result<()>
@@ -17,7 +20,7 @@ where
 
         writer.write_all(key.as_bytes())?;
         write_separator(writer)?;
-        write!(writer, r#""{}""#, v)?;
+        write_value(writer, v.as_ref())?;
         write_terminator(writer)?;
     }
 
