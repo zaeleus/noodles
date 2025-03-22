@@ -105,7 +105,7 @@ where
 {
     write_key(writer, key)?;
     write_separator(writer)?;
-    write_escaped_string(writer, value)?;
+    write_string(writer, value)?;
     Ok(())
 }
 
@@ -115,6 +115,26 @@ where
     K: AsRef<str>,
 {
     writer.write_all(key.as_ref().as_bytes())
+}
+
+fn write_string<W, V>(writer: &mut W, value: V) -> io::Result<()>
+where
+    W: Write,
+    V: AsRef<str>,
+{
+    const QUOTATION_MARK: u8 = b'"';
+
+    let s = value.as_ref();
+
+    if requires_escapes(s) {
+        write_escaped_string(writer, s)?;
+    } else {
+        writer.write_all(&[QUOTATION_MARK])?;
+        writer.write_all(s.as_bytes())?;
+        writer.write_all(&[QUOTATION_MARK])?;
+    }
+
+    Ok(())
 }
 
 fn write_value<W, V>(writer: &mut W, value: V) -> io::Result<()>
@@ -149,22 +169,29 @@ where
     writer.write_all(&[DELIMITER])
 }
 
+const BACKSLASH: char = '\\';
+const QUOTATION_MARK: char = '"';
+
+fn requires_escapes(s: &str) -> bool {
+    s.contains(|c| matches!(c, BACKSLASH | QUOTATION_MARK))
+}
+
 fn write_escaped_string<W, V>(writer: &mut W, s: V) -> io::Result<()>
 where
     W: Write,
     V: AsRef<str>,
 {
-    write!(writer, "\"")?;
+    write!(writer, "{QUOTATION_MARK}")?;
 
     for c in s.as_ref().chars() {
-        if matches!(c, '"' | '\\') {
-            write!(writer, "\\")?;
+        if matches!(c, BACKSLASH | QUOTATION_MARK) {
+            write!(writer, "{BACKSLASH}")?;
         }
 
         write!(writer, "{c}")?;
     }
 
-    write!(writer, "\"")?;
+    write!(writer, "{QUOTATION_MARK}")?;
 
     Ok(())
 }
@@ -174,10 +201,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_escaped_string() -> io::Result<()> {
+    fn test_write_string() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, s: &str, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_escaped_string(buf, s)?;
+            write_string(buf, s)?;
             assert_eq!(buf, expected);
             Ok(())
         }
