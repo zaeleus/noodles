@@ -113,10 +113,10 @@ mod tests {
             ]
         );
 
-        // _Sequence Alignment/Map Format Specification_ (2021-06-03) § 1.3.2 "Reference MD5
+        // _Sequence Alignment/Map Format Specification_ (2024-11-06) § 1.3.2 "Reference MD5
         // calculation"
         assert_eq!(
-            calculate_normalized_sequence_digest(b"ACGTACGTACGTACGTACGTACGT...12345!!!"),
+            calculate_normalized_sequence_digest(b"ACGT ACGT ACGT\nacgt acgt acgt\n... 12345 !!!"),
             [
                 0xdf, 0xab, 0xdb, 0xb3, 0x6e, 0x23, 0x9a, 0x6d, 0xa8, 0x89, 0x57, 0x84, 0x1f, 0x32,
                 0xb8, 0xe4
