@@ -1,11 +1,14 @@
-//! Async BGZF I/O.
+//! Async BGZF.
 
 mod block_codec;
-pub mod reader;
+pub mod io;
 pub mod writer;
 
 use self::block_codec::BlockCodec;
-pub use self::{reader::Reader, writer::Writer};
+pub use self::writer::Writer;
+
+#[deprecated(since = "0.38.0", note = "Use `bgzf::r#async::io::Reader` instead.")]
+pub use self::io::Reader;
 
 #[cfg(test)]
 mod tests {

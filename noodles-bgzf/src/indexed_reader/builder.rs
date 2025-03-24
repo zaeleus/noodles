@@ -6,7 +6,7 @@ use std::{
 };
 
 use super::IndexedReader;
-use crate::{gzi, reader};
+use crate::{gzi, io::reader};
 
 /// An indexed BGZF reader builder.
 #[derive(Default)]

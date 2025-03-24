@@ -19,7 +19,7 @@ impl Builder {
     /// ```no_run
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::reader::Builder::default().build_from_path("example.gz")?;
+    /// let reader = bgzf::io::reader::Builder::default().build_from_path("example.gz")?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn build_from_path<P>(self, src: P) -> io::Result<Reader<File>>
@@ -37,7 +37,7 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::reader::Builder::default().build_from_reader(io::empty());
+    /// let reader = bgzf::io::reader::Builder::default().build_from_reader(io::empty());
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> Reader<R>
     where

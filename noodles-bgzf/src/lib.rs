@@ -45,19 +45,20 @@ pub mod indexed_reader;
 pub mod io;
 mod multithreaded_reader;
 pub mod multithreaded_writer;
-pub mod reader;
 pub mod virtual_position;
 pub mod writer;
 
 pub use self::{
     indexed_reader::IndexedReader, multithreaded_reader::MultithreadedReader,
-    multithreaded_writer::MultithreadedWriter, reader::Reader, virtual_position::VirtualPosition,
-    writer::Writer,
+    multithreaded_writer::MultithreadedWriter, virtual_position::VirtualPosition, writer::Writer,
 };
 
+#[deprecated(since = "0.38.0", note = "Use `bgzf::io::Reader` instead.")]
+pub use self::io::Reader;
+
 #[cfg(feature = "async")]
-#[deprecated(since = "0.35.0", note = "Use `bgzf::r#async::Reader` instead.")]
-pub use self::r#async::Reader as AsyncReader;
+#[deprecated(since = "0.35.0", note = "Use `bgzf::r#async::io::Reader` instead.")]
+pub use self::r#async::io::Reader as AsyncReader;
 
 #[cfg(feature = "async")]
 #[deprecated(since = "0.35.0", note = "Use `bgzf::r#async::Writer` instead.")]

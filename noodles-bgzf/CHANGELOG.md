@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf: Move reader (`Reader`) to `io` module.
+
+### Deprecated
+
+  * bgzf: Deprecate `Reader`.
+
+    Use `io::Reader` instead.
+
 ## 0.37.0 - 2025-03-08
 
 ### Changed

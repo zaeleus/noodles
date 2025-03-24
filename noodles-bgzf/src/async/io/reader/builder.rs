@@ -22,7 +22,7 @@ impl Builder {
     /// ```
     /// use std::num::NonZeroUsize;
     /// use noodles_bgzf as bgzf;
-    /// let builder = bgzf::r#async::reader::Builder::default()
+    /// let builder = bgzf::r#async::io::reader::Builder::default()
     ///     .set_worker_count(NonZeroUsize::MIN);
     /// ```
     pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
@@ -37,7 +37,7 @@ impl Builder {
     /// ```
     /// # use tokio::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::r#async::reader::Builder::default()
+    /// let reader = bgzf::r#async::io::reader::Builder::default()
     ///     .build_from_reader(io::empty());
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> Reader<R>

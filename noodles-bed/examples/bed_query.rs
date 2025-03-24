@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_index_of(region.name())
         .expect("invalid reference sequence name");
 
-    let mut decoder = bgzf::reader::Builder.build_from_path(src)?;
+    let mut decoder = bgzf::io::reader::Builder.build_from_path(src)?;
     let chunks = index.query(reference_sequence_id, region.interval())?;
     let query = csi::io::Query::new(&mut decoder, chunks);
 

@@ -277,7 +277,7 @@ where
     }
 
     fn read_exact(&mut self, buf: &mut [u8]) -> io::Result<()> {
-        use super::reader::default_read_exact;
+        use super::io::reader::default_read_exact;
 
         if let Some(src) = self.buffer.block.data().as_ref().get(..buf.len()) {
             buf.copy_from_slice(src);
@@ -366,7 +366,7 @@ fn spawn_reader<R>(
 where
     R: Read + Send + 'static,
 {
-    use super::reader::frame::read_frame_into;
+    use super::io::reader::frame::read_frame_into;
 
     thread::spawn(move || {
         while let Ok(mut buffer) = recycle_rx.recv() {
@@ -387,7 +387,7 @@ where
 }
 
 fn spawn_inflaters(worker_count: NonZeroUsize, inflate_rx: InflateRx) -> Vec<JoinHandle<()>> {
-    use super::reader::frame::parse_block;
+    use super::io::reader::frame::parse_block;
 
     (0..worker_count.get())
         .map(|_| {
