@@ -55,7 +55,7 @@ impl Builder {
         };
 
         let reader = match src.extension().and_then(|ext| ext.to_str()) {
-            Some("gz" | "bgz") => bgzf::indexed_reader::Builder::default()
+            Some("gz" | "bgz") => bgzf::io::indexed_reader::Builder::default()
                 .build_from_path(src)
                 .map(crate::io::BufReader::Bgzf)?,
             _ => File::open(src)

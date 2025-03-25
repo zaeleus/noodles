@@ -41,16 +41,18 @@ mod block;
 pub(crate) mod deflate;
 mod gz;
 pub mod gzi;
-pub mod indexed_reader;
 pub mod io;
 mod multithreaded_reader;
 pub mod multithreaded_writer;
 pub mod virtual_position;
 
 pub use self::{
-    indexed_reader::IndexedReader, multithreaded_reader::MultithreadedReader,
-    multithreaded_writer::MultithreadedWriter, virtual_position::VirtualPosition,
+    multithreaded_reader::MultithreadedReader, multithreaded_writer::MultithreadedWriter,
+    virtual_position::VirtualPosition,
 };
+
+#[deprecated(since = "0.38.0", note = "Use `bgzf::io::IndexedReader` instead.")]
+pub use self::io::IndexedReader;
 
 #[deprecated(since = "0.38.0", note = "Use `bgzf::io::Reader` instead.")]
 pub use self::io::Reader;
