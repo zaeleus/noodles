@@ -17,8 +17,10 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{multithreaded_writer::Builder, io::writer::CompressionLevel};
-    /// let builder = Builder::default().set_compression_level(CompressionLevel::default());
+    /// use noodles_bgzf::{self as bgzf, io::writer::CompressionLevel};
+    ///
+    /// let builder = bgzf::io::multithreaded_writer::Builder::default()
+    ///     .set_compression_level(CompressionLevel::default());
     /// ```
     pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {
         self.compression_level = compression_level;
@@ -31,8 +33,10 @@ impl Builder {
     ///
     /// ```
     /// use std::num::NonZeroUsize;
-    /// use noodles_bgzf::multithreaded_writer::Builder;
-    /// let builder = Builder::default().set_worker_count(NonZeroUsize::MIN);
+    /// use noodles_bgzf as bgzf;;
+    ///
+    /// let builder = bgzf::io::multithreaded_writer::Builder::default()
+    ///     .set_worker_count(NonZeroUsize::MIN);
     /// ```
     pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
         self.worker_count = worker_count;
@@ -45,8 +49,10 @@ impl Builder {
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_bgzf::multithreaded_writer::Builder;
-    /// let builder = Builder::default().build_from_writer(io::sink());
+    /// use noodles_bgzf as bgzf;
+    ///
+    /// let builder = bgzf::io::multithreaded_writer::Builder::default()
+    ///     .build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> MultithreadedWriter<W>
     where

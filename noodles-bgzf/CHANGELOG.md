@@ -5,12 +5,12 @@
 ### Changed
 
   * bgzf: Move readers (`IndexedReader`, `MultithreadedReader`, and `Reader`)
-    and writer (`Writer`) to `io` module.
+    and writer (`MultithreadedWriter` and `Writer`) to `io` module.
 
 ### Deprecated
 
-  * bgzf: Deprecate `IndexedReader`, `MultithreadedReader`, `Reader` and
-    `Writer`.
+  * bgzf: Deprecate `IndexedReader`, `MultithreadedReader`,
+    `MultithreadedWriter`, `Reader` and `Writer`.
 
     These moved to the `io` module.
 

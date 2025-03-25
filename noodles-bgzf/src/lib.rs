@@ -42,10 +42,9 @@ pub(crate) mod deflate;
 mod gz;
 pub mod gzi;
 pub mod io;
-pub mod multithreaded_writer;
 pub mod virtual_position;
 
-pub use self::{multithreaded_writer::MultithreadedWriter, virtual_position::VirtualPosition};
+pub use self::virtual_position::VirtualPosition;
 
 #[deprecated(since = "0.38.0", note = "Use `bgzf::io::IndexedReader` instead.")]
 pub use self::io::IndexedReader;
@@ -55,6 +54,12 @@ pub use self::io::IndexedReader;
     note = "Use `bgzf::io::MultithreadedReader` instead."
 )]
 pub use self::io::MultithreadedReader;
+
+#[deprecated(
+    since = "0.38.0",
+    note = "Use `bgzf::io::MultithreadedWriter` instead."
+)]
+pub use self::io::MultithreadedWriter;
 
 #[deprecated(since = "0.38.0", note = "Use `bgzf::io::Reader` instead.")]
 pub use self::io::Reader;

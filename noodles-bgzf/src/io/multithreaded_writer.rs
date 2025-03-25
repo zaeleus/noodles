@@ -13,7 +13,7 @@ use bytes::{Bytes, BytesMut};
 use crossbeam_channel::{Receiver, Sender};
 
 pub use self::builder::Builder;
-use super::io::writer::{CompressionLevelImpl, MAX_BUF_SIZE};
+use super::writer::{CompressionLevelImpl, MAX_BUF_SIZE};
 
 type FrameParts = (Vec<u8>, u32, usize);
 type BufferedTx = Sender<io::Result<FrameParts>>;
@@ -185,7 +185,7 @@ fn spawn_writer<W>(mut writer: W, write_rx: WriteRx) -> JoinHandle<io::Result<W>
 where
     W: Write + Send + 'static,
 {
-    use super::io::writer::{write_frame, BGZF_EOF};
+    use super::writer::{write_frame, BGZF_EOF};
 
     thread::spawn(move || {
         while let Ok(buffered_rx) = write_rx.recv() {
@@ -226,7 +226,8 @@ where
 }
 
 fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<FrameParts> {
-    use super::deflate;
+    use crate::deflate;
+
     let mut dst = Vec::new();
     let crc32 = deflate::encode(src, compression_level, &mut dst)?;
     Ok((dst, crc32, src.len()))
