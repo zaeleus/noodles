@@ -16,9 +16,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, writer::CompressionLevel};
+    /// use noodles_bgzf::{self as bgzf, io::writer::CompressionLevel};
     ///
-    /// let builder = bgzf::writer::Builder::default()
+    /// let builder = bgzf::io::writer::Builder::default()
     ///     .set_compression_level(CompressionLevel::best());
     /// ```
     pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {
@@ -33,7 +33,7 @@ impl Builder {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::writer::Builder::default().build_from_writer(io::sink());
+    /// let writer = bgzf::io::writer::Builder::default().build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> Writer<W>
     where

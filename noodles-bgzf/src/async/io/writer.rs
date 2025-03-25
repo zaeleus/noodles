@@ -16,7 +16,7 @@ use tokio::io::{self, AsyncWrite};
 
 pub use self::builder::Builder;
 use self::{deflate::Deflate, deflater::Deflater};
-use crate::writer::MAX_BUF_SIZE;
+use crate::io::writer::MAX_BUF_SIZE;
 
 #[cfg(feature = "libdeflate")]
 type CompressionLevel = libdeflater::CompressionLvl;

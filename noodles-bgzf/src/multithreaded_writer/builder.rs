@@ -3,7 +3,7 @@ use std::{io::Write, num::NonZeroUsize};
 use bytes::BytesMut;
 
 use super::MultithreadedWriter;
-use crate::writer::CompressionLevel;
+use crate::io::writer::CompressionLevel;
 
 /// A multithreaded BGZF writer builder.
 pub struct Builder {
@@ -17,7 +17,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{multithreaded_writer::Builder, writer::CompressionLevel};
+    /// use noodles_bgzf::{multithreaded_writer::Builder, io::writer::CompressionLevel};
     /// let builder = Builder::default().set_compression_level(CompressionLevel::default());
     /// ```
     pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {

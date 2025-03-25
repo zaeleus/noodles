@@ -157,7 +157,7 @@ fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::writer::BGZF_EOF;
+    use crate::io::writer::BGZF_EOF;
 
     #[test]
     fn test_parse_header() -> io::Result<()> {

@@ -2,13 +2,14 @@
 
 mod block_codec;
 pub mod io;
-pub mod writer;
 
 use self::block_codec::BlockCodec;
-pub use self::writer::Writer;
 
 #[deprecated(since = "0.38.0", note = "Use `bgzf::r#async::io::Reader` instead.")]
 pub use self::io::Reader;
+
+#[deprecated(since = "0.38.0", note = "Use `bgzf::r#async::io::Writer` instead.")]
+pub use self::io::Writer;
 
 #[cfg(test)]
 mod tests {

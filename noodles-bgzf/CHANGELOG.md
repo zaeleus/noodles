@@ -4,13 +4,13 @@
 
 ### Changed
 
-  * bgzf: Move reader (`Reader`) to `io` module.
+  * bgzf: Move reader (`Reader`) and writer (`Writer`) to `io` module.
 
 ### Deprecated
 
-  * bgzf: Deprecate `Reader`.
+  * bgzf: Deprecate `Reader` and `Writer`.
 
-    Use `io::Reader` instead.
+    Use `bgzf::io::Reader` and `bgzf::io::Writer`, respectively, instead.
 
 ## 0.37.0 - 2025-03-08
 

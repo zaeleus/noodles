@@ -7,8 +7,8 @@ use tokio_util::codec::FramedWrite;
 
 use super::{Deflater, Writer};
 use crate::{
+    io::writer::{CompressionLevel, BGZF_EOF, MAX_BUF_SIZE},
     r#async::BlockCodec,
-    writer::{CompressionLevel, BGZF_EOF, MAX_BUF_SIZE},
 };
 
 /// An async BGZF writer builder.
@@ -26,9 +26,9 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::{self as bgzf, writer::CompressionLevel};
+    /// use noodles_bgzf::{self as bgzf, io::writer::CompressionLevel};
     ///
-    /// let builder = bgzf::r#async::writer::Builder::default()
+    /// let builder = bgzf::r#async::io::writer::Builder::default()
     ///     .set_compression_level(CompressionLevel::best());
     /// ```
     pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {
@@ -45,7 +45,7 @@ impl Builder {
     /// ```
     /// use std::num::NonZeroUsize;
     /// use noodles_bgzf as bgzf;
-    /// let builder = bgzf::r#async::writer::Builder::default()
+    /// let builder = bgzf::r#async::io::writer::Builder::default()
     ///     .set_worker_count(NonZeroUsize::MIN);
     /// ```
     pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
@@ -60,7 +60,7 @@ impl Builder {
     /// ```
     /// # use tokio::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::r#async::writer::Builder::default()
+    /// let writer = bgzf::r#async::io::writer::Builder::default()
     ///     .build_from_writer(io::sink());
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> Writer<W>

@@ -26,7 +26,7 @@ impl CompressionLevel {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::writer::CompressionLevel;
+    /// use noodles_bgzf::io::writer::CompressionLevel;
     /// assert_eq!(CompressionLevel::new(0), Some(CompressionLevel::NONE));
     /// assert!(CompressionLevel::new(255).is_none());
     /// ```
@@ -43,7 +43,7 @@ impl CompressionLevel {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::writer::CompressionLevel;
+    /// use noodles_bgzf::io::writer::CompressionLevel;
     /// assert_eq!(CompressionLevel::NONE.get(), 0);
     /// ```
     pub const fn get(&self) -> u8 {
@@ -55,7 +55,7 @@ impl CompressionLevel {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::writer::CompressionLevel;
+    /// use noodles_bgzf::io::writer::CompressionLevel;
     /// let compression_level = CompressionLevel::none();
     /// ```
     #[deprecated(since = "0.29.0", note = "Use `CompressionLevel::NONE` instead.")]
@@ -68,7 +68,7 @@ impl CompressionLevel {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::writer::CompressionLevel;
+    /// use noodles_bgzf::io::writer::CompressionLevel;
     /// let compression_level = CompressionLevel::fast();
     /// ```
     #[deprecated(since = "0.29.0", note = "Use `CompressionLevel::FAST` instead.")]
@@ -81,7 +81,7 @@ impl CompressionLevel {
     /// # Examples
     ///
     /// ```
-    /// use noodles_bgzf::writer::CompressionLevel;
+    /// use noodles_bgzf::io::writer::CompressionLevel;
     /// let compression_level = CompressionLevel::best();
     /// ```
     #[deprecated(since = "0.29.0", note = "Use `CompressionLevel::BEST` instead.")]
