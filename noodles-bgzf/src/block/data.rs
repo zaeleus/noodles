@@ -1,15 +1,16 @@
-use std::cmp;
+use crate::BGZF_MAX_ISIZE;
 
 /// An uncompressed block data buffer with a cursor.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct Data {
-    buf: Vec<u8>,
+    buf: Box<[u8; BGZF_MAX_ISIZE]>,
     pos: usize,
+    len: usize,
 }
 
 impl Data {
     pub fn has_remaining(&self) -> bool {
-        self.pos < self.len()
+        self.pos < self.len
     }
 
     pub fn position(&self) -> usize {
@@ -24,30 +25,42 @@ impl Data {
     }
 
     pub fn len(&self) -> usize {
-        self.buf.len()
+        self.len
     }
 
     pub fn resize(&mut self, len: usize) {
-        self.buf.resize(len, 0);
+        self.len = len;
     }
 
     /// Moves the cursor from the current position by `amt` bytes.
     ///
     /// This clamps the amount to the length of the buffer.
     pub fn consume(&mut self, amt: usize) {
-        self.pos = cmp::min(self.pos + amt, self.buf.len());
+        self.pos = (self.pos + amt).min(self.len);
     }
 }
 
 impl AsRef<[u8]> for Data {
     fn as_ref(&self) -> &[u8] {
-        &self.buf[self.pos..]
+        let len = self.len & 0xffff;
+        &self.buf[self.pos..len]
     }
 }
 
 impl AsMut<[u8]> for Data {
     fn as_mut(&mut self) -> &mut [u8] {
-        &mut self.buf[self.pos..]
+        let len = self.len & 0xffff;
+        &mut self.buf[self.pos..len]
+    }
+}
+
+impl Default for Data {
+    fn default() -> Self {
+        Self {
+            buf: Box::new([0; BGZF_MAX_ISIZE]),
+            pos: 0,
+            len: 0,
+        }
     }
 }
 
