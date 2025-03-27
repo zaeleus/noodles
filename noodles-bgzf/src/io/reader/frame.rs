@@ -13,8 +13,6 @@ pub(crate) fn read_frame_into<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Resul
 where
     R: Read,
 {
-    const BSIZE_POSITION: usize = 16;
-
     buf.resize(BGZF_HEADER_SIZE, 0);
 
     match reader.read_exact(buf) {
@@ -23,8 +21,8 @@ where
         Err(e) => return Err(e),
     }
 
-    // SAFETY: `buf[BSIZE_POSITION..].len() == 2`.
-    let bsize = u16::from_le_bytes(buf[BSIZE_POSITION..].try_into().unwrap());
+    // SAFETY: `buf.len() == BGZF_HEADER_SIZE >= mem::size_of::<u16>()`.
+    let bsize = buf.last_chunk().map(|b| u16::from_le_bytes(*b)).unwrap();
     let block_size = usize::from(bsize) + 1;
 
     if block_size < MIN_FRAME_SIZE {
