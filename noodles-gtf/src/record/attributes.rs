@@ -1,6 +1,6 @@
 mod field;
 
-use std::{borrow::Cow, io};
+use std::{borrow::Cow, fmt, io};
 
 use indexmap::IndexMap;
 use noodles_gff as gff;
@@ -28,6 +28,19 @@ impl<'r> Attributes<'r> {
     /// Returns an iterator over key-value pairs.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<(&'r str, &Value<'r>)>> + '_ {
         self.0.iter().map(|(k, v)| Ok((*k, v)))
+    }
+}
+
+impl fmt::Debug for Attributes<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut formatter = f.debug_map();
+
+        for result in self.iter() {
+            let (tag, value) = result.map_err(|_| fmt::Error)?;
+            formatter.entry(&tag, value);
+        }
+
+        formatter.finish()
     }
 }
 
