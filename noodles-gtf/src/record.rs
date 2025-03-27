@@ -3,7 +3,7 @@
 mod attributes;
 mod fields;
 
-use std::io;
+use std::{fmt, io};
 
 use noodles_core::Position;
 use noodles_gff::{
@@ -74,6 +74,22 @@ impl<'l> Record<'l> {
     /// Returns the attributes.
     pub fn attributes(&self) -> io::Result<Attributes<'_>> {
         Attributes::try_new(self.0.attributes())
+    }
+}
+
+impl fmt::Debug for Record<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Record")
+            .field("reference_sequence_name", &self.reference_sequence_name())
+            .field("source", &self.source())
+            .field("ty", &self.ty())
+            .field("start", &self.start())
+            .field("end", &self.end())
+            .field("score", &self.score())
+            .field("strand", &self.strand())
+            .field("phase", &self.phase())
+            .field("attributes", &self.attributes())
+            .finish()
     }
 }
 

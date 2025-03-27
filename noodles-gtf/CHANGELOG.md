@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * gtf/record: Implement debug formatter (`fmt::Debug`).
+
 ### Changed
 
   * gtf/record/attributes: Unescape backslashes (`\`) and quotation marks
