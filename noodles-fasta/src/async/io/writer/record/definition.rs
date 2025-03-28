@@ -49,6 +49,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[tokio::test]
@@ -65,7 +67,7 @@ mod tests {
         t(&mut buf, &Definition::new("sq0", None), b">sq0").await?;
         t(
             &mut buf,
-            &Definition::new("sq0", Some(Vec::from("LN:8"))),
+            &Definition::new("sq0", Some(BString::from("LN:8"))),
             b">sq0 LN:8",
         )
         .await?;

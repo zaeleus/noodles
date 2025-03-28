@@ -89,7 +89,7 @@ where
         }
 
         let record = Record::new(
-            definition.name(),
+            definition.name().to_vec(),
             length as u64,
             offset,
             line_bases as u64,

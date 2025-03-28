@@ -1,5 +1,7 @@
 use std::io::{self, Write};
 
+use bstr::BStr;
+
 use crate::record::Definition;
 
 const SEPARATOR: u8 = b' ';
@@ -27,7 +29,7 @@ where
     writer.write_all(&[PREFIX])
 }
 
-fn write_name<W>(writer: &mut W, name: &[u8]) -> io::Result<()>
+fn write_name<W>(writer: &mut W, name: &BStr) -> io::Result<()>
 where
     W: Write,
 {
@@ -41,7 +43,7 @@ where
     writer.write_all(&[SEPARATOR])
 }
 
-fn write_description<W>(writer: &mut W, description: &[u8]) -> io::Result<()>
+fn write_description<W>(writer: &mut W, description: &BStr) -> io::Result<()>
 where
     W: Write,
 {
@@ -50,6 +52,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[test]
@@ -66,7 +70,7 @@ mod tests {
         t(&mut buf, &Definition::new("sq0", None), b">sq0")?;
         t(
             &mut buf,
-            &Definition::new("sq0", Some(Vec::from("LN:8"))),
+            &Definition::new("sq0", Some(BString::from("LN:8"))),
             b">sq0 LN:8",
         )?;
 

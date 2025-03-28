@@ -3,6 +3,8 @@
 pub mod definition;
 pub mod sequence;
 
+use bstr::BStr;
+
 pub use self::{definition::Definition, sequence::Sequence};
 
 /// A FASTA record.
@@ -69,15 +71,16 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use bstr::{BStr, BString};
     /// use noodles_fasta::{self as fasta, record::{Definition, Sequence}};
     ///
-    /// let definition = Definition::new("sq0", Some(Vec::from("LN:4")));
+    /// let definition = Definition::new("sq0", Some(BString::from("LN:4")));
     /// let sequence = Sequence::from(b"ACGT".to_vec());
     /// let record = fasta::Record::new(definition, sequence);
     ///
-    /// assert_eq!(record.description(), Some(&b"LN:4"[..]));
+    /// assert_eq!(record.description(), Some(BStr::new("LN:4")));
     /// ```
-    pub fn description(&self) -> Option<&[u8]> {
+    pub fn description(&self) -> Option<&BStr> {
         self.definition.description()
     }
 

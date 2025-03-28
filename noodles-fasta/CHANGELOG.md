@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/record/definition: Wrap fields with `BString`.
+
 ## 0.50.0 - 2025-03-08
 
 ### Changed
