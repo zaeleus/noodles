@@ -27,9 +27,10 @@ impl<R> Reader<R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_fasta as fasta;
-    /// let reader = fasta::io::Reader::new(&[][..]);
-    /// assert!(reader.get_ref().is_empty());
+    /// let reader = fasta::io::Reader::new(io::empty());
+    /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
         &self.inner
@@ -40,9 +41,10 @@ impl<R> Reader<R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_fasta as fasta;
-    /// let mut reader = fasta::io::Reader::new(&[][..]);
-    /// assert!(reader.get_mut().is_empty());
+    /// let mut reader = fasta::io::Reader::new(io::empty());
+    /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
@@ -53,9 +55,10 @@ impl<R> Reader<R> {
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_fasta as fasta;
-    /// let reader = fasta::io::Reader::new(&[][..]);
-    /// assert!(reader.into_inner().is_empty());
+    /// let reader = fasta::io::Reader::new(io::empty());
+    /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
