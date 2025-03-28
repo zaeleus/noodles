@@ -2,6 +2,7 @@ mod field;
 
 use std::{error, fmt, io, str::FromStr};
 
+use bstr::{BStr, BString};
 use noodles_core::region::Interval;
 
 use self::field::Field;
@@ -12,7 +13,7 @@ const MAX_FIELDS: usize = 5;
 /// A FASTA index record.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Record {
-    name: Vec<u8>,
+    name: BString,
     length: u64,
     offset: u64,
     line_bases: u64,
@@ -30,7 +31,7 @@ impl Record {
     /// ```
     pub fn new<N>(name: N, length: u64, offset: u64, line_bases: u64, line_width: u64) -> Self
     where
-        N: Into<Vec<u8>>,
+        N: Into<BString>,
     {
         Self {
             name: name.into(),
@@ -50,8 +51,8 @@ impl Record {
     /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
     /// assert_eq!(record.name(), b"sq0");
     /// ```
-    pub fn name(&self) -> &[u8] {
-        &self.name
+    pub fn name(&self) -> &BStr {
+        self.name.as_ref()
     }
 
     /// Returns the length of the sequence.

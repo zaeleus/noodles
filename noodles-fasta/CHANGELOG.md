@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * fasta/fai/record: Wrap name with `BString`.
+
   * fasta/record/definition: Wrap fields with `BString`.
 
 ## 0.50.0 - 2025-03-08
