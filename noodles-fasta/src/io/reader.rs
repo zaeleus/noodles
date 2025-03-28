@@ -21,23 +21,7 @@ pub struct Reader<R> {
     inner: R,
 }
 
-impl<R> Reader<R>
-where
-    R: BufRead,
-{
-    /// Creates a FASTA reader.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fasta as fasta;
-    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-    /// let mut reader = fasta::io::Reader::new(&data[..]);
-    /// ```
-    pub fn new(inner: R) -> Self {
-        Self { inner }
-    }
-
+impl<R> Reader<R> {
     /// Returns a reference to the underlying reader.
     ///
     /// # Examples
@@ -75,6 +59,24 @@ where
     /// ```
     pub fn into_inner(self) -> R {
         self.inner
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: BufRead,
+{
+    /// Creates a FASTA reader.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_fasta as fasta;
+    /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
+    /// let mut reader = fasta::io::Reader::new(&data[..]);
+    /// ```
+    pub fn new(inner: R) -> Self {
+        Self { inner }
     }
 
     /// Reads a raw definition line.
