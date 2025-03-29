@@ -3,15 +3,14 @@
 mod builder;
 mod entry;
 mod file_format_option;
-pub(crate) mod record;
+pub(super) mod record;
 
 use std::{error, str};
 
 use indexmap::IndexMap;
 
-pub use self::{
-    builder::Builder, entry::Entry, file_format_option::FileFormatOption, record::parse_record,
-};
+pub(super) use self::record::parse_record;
+pub use self::{builder::Builder, entry::Entry, file_format_option::FileFormatOption};
 use super::{
     file_format::FileFormat,
     record::value::{
@@ -89,8 +88,7 @@ impl Parser {
             return Ok(Entry::Header);
         }
 
-        let record =
-            record::parse_record(src, self.file_format).map_err(ParseError::InvalidRecord)?;
+        let record = parse_record(src, self.file_format).map_err(ParseError::InvalidRecord)?;
 
         match record {
             Record::FileFormat(_) => Err(ParseError::UnexpectedFileFormat),
@@ -208,8 +206,7 @@ impl std::fmt::Display for ParseError {
 }
 
 fn parse_file_format(src: &[u8]) -> Result<FileFormat, ParseError> {
-    let record =
-        record::parse_record(src, FileFormat::default()).map_err(ParseError::InvalidRecord)?;
+    let record = parse_record(src, FileFormat::default()).map_err(ParseError::InvalidRecord)?;
 
     match record {
         Record::FileFormat(file_format) => Ok(file_format),

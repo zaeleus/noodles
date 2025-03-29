@@ -37,8 +37,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-#[allow(missing_docs)]
-pub fn parse_record(mut src: &[u8], file_format: FileFormat) -> Result<Record, ParseError> {
+pub(crate) fn parse_record(mut src: &[u8], file_format: FileFormat) -> Result<Record, ParseError> {
     consume_prefix(&mut src)?;
     let key = parse_key(&mut src).map_err(ParseError::InvalidKey)?;
     parse_value(&mut src, file_format, key).map_err(ParseError::InvalidValue)
