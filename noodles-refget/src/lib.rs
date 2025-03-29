@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-refget** is a refget 2.0 client.
 
 mod client;

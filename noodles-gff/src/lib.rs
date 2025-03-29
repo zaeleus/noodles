@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-gff** handles the reading and writing of the [GFF3 format][gff3-spec].
 //!
 //! GFF (Generic Feature Format) is a text-based format used to represent genomic features.

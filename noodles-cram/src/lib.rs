@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-cram** handles the reading and writing of the CRAM format.
 
 #[cfg(feature = "async")]

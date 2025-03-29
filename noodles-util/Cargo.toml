@@ -56,6 +56,9 @@ tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 [dev-dependencies]
 tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 
+[lints]
+workspace = true
+
 [package.metadata.docs.rs]
 all-features = true
 

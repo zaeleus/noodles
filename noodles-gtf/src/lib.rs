@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-gtf** handles the reading and writing of the Gene Transfer Format (GTF).
 
 pub mod io;

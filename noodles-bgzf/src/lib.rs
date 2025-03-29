@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-bgzf** handles the reading and writing of the blocked gzip format (BGZF).
 //!
 //! While the gzip format is typically a single stream, a BGZF is the concatenation of many gzip

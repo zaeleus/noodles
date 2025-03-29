@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-htsget** is an htsget 1.3 client.
 
 pub(crate) mod chunks;

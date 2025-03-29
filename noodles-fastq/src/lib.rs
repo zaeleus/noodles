@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-fastq** handles the reading and writing of the FASTQ format.
 //!
 //! FASTQ is a text format with no formal specification and only has de facto rules. It typically

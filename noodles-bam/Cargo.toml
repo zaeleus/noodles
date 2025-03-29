@@ -32,6 +32,9 @@ flate2.workspace = true
 noodles-sam = { path = "../noodles-sam", version = "0.73.0", features = ["async"] }
 tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 
+[lints]
+workspace = true
+
 [package.metadata.docs.rs]
 features = ["async"]
 

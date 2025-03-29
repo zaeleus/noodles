@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-tabix** handles the reading and writing of the [tabix format].
 //!
 //! A tabix (TBI) is an index file typically used to allow random access of an accompanied file

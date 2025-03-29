@@ -43,3 +43,6 @@ reqwest = { version = "0.12.2", default-features = false, features = ["json", "r
 serde = { version = "1.0.136", features = ["derive"] }
 tokio = "1.10.0"
 url = "2.2.2"
+
+[workspace.lints.rust]
+missing_docs = "warn"

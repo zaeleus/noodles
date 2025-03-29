@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-sam** handles the reading and writing of the SAM (Sequence Alignment/Map) format.
 //!
 //! SAM is a format typically used to store biological sequences, either mapped to a reference

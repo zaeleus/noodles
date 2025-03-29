@@ -1,5 +1,3 @@
-#![warn(missing_docs)]
-
 //! **noodles-util** are utilities for working with noodles. Currently, this consists of a unified
 //! interface for reading and writing alignment (BAM/CRAM/SAM) and variant (VCF/BCF) data.
 

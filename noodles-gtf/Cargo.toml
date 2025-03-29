@@ -16,3 +16,6 @@ noodles-bgzf = { path = "../noodles-bgzf", version = "0.37.0" }
 noodles-core = { path = "../noodles-core", version = "0.17.0" }
 noodles-csi = { path = "../noodles-csi", version = "0.45.0" }
 noodles-gff = { path = "../noodles-gff", version = "0.46.0" }
+
+[lints]
+workspace = true

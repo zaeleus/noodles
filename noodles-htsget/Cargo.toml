@@ -22,3 +22,6 @@ url = { workspace = true, features = ["serde"] }
 [dev-dependencies]
 serde_test = "1.0.137"
 tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
+
+[lints]
+workspace = true
