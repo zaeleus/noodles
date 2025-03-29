@@ -1,3 +1,9 @@
+//! Prints a CRAM file in the SAM format.
+//!
+//! Reference sequences in the FASTA format are only required for inputs that require them.
+//!
+//! The result matches the output of `samtools view [--reference <fasta-src>] <src>`.
+
 use std::env;
 
 use futures::TryStreamExt;
