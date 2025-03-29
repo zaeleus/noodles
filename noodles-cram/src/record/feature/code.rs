@@ -1,33 +1,18 @@
-//! CRAM record feature kind.
-
 use std::{error, fmt};
 
-/// A CRAM record feature kind.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Code {
-    /// A stretch of bases (`b`).
     Bases,
-    /// A stretch of quality scores (`q`).
     Scores,
-    /// A (base, quality score) pair (`B`).
     ReadBase,
-    /// A base substitution (CIGAR op `X`, `M` and `=`; `X`).
     Substitution,
-    /// Inserted bases (CIGAR op `I`; `I`).
     Insertion,
-    /// A number of deleted bases (CIGAR op `D`; `D`).
     Deletion,
-    /// A single inserted base (CIGAR op `I`; `i`).
     InsertBase,
-    /// A single quality score (`Q`).
     QualityScore,
-    /// A number of skipped bases (CIGAR op `N`; `N`).
     ReferenceSkip,
-    /// Soft clipped bases (CIGAR op `S`; `S`).
     SoftClip,
-    /// A number of padded bases (CIGAR op `P`; `P`).
     Padding,
-    /// A number of hard clipped bases (CIGAR op `H`, `H`).
     HardClip,
 }
 
