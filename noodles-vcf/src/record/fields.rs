@@ -89,7 +89,7 @@ impl Fields {
     pub(super) fn samples(&self) -> Samples<'_> {
         const DELIMITER: char = '\t';
 
-        let src = &self.buf[self.bounds.genotypes_range()];
+        let src = &self.buf[self.bounds.samples_range()];
 
         let is_missing = || {
             src.split(DELIMITER)

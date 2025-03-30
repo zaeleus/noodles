@@ -45,7 +45,7 @@ impl Bounds {
         self.filters_end..self.info_end
     }
 
-    pub fn genotypes_range(&self) -> RangeFrom<usize> {
+    pub fn samples_range(&self) -> RangeFrom<usize> {
         self.info_end..
     }
 }
@@ -80,6 +80,6 @@ mod tests {
         assert_eq!(bounds.quality_score_range(), 7..8);
         assert_eq!(bounds.filters_range(), 8..9);
         assert_eq!(bounds.info_range(), 9..10);
-        assert_eq!(bounds.genotypes_range(), 10..);
+        assert_eq!(bounds.samples_range(), 10..);
     }
 }
