@@ -104,7 +104,7 @@ impl Builder {
         let inner: Box<dyn vcf::variant::io::Write> = match (format, compression_method) {
             (Format::Vcf, None) => Box::new(vcf::io::Writer::new(writer)),
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                Box::new(vcf::io::Writer::new(bgzf::Writer::new(writer)))
+                Box::new(vcf::io::Writer::new(bgzf::io::Writer::new(writer)))
             }
             (Format::Bcf, None) => Box::new(bcf::io::Writer::from(writer)),
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => Box::new(bcf::io::Writer::new(writer)),

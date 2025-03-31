@@ -205,7 +205,7 @@ impl Builder {
     /// use noodles_bgzf as bgzf;
     /// use noodles_util::alignment;
     ///
-    /// let mut writer = bgzf::Writer::new(Vec::new());
+    /// let mut writer = bgzf::io::Writer::new(Vec::new());
     /// writer.write_all(b"BAM\x01")?;
     /// let data = writer.finish()?;
     ///

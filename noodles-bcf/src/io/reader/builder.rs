@@ -60,7 +60,7 @@ impl Builder {
         R: Read + 'r,
     {
         let inner: Box<dyn Read> = match self.compression_method {
-            Some(CompressionMethod::Bgzf) | None => Box::new(bgzf::Reader::new(reader)),
+            Some(CompressionMethod::Bgzf) | None => Box::new(bgzf::io::Reader::new(reader)),
             Some(CompressionMethod::None) => Box::new(reader),
         };
 

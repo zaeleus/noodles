@@ -12,7 +12,7 @@ pub struct IndexedReader<R, I> {
     index: I,
 }
 
-impl<R, I> IndexedReader<bgzf::Reader<R>, I>
+impl<R, I> IndexedReader<bgzf::io::Reader<R>, I>
 where
     R: Read,
     I: BinningIndex,
@@ -20,23 +20,23 @@ where
     /// Creates a indexed reader.
     pub fn new(inner: R, index: I) -> Self {
         Self {
-            inner: bgzf::Reader::new(inner),
+            inner: bgzf::io::Reader::new(inner),
             index,
         }
     }
 
     /// Returns a reference to the underlying reader.
-    pub fn get_ref(&self) -> &bgzf::Reader<R> {
+    pub fn get_ref(&self) -> &bgzf::io::Reader<R> {
         &self.inner
     }
 
     /// Returns a mutable reference to the underlying reader.
-    pub fn get_mut(&mut self) -> &mut bgzf::Reader<R> {
+    pub fn get_mut(&mut self) -> &mut bgzf::io::Reader<R> {
         &mut self.inner
     }
 
     /// Returns the underlying reader.
-    pub fn into_inner(self) -> bgzf::Reader<R> {
+    pub fn into_inner(self) -> bgzf::io::Reader<R> {
         self.inner
     }
 
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<R, I> IndexedReader<bgzf::Reader<R>, I>
+impl<R, I> IndexedReader<bgzf::io::Reader<R>, I>
 where
     R: Read + Seek,
     I: BinningIndex,

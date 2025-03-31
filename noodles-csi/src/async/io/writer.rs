@@ -8,7 +8,7 @@ use crate::Index;
 
 /// An async CSI writer.
 pub struct Writer<W> {
-    inner: bgzf::AsyncWriter<W>,
+    inner: bgzf::r#async::io::Writer<W>,
 }
 
 impl<W> Writer<W> {
@@ -22,7 +22,7 @@ impl<W> Writer<W> {
     /// let writer = csi::r#async::Writer::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
-    pub fn get_ref(&self) -> &bgzf::AsyncWriter<W> {
+    pub fn get_ref(&self) -> &bgzf::r#async::io::Writer<W> {
         &self.inner
     }
 
@@ -36,7 +36,7 @@ impl<W> Writer<W> {
     /// let mut writer = csi::r#async::Writer::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
-    pub fn get_mut(&mut self) -> &mut bgzf::AsyncWriter<W> {
+    pub fn get_mut(&mut self) -> &mut bgzf::r#async::io::Writer<W> {
         &mut self.inner
     }
 
@@ -50,7 +50,7 @@ impl<W> Writer<W> {
     /// let writer = csi::r#async::Writer::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
-    pub fn into_inner(self) -> bgzf::AsyncWriter<W> {
+    pub fn into_inner(self) -> bgzf::r#async::io::Writer<W> {
         self.inner
     }
 }
@@ -69,7 +69,7 @@ where
     /// ```
     pub fn new(inner: W) -> Self {
         Self {
-            inner: bgzf::AsyncWriter::new(inner),
+            inner: bgzf::r#async::io::Writer::new(inner),
         }
     }
 

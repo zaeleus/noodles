@@ -22,7 +22,7 @@ impl Builder {
     /// let reader = Builder::default().build_from_path("sample.bam")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, src: P) -> io::Result<Reader<bgzf::Reader<File>>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<Reader<bgzf::io::Reader<File>>>
     where
         P: AsRef<Path>,
     {
@@ -38,7 +38,7 @@ impl Builder {
     /// use noodles_bam::io::reader::Builder;
     /// let reader = Builder::default().build_from_reader(io::empty());
     /// ```
-    pub fn build_from_reader<R>(self, reader: R) -> Reader<bgzf::Reader<R>>
+    pub fn build_from_reader<R>(self, reader: R) -> Reader<bgzf::io::Reader<R>>
     where
         R: Read,
     {

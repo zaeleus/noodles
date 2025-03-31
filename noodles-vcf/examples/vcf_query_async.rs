@@ -21,7 +21,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut reader = File::open(&src)
         .await
-        .map(bgzf::AsyncReader::new)
+        .map(bgzf::r#async::io::Reader::new)
         .map(vcf::r#async::io::Reader::new)?;
 
     let header = reader.read_header().await?;

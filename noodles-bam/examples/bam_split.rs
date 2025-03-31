@@ -13,7 +13,7 @@ use noodles_sam as sam;
 
 use std::{collections::HashMap, env, fs::File, io};
 
-type Writers<'h> = HashMap<&'h BStr, bam::io::Writer<bgzf::Writer<File>>>;
+type Writers<'h> = HashMap<&'h BStr, bam::io::Writer<bgzf::io::Writer<File>>>;
 
 fn build_writers(read_groups: &sam::header::ReadGroups) -> io::Result<Writers<'_>> {
     read_groups

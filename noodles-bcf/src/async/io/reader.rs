@@ -207,7 +207,7 @@ where
     }
 }
 
-impl<R> Reader<bgzf::AsyncReader<R>>
+impl<R> Reader<bgzf::r#async::io::Reader<R>>
 where
     R: AsyncRead + Unpin,
 {
@@ -221,11 +221,11 @@ where
     /// let reader = bcf::r#async::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
-        Self::from(bgzf::AsyncReader::new(inner))
+        Self::from(bgzf::r#async::io::Reader::new(inner))
     }
 }
 
-impl<R> Reader<bgzf::AsyncReader<R>>
+impl<R> Reader<bgzf::r#async::io::Reader<R>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {

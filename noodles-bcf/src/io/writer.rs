@@ -130,7 +130,7 @@ where
     }
 }
 
-impl<W> Writer<bgzf::Writer<W>>
+impl<W> Writer<bgzf::io::Writer<W>>
 where
     W: Write,
 {
@@ -146,7 +146,7 @@ where
     /// let writer = bcf::io::Writer::new(io::sink());
     /// ```
     pub fn new(writer: W) -> Self {
-        Self::from(bgzf::Writer::new(writer))
+        Self::from(bgzf::io::Writer::new(writer))
     }
 
     /// Attempts to finish the output stream.

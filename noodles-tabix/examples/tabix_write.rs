@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("sq1", Position::try_from(5)?, Position::try_from(8)?),
     ];
 
-    let mut writer = File::create(DST).map(bgzf::Writer::new)?;
+    let mut writer = File::create(DST).map(bgzf::io::Writer::new)?;
 
     let mut indexer = tabix::index::Indexer::default();
     indexer.set_header(csi::binning_index::index::header::Builder::bed().build());

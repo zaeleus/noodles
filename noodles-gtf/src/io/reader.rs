@@ -208,7 +208,7 @@ where
     }
 }
 
-impl<R> Reader<bgzf::Reader<R>>
+impl<R> Reader<bgzf::io::Reader<R>>
 where
     R: Read + Seek,
 {

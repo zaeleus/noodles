@@ -11,7 +11,7 @@ use crate::Index;
 
 /// A CSI reader.
 pub struct Reader<R> {
-    inner: bgzf::Reader<R>,
+    inner: bgzf::io::Reader<R>,
 }
 
 impl<R> Reader<R> {
@@ -25,7 +25,7 @@ impl<R> Reader<R> {
     /// let reader = csi::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
-    pub fn get_ref(&self) -> &bgzf::Reader<R> {
+    pub fn get_ref(&self) -> &bgzf::io::Reader<R> {
         &self.inner
     }
 
@@ -39,7 +39,7 @@ impl<R> Reader<R> {
     /// let mut reader = csi::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
-    pub fn get_mut(&mut self) -> &mut bgzf::Reader<R> {
+    pub fn get_mut(&mut self) -> &mut bgzf::io::Reader<R> {
         &mut self.inner
     }
 
@@ -53,7 +53,7 @@ impl<R> Reader<R> {
     /// let reader = csi::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
-    pub fn into_inner(self) -> bgzf::Reader<R> {
+    pub fn into_inner(self) -> bgzf::io::Reader<R> {
         self.inner
     }
 }
@@ -74,7 +74,7 @@ where
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
-            inner: bgzf::Reader::new(inner),
+            inner: bgzf::io::Reader::new(inner),
         }
     }
 

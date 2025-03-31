@@ -22,7 +22,7 @@ impl Builder {
     /// let writer = bam::io::writer::Builder::default().build_from_path("out.bam")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, dst: P) -> io::Result<Writer<bgzf::Writer<File>>>
+    pub fn build_from_path<P>(self, dst: P) -> io::Result<Writer<bgzf::io::Writer<File>>>
     where
         P: AsRef<Path>,
     {
@@ -38,7 +38,7 @@ impl Builder {
     /// use noodles_bam as bam;
     /// let writer = bam::io::writer::Builder::default().build_from_writer(io::sink());
     /// ```
-    pub fn build_from_writer<W>(self, writer: W) -> Writer<bgzf::Writer<W>>
+    pub fn build_from_writer<W>(self, writer: W) -> Writer<bgzf::io::Writer<W>>
     where
         W: Write,
     {

@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let index = csi::fs::read(index_src)?;
 
     let mut reader = File::open(src)
-        .map(bgzf::Reader::new)
+        .map(bgzf::io::Reader::new)
         .map(gtf::io::Reader::new)?;
 
     let query = reader.query(&index, &region)?;

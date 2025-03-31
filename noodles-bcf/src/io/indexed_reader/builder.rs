@@ -44,7 +44,7 @@ impl Builder {
     /// let reader = Builder::default().build_from_path("sample.bcf")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::io::Reader<File>>>
     where
         P: AsRef<Path>,
     {
@@ -72,7 +72,7 @@ impl Builder {
     /// let reader = Builder::default().set_index(index).build_from_reader(io::empty());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<bgzf::Reader<R>>>
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<IndexedReader<bgzf::io::Reader<R>>>
     where
         R: Read,
     {

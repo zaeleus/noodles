@@ -134,7 +134,7 @@ impl Builder {
                 Box::new(sam::io::Reader::from(inner))
             }
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
+                let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
                 Box::new(sam::io::Reader::from(inner))
             }
             (Format::Bam, None) => {
@@ -142,7 +142,7 @@ impl Builder {
                 Box::new(bam::io::Reader::from(inner))
             }
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
-                let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
+                let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
                 Box::new(bam::io::Reader::from(inner))
             }
             (Format::Cram, None) => {
@@ -233,12 +233,12 @@ mod tests {
         t(b"@HD\tVN:1.6\n", Format::Sam, None);
         t(b"", Format::Sam, None);
 
-        let mut writer = bgzf::Writer::new(Vec::new());
+        let mut writer = bgzf::io::Writer::new(Vec::new());
         writer.write_all(b"@HD\tVN:1.6\n")?;
         let src = writer.finish()?;
         t(&src, Format::Sam, Some(CompressionMethod::Bgzf));
 
-        let mut writer = bgzf::Writer::new(Vec::new());
+        let mut writer = bgzf::io::Writer::new(Vec::new());
         writer.write_all(b"BAM\x01")?;
         let src = writer.finish()?;
         t(&src, Format::Bam, Some(CompressionMethod::Bgzf));

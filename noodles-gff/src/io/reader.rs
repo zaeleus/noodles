@@ -190,7 +190,7 @@ where
     }
 }
 
-impl<R> Reader<bgzf::Reader<R>>
+impl<R> Reader<bgzf::io::Reader<R>>
 where
     R: Read + Seek,
 {
@@ -205,7 +205,7 @@ where
     /// use noodles_gff as gff;
     ///
     /// let mut reader = File::open("annotations.gff3.gz")
-    ///     .map(bgzf::Reader::new)
+    ///     .map(bgzf::io::Reader::new)
     ///     .map(gff::io::Reader::new)?;
     ///
     /// let index = csi::fs::read("annotations.gff3.gz.csi")?;

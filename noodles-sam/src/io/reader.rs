@@ -334,7 +334,7 @@ where
     /// use noodles_sam as sam;
     ///
     /// let mut reader = File::open("sample.sam.gz")
-    ///     .map(bgzf::Reader::new)
+    ///     .map(bgzf::io::Reader::new)
     ///     .map(sam::io::Reader::new)?;
     ///
     /// let header = reader.read_header()?;
@@ -379,7 +379,7 @@ where
     /// use noodles_sam as sam;
     ///
     /// let mut reader = File::open("sample.sam.gz")
-    ///     .map(bgzf::Reader::new)
+    ///     .map(bgzf::io::Reader::new)
     ///     .map(sam::io::Reader::new)?;
     ///
     /// reader.read_header()?;

@@ -17,7 +17,7 @@ pub enum IndexedReader<R> {
     /// SAM.
     Sam(sam::io::IndexedReader<R>),
     /// BAM.
-    Bam(bam::io::IndexedReader<bgzf::Reader<R>>),
+    Bam(bam::io::IndexedReader<bgzf::io::Reader<R>>),
     /// CRAM.
     Cram(cram::io::IndexedReader<R>),
 }

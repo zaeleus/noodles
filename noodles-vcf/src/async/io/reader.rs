@@ -363,7 +363,7 @@ where
     }
 }
 
-impl<R> Reader<bgzf::AsyncReader<R>>
+impl<R> Reader<bgzf::r#async::io::Reader<R>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
@@ -386,7 +386,7 @@ where
     ///
     /// let mut reader = File::open("sample.vcf.gz")
     ///     .await
-    ///     .map(bgzf::AsyncReader::new)
+    ///     .map(bgzf::r#async::io::Reader::new)
     ///     .map(vcf::r#async::io::Reader::new)?;
     ///
     /// let header = reader.read_header().await?;

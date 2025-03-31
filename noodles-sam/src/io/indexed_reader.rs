@@ -14,23 +14,23 @@ use crate::{alignment::RecordBuf, Header, Record};
 
 /// An indexed SAM reader.
 pub struct IndexedReader<R> {
-    inner: Reader<bgzf::Reader<R>>,
+    inner: Reader<bgzf::io::Reader<R>>,
     index: Box<dyn BinningIndex>,
 }
 
 impl<R> IndexedReader<R> {
     /// Returns a reference to the underlying reader.
-    pub fn get_ref(&self) -> &bgzf::Reader<R> {
+    pub fn get_ref(&self) -> &bgzf::io::Reader<R> {
         self.inner.get_ref()
     }
 
     /// Returns a mutable reference to the underlying reader.
-    pub fn get_mut(&mut self) -> &mut bgzf::Reader<R> {
+    pub fn get_mut(&mut self) -> &mut bgzf::io::Reader<R> {
         self.inner.get_mut()
     }
 
     /// Returns the underlying reader.
-    pub fn into_inner(self) -> bgzf::Reader<R> {
+    pub fn into_inner(self) -> bgzf::io::Reader<R> {
         self.inner.into_inner()
     }
 }
@@ -45,7 +45,7 @@ where
         I: BinningIndex + 'static,
     {
         Self {
-            inner: Reader::new(bgzf::Reader::new(inner)),
+            inner: Reader::new(bgzf::io::Reader::new(inner)),
             index: Box::new(index),
         }
     }
@@ -66,7 +66,10 @@ where
 
     /// Returns an iterator over alignment record buffers starting from the current stream
     /// position.
-    pub fn record_bufs<'a>(&'a mut self, header: &'a Header) -> RecordBufs<'a, bgzf::Reader<R>> {
+    pub fn record_bufs<'a>(
+        &'a mut self,
+        header: &'a Header,
+    ) -> RecordBufs<'a, bgzf::io::Reader<R>> {
         self.inner.record_bufs(header)
     }
 

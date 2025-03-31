@@ -19,7 +19,7 @@ struct Context<'a, R>
 where
     R: AsyncRead + AsyncSeek,
 {
-    reader: &'a mut Reader<bgzf::AsyncReader<R>>,
+    reader: &'a mut Reader<bgzf::r#async::io::Reader<R>>,
     chunks: vec::IntoIter<Chunk>,
 
     reference_sequence_id: usize,
@@ -29,7 +29,7 @@ where
 }
 
 pub fn query<R>(
-    reader: &mut Reader<bgzf::AsyncReader<R>>,
+    reader: &mut Reader<bgzf::r#async::io::Reader<R>>,
     chunks: Vec<Chunk>,
     reference_sequence_id: usize,
     interval: Interval,
@@ -77,7 +77,9 @@ where
     }))
 }
 
-async fn next_record<R>(reader: &mut Reader<bgzf::AsyncReader<R>>) -> io::Result<Option<Record>>
+async fn next_record<R>(
+    reader: &mut Reader<bgzf::r#async::io::Reader<R>>,
+) -> io::Result<Option<Record>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {

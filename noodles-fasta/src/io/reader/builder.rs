@@ -23,7 +23,7 @@ impl Builder {
         let file = File::open(src)?;
 
         let reader: Box<dyn BufRead> = match src.extension().and_then(|ext| ext.to_str()) {
-            Some("gz" | "bgz") => Box::new(bgzf::Reader::new(file)),
+            Some("gz" | "bgz") => Box::new(bgzf::io::Reader::new(file)),
             _ => Box::new(BufReader::new(file)),
         };
 

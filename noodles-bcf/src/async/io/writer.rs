@@ -164,7 +164,7 @@ where
     }
 }
 
-impl<W> Writer<bgzf::AsyncWriter<W>>
+impl<W> Writer<bgzf::r#async::io::Writer<W>>
 where
     W: AsyncWrite + Unpin,
 {
@@ -172,7 +172,7 @@ where
     ///
     /// The given stream is wrapped in a BGZF encoder.
     pub fn new(inner: W) -> Self {
-        Self::from(bgzf::AsyncWriter::new(inner))
+        Self::from(bgzf::r#async::io::Writer::new(inner))
     }
 }
 

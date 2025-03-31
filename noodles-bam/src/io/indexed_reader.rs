@@ -79,7 +79,7 @@ where
     }
 }
 
-impl<R> IndexedReader<bgzf::Reader<R>>
+impl<R> IndexedReader<bgzf::io::Reader<R>>
 where
     R: Read,
 {

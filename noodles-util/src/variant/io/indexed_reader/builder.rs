@@ -92,7 +92,7 @@ impl Builder {
     /// let reader = Builder::default().build_from_path("sample.vcf.gz")?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::Reader<File>>>
+    pub fn build_from_path<P>(self, src: P) -> io::Result<IndexedReader<bgzf::io::Reader<File>>>
     where
         P: AsRef<Path>,
     {
@@ -147,7 +147,7 @@ impl Builder {
     /// use noodles_csi as csi;
     /// use noodles_util::variant::io::indexed_reader::Builder;
     ///
-    /// let mut writer = bgzf::Writer::new(Vec::new());
+    /// let mut writer = bgzf::io::Writer::new(Vec::new());
     /// writer.write_all(b"BCF")?;
     /// let data = writer.finish()?;
     ///
@@ -160,7 +160,7 @@ impl Builder {
     pub fn build_from_reader<R>(
         self,
         reader: R,
-    ) -> io::Result<IndexedReader<bgzf::Reader<BufReader<R>>>>
+    ) -> io::Result<IndexedReader<bgzf::io::Reader<BufReader<R>>>>
     where
         R: Read,
     {

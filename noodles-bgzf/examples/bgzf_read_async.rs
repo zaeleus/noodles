@@ -11,7 +11,7 @@ use tokio::{fs::File, io};
 async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = File::open(src).await.map(bgzf::AsyncReader::new)?;
+    let mut reader = File::open(src).await.map(bgzf::r#async::io::Reader::new)?;
     let mut writer = io::BufWriter::new(io::stdout());
     io::copy_buf(&mut reader, &mut writer).await?;
 

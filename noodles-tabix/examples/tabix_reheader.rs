@@ -27,12 +27,12 @@ fn main() -> io::Result<()> {
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing tabix header"))?;
 
     let stdout = io::stdout().lock();
-    let mut writer = bgzf::Writer::new(stdout);
+    let mut writer = bgzf::io::Writer::new(stdout);
 
     let mut header_reader = File::open(header_src).map(BufReader::new)?;
     io::copy(&mut header_reader, &mut writer)?;
 
-    let mut reader = File::open(src).map(bgzf::Reader::new)?;
+    let mut reader = File::open(src).map(bgzf::io::Reader::new)?;
     let line_comment_prefix = tabix_header.line_comment_prefix();
 
     let mut buf = Vec::new();

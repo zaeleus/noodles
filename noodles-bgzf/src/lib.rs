@@ -16,7 +16,7 @@
 //! ```no_run
 //! # use std::{fs::File, io::{self, Read}};
 //! use noodles_bgzf as bgzf;
-//! let mut reader = File::open("data.gz").map(bgzf::Reader::new)?;
+//! let mut reader = File::open("data.gz").map(bgzf::io::Reader::new)?;
 //! let mut data = Vec::new();
 //! reader.read_to_end(&mut data)?;
 //! # Ok::<(), io::Error>(())
@@ -27,7 +27,7 @@
 //! ```no_run
 //! # use std::{fs::File, io::{self, Write}};
 //! use noodles_bgzf as bgzf;
-//! let mut writer = File::create("data.gz").map(bgzf::Writer::new)?;
+//! let mut writer = File::create("data.gz").map(bgzf::io::Writer::new)?;
 //! writer.write_all(b"noodles-bgzf")?;
 //! # Ok::<(), io::Error>(())
 //! ```

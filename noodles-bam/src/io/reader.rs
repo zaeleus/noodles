@@ -314,7 +314,7 @@ where
     }
 }
 
-impl<R> Reader<bgzf::Reader<R>>
+impl<R> Reader<bgzf::io::Reader<R>>
 where
     R: Read,
 {
@@ -330,7 +330,7 @@ where
     /// let reader = bam::io::Reader::new(&data[..]);
     /// ```
     pub fn new(reader: R) -> Self {
-        Self::from(bgzf::Reader::new(reader))
+        Self::from(bgzf::io::Reader::new(reader))
     }
 }
 

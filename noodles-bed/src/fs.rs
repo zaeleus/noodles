@@ -26,7 +26,10 @@ pub fn index<P>(src: P) -> io::Result<tabix::Index>
 where
     P: AsRef<Path>,
 {
-    let mut reader = File::open(src).map(bgzf::Reader::new).map(Reader::new)?;
+    let mut reader = File::open(src)
+        .map(bgzf::io::Reader::new)
+        .map(Reader::new)?;
+
     index_inner(&mut reader)
 }
 

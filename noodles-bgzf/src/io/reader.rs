@@ -22,7 +22,7 @@ use crate::{gzi, VirtualPosition, BGZF_MAX_ISIZE};
 /// ```no_run
 /// # use std::{fs::File, io::{self, Read}};
 /// use noodles_bgzf as bgzf;
-/// let mut reader = File::open("data.gz").map(bgzf::Reader::new)?;
+/// let mut reader = File::open("data.gz").map(bgzf::io::Reader::new)?;
 /// let mut data = Vec::new();
 /// reader.read_to_end(&mut data)?;
 /// # Ok::<(), io::Error>(())
@@ -42,7 +42,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::Reader::new(io::empty());
+    /// let reader = bgzf::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -56,7 +56,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let mut reader = bgzf::Reader::new(io::empty());
+    /// let mut reader = bgzf::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -70,7 +70,7 @@ impl<R> Reader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::Reader::new(io::empty());
+    /// let reader = bgzf::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
@@ -89,7 +89,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::Reader::new(io::empty());
+    /// let reader = bgzf::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Builder.build_from_reader(inner)
@@ -102,7 +102,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::Reader::new(io::empty());
+    /// let reader = bgzf::io::Reader::new(io::empty());
     /// assert_eq!(reader.position(), 0);
     /// ```
     pub fn position(&self) -> u64 {
@@ -116,7 +116,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::Reader::new(io::empty());
+    /// let reader = bgzf::io::Reader::new(io::empty());
     /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
     /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
@@ -168,7 +168,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let mut reader = bgzf::Reader::new(io::empty());
+    /// let mut reader = bgzf::io::Reader::new(io::empty());
     /// reader.seek(bgzf::VirtualPosition::MIN)?;
     /// # Ok::<(), io::Error>(())
     /// ```
@@ -193,7 +193,7 @@ where
     /// # use std::io;
     /// use noodles_bgzf::{self as bgzf, gzi};
     ///
-    /// let mut reader = bgzf::Reader::new(io::empty());
+    /// let mut reader = bgzf::io::Reader::new(io::empty());
     ///
     /// let index = gzi::Index::default();
     /// reader.seek_by_uncompressed_position(&index, 0)?;

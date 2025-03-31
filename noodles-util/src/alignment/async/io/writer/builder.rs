@@ -156,7 +156,9 @@ impl Builder {
                 Writer::Sam(AsyncSamWriter::new(inner))
             }
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> = Box::new(bgzf::AsyncWriter::new(writer));
+                let encoder: Box<dyn AsyncWrite + Unpin> =
+                    Box::new(bgzf::r#async::io::Writer::new(writer));
+
                 Writer::Sam(AsyncSamWriter::new(encoder))
             }
             (Format::Bam, None) => {
@@ -164,7 +166,9 @@ impl Builder {
                 Writer::Bam(AsyncBamWriter::from(inner))
             }
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> = Box::new(bgzf::AsyncWriter::new(writer));
+                let encoder: Box<dyn AsyncWrite + Unpin> =
+                    Box::new(bgzf::r#async::io::Writer::new(writer));
+
                 Writer::Bam(AsyncBamWriter::from(encoder))
             }
             (Format::Cram, None) => {

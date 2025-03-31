@@ -73,7 +73,7 @@ impl Builder {
         W: Write + 'w,
     {
         let inner: Box<dyn Write> = match self.compression_method {
-            Some(CompressionMethod::Bgzf) => Box::new(bgzf::Writer::new(writer)),
+            Some(CompressionMethod::Bgzf) => Box::new(bgzf::io::Writer::new(writer)),
             Some(CompressionMethod::None) | None => Box::new(BufWriter::new(writer)),
         };
 

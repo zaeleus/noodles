@@ -11,7 +11,7 @@ pub struct Reader<R>
 where
     R: AsyncRead,
 {
-    inner: bgzf::AsyncReader<R>,
+    inner: bgzf::r#async::io::Reader<R>,
 }
 
 impl<R> Reader<R>
@@ -29,7 +29,7 @@ where
     /// ```
     pub fn new(inner: R) -> Self {
         Self {
-            inner: bgzf::AsyncReader::new(inner),
+            inner: bgzf::r#async::io::Reader::new(inner),
         }
     }
 
@@ -43,7 +43,7 @@ where
     /// let reader = tabix::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
-    pub fn get_ref(&self) -> &bgzf::AsyncReader<R> {
+    pub fn get_ref(&self) -> &bgzf::r#async::io::Reader<R> {
         &self.inner
     }
 
@@ -57,7 +57,7 @@ where
     /// let mut reader = tabix::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
-    pub fn get_mut(&mut self) -> &mut bgzf::AsyncReader<R> {
+    pub fn get_mut(&mut self) -> &mut bgzf::r#async::io::Reader<R> {
         &mut self.inner
     }
 
@@ -71,7 +71,7 @@ where
     /// let reader = tabix::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
-    pub fn into_inner(self) -> bgzf::AsyncReader<R> {
+    pub fn into_inner(self) -> bgzf::r#async::io::Reader<R> {
         self.inner
     }
 

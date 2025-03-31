@@ -143,11 +143,11 @@ impl Builder {
         let reader: Box<dyn AsyncBufRead + Unpin> = match (format, compression_method) {
             (Format::Sam, None) => Box::new(reader),
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                Box::new(bgzf::AsyncReader::new(reader))
+                Box::new(bgzf::r#async::io::Reader::new(reader))
             }
             (Format::Bam, None) => Box::new(reader),
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
-                Box::new(bgzf::AsyncReader::new(reader))
+                Box::new(bgzf::r#async::io::Reader::new(reader))
             }
             (Format::Cram, None) => {
                 let inner: Box<dyn AsyncBufRead + Unpin> = Box::new(reader);

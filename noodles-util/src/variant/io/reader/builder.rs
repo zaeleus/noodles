@@ -106,7 +106,7 @@ impl Builder {
                 Box::new(vcf::io::Reader::new(inner))
             }
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
+                let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
                 Box::new(vcf::io::Reader::new(inner))
             }
             (Format::Bcf, None) => {
@@ -114,7 +114,7 @@ impl Builder {
                 Box::new(bcf::io::Reader::from(inner))
             }
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
-                let inner: Box<dyn BufRead> = Box::new(bgzf::Reader::new(reader));
+                let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
                 Box::new(bcf::io::Reader::from(inner))
             }
         };
@@ -211,7 +211,7 @@ mod tests {
         let src = &raw_header;
         t(src, None, Format::Vcf);
 
-        let mut writer = bgzf::Writer::new(Vec::new());
+        let mut writer = bgzf::io::Writer::new(Vec::new());
         writer.write_all(&raw_header)?;
         let src = writer.finish()?;
         t(&src, Some(CompressionMethod::Bgzf), Format::Vcf);

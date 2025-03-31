@@ -338,7 +338,7 @@ where
     /// use noodles_vcf as vcf;
     ///
     /// let mut reader = File::open("sample.vcf.gz")
-    ///     .map(bgzf::Reader::new)
+    ///     .map(bgzf::io::Reader::new)
     ///     .map(vcf::io::Reader::new)?;
     ///
     /// let header = reader.read_header()?;

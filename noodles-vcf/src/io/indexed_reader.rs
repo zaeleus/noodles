@@ -92,7 +92,7 @@ where
     }
 }
 
-impl<R> IndexedReader<bgzf::Reader<R>>
+impl<R> IndexedReader<bgzf::io::Reader<R>>
 where
     R: Read,
 {
@@ -102,7 +102,7 @@ where
         I: BinningIndex + 'static,
     {
         Self {
-            inner: Reader::new(bgzf::Reader::new(inner)),
+            inner: Reader::new(bgzf::io::Reader::new(inner)),
             index: Box::new(index),
         }
     }

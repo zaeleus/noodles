@@ -23,7 +23,7 @@ async fn main() -> io::Result<()> {
         .header()
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing tabix header"))?;
 
-    let reader = File::open(src).await.map(bgzf::AsyncReader::new)?;
+    let reader = File::open(src).await.map(bgzf::r#async::io::Reader::new)?;
     let line_comment_prefix = char::from(header.line_comment_prefix());
 
     let mut lines = reader.lines();

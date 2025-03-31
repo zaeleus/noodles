@@ -12,7 +12,7 @@ pub struct Writer<W>
 where
     W: Write,
 {
-    inner: bgzf::Writer<W>,
+    inner: bgzf::io::Writer<W>,
 }
 
 impl<W> Writer<W>
@@ -29,7 +29,7 @@ where
     /// ```
     pub fn new(writer: W) -> Self {
         Self {
-            inner: bgzf::Writer::new(writer),
+            inner: bgzf::io::Writer::new(writer),
         }
     }
 
@@ -43,7 +43,7 @@ where
     /// let writer = csi::io::Writer::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
-    pub fn get_ref(&self) -> &bgzf::Writer<W> {
+    pub fn get_ref(&self) -> &bgzf::io::Writer<W> {
         &self.inner
     }
 
@@ -57,7 +57,7 @@ where
     /// let mut writer = csi::io::Writer::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
-    pub fn get_mut(&mut self) -> &mut bgzf::Writer<W> {
+    pub fn get_mut(&mut self) -> &mut bgzf::io::Writer<W> {
         &mut self.inner
     }
 
@@ -71,7 +71,7 @@ where
     /// let writer = csi::io::Writer::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
-    pub fn into_inner(self) -> bgzf::Writer<W> {
+    pub fn into_inner(self) -> bgzf::io::Writer<W> {
         self.inner
     }
 
