@@ -35,7 +35,6 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
-mod block;
 pub(crate) mod deflate;
 mod gz;
 pub mod gzi;
@@ -72,8 +71,6 @@ pub use self::r#async::io::Reader as AsyncReader;
 #[cfg(feature = "async")]
 #[deprecated(since = "0.35.0", note = "Use `bgzf::r#async::Writer` instead.")]
 pub use self::r#async::Writer as AsyncWriter;
-
-use self::block::Block;
 
 // XLEN (2)
 const GZIP_XLEN_SIZE: usize = 2;

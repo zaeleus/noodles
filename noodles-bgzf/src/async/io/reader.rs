@@ -17,7 +17,7 @@ use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
 pub use self::builder::Builder;
 use self::inflater::Inflater;
-use crate::{gzi, Block, VirtualPosition};
+use crate::{gzi, io::Block, VirtualPosition};
 
 pin_project! {
     /// An async BGZF reader.

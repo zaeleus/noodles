@@ -9,7 +9,7 @@ use bytes::Bytes;
 use pin_project_lite::pin_project;
 use tokio::task::JoinHandle;
 
-use crate::Block;
+use crate::io::Block;
 
 pin_project! {
     pub struct Inflate {

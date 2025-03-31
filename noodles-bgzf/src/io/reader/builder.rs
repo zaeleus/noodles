@@ -5,7 +5,7 @@ use std::{
 };
 
 use super::Reader;
-use crate::Block;
+use crate::io::Block;
 
 /// A BGZF reader builder.
 #[derive(Debug, Default)]

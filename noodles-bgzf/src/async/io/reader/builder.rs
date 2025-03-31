@@ -4,7 +4,7 @@ use futures::TryStreamExt;
 use tokio::io::AsyncRead;
 
 use super::{Inflater, Reader};
-use crate::Block;
+use crate::io::Block;
 
 /// An async BGZF reader builder.
 #[derive(Default)]

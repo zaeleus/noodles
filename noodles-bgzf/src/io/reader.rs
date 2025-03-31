@@ -7,7 +7,8 @@ pub use self::builder::Builder;
 
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
-use crate::{gzi, Block, VirtualPosition, BGZF_MAX_ISIZE};
+use super::Block;
+use crate::{gzi, VirtualPosition, BGZF_MAX_ISIZE};
 
 /// A BGZF reader.
 ///

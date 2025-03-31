@@ -7,7 +7,8 @@ use std::{
 
 use crossbeam_channel::{Receiver, Sender};
 
-use crate::{gzi, Block, VirtualPosition};
+use super::Block;
+use crate::{gzi, VirtualPosition};
 
 type BufferedTx = Sender<io::Result<Buffer>>;
 type BufferedRx = Receiver<io::Result<Buffer>>;
