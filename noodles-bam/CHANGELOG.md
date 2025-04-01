@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/record/codec/encoder/data/field/value/hex: Validate value.
+
+    Hex values must now match `([0-9A-F][0-9A-F])*`.
+
 ## 0.77.0 - 2025-03-08
 
 ### Changed
