@@ -141,6 +141,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_is_empty() {
+        let data = Data::new(&[]);
+        assert!(data.is_empty());
+
+        let data = Data::new(&[b'N', b'H', b'C', 0x01]);
+        assert!(!data.is_empty());
+    }
+
+    #[test]
     fn test_get() -> io::Result<()> {
         let data = Data::new(&[b'N', b'H', b'C', 0x01]);
 
