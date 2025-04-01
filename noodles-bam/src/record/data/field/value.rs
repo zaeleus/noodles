@@ -5,7 +5,6 @@ pub mod array;
 use std::io;
 
 use bstr::{BStr, ByteSlice};
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::alignment::record::data::field::{Type, Value};
 
 use self::array::decode_array;
@@ -15,38 +14,58 @@ pub(crate) fn decode_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value
         Type::Character => read_u8(src).map(Value::Character),
         Type::Int8 => read_u8(src).map(|n| Value::Int8(n as i8)),
         Type::UInt8 => read_u8(src).map(Value::UInt8),
-        Type::Int16 => decode_i16(src),
-        Type::UInt16 => decode_u16(src),
-        Type::Int32 => decode_i32(src),
-        Type::UInt32 => decode_u32(src),
-        Type::Float => decode_f32(src),
-        Type::String => decode_string(src).map(Value::String),
-        Type::Hex => decode_hex(src),
+        Type::Int16 => read_u16_le(src).map(|n| Value::Int16(n as i16)),
+        Type::UInt16 => read_u16_le(src).map(Value::UInt16),
+        Type::Int32 => read_u32_le(src).map(|n| Value::Int32(n as i32)),
+        Type::UInt32 => read_u32_le(src).map(Value::UInt32),
+        Type::Float => read_f32_le(src).map(Value::Float),
+        Type::String => read_string(src).map(Value::String),
+        Type::Hex => read_string(src).map(Value::Hex),
         Type::Array => decode_array(src).map(Value::Array),
     }
 }
 
-fn decode_i16<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    src.read_i16::<LittleEndian>().map(Value::Int16)
+fn read_u8(src: &mut &[u8]) -> io::Result<u8> {
+    let Some((n, rest)) = src.split_first() else {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    };
+
+    *src = rest;
+
+    Ok(*n)
 }
 
-fn decode_u16<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    src.read_u16::<LittleEndian>().map(Value::UInt16)
+fn read_u16_le(src: &mut &[u8]) -> io::Result<u16> {
+    let Some((buf, rest)) = src.split_first_chunk() else {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    };
+
+    *src = rest;
+
+    Ok(u16::from_le_bytes(*buf))
 }
 
-fn decode_i32<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    src.read_i32::<LittleEndian>().map(Value::Int32)
+fn read_u32_le(src: &mut &[u8]) -> io::Result<u32> {
+    let Some((buf, rest)) = src.split_first_chunk() else {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    };
+
+    *src = rest;
+
+    Ok(u32::from_le_bytes(*buf))
 }
 
-fn decode_u32<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    src.read_u32::<LittleEndian>().map(Value::UInt32)
+fn read_f32_le(src: &mut &[u8]) -> io::Result<f32> {
+    let Some((buf, rest)) = src.split_first_chunk() else {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    };
+
+    *src = rest;
+
+    Ok(f32::from_le_bytes(*buf))
 }
 
-fn decode_f32<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    src.read_f32::<LittleEndian>().map(Value::Float)
-}
-
-fn decode_string<'a>(src: &mut &'a [u8]) -> io::Result<&'a BStr> {
+fn read_string<'a>(src: &mut &'a [u8]) -> io::Result<&'a BStr> {
     const NUL: u8 = 0x00;
 
     let len = src
@@ -59,20 +78,6 @@ fn decode_string<'a>(src: &mut &'a [u8]) -> io::Result<&'a BStr> {
     *src = &rest[1..];
 
     Ok(buf.as_bstr())
-}
-
-fn decode_hex<'a>(src: &mut &'a [u8]) -> io::Result<Value<'a>> {
-    decode_string(src).map(Value::Hex)
-}
-
-fn read_u8(src: &mut &[u8]) -> io::Result<u8> {
-    let Some((n, rest)) = src.split_first() else {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    };
-
-    *src = rest;
-
-    Ok(*n)
 }
 
 #[cfg(test)]
