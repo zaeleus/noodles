@@ -44,79 +44,51 @@ impl fmt::Display for DecodeError {
 
 pub fn read_value(src: &mut &[u8], ty: Type) -> Result<Value, DecodeError> {
     match ty {
-        Type::Character => read_char(src),
-        Type::Int8 => read_i8(src),
-        Type::UInt8 => read_u8(src),
-        Type::Int16 => read_i16(src),
-        Type::UInt16 => read_u16(src),
-        Type::Int32 => read_i32(src),
-        Type::UInt32 => read_u32(src),
-        Type::Float => read_f32(src),
+        Type::Character => read_u8(src).map(Value::Character),
+        Type::Int8 => read_u8(src).map(|n| Value::Int8(n as i8)),
+        Type::UInt8 => read_u8(src).map(Value::UInt8),
+        Type::Int16 => read_u16(src).map(|n| Value::Int16(n as i16)),
+        Type::UInt16 => read_u16(src).map(Value::UInt16),
+        Type::Int32 => read_u32(src).map(|n| Value::Int32(n as i32)),
+        Type::UInt32 => read_u32(src).map(Value::UInt32),
+        Type::Float => read_f32(src).map(Value::Float),
         Type::String => read_string(src).map(Value::String),
-        Type::Hex => read_hex(src),
+        Type::Hex => read_string(src).map(Value::Hex),
         Type::Array => get_array(src).map_err(DecodeError::InvalidArray),
     }
 }
 
-fn read_char(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    let (c, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
-    *src = rest;
-    Ok(Value::Character(*c))
-}
-
-fn read_i8(src: &mut &[u8]) -> Result<Value, DecodeError> {
+fn read_u8(src: &mut &[u8]) -> Result<u8, DecodeError> {
     let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
-    Ok(Value::Int8(*n as i8))
+    Ok(*n)
 }
 
-fn read_u8(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
-    *src = rest;
-    Ok(Value::UInt8(*n))
-}
-
-fn read_i16(src: &mut &[u8]) -> Result<Value, DecodeError> {
+fn read_u16(src: &mut &[u8]) -> Result<u16, DecodeError> {
     let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
-    Ok(Value::Int16(i16::from_le_bytes(*buf)))
+    Ok(u16::from_le_bytes(*buf))
 }
 
-fn read_u16(src: &mut &[u8]) -> Result<Value, DecodeError> {
+fn read_u32(src: &mut &[u8]) -> Result<u32, DecodeError> {
     let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
-    Ok(Value::UInt16(u16::from_le_bytes(*buf)))
+    Ok(u32::from_le_bytes(*buf))
 }
 
-fn read_i32(src: &mut &[u8]) -> Result<Value, DecodeError> {
+fn read_f32(src: &mut &[u8]) -> Result<f32, DecodeError> {
     let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
-    Ok(Value::Int32(i32::from_le_bytes(*buf)))
-}
-
-fn read_u32(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
-    *src = rest;
-    Ok(Value::UInt32(u32::from_le_bytes(*buf)))
-}
-
-fn read_f32(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
-    *src = rest;
-    Ok(Value::Float(f32::from_le_bytes(*buf)))
+    Ok(f32::from_le_bytes(*buf))
 }
 
 fn read_string(src: &mut &[u8]) -> Result<BString, DecodeError> {
     const NUL: u8 = 0x00;
 
-    let len = memchr(NUL, src).ok_or(DecodeError::StringNotNulTerminated)?;
-    let (buf, rest) = src.split_at(len);
+    let i = memchr(NUL, src).ok_or(DecodeError::StringNotNulTerminated)?;
+    let (buf, rest) = src.split_at(i);
     *src = &rest[1..];
     Ok(buf.into())
-}
-
-fn read_hex(src: &mut &[u8]) -> Result<Value, DecodeError> {
-    read_string(src).map(Value::Hex)
 }
 
 #[cfg(test)]
