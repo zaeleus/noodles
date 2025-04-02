@@ -1,11 +1,12 @@
 pub mod array;
 mod hex;
+mod string;
 
 use std::io;
 
 use noodles_sam::alignment::record::data::field::Value;
 
-use self::{array::write_array, hex::write_hex};
+use self::{array::write_array, hex::write_hex, string::write_string};
 use crate::record::codec::encoder::num::{
     write_f32_le, write_i16_le, write_i32_le, write_i8, write_u16_le, write_u32_le, write_u8,
 };
@@ -26,13 +27,6 @@ pub fn write_value(dst: &mut Vec<u8>, value: &Value) -> io::Result<()> {
     }
 
     Ok(())
-}
-
-fn write_string(dst: &mut Vec<u8>, buf: &[u8]) {
-    const NUL: u8 = 0x00;
-
-    dst.extend(buf);
-    write_u8(dst, NUL);
 }
 
 #[cfg(test)]
