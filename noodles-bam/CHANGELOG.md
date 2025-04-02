@@ -4,9 +4,10 @@
 
 ### Changed
 
-  * bam/record/codec/encoder/data/field/value/hex: Validate value.
+  * bam/record/codec/encoder/data/field/value: Validate string and hex values.
 
-    Hex values must now match `([0-9A-F][0-9A-F])*`.
+    String values must now match `[ !-~]*`; and hex values,
+    `([0-9A-F][0-9A-F])*`.
 
 ## 0.77.0 - 2025-03-08
 

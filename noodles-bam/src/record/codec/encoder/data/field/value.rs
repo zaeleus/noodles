@@ -21,7 +21,7 @@ pub fn write_value(dst: &mut Vec<u8>, value: &Value) -> io::Result<()> {
         Value::Int32(n) => write_i32_le(dst, *n),
         Value::UInt32(n) => write_u32_le(dst, *n),
         Value::Float(n) => write_f32_le(dst, *n),
-        Value::String(s) => write_string(dst, s),
+        Value::String(s) => write_string(dst, s)?,
         Value::Hex(s) => write_hex(dst, s)?,
         Value::Array(array) => write_array(dst, array)?,
     }
