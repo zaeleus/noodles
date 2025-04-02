@@ -10,6 +10,7 @@ homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles"
 readme = "../README.md"
+categories = ["science::bioinformatics"]
 
 [dependencies]
 noodles-bam = { path = "../noodles-bam", version = "0.77.0", optional = true }

@@ -9,6 +9,7 @@ description = "An htsget client"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-htsget"
+categories = ["api-bindings", "science::bioinformatics"]
 
 [dependencies]
 base64 = "0.22.0"

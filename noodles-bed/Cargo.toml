@@ -9,6 +9,7 @@ description = "BED (Browser Extensible Data) reader"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-bed"
+categories = ["parser-implementations", "science::bioinformatics"]
 
 [dependencies]
 bstr.workspace = true

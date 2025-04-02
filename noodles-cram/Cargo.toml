@@ -9,6 +9,7 @@ description = "CRAM format reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-cram"
+categories = ["parser-implementations", "science::bioinformatics"]
 
 [features]
 async = ["dep:async-compression", "dep:futures", "dep:pin-project-lite", "dep:tokio"]

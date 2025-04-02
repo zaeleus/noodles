@@ -9,6 +9,7 @@ description = "Coordinate-sorted index (CSI) format reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-csi"
+categories = ["parser-implementations", "science::bioinformatics"]
 
 [features]
 async = ["dep:tokio", "noodles-bgzf/async"]

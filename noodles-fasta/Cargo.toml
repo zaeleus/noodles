@@ -9,6 +9,7 @@ description = "FASTA format reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-fasta"
+categories = ["parser-implementations", "science::bioinformatics"]
 
 [features]
 async = ["dep:tokio"]

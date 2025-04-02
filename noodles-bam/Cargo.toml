@@ -9,6 +9,7 @@ description = "Binary Alignment/Map (BAM) format reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-bam"
+categories = ["parser-implementations", "science::bioinformatics"]
 
 [features]
 async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "noodles-bgzf/async"]

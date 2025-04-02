@@ -9,6 +9,7 @@ description = "Shared utilities when working with noodles"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-core"
+categories = ["science::bioinformatics"]
 
 [dependencies]
 bstr.workspace = true

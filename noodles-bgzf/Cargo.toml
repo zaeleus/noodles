@@ -9,6 +9,7 @@ description = "Blocked gzip format (BGZF) reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-bgzf"
+categories = ["compression"]
 
 [features]
 async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "dep:tokio-util"]

@@ -9,6 +9,7 @@ description = "Gene Transfer Format (GTF) reader and writer"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-gtf"
+categories = ["parser-implementations", "science::bioinformatics"]
 
 [dependencies]
 indexmap.workspace = true

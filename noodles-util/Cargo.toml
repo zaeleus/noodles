@@ -9,6 +9,7 @@ description = "noodles support utilities"
 homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-util"
+categories = ["science::bioinformatics"]
 
 [features]
 alignment = [
