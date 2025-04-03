@@ -11,7 +11,7 @@ where
     }
 }
 
-// § 1.5 "The alignment section: optional fields" (2023-05-24): "`[ !-~]*`".
+// § 1.5 "The alignment section: optional fields" (2024-11-06): "`([0-9A-F][0-9A-F])*`".
 fn is_valid(buf: &[u8]) -> bool {
     fn is_even(n: usize) -> bool {
         n % 2 == 0
