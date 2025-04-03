@@ -104,7 +104,7 @@ mod tests {
     fn test_parse_string_value() -> io::Result<()> {
         assert!(matches!(
             parse_string_value("")?,
-            Value::String(s) if s == ""
+            Value::String(s) if s.is_empty()
         ));
 
         assert!(matches!(
