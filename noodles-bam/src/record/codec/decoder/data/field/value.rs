@@ -47,11 +47,11 @@ pub fn read_value(src: &mut &[u8], ty: Type) -> Result<Value, DecodeError> {
         Type::Character => read_u8(src).map(Value::Character),
         Type::Int8 => read_u8(src).map(|n| Value::Int8(n as i8)),
         Type::UInt8 => read_u8(src).map(Value::UInt8),
-        Type::Int16 => read_u16(src).map(|n| Value::Int16(n as i16)),
-        Type::UInt16 => read_u16(src).map(Value::UInt16),
-        Type::Int32 => read_u32(src).map(|n| Value::Int32(n as i32)),
-        Type::UInt32 => read_u32(src).map(Value::UInt32),
-        Type::Float => read_f32(src).map(Value::Float),
+        Type::Int16 => read_u16_le(src).map(|n| Value::Int16(n as i16)),
+        Type::UInt16 => read_u16_le(src).map(Value::UInt16),
+        Type::Int32 => read_u32_le(src).map(|n| Value::Int32(n as i32)),
+        Type::UInt32 => read_u32_le(src).map(Value::UInt32),
+        Type::Float => read_f32_le(src).map(Value::Float),
         Type::String => read_string(src).map(Value::String),
         Type::Hex => read_string(src).map(Value::Hex),
         Type::Array => get_array(src).map_err(DecodeError::InvalidArray),
@@ -64,19 +64,19 @@ fn read_u8(src: &mut &[u8]) -> Result<u8, DecodeError> {
     Ok(*n)
 }
 
-fn read_u16(src: &mut &[u8]) -> Result<u16, DecodeError> {
+fn read_u16_le(src: &mut &[u8]) -> Result<u16, DecodeError> {
     let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(u16::from_le_bytes(*buf))
 }
 
-fn read_u32(src: &mut &[u8]) -> Result<u32, DecodeError> {
+fn read_u32_le(src: &mut &[u8]) -> Result<u32, DecodeError> {
     let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(u32::from_le_bytes(*buf))
 }
 
-fn read_f32(src: &mut &[u8]) -> Result<f32, DecodeError> {
+fn read_f32_le(src: &mut &[u8]) -> Result<f32, DecodeError> {
     let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
     Ok(f32::from_le_bytes(*buf))
