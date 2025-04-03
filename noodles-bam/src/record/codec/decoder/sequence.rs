@@ -38,7 +38,7 @@ pub(super) fn read_sequence(
     sequence: &mut Sequence,
     base_count: usize,
 ) -> Result<(), DecodeError> {
-    let len = (base_count + 1) / 2;
+    let len = base_count.div_ceil(2);
 
     let (buf, rest) = src
         .split_at_checked(len)

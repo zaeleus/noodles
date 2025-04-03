@@ -13,7 +13,7 @@ impl<'a> Iter<'a> {
     // [start, end)
     pub(super) fn new(bases: &'a [u8], start: usize, end: usize) -> Self {
         let i = start / 2;
-        let j = (end + 1) / 2;
+        let j = end.div_ceil(2);
         let mut iter = bases[i..j].iter();
 
         let front = if start % 2 == 0 {

@@ -317,7 +317,7 @@ mod tests {
             0x03, 0x00, 0x10, 0x00, // cigar[1] = 65536N
         ];
 
-        expected.resize(expected.len() + (BASE_COUNT + 1) / 2, 0x11); // seq = [A, ...]
+        expected.resize(expected.len() + BASE_COUNT.div_ceil(2), 0x11); // seq = [A, ...]
         expected.resize(expected.len() + BASE_COUNT, 0xff); // qual = [0xff, ...]
         expected.extend([b'N', b'H', b'C', 0x01]); // data[0] = NH:i:1
 

@@ -212,7 +212,7 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     // SAFETY: `src` is 4 bytes.
     let base_count = usize::try_from(u32::from_le_bytes(src.try_into().unwrap()))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-    let sequence_len = (base_count + 1) / 2;
+    let sequence_len = base_count.div_ceil(2);
     bounds.sequence_end = bounds.cigar_end + sequence_len;
 
     bounds.quality_scores_end = bounds.sequence_end + base_count;
