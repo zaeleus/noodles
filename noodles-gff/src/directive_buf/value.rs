@@ -4,6 +4,8 @@ pub mod genome_build;
 pub mod gff_version;
 pub mod sequence_region;
 
+use bstr::BString;
+
 pub use self::{
     genome_build::GenomeBuild, gff_version::GffVersion, sequence_region::SequenceRegion,
 };
@@ -18,7 +20,7 @@ pub enum Value {
     /// The genome build used for the start and end positions (`genome-build`).
     GenomeBuild(GenomeBuild),
     /// Any other directive value.
-    String(String),
+    String(BString),
 }
 
 impl From<&str> for Value {
@@ -29,6 +31,6 @@ impl From<&str> for Value {
 
 impl From<String> for Value {
     fn from(s: String) -> Self {
-        Value::String(s)
+        Value::String(s.into())
     }
 }

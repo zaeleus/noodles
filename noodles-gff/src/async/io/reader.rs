@@ -114,7 +114,7 @@ where
     /// let mut lines = reader.lines();
     ///
     /// while let Some(line) = lines.try_next().await? {
-    ///     if let Some(key::FASTA) = line.as_directive().map(|directive| directive.key()) {
+    ///     if let Some(key::FASTA) = line.as_directive().map(|directive| directive.key().as_bytes()) {
     ///         break;
     ///     }
     ///

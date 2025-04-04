@@ -14,7 +14,7 @@ where
 {
     write_prefix(writer)?;
 
-    match (directive.key(), directive.value()) {
+    match (directive.key().as_ref(), directive.value()) {
         (key::GFF_VERSION, Some(Value::GffVersion(version))) => {
             write_key(writer, key::GFF_VERSION)?;
             write_separator(writer)?;
@@ -33,7 +33,7 @@ where
         (key, Some(Value::String(value))) => {
             write_key(writer, key)?;
             write_separator(writer)?;
-            write_value(writer, value)?;
+            write_value(writer, value.as_ref())?;
         }
         (key, None) => {
             write_key(writer, key)?;
@@ -57,11 +57,11 @@ where
     writer.write_all(PREFIX)
 }
 
-fn write_key<W>(writer: &mut W, key: &str) -> io::Result<()>
+fn write_key<W>(writer: &mut W, key: &[u8]) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(key.as_bytes())
+    writer.write_all(key)
 }
 
 fn write_separator<W>(writer: &mut W) -> io::Result<()>

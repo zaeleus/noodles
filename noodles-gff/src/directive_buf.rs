@@ -3,6 +3,8 @@
 pub mod key;
 pub mod value;
 
+use bstr::{BStr, BString};
+
 use crate::Directive;
 
 pub use self::value::Value;
@@ -12,7 +14,7 @@ pub use self::value::Value;
 /// This is also called a pragma or metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DirectiveBuf {
-    key: String,
+    key: BString,
     value: Option<Value>,
 }
 
@@ -20,7 +22,7 @@ impl DirectiveBuf {
     /// Creates a directive buffer.
     pub fn new<K>(key: K, value: Option<Value>) -> Self
     where
-        K: Into<String>,
+        K: Into<BString>,
     {
         Self {
             key: key.into(),
@@ -29,8 +31,8 @@ impl DirectiveBuf {
     }
 
     /// Returns the key.
-    pub fn key(&self) -> &str {
-        &self.key
+    pub fn key(&self) -> &BStr {
+        self.key.as_ref()
     }
 
     /// Returns the value.
