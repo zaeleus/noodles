@@ -8,14 +8,14 @@ where
 {
     use crate::io::reader::line::is_blank;
 
-    let buf = &mut line.0;
+    let dst = &mut line.0;
 
     loop {
-        buf.clear();
+        dst.clear();
 
-        let n = super::read_line(reader, buf).await?;
+        let n = super::read_line(reader, dst).await?;
 
-        if n == 0 || !is_blank(buf) {
+        if n == 0 || !is_blank(dst) {
             return Ok(n);
         }
     }
@@ -23,6 +23,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
 
     #[tokio::test]
@@ -30,7 +32,7 @@ mod tests {
         const DATA: &[u8] = b"\n#comment\n\t\n";
 
         let mut line = Line::default();
-        let mut lines: Vec<String> = Vec::new();
+        let mut lines: Vec<BString> = Vec::new();
 
         let mut src = DATA;
 
@@ -38,7 +40,7 @@ mod tests {
             lines.push(line.as_ref().into());
         }
 
-        assert_eq!(lines, [String::from("#comment")]);
+        assert_eq!(lines, [BString::from("#comment")]);
 
         Ok(())
     }
