@@ -7,7 +7,7 @@ impl RecordBuf {
     /// Converts a variant record to a buffer.
     pub fn try_from_variant_record<R>(header: &Header, record: &R) -> io::Result<Self>
     where
-        R: Record,
+        R: Record + ?Sized,
     {
         use super::Samples;
 

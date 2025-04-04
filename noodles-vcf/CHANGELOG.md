@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/variant/record_buf/convert: Remove `Sized` bound for conversion from
+    `variant::Record` ([#334]).
+
+[#334]: https://github.com/zaeleus/noodles/issues/334
+
 ## 0.75.0 - 2025-03-08
 
 ### Changed
