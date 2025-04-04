@@ -76,6 +76,7 @@ where
     ///
     /// ```
     /// # use std::io;
+    /// use bstr::BString;
     /// use noodles_gff::{self as gff, directive_buf::{key, Value}, LineBuf};
     ///
     /// let mut writer = gff::io::Writer::new(Vec::new());
@@ -86,7 +87,7 @@ where
     /// ));
     /// writer.write_line(&version)?;
     ///
-    /// let comment = LineBuf::Comment(String::from("noodles"));
+    /// let comment = LineBuf::Comment(BString::from("noodles"));
     /// writer.write_line(&comment)?;
     ///
     /// let record = LineBuf::Record(gff::feature::RecordBuf::default());

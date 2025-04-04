@@ -14,7 +14,7 @@ where
 {
     match line {
         LineBuf::Directive(directive) => write_directive(writer, directive)?,
-        LineBuf::Comment(s) => write_comment(writer, s)?,
+        LineBuf::Comment(s) => write_comment(writer, s.as_ref())?,
         LineBuf::Record(record) => write_record(writer, record)?,
     }
 
@@ -33,6 +33,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
     use crate::{
         directive_buf::{key, Value},
@@ -57,7 +59,7 @@ mod tests {
         ));
         t(&mut buf, &line, b"##gff-version 3\n")?;
 
-        let line = LineBuf::Comment(String::from("noodles"));
+        let line = LineBuf::Comment(BString::from("noodles"));
         t(&mut buf, &line, b"#noodles\n")?;
 
         let line = LineBuf::Record(RecordBuf::default());

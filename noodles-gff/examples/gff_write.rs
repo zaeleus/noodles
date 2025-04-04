@@ -4,6 +4,7 @@
 
 use std::io;
 
+use bstr::BString;
 use noodles_gff::{
     self as gff,
     directive_buf::{key, Value},
@@ -21,7 +22,7 @@ fn main() -> io::Result<()> {
 
     writer.write_directive(&version)?;
 
-    let comment = LineBuf::Comment(String::from("format: gff3"));
+    let comment = LineBuf::Comment(BString::from("format: gff3"));
     writer.write_line(&comment)?;
 
     let record = gff::feature::RecordBuf::default();

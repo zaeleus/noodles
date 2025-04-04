@@ -1,5 +1,7 @@
 //! GFF lines.
 
+use bstr::BString;
+
 use super::{feature::RecordBuf, DirectiveBuf};
 
 /// A GFF line.
@@ -8,7 +10,7 @@ pub enum LineBuf {
     /// A directive (`##`).
     Directive(DirectiveBuf),
     /// A comment (`#`),
-    Comment(String),
+    Comment(BString),
     /// A record.
     Record(RecordBuf),
 }
