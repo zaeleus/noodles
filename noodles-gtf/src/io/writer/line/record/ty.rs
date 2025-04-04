@@ -1,10 +1,12 @@
 use std::io::{self, Write};
 
-pub(super) fn write_type<W>(writer: &mut W, ty: &str) -> io::Result<()>
+use bstr::BStr;
+
+pub(super) fn write_type<W>(writer: &mut W, ty: &BStr) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(ty.as_bytes())
+    writer.write_all(ty)
 }
 
 #[cfg(test)]
@@ -14,7 +16,7 @@ mod tests {
     #[test]
     fn test_write_type() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_type(&mut buf, "exon")?;
+        write_type(&mut buf, BStr::new("exon"))?;
         assert_eq!(buf, b"exon");
         Ok(())
     }

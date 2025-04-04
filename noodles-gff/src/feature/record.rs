@@ -6,6 +6,7 @@ mod strand;
 
 use std::io;
 
+use bstr::BStr;
 use noodles_core::Position;
 
 pub use self::{attributes::Attributes, phase::Phase, strand::Strand};
@@ -13,13 +14,13 @@ pub use self::{attributes::Attributes, phase::Phase, strand::Strand};
 /// A feature record.
 pub trait Record {
     /// Returns the reference sequence name.
-    fn reference_sequence_name(&self) -> &str;
+    fn reference_sequence_name(&self) -> &BStr;
 
     /// Returns the source.
-    fn source(&self) -> &str;
+    fn source(&self) -> &BStr;
 
     /// Returns the type.
-    fn ty(&self) -> &str;
+    fn ty(&self) -> &BStr;
 
     /// Returns the feature start.
     fn feature_start(&self) -> io::Result<Position>;

@@ -5,6 +5,7 @@ pub(crate) mod fields;
 
 use std::{fmt, io};
 
+use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
 
 pub use self::attributes::Attributes;
@@ -85,16 +86,16 @@ impl fmt::Debug for Record<'_> {
 }
 
 impl super::feature::Record for Record<'_> {
-    fn reference_sequence_name(&self) -> &str {
-        self.reference_sequence_name()
+    fn reference_sequence_name(&self) -> &BStr {
+        self.reference_sequence_name().as_bytes().as_bstr()
     }
 
-    fn source(&self) -> &str {
-        self.source()
+    fn source(&self) -> &BStr {
+        self.source().as_bytes().as_bstr()
     }
 
-    fn ty(&self) -> &str {
-        self.ty()
+    fn ty(&self) -> &BStr {
+        self.ty().as_bytes().as_bstr()
     }
 
     fn feature_start(&self) -> io::Result<Position> {

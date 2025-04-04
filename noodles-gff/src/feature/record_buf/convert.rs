@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, str};
 
 use super::{attributes::field::Value, RecordBuf};
 use crate::feature::{record::attributes::field::Value as ValueRef, Record};
@@ -12,9 +12,9 @@ impl RecordBuf {
         let mut builder = Self::builder();
 
         builder = builder
-            .set_reference_sequence_name(record.reference_sequence_name())
-            .set_source(record.source())
-            .set_type(record.ty())
+            .set_reference_sequence_name(str::from_utf8(record.reference_sequence_name()).unwrap()) // FIXME
+            .set_source(str::from_utf8(record.source()).unwrap()) // FIXME
+            .set_type(str::from_utf8(record.ty()).unwrap()) //FIXME
             .set_start(record.feature_start()?)
             .set_end(record.feature_end()?);
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff/feature/record: Change string fields to byte strings (`&BStr` and
+    `BString`).
+
 ## 0.46.0 - 2025-03-20
 
 ### Added
