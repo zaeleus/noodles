@@ -36,7 +36,7 @@ impl Line {
     pub fn as_record(&self) -> Option<io::Result<Record<'_>>> {
         match self.kind() {
             Kind::Comment => None,
-            Kind::Record => Some(Record::try_new(&self.0)),
+            Kind::Record => Some(Record::try_new(self.0.as_bytes())),
         }
     }
 }

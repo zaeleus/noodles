@@ -19,25 +19,25 @@ use self::fields::Fields;
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record<'l>(Fields<'l>);
 
-const MISSING: &str = ".";
+const MISSING: &[u8] = b".";
 
 impl<'l> Record<'l> {
-    pub(super) fn try_new(src: &'l str) -> io::Result<Self> {
+    pub(super) fn try_new(src: &'l [u8]) -> io::Result<Self> {
         Fields::try_new(src).map(Self)
     }
 
     /// Returns the reference sequence name.
-    pub fn reference_sequence_name(&self) -> &str {
+    pub fn reference_sequence_name(&self) -> &BStr {
         self.0.reference_sequence_name()
     }
 
     /// Returns the source.
-    pub fn source(&self) -> &str {
+    pub fn source(&self) -> &BStr {
         self.0.source()
     }
 
     /// Returns the feature type.
-    pub fn ty(&self) -> &str {
+    pub fn ty(&self) -> &BStr {
         self.0.ty()
     }
 
@@ -132,31 +132,30 @@ impl gff::feature::Record for Record<'_> {
     }
 }
 
-fn parse_score(s: &str) -> Option<io::Result<f32>> {
-    match s {
+fn parse_score(src: &[u8]) -> Option<io::Result<f32>> {
+    match src {
         MISSING => None,
         _ => Some(
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            lexical_core::parse(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         ),
     }
 }
 
-fn parse_strand(s: &str) -> io::Result<Strand> {
+fn parse_strand(s: &[u8]) -> io::Result<Strand> {
     match s {
         MISSING => Ok(Strand::None),
-        "+" => Ok(Strand::Forward),
-        "-" => Ok(Strand::Reverse),
+        b"+" => Ok(Strand::Forward),
+        b"-" => Ok(Strand::Reverse),
         _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid strand")),
     }
 }
 
-fn parse_phase(s: &str) -> Option<io::Result<Phase>> {
+fn parse_phase(s: &[u8]) -> Option<io::Result<Phase>> {
     match s {
         MISSING => None,
-        "0" => Some(Ok(Phase::Zero)),
-        "1" => Some(Ok(Phase::One)),
-        "2" => Some(Ok(Phase::Two)),
+        b"0" => Some(Ok(Phase::Zero)),
+        b"1" => Some(Ok(Phase::One)),
+        b"2" => Some(Ok(Phase::Two)),
         _ => Some(Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid phase",

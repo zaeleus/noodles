@@ -3,6 +3,8 @@ use std::{
     ops::{Range, RangeFrom},
 };
 
+use bstr::ByteSlice;
+
 #[derive(Clone, Eq, PartialEq)]
 pub(super) struct Bounds {
     reference_sequence_name_end: usize,
@@ -16,7 +18,7 @@ pub(super) struct Bounds {
 }
 
 impl Bounds {
-    pub(super) fn index(mut src: &str) -> io::Result<Self> {
+    pub(super) fn index(mut src: &[u8]) -> io::Result<Self> {
         let mut bounds = Self::default();
         let mut len = 0;
 
@@ -104,7 +106,7 @@ fn sans_delimiter(i: usize) -> usize {
     i - 1
 }
 
-fn read_required_field(src: &mut &str) -> io::Result<usize> {
+fn read_required_field(src: &mut &[u8]) -> io::Result<usize> {
     let (len, is_eol) = read_field(src);
 
     if is_eol {
@@ -114,10 +116,10 @@ fn read_required_field(src: &mut &str) -> io::Result<usize> {
     }
 }
 
-fn read_field(src: &mut &str) -> (usize, bool) {
-    const DELIMITER: char = '\t';
+fn read_field(src: &mut &[u8]) -> (usize, bool) {
+    const DELIMITER: u8 = b'\t';
 
-    let (len, is_eol) = if let Some(i) = src.find(DELIMITER) {
+    let (len, is_eol) = if let Some(i) = src.as_bstr().find_byte(DELIMITER) {
         (i + 1, false)
     } else {
         (src.len(), true)

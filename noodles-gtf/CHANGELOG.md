@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * gtf/record: Change underlying buffer to a byte string.
+
   * gtf/record/attributes: Unescape backslashes (`\`) and quotation marks
     (`"`).
 

@@ -243,7 +243,7 @@ where
             .filter_by_region(region)
             .map(|result| {
                 result.and_then(|r| {
-                    Record::try_new(r.as_ref())
+                    Record::try_new(r.as_ref().as_bytes())
                         .and_then(|record| RecordBuf::try_from_feature_record(&record))
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
                 })

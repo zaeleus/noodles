@@ -2,31 +2,32 @@ mod bounds;
 
 use std::io;
 
+use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
 
 use self::bounds::Bounds;
 
 #[derive(Clone, Eq, PartialEq)]
 pub(super) struct Fields<'l> {
-    src: &'l str,
+    src: &'l [u8],
     bounds: Bounds,
 }
 
 impl<'l> Fields<'l> {
-    pub(super) fn try_new(src: &'l str) -> io::Result<Self> {
+    pub(super) fn try_new(src: &'l [u8]) -> io::Result<Self> {
         Bounds::index(src).map(|bounds| Self { src, bounds })
     }
 
-    pub fn reference_sequence_name(&self) -> &str {
-        &self.src[self.bounds.reference_sequence_name_range()]
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.src[self.bounds.reference_sequence_name_range()].as_bstr()
     }
 
-    pub fn source(&self) -> &str {
-        &self.src[self.bounds.source_range()]
+    pub fn source(&self) -> &BStr {
+        self.src[self.bounds.source_range()].as_bstr()
     }
 
-    pub fn ty(&self) -> &str {
-        &self.src[self.bounds.type_range()]
+    pub fn ty(&self) -> &BStr {
+        self.src[self.bounds.type_range()].as_bstr()
     }
 
     pub fn start(&self) -> io::Result<Position> {
@@ -39,24 +40,27 @@ impl<'l> Fields<'l> {
         parse_position(src)
     }
 
-    pub fn score(&self) -> &str {
-        &self.src[self.bounds.score_range()]
+    pub fn score(&self) -> &BStr {
+        self.src[self.bounds.score_range()].as_bstr()
     }
 
-    pub fn strand(&self) -> &str {
-        &self.src[self.bounds.strand_range()]
+    pub fn strand(&self) -> &BStr {
+        self.src[self.bounds.strand_range()].as_bstr()
     }
 
-    pub fn phase(&self) -> &str {
-        &self.src[self.bounds.phase_range()]
+    pub fn phase(&self) -> &BStr {
+        self.src[self.bounds.phase_range()].as_bstr()
     }
 
-    pub fn attributes(&self) -> &str {
-        &self.src[self.bounds.attributes_range()]
+    pub fn attributes(&self) -> &BStr {
+        self.src[self.bounds.attributes_range()].as_bstr()
     }
 }
 
-fn parse_position(s: &str) -> io::Result<Position> {
-    s.parse()
+fn parse_position(src: &[u8]) -> io::Result<Position> {
+    lexical_core::parse::<usize>(src)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        .and_then(|n| {
+            Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        })
 }
