@@ -43,6 +43,9 @@ impl DirectiveBuf {
 
 impl From<Directive<'_>> for DirectiveBuf {
     fn from(directive: Directive<'_>) -> Self {
-        Self::new(directive.key(), directive.value().map(Value::from))
+        Self::new(
+            directive.key(),
+            directive.value().map(|s| Value::String(s.into())),
+        )
     }
 }

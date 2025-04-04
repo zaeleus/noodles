@@ -33,7 +33,7 @@ impl Line {
     /// Returns the line as a directive.
     pub fn as_directive(&self) -> Option<Directive<'_>> {
         match self.kind() {
-            Kind::Directive => Some(Directive::new(&self.0[DIRECTIVE_START..])),
+            Kind::Directive => Some(Directive::new(&self.0.as_bytes()[DIRECTIVE_START..])),
             _ => None,
         }
     }

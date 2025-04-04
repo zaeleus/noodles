@@ -152,7 +152,7 @@ where
     /// for result in reader.lines() {
     ///     let line = result?;
     ///
-    ///     if let Some(key::FASTA) = line.as_directive().map(|directive| directive.key().as_bytes()) {
+    ///     if let Some(key::FASTA) = line.as_directive().map(|directive| directive.key().as_ref()) {
     ///         break;
     ///     }
     ///
