@@ -49,7 +49,7 @@ impl Line {
     /// Returns the line as a record.
     pub fn as_record(&self) -> Option<io::Result<Record<'_>>> {
         match self.kind() {
-            Kind::Record => Some(Record::try_new(&self.0)),
+            Kind::Record => Some(Record::try_new(self.0.as_bytes())),
             _ => None,
         }
     }

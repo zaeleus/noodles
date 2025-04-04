@@ -12,29 +12,29 @@ pub use self::attributes::Attributes;
 use self::fields::Fields;
 use crate::feature::record::{Phase, Strand};
 
-const MISSING: &str = ".";
+const MISSING: &[u8] = b".";
 
 /// An immutable, lazily-evalulated GFF record.
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record<'l>(Fields<'l>);
 
 impl<'l> Record<'l> {
-    pub(super) fn try_new(src: &'l str) -> io::Result<Self> {
+    pub(super) fn try_new(src: &'l [u8]) -> io::Result<Self> {
         Fields::try_new(src).map(Self)
     }
 
     /// Returns the reference sequence name.
-    pub fn reference_sequence_name(&self) -> &str {
+    pub fn reference_sequence_name(&self) -> &BStr {
         self.0.reference_sequence_name()
     }
 
     /// Returns the source.
-    pub fn source(&self) -> &str {
+    pub fn source(&self) -> &BStr {
         self.0.source()
     }
 
     /// Returns the feature type.
-    pub fn ty(&self) -> &str {
+    pub fn ty(&self) -> &BStr {
         self.0.ty()
     }
 
@@ -123,32 +123,31 @@ impl super::feature::Record for Record<'_> {
     }
 }
 
-fn parse_score(s: &str) -> Option<io::Result<f32>> {
-    match s {
+fn parse_score(src: &[u8]) -> Option<io::Result<f32>> {
+    match src {
         MISSING => None,
         _ => Some(
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
+            lexical_core::parse(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
         ),
     }
 }
 
-fn parse_strand(s: &str) -> io::Result<Strand> {
-    match s {
-        "." => Ok(Strand::None),
-        "+" => Ok(Strand::Forward),
-        "-" => Ok(Strand::Reverse),
-        "?" => Ok(Strand::Unknown),
+fn parse_strand(src: &[u8]) -> io::Result<Strand> {
+    match src {
+        b"." => Ok(Strand::None),
+        b"+" => Ok(Strand::Forward),
+        b"-" => Ok(Strand::Reverse),
+        b"?" => Ok(Strand::Unknown),
         _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid strand")),
     }
 }
 
-fn parse_phase(s: &str) -> Option<io::Result<Phase>> {
-    match s {
+fn parse_phase(src: &[u8]) -> Option<io::Result<Phase>> {
+    match src {
         MISSING => None,
-        "0" => Some(Ok(Phase::Zero)),
-        "1" => Some(Ok(Phase::One)),
-        "2" => Some(Ok(Phase::Two)),
+        b"0" => Some(Ok(Phase::Zero)),
+        b"1" => Some(Ok(Phase::One)),
+        b"2" => Some(Ok(Phase::Two)),
         _ => Some(Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid phase",
@@ -162,11 +161,11 @@ mod tests {
 
     #[test]
     fn test_parse_score() -> io::Result<()> {
-        assert!(parse_score(".").is_none());
-        assert_eq!(parse_score("0.0").transpose()?, Some(0.0));
+        assert!(parse_score(b".").is_none());
+        assert_eq!(parse_score(b"0.0").transpose()?, Some(0.0));
 
         assert!(matches!(
-            parse_phase(""),
+            parse_phase(b""),
             Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
         ));
 
@@ -175,13 +174,13 @@ mod tests {
 
     #[test]
     fn test_parse_strand() -> io::Result<()> {
-        assert_eq!(parse_strand(".")?, Strand::None);
-        assert_eq!(parse_strand("+")?, Strand::Forward);
-        assert_eq!(parse_strand("-")?, Strand::Reverse);
-        assert_eq!(parse_strand("?")?, Strand::Unknown);
+        assert_eq!(parse_strand(b".")?, Strand::None);
+        assert_eq!(parse_strand(b"+")?, Strand::Forward);
+        assert_eq!(parse_strand(b"-")?, Strand::Reverse);
+        assert_eq!(parse_strand(b"?")?, Strand::Unknown);
 
         assert!(matches!(
-            parse_strand(""),
+            parse_strand(b""),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
@@ -190,13 +189,13 @@ mod tests {
 
     #[test]
     fn test_parse_phase() -> io::Result<()> {
-        assert!(parse_phase(".").is_none());
-        assert_eq!(parse_phase("0").transpose()?, Some(Phase::Zero));
-        assert_eq!(parse_phase("1").transpose()?, Some(Phase::One));
-        assert_eq!(parse_phase("2").transpose()?, Some(Phase::Two));
+        assert!(parse_phase(b".").is_none());
+        assert_eq!(parse_phase(b"0").transpose()?, Some(Phase::Zero));
+        assert_eq!(parse_phase(b"1").transpose()?, Some(Phase::One));
+        assert_eq!(parse_phase(b"2").transpose()?, Some(Phase::Two));
 
         assert!(matches!(
-            parse_phase(""),
+            parse_phase(b""),
             Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
         ));
 
