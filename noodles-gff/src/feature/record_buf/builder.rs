@@ -1,14 +1,16 @@
 use noodles_core::Position;
 
+use bstr::BString;
+
 use super::{Attributes, RecordBuf};
 use crate::feature::record::{Phase, Strand};
 
 /// A GFF record builder.
 #[derive(Debug)]
 pub struct Builder {
-    reference_sequence_name: String,
-    source: String,
-    ty: String,
+    reference_sequence_name: BString,
+    source: BString,
+    ty: BString,
     start: Position,
     end: Position,
     score: Option<f32>,
@@ -47,7 +49,7 @@ impl Builder {
     /// ```
     pub fn set_reference_sequence_name<N>(mut self, reference_sequence_name: N) -> Self
     where
-        N: Into<String>,
+        N: Into<BString>,
     {
         self.reference_sequence_name = reference_sequence_name.into();
         self
@@ -68,7 +70,7 @@ impl Builder {
     /// ```
     pub fn set_source<S>(mut self, source: S) -> Self
     where
-        S: Into<String>,
+        S: Into<BString>,
     {
         self.source = source.into();
         self
@@ -89,7 +91,7 @@ impl Builder {
     /// ```
     pub fn set_type<T>(mut self, ty: T) -> Self
     where
-        T: Into<String>,
+        T: Into<BString>,
     {
         self.ty = ty.into();
         self

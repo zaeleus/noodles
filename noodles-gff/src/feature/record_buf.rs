@@ -6,7 +6,7 @@ mod convert;
 
 use std::io;
 
-use bstr::{BStr, ByteSlice};
+use bstr::{BStr, BString};
 use noodles_core::Position;
 
 pub use self::{attributes::Attributes, builder::Builder};
@@ -15,9 +15,9 @@ use super::record::{Phase, Strand};
 /// A GFF record.
 #[derive(Clone, Debug, PartialEq)]
 pub struct RecordBuf {
-    reference_sequence_name: String,
-    source: String,
-    ty: String,
+    reference_sequence_name: BString,
+    source: BString,
+    ty: BString,
     start: Position,
     end: Position,
     score: Option<f32>,
@@ -53,8 +53,8 @@ impl RecordBuf {
     /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.reference_sequence_name(), ".");
     /// ```
-    pub fn reference_sequence_name(&self) -> &str {
-        &self.reference_sequence_name
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.reference_sequence_name.as_ref()
     }
 
     /// Returns the source of the record.
@@ -66,8 +66,8 @@ impl RecordBuf {
     /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.source(), ".");
     /// ```
-    pub fn source(&self) -> &str {
-        &self.source
+    pub fn source(&self) -> &BStr {
+        self.source.as_ref()
     }
 
     /// Returns the feature type of the record.
@@ -79,8 +79,8 @@ impl RecordBuf {
     /// let record = gff::feature::RecordBuf::default();
     /// assert_eq!(record.ty(), ".");
     /// ```
-    pub fn ty(&self) -> &str {
-        &self.ty
+    pub fn ty(&self) -> &BStr {
+        self.ty.as_ref()
     }
 
     /// Returns the start position of the record.
@@ -176,15 +176,15 @@ impl Default for RecordBuf {
 
 impl super::Record for RecordBuf {
     fn reference_sequence_name(&self) -> &BStr {
-        self.reference_sequence_name().as_bytes().as_bstr()
+        self.reference_sequence_name()
     }
 
     fn source(&self) -> &BStr {
-        self.source().as_bytes().as_bstr()
+        self.source()
     }
 
     fn ty(&self) -> &BStr {
-        self.ty().as_bytes().as_bstr()
+        self.ty()
     }
 
     fn feature_start(&self) -> io::Result<Position> {
