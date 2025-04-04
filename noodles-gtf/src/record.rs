@@ -73,7 +73,7 @@ impl<'l> Record<'l> {
 
     /// Returns the attributes.
     pub fn attributes(&self) -> io::Result<Attributes<'_>> {
-        Attributes::try_new(self.0.attributes())
+        Attributes::try_new(self.0.attributes().as_bytes())
     }
 }
 

@@ -1,6 +1,8 @@
 mod array;
 
-use std::{borrow::Cow, io};
+use std::borrow::Cow;
+
+use bstr::BStr;
 
 use self::array::Array;
 use super::percent_decode;
@@ -9,13 +11,13 @@ use super::percent_decode;
 #[derive(Debug, Eq, PartialEq)]
 pub enum Value<'a> {
     /// A string.
-    String(Cow<'a, str>),
+    String(Cow<'a, BStr>),
     /// An array.
     Array(Array<'a>),
 }
 
-impl AsRef<str> for Value<'_> {
-    fn as_ref(&self) -> &str {
+impl AsRef<BStr> for Value<'_> {
+    fn as_ref(&self) -> &BStr {
         match self {
             Value::String(s) => s,
             Value::Array(array) => array.as_ref(),
@@ -32,19 +34,17 @@ impl<'a> From<Value<'a>> for crate::feature::record::attributes::field::Value<'a
     }
 }
 
-pub(super) fn parse_value(s: &str) -> io::Result<Value<'_>> {
-    if is_array(s) {
-        Ok(Value::Array(Array::new(s)))
+pub(super) fn parse_value(src: &[u8]) -> Value<'_> {
+    if is_array(src) {
+        Value::Array(Array::new(src))
     } else {
-        percent_decode(s)
-            .map(Value::String)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        Value::String(percent_decode(src))
     }
 }
 
-fn is_array(s: &str) -> bool {
-    const SEPARATOR: char = ',';
-    s.contains(SEPARATOR)
+fn is_array(src: &[u8]) -> bool {
+    const SEPARATOR: u8 = b',';
+    src.contains(&SEPARATOR)
 }
 
 #[cfg(test)]
@@ -52,15 +52,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_value() -> io::Result<()> {
-        assert_eq!(parse_value("ndls")?, Value::String(Cow::from("ndls")));
-        assert_eq!(parse_value("8,13")?, Value::Array(Array::new("8,13")));
-        Ok(())
+    fn test_parse_value() {
+        assert_eq!(
+            parse_value(b"ndls"),
+            Value::String(Cow::from(BStr::new("ndls")))
+        );
+        assert_eq!(parse_value(b"8,13"), Value::Array(Array::new(b"8,13")));
     }
 
     #[test]
     fn test_is_array() {
-        assert!(is_array("8,13"));
-        assert!(!is_array("ndls"));
+        assert!(is_array(b"8,13"));
+        assert!(!is_array(b"ndls"));
     }
 }

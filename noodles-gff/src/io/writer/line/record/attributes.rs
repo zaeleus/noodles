@@ -37,6 +37,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
     use crate::feature::record_buf::{attributes::field::Value, Attributes as AttributesBuf};
 
@@ -55,7 +57,7 @@ mod tests {
 
         t(
             &mut buf,
-            &[(String::from("ID"), Value::from("0"))]
+            &[(BString::from("ID"), Value::from("0"))]
                 .into_iter()
                 .collect(),
             b"ID=0",
@@ -64,8 +66,8 @@ mod tests {
         t(
             &mut buf,
             &[
-                (String::from("ID"), Value::from("0")),
-                (String::from("Name"), Value::from("ndls")),
+                (BString::from("ID"), Value::from("0")),
+                (BString::from("Name"), Value::from("ndls")),
             ]
             .into_iter()
             .collect(),

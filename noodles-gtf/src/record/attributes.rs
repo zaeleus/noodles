@@ -2,16 +2,17 @@ mod field;
 
 use std::{borrow::Cow, fmt, io};
 
+use bstr::{BStr, BString, ByteSlice};
 use indexmap::IndexMap;
 use noodles_gff as gff;
 
 use self::field::{parse_field, Value};
 
 /// GTF record attributes.
-pub struct Attributes<'r>(IndexMap<&'r str, Value<'r>>);
+pub struct Attributes<'r>(IndexMap<&'r BStr, Value<'r>>);
 
 impl<'r> Attributes<'r> {
-    pub(super) fn try_new(src: &'r str) -> io::Result<Self> {
+    pub(super) fn try_new(src: &'r [u8]) -> io::Result<Self> {
         parse_attributes(src).map(Self)
     }
 
@@ -21,12 +22,12 @@ impl<'r> Attributes<'r> {
     }
 
     /// Returns the value of the given key.
-    pub fn get(&self, key: &str) -> Option<io::Result<&Value<'r>>> {
-        self.0.get(key).map(Ok)
+    pub fn get(&self, key: &[u8]) -> Option<io::Result<&Value<'r>>> {
+        self.0.get(key.as_bstr()).map(Ok)
     }
 
     /// Returns an iterator over key-value pairs.
-    pub fn iter(&self) -> impl Iterator<Item = io::Result<(&'r str, &Value<'r>)>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<(&'r BStr, &Value<'r>)>> + '_ {
         self.0.iter().map(|(k, v)| Ok((*k, v)))
     }
 }
@@ -51,7 +52,7 @@ impl gff::feature::record::Attributes for Attributes<'_> {
 
     fn get(
         &self,
-        tag: &str,
+        tag: &[u8],
     ) -> Option<io::Result<gff::feature::record::attributes::field::Value<'_>>> {
         self.get(tag).map(|result| result.map(|value| value.into()))
     }
@@ -61,7 +62,7 @@ impl gff::feature::record::Attributes for Attributes<'_> {
     ) -> Box<
         dyn Iterator<
                 Item = io::Result<(
-                    Cow<'_, str>,
+                    Cow<'_, BStr>,
                     gff::feature::record::attributes::field::Value<'_>,
                 )>,
             > + '_,
@@ -73,7 +74,7 @@ impl gff::feature::record::Attributes for Attributes<'_> {
     }
 }
 
-fn parse_attributes(mut src: &str) -> io::Result<IndexMap<&str, Value<'_>>> {
+fn parse_attributes(mut src: &[u8]) -> io::Result<IndexMap<&BStr, Value<'_>>> {
     use indexmap::map::Entry;
 
     let mut map = IndexMap::new();
@@ -93,29 +94,28 @@ fn parse_attributes(mut src: &str) -> io::Result<IndexMap<&str, Value<'_>>> {
     Ok(map)
 }
 
-fn escape_decode(s: &str) -> io::Result<Cow<'_, str>> {
-    const BACKSLASH: char = '\\';
+const BACKSLASH: u8 = b'\\';
 
-    if s.contains(BACKSLASH) {
+fn escape_decode(s: &[u8]) -> io::Result<Cow<'_, BStr>> {
+    if s.contains(&BACKSLASH) {
         unescape_string(s).map(Cow::from)
     } else {
-        Ok(Cow::from(s))
+        Ok(Cow::from(s.as_bstr()))
     }
 }
 
-fn unescape_string(s: &str) -> io::Result<String> {
-    const BACKSLASH: char = '\\';
-    const QUOTATION_MARK: char = '"';
+fn unescape_string(s: &[u8]) -> io::Result<BString> {
+    const QUOTATION_MARK: u8 = b'"';
 
     enum State {
         Normal,
         Escape,
     }
 
-    let mut dst = String::with_capacity(s.len());
+    let mut dst = Vec::with_capacity(s.len());
     let mut state = State::Normal;
 
-    for c in s.chars() {
+    for c in s.iter().copied() {
         match state {
             State::Normal => {
                 if c == BACKSLASH {
@@ -140,7 +140,7 @@ fn unescape_string(s: &str) -> io::Result<String> {
         }
     }
 
-    Ok(dst)
+    Ok(dst.into())
 }
 
 #[cfg(test)]
@@ -149,61 +149,76 @@ mod tests {
 
     #[test]
     fn test_is_empty() -> io::Result<()> {
-        assert!(Attributes::try_new("")?.is_empty());
-        assert!(!Attributes::try_new("id 0;")?.is_empty());
-        assert!(!Attributes::try_new(r#"id 0; name "ndls";"#)?.is_empty());
+        assert!(Attributes::try_new(b"")?.is_empty());
+        assert!(!Attributes::try_new(b"id 0;")?.is_empty());
+        assert!(!Attributes::try_new(br#"id 0; name "ndls";"#)?.is_empty());
         Ok(())
     }
 
     #[test]
     fn test_get() -> io::Result<()> {
-        let attributes = Attributes::try_new(r#"id 0; name "ndls";"#)?;
+        let attributes = Attributes::try_new(br#"id 0; name "ndls";"#)?;
 
         assert_eq!(
-            attributes.get("id").transpose()?,
-            Some(&Value::String(Cow::from("0")))
+            attributes.get(b"id").transpose()?,
+            Some(&Value::String(Cow::from(BStr::new("0"))))
         );
         assert_eq!(
-            attributes.get("name").transpose()?,
-            Some(&Value::String(Cow::from("ndls")))
+            attributes.get(b"name").transpose()?,
+            Some(&Value::String(Cow::from(BStr::new("ndls"))))
         );
 
-        assert!(attributes.get("comment").transpose()?.is_none());
+        assert!(attributes.get(b"comment").transpose()?.is_none());
 
         Ok(())
     }
 
     #[test]
     fn test_iter() -> io::Result<()> {
-        fn f(src: &str, expected: &[(&str, &Value<'_>)]) -> io::Result<()> {
+        fn f(src: &[u8], expected: &[(&BStr, &Value<'_>)]) -> io::Result<()> {
             let attributes = Attributes::try_new(src)?;
             let actual = attributes.iter().collect::<io::Result<Vec<_>>>()?;
             assert_eq!(actual, expected);
             Ok(())
         }
 
-        f("", &[])?;
-        f("id 0;", &[("id", &Value::String(Cow::from("0")))])?;
-        f("id 0", &[("id", &Value::String(Cow::from("0")))])?;
+        f(b"", &[])?;
         f(
-            r#"id 0; name "ndls";"#,
+            b"id 0;",
+            &[(BStr::new("id"), &Value::String(Cow::from(BStr::new("0"))))],
+        )?;
+        f(
+            b"id 0",
+            &[(BStr::new("id"), &Value::String(Cow::from(BStr::new("0"))))],
+        )?;
+        f(
+            br#"id 0; name "ndls";"#,
             &[
-                ("id", &Value::String(Cow::from("0"))),
-                ("name", &Value::String(Cow::from("ndls"))),
+                (BStr::new("id"), &Value::String(Cow::from(BStr::new("0")))),
+                (
+                    BStr::new("name"),
+                    &Value::String(Cow::from(BStr::new("ndls"))),
+                ),
             ],
         )?;
         f(
-            r#"id 0;name "ndls";"#,
+            br#"id 0;name "ndls";"#,
             &[
-                ("id", &Value::String(Cow::from("0"))),
-                ("name", &Value::String(Cow::from("ndls"))),
+                (BStr::new("id"), &Value::String(Cow::from(BStr::new("0")))),
+                (
+                    BStr::new("name"),
+                    &Value::String(Cow::from(BStr::new("ndls"))),
+                ),
             ],
         )?;
         f(
-            r#"id 0;  name "ndls";  "#,
+            br#"id 0;  name "ndls";  "#,
             &[
-                ("id", &Value::String(Cow::from("0"))),
-                ("name", &Value::String(Cow::from("ndls"))),
+                (BStr::new("id"), &Value::String(Cow::from(BStr::new("0")))),
+                (
+                    BStr::new("name"),
+                    &Value::String(Cow::from(BStr::new("ndls"))),
+                ),
             ],
         )?;
 
@@ -212,13 +227,16 @@ mod tests {
 
     #[test]
     fn test_escape_decode() -> io::Result<()> {
-        assert_eq!(escape_decode("")?, "");
-        assert_eq!(escape_decode("ndls")?, "ndls");
-        assert_eq!(escape_decode(r"nd\\ls")?, r"nd\ls");
-        assert_eq!(escape_decode(r#"nd\"ls\""#)?, r#"nd"ls""#);
+        assert_eq!(escape_decode(b"")?, Cow::from(BStr::new("")));
+        assert_eq!(escape_decode(b"ndls")?, Cow::from(BStr::new("ndls")));
+        assert_eq!(escape_decode(br"nd\\ls")?, Cow::from(BStr::new(r"nd\ls")));
+        assert_eq!(
+            escape_decode(br#"nd\"ls\""#)?,
+            Cow::from(BStr::new(r#"nd"ls""#))
+        );
 
         assert!(matches!(
-            escape_decode(r#"nd\ls"#),
+            escape_decode(br#"nd\ls"#),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

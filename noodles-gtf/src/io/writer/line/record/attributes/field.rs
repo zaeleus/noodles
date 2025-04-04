@@ -2,12 +2,13 @@ mod value;
 
 use std::io::{self, Write};
 
+use bstr::BStr;
 use noodles_gff::feature::record::attributes::field::Value;
 
 use self::value::write_value;
 use super::write_separator;
 
-pub(super) fn write_field<W>(writer: &mut W, key: &str, value: &Value) -> io::Result<()>
+pub(super) fn write_field<W>(writer: &mut W, key: &BStr, value: &Value) -> io::Result<()>
 where
     W: Write,
 {
@@ -18,7 +19,7 @@ where
             write_separator(writer)?;
         }
 
-        writer.write_all(key.as_bytes())?;
+        writer.write_all(key)?;
         write_separator(writer)?;
         write_value(writer, v.as_ref())?;
         write_terminator(writer)?;
@@ -37,13 +38,14 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
     use noodles_gff::feature::record_buf::attributes::field::Value as ValueBuf;
 
     use super::*;
 
     #[test]
     fn test_write_field() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, key: &str, value: &ValueBuf, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, key: &BStr, value: &ValueBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_field(buf, key, &value.into())?;
             assert_eq!(buf, expected);
@@ -54,15 +56,15 @@ mod tests {
 
         t(
             &mut buf,
-            "gene_id",
+            BStr::new("gene_id"),
             &ValueBuf::from("g0"),
             br#"gene_id "g0";"#,
         )?;
 
         t(
             &mut buf,
-            "tag",
-            &ValueBuf::from(vec![String::from("nd"), String::from("ls")]),
+            BStr::new("tag"),
+            &ValueBuf::from(vec![BString::from("nd"), BString::from("ls")]),
             br#"tag "nd"; tag "ls";"#,
         )?;
 

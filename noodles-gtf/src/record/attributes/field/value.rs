@@ -1,23 +1,24 @@
 use std::{borrow::Cow, io, iter, mem};
 
+use bstr::BStr;
 use noodles_gff as gff;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Value<'r> {
-    String(Cow<'r, str>),
-    Array(Vec<Cow<'r, str>>),
+    String(Cow<'r, BStr>),
+    Array(Vec<Cow<'r, BStr>>),
 }
 
 impl<'r> Value<'r> {
     /// An iterator over values.
-    pub fn iter(&self) -> Box<dyn Iterator<Item = &Cow<'r, str>> + '_> {
+    pub fn iter(&self) -> Box<dyn Iterator<Item = &Cow<'r, BStr>> + '_> {
         match self {
             Self::String(value) => Box::new(iter::once(value)),
             Self::Array(values) => Box::new(values.iter()),
         }
     }
 
-    pub(crate) fn push(&mut self, s: Cow<'r, str>) {
+    pub(crate) fn push(&mut self, s: Cow<'r, BStr>) {
         match self {
             Self::String(t) => {
                 let values = vec![t.clone(), s];
@@ -37,10 +38,10 @@ impl<'r> From<&'r Value<'r>> for gff::feature::record::attributes::field::Value<
     }
 }
 
-struct Array<'r>(&'r [Cow<'r, str>]);
+struct Array<'r>(&'r [Cow<'r, BStr>]);
 
 impl<'r> gff::feature::record::attributes::field::value::Array<'r> for Array<'r> {
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'r, str>>> + 'r> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'r, BStr>>> + 'r> {
         Box::new(self.0.iter().map(|value| Ok(value.clone())))
     }
 }

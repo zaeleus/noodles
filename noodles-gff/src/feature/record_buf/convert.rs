@@ -34,16 +34,16 @@ impl RecordBuf {
             .map(|result| {
                 result.and_then(|(k, v)| {
                     let value = match v {
-                        ValueRef::String(s) => Value::from(s.as_ref()),
+                        ValueRef::String(s) => Value::String(s.into_owned()),
                         ValueRef::Array(values) => Value::Array(
                             values
                                 .iter()
-                                .map(|result| result.map(String::from))
+                                .map(|result| result.map(|s| s.into_owned()))
                                 .collect::<io::Result<_>>()?,
                         ),
                     };
 
-                    Ok((k.into(), value))
+                    Ok((k.into_owned(), value))
                 })
             })
             .collect::<io::Result<_>>()?;

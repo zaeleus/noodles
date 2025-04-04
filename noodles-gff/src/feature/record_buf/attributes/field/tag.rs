@@ -1,5 +1,7 @@
 //! GFF record attributes field tag.
 
+use bstr::BString;
+
 /// The feature ID (`ID`).
 pub const ID: &str = "ID";
 
@@ -34,4 +36,4 @@ pub const ONTOLOGY_TERM: &str = "Ontology_term";
 pub const IS_CIRCULAR: &str = "Is_circular";
 
 /// A GFF record attributes field tag.
-pub type Tag = String;
+pub type Tag = BString;

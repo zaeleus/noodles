@@ -12,6 +12,7 @@ documentation = "https://docs.rs/noodles-gtf"
 categories = ["parser-implementations", "science::bioinformatics"]
 
 [dependencies]
+bstr.workspace = true
 indexmap.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.37.0" }
 noodles-core = { path = "../noodles-core", version = "0.17.0" }

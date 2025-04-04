@@ -6,12 +6,13 @@ use std::{
     io::{self, Write},
 };
 
-use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
+use bstr::BStr;
+use percent_encoding::{AsciiSet, CONTROLS};
 
 use self::{tag::write_tag, value::write_value};
 use crate::feature::record::attributes::field::Value;
 
-pub(super) fn write_field<W>(writer: &mut W, key: &str, value: &Value) -> io::Result<()>
+pub(super) fn write_field<W>(writer: &mut W, key: &BStr, value: &Value) -> io::Result<()>
 where
     W: Write,
 {
@@ -29,7 +30,7 @@ where
     writer.write_all(&[SEPARATOR])
 }
 
-fn percent_encode(s: &str) -> Cow<'_, str> {
+fn percent_encode(s: &BStr) -> Cow<'_, str> {
     const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS
         .add(b'\t')
         .add(b'\n')
@@ -40,7 +41,7 @@ fn percent_encode(s: &str) -> Cow<'_, str> {
         .add(b'&')
         .add(b',');
 
-    utf8_percent_encode(s, PERCENT_ENCODE_SET).into()
+    percent_encoding::percent_encode(s, PERCENT_ENCODE_SET).into()
 }
 
 #[cfg(test)]
@@ -50,8 +51,15 @@ mod tests {
     #[test]
     fn test_write_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_field(&mut buf, "ID", &Value::String(Cow::from("0")))?;
+
+        write_field(
+            &mut buf,
+            BStr::new("ID"),
+            &Value::String(Cow::from(BStr::new("0"))),
+        )?;
+
         assert_eq!(buf, b"ID=0");
+
         Ok(())
     }
 }

@@ -3,34 +3,40 @@
 mod tag;
 mod value;
 
-use std::{borrow::Cow, io, str};
+use std::{borrow::Cow, io};
 
-use percent_encoding::percent_decode_str;
+use bstr::{BStr, ByteSlice};
 
 pub use self::value::Value;
 use self::{tag::parse_tag, value::parse_value};
 
-pub(super) fn parse_field<'a>(src: &mut &'a str) -> io::Result<(Cow<'a, str>, Value<'a>)> {
-    const DELIMITER: char = ';';
-    const SEPARATOR: char = '=';
+pub(super) fn parse_field<'a>(src: &mut &'a [u8]) -> io::Result<(Cow<'a, BStr>, Value<'a>)> {
+    const DELIMITER: u8 = b';';
+    const SEPARATOR: u8 = b'=';
 
-    let (buf, rest) = src
-        .split_once(DELIMITER)
-        .unwrap_or_else(|| src.split_at(src.len()));
+    let (buf, rest) = split_once(src, DELIMITER).unwrap_or_else(|| src.split_at(src.len()));
 
     *src = rest;
 
-    if let Some((t, v)) = buf.split_once(SEPARATOR) {
-        let tag = parse_tag(t)?;
-        let value = parse_value(v)?;
+    if let Some((t, v)) = split_once(buf, SEPARATOR) {
+        let tag = parse_tag(t);
+        let value = parse_value(v);
         Ok((tag, value))
     } else {
         Err(io::Error::new(io::ErrorKind::InvalidData, "invalid field"))
     }
 }
 
-fn percent_decode(s: &str) -> Result<Cow<'_, str>, str::Utf8Error> {
-    percent_decode_str(s).decode_utf8()
+fn split_once(src: &[u8], n: u8) -> Option<(&[u8], &[u8])> {
+    let i = src.iter().position(|b| *b == n)?;
+    Some((&src[..i], &src[i + 1..]))
+}
+
+fn percent_decode(s: &[u8]) -> Cow<'_, BStr> {
+    match Cow::from(percent_encoding::percent_decode(s)) {
+        Cow::Borrowed(buf) => Cow::Borrowed(buf.as_bstr()),
+        Cow::Owned(buf) => Cow::Owned(buf.into()),
+    }
 }
 
 #[cfg(test)]
@@ -39,18 +45,24 @@ mod tests {
 
     #[test]
     fn test_parse_field() -> io::Result<()> {
-        let mut src = "ID=1;Name=ndls";
+        let mut src = &b"ID=1;Name=ndls"[..];
         assert_eq!(
             parse_field(&mut src)?,
-            (Cow::from("ID"), Value::String(Cow::from("1")))
+            (
+                Cow::from(BStr::new("ID")),
+                Value::String(Cow::from(BStr::new("1")))
+            )
         );
         assert_eq!(
             parse_field(&mut src)?,
-            (Cow::from("Name"), Value::String(Cow::from("ndls")))
+            (
+                Cow::from(BStr::new("Name")),
+                Value::String(Cow::from(BStr::new("ndls")))
+            )
         );
         assert!(src.is_empty());
 
-        let mut src = "ID";
+        let mut src = &b"ID"[..];
         assert!(matches!(
             parse_field(&mut src),
             Err(e) if e.kind() == io::ErrorKind::InvalidData

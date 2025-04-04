@@ -56,8 +56,8 @@ impl<'l> Fields<'l> {
         const MISSING: &str = ".";
 
         match &self.src[self.bounds.attributes_range()] {
-            MISSING => Attributes::new(""),
-            buf => Attributes::new(buf),
+            MISSING => Attributes::new(b""),
+            buf => Attributes::new(buf.as_bytes()),
         }
     }
 }

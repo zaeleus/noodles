@@ -2,60 +2,66 @@ mod value;
 
 use std::io;
 
+use bstr::{BStr, ByteSlice};
+
 pub use self::value::Value;
 
-const SEPARATOR: char = ' ';
-const DOUBLE_QUOTES: char = '"';
-const TERMINATOR: char = ';';
+const SEPARATOR: u8 = b' ';
+const DOUBLE_QUOTES: u8 = b'"';
+const TERMINATOR: u8 = b';';
 
-pub(super) fn parse_field<'a>(s: &mut &'a str) -> io::Result<(&'a str, &'a str)> {
-    let key = parse_key(s)?;
-    let value = parse_value(s)?;
-    maybe_consume_terminator(s);
+pub(super) fn parse_field<'a>(src: &mut &'a [u8]) -> io::Result<(&'a BStr, &'a BStr)> {
+    let key = parse_key(src)?;
+    let value = parse_value(src)?;
+    maybe_consume_terminator(src);
     Ok((key, value))
 }
 
-fn parse_key<'a>(s: &mut &'a str) -> io::Result<&'a str> {
-    let Some(i) = s.find(SEPARATOR) else {
+fn parse_key<'a>(src: &mut &'a [u8]) -> io::Result<&'a BStr> {
+    let Some(i) = src.iter().position(|c| *c == SEPARATOR) else {
         return Err(io::Error::from(io::ErrorKind::InvalidData));
     };
 
-    let (t, rest) = s.split_at(i);
-    *s = &rest[1..];
-    Ok(t)
+    let (buf, rest) = src.split_at(i);
+    *src = &rest[1..];
+    Ok(buf.as_bstr())
 }
 
-fn parse_value<'a>(s: &mut &'a str) -> io::Result<&'a str> {
-    if let Some(rest) = s.strip_prefix(DOUBLE_QUOTES) {
-        *s = rest;
-        parse_string(s)
+fn parse_value<'a>(src: &mut &'a [u8]) -> io::Result<&'a BStr> {
+    if let Some(rest) = src.strip_prefix(&[DOUBLE_QUOTES]) {
+        *src = rest;
+        parse_string(src)
     } else {
-        parse_raw_value(s)
+        parse_raw_value(src)
     }
 }
 
-fn parse_string<'a>(s: &mut &'a str) -> io::Result<&'a str> {
-    let Some(i) = s.find(DOUBLE_QUOTES) else {
+fn parse_string<'a>(src: &mut &'a [u8]) -> io::Result<&'a BStr> {
+    let Some(i) = src.iter().position(|c| *c == DOUBLE_QUOTES) else {
         return Err(io::Error::from(io::ErrorKind::InvalidData));
     };
 
-    let (t, rest) = s.split_at(i);
-    *s = &rest[1..];
-    Ok(t)
+    let (buf, rest) = src.split_at(i);
+    *src = &rest[1..];
+    Ok(buf.as_bstr())
 }
 
-fn parse_raw_value<'a>(s: &mut &'a str) -> io::Result<&'a str> {
-    let i = s.find(TERMINATOR).unwrap_or(s.len());
-    let (t, rest) = s.split_at(i);
-    *s = rest;
-    Ok(t)
+fn parse_raw_value<'a>(src: &mut &'a [u8]) -> io::Result<&'a BStr> {
+    let i = src
+        .iter()
+        .position(|c| *c == TERMINATOR)
+        .unwrap_or(src.len());
+
+    let (buf, rest) = src.split_at(i);
+    *src = rest;
+    Ok(buf.as_bstr())
 }
 
-fn maybe_consume_terminator(s: &mut &str) {
-    *s = s.trim_start();
+fn maybe_consume_terminator(src: &mut &[u8]) {
+    *src = src.trim_ascii_start();
 
-    if let Some(rest) = s.strip_prefix(TERMINATOR) {
-        *s = rest.trim_start();
+    if let Some(rest) = src.strip_prefix(&[TERMINATOR]) {
+        *src = rest.trim_ascii_start();
     }
 }
 
@@ -65,20 +71,29 @@ mod tests {
 
     #[test]
     fn test_parse_field() -> io::Result<()> {
-        assert_eq!(parse_field(&mut r#"id "0""#)?, ("id", "0"));
-        assert_eq!(parse_field(&mut "id 0")?, ("id", "0"));
-        assert_eq!(parse_field(&mut r#"id "0";"#)?, ("id", "0"));
-        assert_eq!(parse_field(&mut "id 0;")?, ("id", "0"));
-        assert_eq!(parse_field(&mut r#"id "0" ; "#)?, ("id", "0"));
-        assert_eq!(parse_field(&mut r#"id "0;1";"#)?, ("id", "0;1"));
+        fn t(mut src: &[u8], (expected_key, expected_value): (&[u8], &[u8])) -> io::Result<()> {
+            assert_eq!(
+                parse_field(&mut src)?,
+                (BStr::new(expected_key), BStr::new(expected_value))
+            );
+
+            Ok(())
+        }
+
+        t(br#"id "0""#, (b"id", b"0"))?;
+        t(b"id 0", (b"id", b"0"))?;
+        t(br#"id "0";"#, (b"id", b"0"))?;
+        t(b"id 0;", (b"id", b"0"))?;
+        t(br#"id "0" ; "#, (b"id", b"0"))?;
+        t(br#"id "0;1";"#, (b"id", b"0;1"))?;
 
         assert!(matches!(
-            parse_field(&mut ""),
+            parse_field(&mut &b""[..]),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
         assert!(matches!(
-            parse_field(&mut "id"),
+            parse_field(&mut &b"id"[..]),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 

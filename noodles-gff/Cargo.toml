@@ -15,6 +15,7 @@ categories = ["parser-implementations", "science::bioinformatics"]
 async = ["dep:futures", "dep:tokio"]
 
 [dependencies]
+bstr.workspace = true
 indexmap.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.37.0" }
 noodles-core = { path = "../noodles-core", version = "0.17.0" }

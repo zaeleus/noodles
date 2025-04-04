@@ -1,29 +1,28 @@
 use std::{borrow::Cow, fmt, io};
 
+use bstr::{BStr, ByteSlice};
+
 use crate::record::attributes::field::percent_decode;
 
 /// A raw GFF record attributes field array value.
 #[derive(Eq, PartialEq)]
-pub struct Array<'a>(&'a str);
+pub struct Array<'a>(&'a [u8]);
 
 impl<'a> Array<'a> {
-    pub(super) fn new(s: &'a str) -> Self {
+    pub(super) fn new(s: &'a [u8]) -> Self {
         Self(s)
     }
 
     /// Returns an iterator over values.
-    pub fn iter(&self) -> impl Iterator<Item = io::Result<Cow<'a, str>>> {
-        const DELIMITER: char = ',';
-
-        self.0
-            .split(DELIMITER)
-            .map(|s| percent_decode(s).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+    pub fn iter(&self) -> impl Iterator<Item = Cow<'a, BStr>> {
+        const DELIMITER: u8 = b',';
+        self.0.split(|b| *b == DELIMITER).map(|s| percent_decode(s))
     }
 }
 
-impl AsRef<str> for Array<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
+impl AsRef<BStr> for Array<'_> {
+    fn as_ref(&self) -> &BStr {
+        self.0.as_bstr()
     }
 }
 
@@ -34,8 +33,8 @@ impl fmt::Debug for Array<'_> {
 }
 
 impl<'a> crate::feature::record::attributes::field::value::Array<'a> for Array<'a> {
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'a, str>>> + 'a> {
-        Box::new(self.iter())
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'a, BStr>>> + 'a> {
+        Box::new(self.iter().map(Ok))
     }
 }
 
@@ -44,10 +43,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_iter() -> io::Result<()> {
-        let array = Array::new("8,13%2C21");
-        let actual: Vec<_> = array.iter().collect::<io::Result<_>>()?;
-        assert_eq!(actual, [Cow::from("8"), Cow::from("13,21")]);
-        Ok(())
+    fn test_iter() {
+        let array = Array::new(b"8,13%2C21");
+
+        assert_eq!(
+            array.iter().collect::<Vec<_>>(),
+            [Cow::from("8"), Cow::from("13,21")]
+        );
     }
 }

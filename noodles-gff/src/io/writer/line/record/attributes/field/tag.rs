@@ -1,8 +1,10 @@
 use std::io::{self, Write};
 
+use bstr::BStr;
+
 use super::percent_encode;
 
-pub(super) fn write_tag<W>(writer: &mut W, tag: &str) -> io::Result<()>
+pub(super) fn write_tag<W>(writer: &mut W, tag: &BStr) -> io::Result<()>
 where
     W: Write,
 {
@@ -16,7 +18,7 @@ mod tests {
 
     #[test]
     fn test_write_tag() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, key: &str, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, key: &BStr, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_tag(buf, key)?;
             assert_eq!(buf, expected);
@@ -25,8 +27,8 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        t(&mut buf, "ID", b"ID")?;
-        t(&mut buf, "%s", b"%25s")?;
+        t(&mut buf, BStr::new("ID"), b"ID")?;
+        t(&mut buf, BStr::new("%s"), b"%25s")?;
 
         Ok(())
     }

@@ -2,13 +2,15 @@
 
 use std::{borrow::Cow, io, iter, mem};
 
+use bstr::{BStr, BString};
+
 /// A GFF record attribute field value.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Value {
     /// A string.
-    String(String),
+    String(BString),
     /// An array.
-    Array(Vec<String>),
+    Array(Vec<BString>),
 }
 
 impl Value {
@@ -17,17 +19,18 @@ impl Value {
     /// # Examples
     ///
     /// ```
+    /// use bstr::{BStr, BString};
     /// use noodles_gff::feature::record_buf::attributes::field::Value;
     ///
     /// let value = Value::from("ndls");
-    /// assert_eq!(value.as_string(), Some("ndls"));
+    /// assert_eq!(value.as_string(), Some(BStr::new("ndls")));
     ///
-    /// let value = Value::from(vec![String::from("ndls0"), String::from("ndls1")]);
+    /// let value = Value::from(vec![BString::from("ndls0"), BString::from("ndls1")]);
     /// assert!(value.as_string().is_none());
     /// ```
-    pub fn as_string(&self) -> Option<&str> {
+    pub fn as_string(&self) -> Option<&BStr> {
         match self {
-            Self::String(value) => Some(value),
+            Self::String(value) => Some(value.as_ref()),
             Self::Array(_) => None,
         }
     }
@@ -37,16 +40,17 @@ impl Value {
     /// # Examples
     ///
     /// ```
+    /// use bstr::BString;
     /// use noodles_gff::feature::record_buf::attributes::field::Value;
     ///
-    /// let raw_values = vec![String::from("ndls0"), String::from("ndls1")];
+    /// let raw_values = vec![BString::from("ndls0"), BString::from("ndls1")];
     /// let value = Value::from(raw_values.clone());
     /// assert_eq!(value.as_array(), Some(&raw_values[..]));
     ///
     /// let value = Value::from("ndls");
     /// assert!(value.as_array().is_none());
     /// ```
-    pub fn as_array(&self) -> Option<&[String]> {
+    pub fn as_array(&self) -> Option<&[BString]> {
         match self {
             Self::String(_) => None,
             Self::Array(values) => Some(values),
@@ -58,20 +62,21 @@ impl Value {
     /// # Examples
     ///
     /// ```
+    /// use bstr::BString;
     /// use noodles_gff::feature::record_buf::attributes::field::Value;
     ///
     /// let value = Value::from("ndls");
     /// let mut iter = value.iter();
-    /// assert_eq!(iter.next(), Some(&String::from("ndls")));
+    /// assert_eq!(iter.next(), Some(&BString::from("ndls")));
     /// assert!(iter.next().is_none());
     ///
-    /// let value = Value::from(vec![String::from("ndls0"), String::from("ndls1")]);
+    /// let value = Value::from(vec![BString::from("ndls0"), BString::from("ndls1")]);
     /// let mut iter = value.iter();
-    /// assert_eq!(iter.next(), Some(&String::from("ndls0")));
-    /// assert_eq!(iter.next(), Some(&String::from("ndls1")));
+    /// assert_eq!(iter.next(), Some(&BString::from("ndls0")));
+    /// assert_eq!(iter.next(), Some(&BString::from("ndls1")));
     /// assert!(iter.next().is_none());
     /// ```
-    pub fn iter(&self) -> Box<dyn Iterator<Item = &String> + '_> {
+    pub fn iter(&self) -> Box<dyn Iterator<Item = &BString> + '_> {
         match self {
             Self::String(value) => Box::new(iter::once(value)),
             Self::Array(values) => Box::new(values.iter()),
@@ -79,8 +84,8 @@ impl Value {
     }
 }
 
-impl Extend<String> for Value {
-    fn extend<T: IntoIterator<Item = String>>(&mut self, iter: T) {
+impl Extend<BString> for Value {
+    fn extend<T: IntoIterator<Item = BString>>(&mut self, iter: T) {
         match self {
             Self::String(value) => {
                 let mut values = vec![value.clone()];
@@ -100,18 +105,18 @@ impl From<&str> for Value {
 
 impl From<String> for Value {
     fn from(s: String) -> Self {
-        Self::String(s)
+        Self::String(s.into())
     }
 }
 
-impl From<Vec<String>> for Value {
-    fn from(values: Vec<String>) -> Self {
+impl From<Vec<BString>> for Value {
+    fn from(values: Vec<BString>) -> Self {
         Self::Array(values)
     }
 }
 
 impl<'a> IntoIterator for &'a Value {
-    type Item = &'a String;
+    type Item = &'a BString;
     type IntoIter = Box<dyn Iterator<Item = Self::Item> + 'a>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -128,10 +133,10 @@ impl<'a> From<&'a Value> for crate::feature::record::attributes::field::Value<'a
     }
 }
 
-struct Array<'a>(&'a [String]);
+struct Array<'a>(&'a [BString]);
 
 impl<'a> crate::feature::record::attributes::field::value::Array<'a> for Array<'a> {
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'a, str>>> + 'a> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'a, BStr>>> + 'a> {
         Box::new(self.0.iter().map(|value| Ok(Cow::from(value))))
     }
 }

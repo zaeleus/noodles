@@ -4,19 +4,21 @@ mod array;
 
 use std::{borrow::Cow, io, iter};
 
+use bstr::BStr;
+
 pub use self::array::Array;
 
 /// A feature record attributes field value.
 pub enum Value<'r> {
     /// A string.
-    String(Cow<'r, str>),
+    String(Cow<'r, BStr>),
     /// An array.
     Array(Box<dyn Array<'r> + 'r>),
 }
 
 impl<'r> Value<'r> {
     /// Returns the value as a string, if the value is a string.
-    pub fn as_string(&self) -> Option<&str> {
+    pub fn as_string(&self) -> Option<&BStr> {
         match self {
             Self::String(value) => Some(value.as_ref()),
             Self::Array(_) => None,
@@ -32,7 +34,7 @@ impl<'r> Value<'r> {
     }
 
     /// Returns an iterator over values.
-    pub fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'r, str>>> + '_> {
+    pub fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Cow<'r, BStr>>> + '_> {
         match self {
             Self::String(value) => Box::new(iter::once(Ok(value.clone()))),
             Self::Array(array) => Box::new(array.iter()),

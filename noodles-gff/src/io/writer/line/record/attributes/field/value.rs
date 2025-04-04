@@ -31,6 +31,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
+
     use super::*;
     use crate::feature::record_buf::attributes::field::Value as ValueBuf;
 
@@ -49,7 +51,7 @@ mod tests {
         t(&mut buf, &ValueBuf::from("8,13"), b"8%2C13")?;
         t(
             &mut buf,
-            &ValueBuf::from(vec![String::from("8"), String::from("13")]),
+            &ValueBuf::from(vec![BString::from("8"), BString::from("13")]),
             b"8,13",
         )?;
 

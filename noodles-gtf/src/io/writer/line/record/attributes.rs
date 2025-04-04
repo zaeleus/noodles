@@ -17,7 +17,7 @@ where
             write_separator(writer)?;
         }
 
-        write_field(writer, key.as_ref(), &value)?;
+        write_field(writer, &key, &value)?;
     }
 
     Ok(())
@@ -33,6 +33,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    use bstr::BString;
     use noodles_gff::feature::record_buf::{attributes::field::Value, Attributes as AttributesBuf};
 
     use super::*;
@@ -48,14 +49,14 @@ mod tests {
 
         let mut buf = Vec::new();
 
-        let attributes = [(String::from("gene_id"), Value::from("g0"))]
+        let attributes = [(BString::from("gene_id"), Value::from("g0"))]
             .into_iter()
             .collect();
         t(&mut buf, &attributes, br#"gene_id "g0";"#)?;
 
         let attributes = [
-            (String::from("gene_id"), Value::from("g0")),
-            (String::from("gene_name"), Value::from("n0")),
+            (BString::from("gene_id"), Value::from("g0")),
+            (BString::from("gene_name"), Value::from("n0")),
         ]
         .into_iter()
         .collect();

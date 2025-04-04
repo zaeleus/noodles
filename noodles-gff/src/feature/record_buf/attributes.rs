@@ -4,6 +4,7 @@ pub mod field;
 
 use std::{borrow::Cow, io};
 
+use bstr::BStr;
 use indexmap::IndexMap;
 
 use self::field::{Tag, Value};
@@ -27,7 +28,7 @@ impl Attributes {
     }
 
     /// Returns the value at the given tag.
-    pub fn get(&self, tag: &str) -> Option<&Value> {
+    pub fn get(&self, tag: &[u8]) -> Option<&Value> {
         self.0.get(tag)
     }
 }
@@ -65,7 +66,7 @@ impl crate::feature::record::Attributes for Attributes {
 
     fn get(
         &self,
-        tag: &str,
+        tag: &[u8],
     ) -> Option<io::Result<crate::feature::record::attributes::field::Value<'_>>> {
         self.get(tag).map(|value| Ok(value.into()))
     }
@@ -75,7 +76,7 @@ impl crate::feature::record::Attributes for Attributes {
     ) -> Box<
         dyn Iterator<
                 Item = io::Result<(
-                    Cow<'_, str>,
+                    Cow<'_, BStr>,
                     crate::feature::record::attributes::field::Value<'_>,
                 )>,
             > + '_,
@@ -95,7 +96,7 @@ impl crate::feature::record::Attributes for &Attributes {
 
     fn get(
         &self,
-        tag: &str,
+        tag: &[u8],
     ) -> Option<io::Result<crate::feature::record::attributes::field::Value<'_>>> {
         Attributes::get(self, tag).map(|value| Ok(value.into()))
     }
@@ -105,7 +106,7 @@ impl crate::feature::record::Attributes for &Attributes {
     ) -> Box<
         dyn Iterator<
                 Item = io::Result<(
-                    Cow<'_, str>,
+                    Cow<'_, BStr>,
                     crate::feature::record::attributes::field::Value<'_>,
                 )>,
             > + '_,
