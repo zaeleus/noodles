@@ -253,20 +253,20 @@ where
     }
 }
 
-fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    const LINE_FEED: char = '\n';
-    const CARRIAGE_RETURN: char = '\r';
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
 
-    match reader.read_line(buf)? {
+    match reader.read_until(LINE_FEED, buf)? {
         0 => Ok(0),
         n => {
-            if buf.ends_with(LINE_FEED) {
+            if buf.ends_with(&[LINE_FEED]) {
                 buf.pop();
 
-                if buf.ends_with(CARRIAGE_RETURN) {
+                if buf.ends_with(&[CARRIAGE_RETURN]) {
                     buf.pop();
                 }
             }
@@ -282,18 +282,18 @@ mod tests {
 
     #[test]
     fn test_read_line() -> io::Result<()> {
-        fn t(buf: &mut String, mut src: &[u8], expected: &str) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, mut src: &[u8], expected: &[u8]) -> io::Result<()> {
             buf.clear();
             read_line(&mut src, buf)?;
             assert_eq!(buf, expected);
             Ok(())
         }
 
-        let mut buf = String::new();
+        let mut buf = Vec::new();
 
-        t(&mut buf, b"noodles\n", "noodles")?;
-        t(&mut buf, b"noodles\r\n", "noodles")?;
-        t(&mut buf, b"noodles", "noodles")?;
+        t(&mut buf, b"noodles\n", b"noodles")?;
+        t(&mut buf, b"noodles\r\n", b"noodles")?;
+        t(&mut buf, b"noodles", b"noodles")?;
 
         Ok(())
     }
