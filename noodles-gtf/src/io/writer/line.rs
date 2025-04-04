@@ -12,7 +12,7 @@ where
     W: Write,
 {
     match line {
-        LineBuf::Comment(s) => write_comment(writer, s)?,
+        LineBuf::Comment(s) => write_comment(writer, s.as_ref())?,
         LineBuf::Record(record) => write_record(writer, record)?,
     }
 

@@ -1,11 +1,13 @@
 use std::io::{self, Write};
 
-pub(super) fn write_comment<W>(writer: &mut W, s: &str) -> io::Result<()>
+use bstr::BStr;
+
+pub(super) fn write_comment<W>(writer: &mut W, s: &BStr) -> io::Result<()>
 where
     W: Write,
 {
     write_prefix(writer)?;
-    writer.write_all(s.as_bytes())
+    writer.write_all(s)
 }
 
 pub(super) fn write_prefix<W>(writer: &mut W) -> io::Result<()>
@@ -23,7 +25,7 @@ mod tests {
     #[test]
     fn test_write_comment() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_comment(&mut buf, "noodles")?;
+        write_comment(&mut buf, BStr::new("noodles"))?;
         assert_eq!(buf, b"#noodles");
         Ok(())
     }

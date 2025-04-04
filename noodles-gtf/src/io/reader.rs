@@ -141,6 +141,7 @@ where
     ///
     /// ```
     /// # use std::io;
+    /// use bstr::BString;
     /// use noodles_gtf as gtf;
     ///
     /// let data = b"##format: gtf
@@ -151,7 +152,7 @@ where
     /// let mut lines = reader.line_bufs();
     ///
     /// let line = lines.next().transpose()?;
-    /// assert_eq!(line, Some(gtf::LineBuf::Comment(String::from("#format: gtf"))));
+    /// assert_eq!(line, Some(gtf::LineBuf::Comment(BString::from("#format: gtf"))));
     ///
     /// let line = lines.next().transpose()?;
     /// assert!(matches!(line, Some(gtf::LineBuf::Record(_))));

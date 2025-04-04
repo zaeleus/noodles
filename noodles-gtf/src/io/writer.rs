@@ -78,15 +78,16 @@ where
     ///
     /// ```
     /// # use std::io;
+    /// use bstr::BString;
     /// use noodles_gff as gff;
     /// use noodles_gtf as gtf;
     ///
     /// let mut writer = gtf::io::Writer::new(Vec::new());
     ///
-    /// let version = gtf::LineBuf::Comment(String::from("#format: gtf"));
+    /// let version = gtf::LineBuf::Comment(BString::from("#format: gtf"));
     /// writer.write_line(&version)?;
     ///
-    /// let comment = gtf::LineBuf::Comment(String::from("noodles"));
+    /// let comment = gtf::LineBuf::Comment(BString::from("noodles"));
     /// writer.write_line(&comment)?;
     ///
     /// let record = gtf::LineBuf::Record(gff::feature::RecordBuf::default());

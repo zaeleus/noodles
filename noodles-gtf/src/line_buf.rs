@@ -1,5 +1,6 @@
 use std::io;
 
+use bstr::BString;
 use noodles_gff::feature::RecordBuf;
 
 use super::Line;
@@ -8,7 +9,7 @@ use super::Line;
 #[derive(Clone, Debug, PartialEq)]
 pub enum LineBuf {
     /// A comment (`#`).
-    Comment(String),
+    Comment(BString),
     /// A record.
     Record(RecordBuf),
 }
