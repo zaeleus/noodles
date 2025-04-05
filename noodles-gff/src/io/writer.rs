@@ -1,4 +1,5 @@
 mod line;
+mod num;
 
 use std::io::{self, Write};
 
