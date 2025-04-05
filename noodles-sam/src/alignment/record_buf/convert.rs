@@ -21,7 +21,7 @@ impl RecordBuf {
     /// ```
     pub fn try_from_alignment_record<R>(header: &Header, record: &R) -> io::Result<Self>
     where
-        R: Record,
+        R: Record + ?Sized,
     {
         let mut record_buf = RecordBuf::default();
 

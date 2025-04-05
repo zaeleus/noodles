@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/alignment/record_buf/convert: Remove `Sized` bound for conversion from
+    `alignment::Record`.
+
 ## 0.73.0 - 2025-03-08
 
 ### Changed
