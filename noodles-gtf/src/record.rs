@@ -96,15 +96,15 @@ impl fmt::Debug for Record<'_> {
 
 impl gff::feature::Record for Record<'_> {
     fn reference_sequence_name(&self) -> &BStr {
-        self.reference_sequence_name().as_bytes().as_bstr()
+        self.reference_sequence_name()
     }
 
     fn source(&self) -> &BStr {
-        self.source().as_bytes().as_bstr()
+        self.source()
     }
 
     fn ty(&self) -> &BStr {
-        self.ty().as_bytes().as_bstr()
+        self.ty()
     }
 
     fn feature_start(&self) -> io::Result<Position> {
