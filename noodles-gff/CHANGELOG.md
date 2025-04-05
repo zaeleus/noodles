@@ -7,6 +7,9 @@
   * gff/feature/record: Change string fields to byte strings (`&BStr` and
     `BString`).
 
+  * gff/feature/record_buf/convert: Remove `Sized` bound for conversion from
+    `feature::Record`.
+
 ## 0.46.0 - 2025-03-20
 
 ### Added

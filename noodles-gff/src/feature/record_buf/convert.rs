@@ -7,7 +7,7 @@ impl RecordBuf {
     /// Converts a feature record to a record buffer.
     pub fn try_from_feature_record<R>(record: &R) -> io::Result<Self>
     where
-        R: Record,
+        R: Record + ?Sized,
     {
         let mut builder = Self::builder();
 
