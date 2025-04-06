@@ -1,6 +1,6 @@
 [package]
 name = "noodles-gff"
-version = "0.46.0"
+version = "0.47.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -18,9 +18,9 @@ async = ["dep:futures", "dep:tokio"]
 bstr.workspace = true
 indexmap.workspace = true
 lexical-core.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.37.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.38.0" }
 noodles-core = { path = "../noodles-core", version = "0.17.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.45.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.46.0" }
 percent-encoding.workspace = true
 
 futures = { workspace = true, optional = true, features = ["std"] }

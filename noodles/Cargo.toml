@@ -1,6 +1,6 @@
 [package]
 name = "noodles"
-version = "0.95.0"
+version = "0.96.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -13,22 +13,22 @@ readme = "../README.md"
 categories = ["science::bioinformatics"]
 
 [dependencies]
-noodles-bam = { path = "../noodles-bam", version = "0.77.0", optional = true }
-noodles-bcf = { path = "../noodles-bcf", version = "0.72.0", optional = true }
-noodles-bed = { path = "../noodles-bed", version = "0.22.0", optional = true }
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.37.0", optional = true }
+noodles-bam = { path = "../noodles-bam", version = "0.78.0", optional = true }
+noodles-bcf = { path = "../noodles-bcf", version = "0.73.0", optional = true }
+noodles-bed = { path = "../noodles-bed", version = "0.23.0", optional = true }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.38.0", optional = true }
 noodles-core = { path = "../noodles-core", version = "0.17.0", optional = true }
-noodles-cram = { path = "../noodles-cram", version = "0.80.0", optional = true }
-noodles-csi = { path = "../noodles-csi", version = "0.45.0", optional = true }
-noodles-fasta = { path = "../noodles-fasta", version = "0.50.0", optional = true }
+noodles-cram = { path = "../noodles-cram", version = "0.81.0", optional = true }
+noodles-csi = { path = "../noodles-csi", version = "0.46.0", optional = true }
+noodles-fasta = { path = "../noodles-fasta", version = "0.51.0", optional = true }
 noodles-fastq = { path = "../noodles-fastq", version = "0.18.0", optional = true }
-noodles-gff = { path = "../noodles-gff", version = "0.46.0", optional = true }
-noodles-gtf = { path = "../noodles-gtf", version = "0.41.0", optional = true }
+noodles-gff = { path = "../noodles-gff", version = "0.47.0", optional = true }
+noodles-gtf = { path = "../noodles-gtf", version = "0.42.0", optional = true }
 noodles-htsget = { path = "../noodles-htsget", version = "0.8.0", optional = true }
 noodles-refget = { path = "../noodles-refget", version = "0.7.0", optional = true }
-noodles-sam = { path = "../noodles-sam", version = "0.73.0", optional = true }
-noodles-tabix = { path = "../noodles-tabix", version = "0.51.0", optional = true }
-noodles-vcf = { path = "../noodles-vcf", version = "0.75.0", optional = true }
+noodles-sam = { path = "../noodles-sam", version = "0.74.0", optional = true }
+noodles-tabix = { path = "../noodles-tabix", version = "0.52.0", optional = true }
+noodles-vcf = { path = "../noodles-vcf", version = "0.76.0", optional = true }
 
 [features]
 default = []
