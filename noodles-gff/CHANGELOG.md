@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff/directive_buf/value/genome_build: Accept `Into<String>` for fields.
+
 ## 0.47.0 - 2025-04-06
 
 ### Changed

@@ -16,7 +16,7 @@ mod tests {
     #[test]
     fn test_write_genome_build() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
-        let genome_build = GenomeBuild::new(String::from("NDLS"), String::from("r1"));
+        let genome_build = GenomeBuild::new("NDLS", "r1");
         write_genome_build(&mut buf, &genome_build)?;
         assert_eq!(buf, b"NDLS r1");
         Ok(())

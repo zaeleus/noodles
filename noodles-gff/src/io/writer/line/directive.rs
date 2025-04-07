@@ -115,10 +115,7 @@ mod tests {
             &mut buf,
             &DirectiveBuf::new(
                 key::GENOME_BUILD,
-                Some(Value::GenomeBuild(GenomeBuild::new(
-                    String::from("NDLS"),
-                    String::from("r1"),
-                ))),
+                Some(Value::GenomeBuild(GenomeBuild::new("NDLS", "r1"))),
             ),
             b"##genome-build NDLS r1",
         )?;

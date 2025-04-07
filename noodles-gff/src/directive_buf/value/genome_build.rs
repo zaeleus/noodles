@@ -16,10 +16,17 @@ impl GenomeBuild {
     ///
     /// ```
     /// use noodles_gff::directive_buf::value::GenomeBuild;
-    /// let genome_build = GenomeBuild::new(String::from("NDLS"), String::from("r1"));
+    /// let genome_build = GenomeBuild::new("NDLS", "r1");
     /// ```
-    pub fn new(source: String, name: String) -> Self {
-        Self { source, name }
+    pub fn new<S, N>(source: S, name: N) -> Self
+    where
+        S: Into<String>,
+        N: Into<String>,
+    {
+        Self {
+            source: source.into(),
+            name: name.into(),
+        }
     }
 
     /// Returns the genome build source.
@@ -28,7 +35,7 @@ impl GenomeBuild {
     ///
     /// ```
     /// use noodles_gff::directive_buf::value::GenomeBuild;
-    /// let genome_build = GenomeBuild::new(String::from("NDLS"), String::from("r1"));
+    /// let genome_build = GenomeBuild::new("NDLS", "r1");
     /// assert_eq!(genome_build.source(), "NDLS");
     /// ```
     pub fn source(&self) -> &str {
@@ -41,7 +48,7 @@ impl GenomeBuild {
     ///
     /// ```
     /// use noodles_gff::directive_buf::value::GenomeBuild;
-    /// let genome_build = GenomeBuild::new(String::from("NDLS"), String::from("r1"));
+    /// let genome_build = GenomeBuild::new("NDLS", "r1");
     /// assert_eq!(genome_build.name(), "r1");
     /// ```
     pub fn name(&self) -> &str {
@@ -89,16 +96,8 @@ impl FromStr for GenomeBuild {
         }
 
         let mut args = s.split_ascii_whitespace();
-
-        let source = args
-            .next()
-            .map(|s| s.into())
-            .ok_or(ParseError::MissingSource)?;
-
-        let name = args
-            .next()
-            .map(|s| s.into())
-            .ok_or(ParseError::MissingName)?;
+        let source = args.next().ok_or(ParseError::MissingSource)?;
+        let name = args.next().ok_or(ParseError::MissingName)?;
 
         Ok(Self::new(source, name))
     }
@@ -110,16 +109,13 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let genome_build = GenomeBuild::new(String::from("NDLS"), String::from("r1"));
+        let genome_build = GenomeBuild::new("NDLS", "r1");
         assert_eq!(genome_build.to_string(), "NDLS r1");
     }
 
     #[test]
     fn test_from_str() -> Result<(), ParseError> {
-        assert_eq!(
-            "NDLS r1".parse(),
-            Ok(GenomeBuild::new(String::from("NDLS"), String::from("r1")))
-        );
+        assert_eq!("NDLS r1".parse(), Ok(GenomeBuild::new("NDLS", "r1")));
 
         assert_eq!("".parse::<GenomeBuild>(), Err(ParseError::Empty));
         assert_eq!("NDLS".parse::<GenomeBuild>(), Err(ParseError::MissingName));
