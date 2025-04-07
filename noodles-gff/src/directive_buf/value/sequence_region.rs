@@ -17,11 +17,14 @@ impl SequenceRegion {
     ///
     /// ```
     /// use noodles_gff::directive_buf::value::SequenceRegion;
-    /// let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
+    /// let sequence_region = SequenceRegion::new("sq0", 8, 13);
     /// ```
-    pub fn new(reference_sequence_name: String, start: i32, end: i32) -> Self {
+    pub fn new<N>(reference_sequence_name: N, start: i32, end: i32) -> Self
+    where
+        N: Into<String>,
+    {
         Self {
-            reference_sequence_name,
+            reference_sequence_name: reference_sequence_name.into(),
             start,
             end,
         }
@@ -33,7 +36,7 @@ impl SequenceRegion {
     ///
     /// ```
     /// use noodles_gff::directive_buf::value::SequenceRegion;
-    /// let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
+    /// let sequence_region = SequenceRegion::new("sq0", 8, 13);
     /// assert_eq!(sequence_region.reference_sequence_name(), "sq0");
     /// ```
     pub fn reference_sequence_name(&self) -> &str {
@@ -48,7 +51,7 @@ impl SequenceRegion {
     ///
     /// ```
     /// use noodles_gff::directive_buf::value::SequenceRegion;
-    /// let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
+    /// let sequence_region = SequenceRegion::new("sq0", 8, 13);
     /// assert_eq!(sequence_region.start(), 8);
     /// ```
     pub fn start(&self) -> i32 {
@@ -63,7 +66,7 @@ impl SequenceRegion {
     ///
     /// ```
     /// use noodles_gff::directive_buf::value::SequenceRegion;
-    /// let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
+    /// let sequence_region = SequenceRegion::new("sq0", 8, 13);
     /// assert_eq!(sequence_region.end(), 13);
     /// ```
     pub fn end(&self) -> i32 {
@@ -144,7 +147,7 @@ impl FromStr for SequenceRegion {
             .ok_or(ParseError::MissingEnd)
             .and_then(|s| s.parse().map_err(ParseError::InvalidEnd))?;
 
-        Ok(Self::new(reference_sequence_name.into(), start, end))
+        Ok(Self::new(reference_sequence_name, start, end))
     }
 }
 
@@ -154,7 +157,7 @@ mod tests {
 
     #[test]
     fn test_fmt() {
-        let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
+        let sequence_region = SequenceRegion::new("sq0", 8, 13);
         assert_eq!(sequence_region.to_string(), "sq0 8 13");
     }
 
@@ -162,7 +165,7 @@ mod tests {
     fn test_from_str() -> Result<(), ParseError> {
         assert_eq!(
             "sq0 8 13".parse::<SequenceRegion>()?,
-            SequenceRegion::new(String::from("sq0"), 8, 13)
+            SequenceRegion::new("sq0", 8, 13)
         );
 
         assert_eq!("".parse::<SequenceRegion>(), Err(ParseError::Empty));

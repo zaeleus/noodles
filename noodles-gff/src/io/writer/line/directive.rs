@@ -102,11 +102,7 @@ mod tests {
             &mut buf,
             &DirectiveBuf::new(
                 key::SEQUENCE_REGION,
-                Some(Value::SequenceRegion(SequenceRegion::new(
-                    String::from("sq0"),
-                    8,
-                    13,
-                ))),
+                Some(Value::SequenceRegion(SequenceRegion::new("sq0", 8, 13))),
             ),
             b"##sequence-region sq0 8 13",
         )?;

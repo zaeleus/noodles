@@ -25,7 +25,7 @@ mod tests {
     #[test]
     fn test_write_sequence_region() -> io::Result<()> {
         let mut buf = Vec::new();
-        let sequence_region = SequenceRegion::new(String::from("sq0"), 8, 13);
+        let sequence_region = SequenceRegion::new("sq0", 8, 13);
         write_sequence_region(&mut buf, &sequence_region)?;
         assert_eq!(buf, b"sq0 8 13");
         Ok(())
