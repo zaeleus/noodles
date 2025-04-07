@@ -2,11 +2,13 @@
 
 use std::{error, fmt, str::FromStr};
 
+use bstr::{BStr, BString};
+
 /// A GFF directive genome build.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GenomeBuild {
-    source: String,
-    name: String,
+    source: BString,
+    name: BString,
 }
 
 impl GenomeBuild {
@@ -20,8 +22,8 @@ impl GenomeBuild {
     /// ```
     pub fn new<S, N>(source: S, name: N) -> Self
     where
-        S: Into<String>,
-        N: Into<String>,
+        S: Into<BString>,
+        N: Into<BString>,
     {
         Self {
             source: source.into(),
@@ -38,8 +40,8 @@ impl GenomeBuild {
     /// let genome_build = GenomeBuild::new("NDLS", "r1");
     /// assert_eq!(genome_build.source(), "NDLS");
     /// ```
-    pub fn source(&self) -> &str {
-        &self.source
+    pub fn source(&self) -> &BStr {
+        self.source.as_ref()
     }
 
     /// Returns the genome build name.
@@ -51,8 +53,8 @@ impl GenomeBuild {
     /// let genome_build = GenomeBuild::new("NDLS", "r1");
     /// assert_eq!(genome_build.name(), "r1");
     /// ```
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn name(&self) -> &BStr {
+        self.name.as_ref()
     }
 }
 

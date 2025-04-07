@@ -4,7 +4,10 @@
 
 ### Changed
 
-  * gff/directive_buf/value/genome_build: Accept `Into<String>` for fields.
+  * gff/directive_buf/value/genome_build: Change fields to byte strings
+    (`BString`).
+
+  * gff/directive_buf/value/genome_build: Accept `Into<BString>` for fields.
 
 ## 0.47.0 - 2025-04-06
 
