@@ -20,12 +20,15 @@ where
 
 #[cfg(test)]
 mod tests {
+    use noodles_core::Position;
+
     use super::*;
 
     #[test]
-    fn test_write_sequence_region() -> io::Result<()> {
+    fn test_write_sequence_region() -> Result<(), Box<dyn std::error::Error>> {
         let mut buf = Vec::new();
-        let sequence_region = SequenceRegion::new("sq0", 8, 13);
+        let sequence_region =
+            SequenceRegion::new("sq0", Position::try_from(8)?, Position::try_from(13)?);
         write_sequence_region(&mut buf, &sequence_region)?;
         assert_eq!(buf, b"sq0 8 13");
         Ok(())

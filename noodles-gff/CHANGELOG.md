@@ -8,6 +8,11 @@
 
   * gff/directive_buf/value: Accept `Into<BString>` for string fields.
 
+  * gff/directive_buf/value/sequence_region: Change interval bounds to
+    `Position`.
+
+    This better describes the interval as 1-based, inclusive.
+
 ## 0.47.0 - 2025-04-06
 
 ### Changed

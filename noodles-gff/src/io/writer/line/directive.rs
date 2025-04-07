@@ -74,12 +74,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::directive_buf::value::{GenomeBuild, SequenceRegion};
+    use noodles_core::Position;
 
     use super::*;
+    use crate::directive_buf::value::{GenomeBuild, SequenceRegion};
 
     #[test]
-    fn test_write_directive() -> io::Result<()> {
+    fn test_write_directive() -> Result<(), Box<dyn std::error::Error>> {
         fn t(buf: &mut Vec<u8>, directive: &DirectiveBuf, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_directive(buf, directive)?;
@@ -102,7 +103,11 @@ mod tests {
             &mut buf,
             &DirectiveBuf::new(
                 key::SEQUENCE_REGION,
-                Some(Value::SequenceRegion(SequenceRegion::new("sq0", 8, 13))),
+                Some(Value::SequenceRegion(SequenceRegion::new(
+                    "sq0",
+                    Position::try_from(8)?,
+                    Position::try_from(13)?,
+                ))),
             ),
             b"##sequence-region sq0 8 13",
         )?;

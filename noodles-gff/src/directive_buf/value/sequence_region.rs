@@ -3,13 +3,14 @@
 use std::{error, fmt, num, str::FromStr};
 
 use bstr::{BStr, BString};
+use noodles_core::Position;
 
 /// A GFF directive sequence region.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SequenceRegion {
     reference_sequence_name: BString,
-    start: i32,
-    end: i32,
+    start: Position,
+    end: Position,
 }
 
 impl SequenceRegion {
@@ -18,10 +19,14 @@ impl SequenceRegion {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gff::directive_buf::value::SequenceRegion;
-    /// let sequence_region = SequenceRegion::new("sq0", 8, 13);
+    ///
+    /// let sequence_region =
+    ///     SequenceRegion::new("sq0", Position::try_from(8)?, Position::try_from(13)?);
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn new<N>(reference_sequence_name: N, start: i32, end: i32) -> Self
+    pub fn new<N>(reference_sequence_name: N, start: Position, end: Position) -> Self
     where
         N: Into<BString>,
     {
@@ -37,9 +42,14 @@ impl SequenceRegion {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gff::directive_buf::value::SequenceRegion;
-    /// let sequence_region = SequenceRegion::new("sq0", 8, 13);
+    ///
+    /// let sequence_region =
+    ///     SequenceRegion::new("sq0", Position::try_from(8)?, Position::try_from(13)?);
+    ///
     /// assert_eq!(sequence_region.reference_sequence_name(), "sq0");
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
     pub fn reference_sequence_name(&self) -> &BStr {
         self.reference_sequence_name.as_ref()
@@ -52,11 +62,16 @@ impl SequenceRegion {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gff::directive_buf::value::SequenceRegion;
-    /// let sequence_region = SequenceRegion::new("sq0", 8, 13);
-    /// assert_eq!(sequence_region.start(), 8);
+    ///
+    /// let sequence_region =
+    ///     SequenceRegion::new("sq0", Position::try_from(8)?, Position::try_from(13)?);
+    ///
+    /// assert_eq!(sequence_region.start(), Position::try_from(8)?);
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn start(&self) -> i32 {
+    pub fn start(&self) -> Position {
         self.start
     }
 
@@ -67,11 +82,16 @@ impl SequenceRegion {
     /// # Examples
     ///
     /// ```
+    /// use noodles_core::Position;
     /// use noodles_gff::directive_buf::value::SequenceRegion;
-    /// let sequence_region = SequenceRegion::new("sq0", 8, 13);
-    /// assert_eq!(sequence_region.end(), 13);
+    ///
+    /// let sequence_region =
+    ///     SequenceRegion::new("sq0", Position::try_from(8)?, Position::try_from(13)?);
+    ///
+    /// assert_eq!(sequence_region.end(), Position::try_from(13)?);
+    /// # Ok::<_, noodles_core::position::TryFromIntError>(())
     /// ```
-    pub fn end(&self) -> i32 {
+    pub fn end(&self) -> Position {
         self.end
     }
 }
@@ -158,16 +178,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_fmt() {
-        let sequence_region = SequenceRegion::new("sq0", 8, 13);
+    fn test_fmt() -> Result<(), noodles_core::position::TryFromIntError> {
+        let sequence_region =
+            SequenceRegion::new("sq0", Position::try_from(8)?, Position::try_from(13)?);
         assert_eq!(sequence_region.to_string(), "sq0 8 13");
+        Ok(())
     }
 
     #[test]
-    fn test_from_str() -> Result<(), ParseError> {
+    fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
             "sq0 8 13".parse::<SequenceRegion>()?,
-            SequenceRegion::new("sq0", 8, 13)
+            SequenceRegion::new("sq0", Position::try_from(8)?, Position::try_from(13)?)
         );
 
         assert_eq!("".parse::<SequenceRegion>(), Err(ParseError::Empty));
