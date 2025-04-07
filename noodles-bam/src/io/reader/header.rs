@@ -26,6 +26,20 @@ where
     }
 
     /// Reads the magic number.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// let magic_number = header_reader.read_magic_number()?;
+    /// assert_eq!(magic_number, *b"BAM\x01");
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner)
     }
@@ -34,12 +48,51 @@ where
     ///
     /// The caller is responsible of discarding any extra padding in the header text, e.g., using
     /// [`sam_header::Reader::discard_to_end`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{io::Read, fs::File};
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    ///
+    /// let mut raw_sam_header_reader = header_reader.raw_sam_header_reader()?;
+    ///
+    /// let mut buf = Vec::new();
+    /// raw_sam_header_reader.read_to_end(&mut buf)?;
+    ///
+    /// raw_sam_header_reader.discard_to_end()?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<&mut R>> {
         let len = self.inner.read_u32::<LittleEndian>().map(u64::from)?;
         Ok(sam_header::Reader::new(&mut self.inner, len))
     }
 
     /// Reads the reference sequences.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{io, fs::File};
+    /// use noodles_bam as bam;
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    ///
+    /// let mut raw_sam_header_reader = header_reader.raw_sam_header_reader()?;
+    /// io::copy(&mut raw_sam_header_reader, &mut io::sink())?;
+    /// raw_sam_header_reader.discard_to_end()?;
+    ///
+    /// let _reference_sequences = header_reader.read_reference_sequences()?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
         read_reference_sequences(&mut self.inner)
     }

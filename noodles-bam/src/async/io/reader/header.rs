@@ -24,6 +24,23 @@ where
     }
 
     /// Reads the magic number.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_bam as bam;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// let magic_number = header_reader.read_magic_number().await?;
+    /// assert_eq!(magic_number, *b"BAM\x01");
+    /// # Ok::<_, std::io::Error>(())
+    /// # }
+    /// ```
     pub async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner).await
     }
@@ -32,12 +49,57 @@ where
     ///
     /// The caller is responsible of discarding any extra padding in the header text, e.g., using
     /// [`sam_header::Reader::discard_to_end`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_bam as bam;
+    /// use tokio::{io::AsyncReadExt, fs::File};
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number().await?;
+    ///
+    /// let mut raw_sam_header_reader = header_reader.raw_sam_header_reader().await?;
+    ///
+    /// let mut buf = Vec::new();
+    /// raw_sam_header_reader.read_to_end(&mut buf).await?;
+    ///
+    /// raw_sam_header_reader.discard_to_end().await?;
+    /// # Ok::<_, std::io::Error>(())
+    /// # }
+    /// ```
     pub async fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<&mut R>> {
         let len = self.inner.read_u32_le().await.map(u64::from)?;
         Ok(sam_header::Reader::new(&mut self.inner, len))
     }
 
     /// Reads the reference sequences.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_bam as bam;
+    /// use tokio::{io::{self, AsyncReadExt}, fs::File};
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number().await?;
+    ///
+    /// let mut raw_sam_header_reader = header_reader.raw_sam_header_reader().await?;
+    /// io::copy(&mut raw_sam_header_reader, &mut io::sink()).await?;
+    /// raw_sam_header_reader.discard_to_end().await?;
+    ///
+    /// let _reference_sequences = header_reader.read_reference_sequences().await?;
+    /// # Ok::<_, std::io::Error>(())
+    /// # }
+    /// ```
     pub async fn read_reference_sequences(&mut self) -> io::Result<ReferenceSequences> {
         read_reference_sequences(&mut self.inner).await
     }
