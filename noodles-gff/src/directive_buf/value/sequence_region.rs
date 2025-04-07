@@ -2,10 +2,12 @@
 
 use std::{error, fmt, num, str::FromStr};
 
+use bstr::{BStr, BString};
+
 /// A GFF directive sequence region.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SequenceRegion {
-    reference_sequence_name: String,
+    reference_sequence_name: BString,
     start: i32,
     end: i32,
 }
@@ -21,7 +23,7 @@ impl SequenceRegion {
     /// ```
     pub fn new<N>(reference_sequence_name: N, start: i32, end: i32) -> Self
     where
-        N: Into<String>,
+        N: Into<BString>,
     {
         Self {
             reference_sequence_name: reference_sequence_name.into(),
@@ -39,8 +41,8 @@ impl SequenceRegion {
     /// let sequence_region = SequenceRegion::new("sq0", 8, 13);
     /// assert_eq!(sequence_region.reference_sequence_name(), "sq0");
     /// ```
-    pub fn reference_sequence_name(&self) -> &str {
-        &self.reference_sequence_name
+    pub fn reference_sequence_name(&self) -> &BStr {
+        self.reference_sequence_name.as_ref()
     }
 
     /// Returns the start position.
