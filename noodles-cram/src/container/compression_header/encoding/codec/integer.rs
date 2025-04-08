@@ -72,9 +72,7 @@ impl<'de> Decode<'de> for Integer {
                     decoder.decode(core_data_reader)
                 }
             }
-            Self::Beta { offset, len } => {
-                core_data_reader.read_u32(*len).map(|i| (i as i32 - offset))
-            }
+            Self::Beta { offset, len } => core_data_reader.read_i32(*len).map(|i| i - offset),
             Self::Gamma { offset } => {
                 let mut n = 0;
 
@@ -82,7 +80,7 @@ impl<'de> Decode<'de> for Integer {
                     n += 1;
                 }
 
-                let m = core_data_reader.read_u32(n)? as i32;
+                let m = core_data_reader.read_i32(n)?;
                 let x = (1 << n) + m;
 
                 Ok(x - offset)

@@ -15,7 +15,11 @@ impl<'c> BitReader<'c> {
         }
     }
 
-    pub fn read_u32(&mut self, len: u32) -> io::Result<u32> {
+    pub fn read_i32(&mut self, len: u32) -> io::Result<i32> {
+        self.read_u32(len).map(|n| n as i32)
+    }
+
+    fn read_u32(&mut self, len: u32) -> io::Result<u32> {
         let mut n = 0;
 
         for _ in 0..len {

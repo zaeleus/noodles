@@ -34,7 +34,7 @@ impl CanonicalHuffmanDecoder {
         for &len in sorted_lens {
             input_code <<= len - prev_len;
 
-            let b = reader.read_u32(len - prev_len)? as i32;
+            let b = reader.read_i32(len - prev_len)?;
             input_code |= b;
 
             let entry = code_book_by_len[&len]
