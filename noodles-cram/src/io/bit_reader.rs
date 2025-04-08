@@ -1,5 +1,7 @@
 use std::io;
 
+const U8_BITS: usize = 8;
+
 pub struct BitReader<'c> {
     src: &'c [u8],
     buf: u8,
@@ -11,7 +13,7 @@ impl<'c> BitReader<'c> {
         Self {
             src,
             buf: 0x00,
-            i: 8,
+            i: U8_BITS,
         }
     }
 
@@ -31,7 +33,7 @@ impl<'c> BitReader<'c> {
     }
 
     pub(crate) fn read_bit(&mut self) -> io::Result<u8> {
-        if self.i >= 8 {
+        if self.i >= U8_BITS {
             let Some((b, rest)) = self.src.split_first() else {
                 return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
             };
@@ -41,7 +43,7 @@ impl<'c> BitReader<'c> {
             self.i = 0;
         }
 
-        let bit = (self.buf >> (8 - self.i - 1)) & 0x01;
+        let bit = (self.buf >> (U8_BITS - self.i - 1)) & 0x01;
 
         self.i += 1;
 
