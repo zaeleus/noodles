@@ -26,11 +26,43 @@ where
     }
 
     /// Reads the magic number.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_bcf as bcf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// let magic_number = header_reader.read_magic_number()?;
+    /// assert_eq!(magic_number, *b"BCF");
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner)
     }
 
     /// Reads the format version.
+    ///
+    /// The format is returned as a major-minor version pair.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_bcf as bcf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    ///
+    /// let format_version = header_reader.read_format_version()?;
+    /// assert_eq!(format_version, (2, 2));
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn read_format_version(&mut self) -> io::Result<(u8, u8)> {
         read_format_version(&mut self.inner)
     }
@@ -39,6 +71,27 @@ where
     ///
     /// The caller is responsible of discarding any extra padding in the header text, e.g., using
     /// [`vcf_header::Reader::discard_to_end`].
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{io::Read, fs::File};
+    /// use noodles_bcf as bcf;
+    ///
+    /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    /// header_reader.read_format_version()?;
+    ///
+    /// let mut raw_vcf_header_reader = header_reader.raw_vcf_header_reader()?;
+    ///
+    /// let mut buf = Vec::new();
+    /// raw_vcf_header_reader.read_to_end(&mut buf)?;
+    ///
+    /// raw_vcf_header_reader.discard_to_end()?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn raw_vcf_header_reader(&mut self) -> io::Result<vcf_header::Reader<&mut R>> {
         let len = self.inner.read_u32::<LittleEndian>().map(u64::from)?;
         Ok(vcf_header::Reader::new(&mut self.inner, len))
