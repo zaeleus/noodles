@@ -54,7 +54,7 @@
 
   * bgzf/gzi/index: Remove first entry.
 
-    The first entry is now implicity `(0, 0)`. As a result, the number of
+    The first entry is now implicitly `(0, 0)`. As a result, the number of
     entries corresponds to n - 1 blocks. This now follows the same layout as
     the physical index.
 
