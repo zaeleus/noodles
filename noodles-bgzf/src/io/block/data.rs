@@ -42,15 +42,13 @@ impl Data {
 
 impl AsRef<[u8]> for Data {
     fn as_ref(&self) -> &[u8] {
-        let len = self.len & 0xffff;
-        &self.buf[self.pos..len]
+        &self.buf[self.pos..self.len]
     }
 }
 
 impl AsMut<[u8]> for Data {
     fn as_mut(&mut self) -> &mut [u8] {
-        let len = self.len & 0xffff;
-        &mut self.buf[self.pos..len]
+        &mut self.buf[self.pos..self.len]
     }
 }
 

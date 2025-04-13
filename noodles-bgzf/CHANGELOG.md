@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bgzf/io/block/data: Remove buffer end mask ([#336]).
+
+    The mask does not work when the buffer is equal to the max block size
+    2**16.
+
+[#336]: https://github.com/zaeleus/noodles/issues/336
+
 ## 0.38.0 - 2025-04-06
 
 ### Changed
