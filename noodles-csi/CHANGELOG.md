@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.47.0 - 2025-04-13
+
+### Changed
+
+  * csi: Sync dependencies.
+
 ## 0.46.0 - 2025-04-06
 
 ### Changed

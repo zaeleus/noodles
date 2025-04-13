@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.75.0 - 2025-04-13
+
+### Changed
+
+  * sam: Sync dependencies.
+
 ## 0.74.0 - 2025-04-06
 
 ### Changed

@@ -1,6 +1,6 @@
 [package]
 name = "noodles-fasta"
-version = "0.51.0"
+version = "0.52.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -18,7 +18,7 @@ async = ["dep:tokio"]
 bstr.workspace = true
 bytes.workspace = true
 memchr.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.38.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.39.0" }
 noodles-core = { path = "../noodles-core", version = "0.17.0" }
 
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }

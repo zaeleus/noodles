@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.48.0 - 2025-04-13
 
 ### Changed
 
