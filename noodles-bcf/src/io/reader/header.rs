@@ -27,6 +27,8 @@ where
 
     /// Reads the magic number.
     ///
+    /// The position of the stream is expected to be at the start.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -47,6 +49,8 @@ where
     /// Reads the format version.
     ///
     /// The format is returned as a major-minor version pair.
+    ///
+    /// The position of the stream is expected to be directly after the magic number.
     ///
     /// # Examples
     ///
@@ -71,6 +75,8 @@ where
     ///
     /// The caller is responsible of discarding any extra padding in the header text, e.g., using
     /// [`vcf_header::Reader::discard_to_end`].
+    ///
+    /// The position of the stream is expected to be directly after the format version.
     ///
     /// # Examples
     ///
