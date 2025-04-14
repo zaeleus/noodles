@@ -89,14 +89,14 @@ fn parse_trailer(src: &TrailerBuf) -> io::Result<(u32, usize)> {
     let crc32 = u32::from_le_bytes(src[..4].try_into().unwrap());
 
     // SAFETY: `src.len() == 8`.
-    let r#isize = usize::try_from(u32::from_le_bytes(src[4..].try_into().unwrap()))
+    let isize = usize::try_from(u32::from_le_bytes(src[4..].try_into().unwrap()))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    Ok((crc32, r#isize))
+    Ok((crc32, isize))
 }
 
 pub(crate) fn parse_block(src: &[u8], block: &mut Block) -> io::Result<()> {
-    let (block_size, cdata, crc32, r#isize) = parse_frame(src)?;
+    let (block_size, cdata, crc32, isize) = parse_frame(src)?;
     block_initialize(block, block_size, isize);
     inflate(cdata, crc32, block.data_mut().as_mut())?;
     Ok(())
@@ -107,10 +107,10 @@ pub(super) fn parse_block_into_buf(
     block: &mut Block,
     buf: &mut [u8],
 ) -> io::Result<()> {
-    let (block_size, cdata, crc32, r#isize) = parse_frame(src)?;
+    let (block_size, cdata, crc32, isize) = parse_frame(src)?;
     block_initialize(block, block_size, isize);
-    block.data_mut().set_position(r#isize);
-    inflate(cdata, crc32, &mut buf[..r#isize])?;
+    block.data_mut().set_position(isize);
+    inflate(cdata, crc32, &mut buf[..isize])?;
     Ok(())
 }
 
@@ -121,17 +121,17 @@ fn parse_frame(src: &[u8]) -> io::Result<(u64, &[u8], u32, usize)> {
         u64::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     parse_header(header)?;
-    let (crc32, r#isize) = parse_trailer(trailer)?;
+    let (crc32, isize) = parse_trailer(trailer)?;
 
-    Ok((block_size, cdata, crc32, r#isize))
+    Ok((block_size, cdata, crc32, isize))
 }
 
-fn block_initialize(block: &mut Block, block_size: u64, r#isize: usize) {
+fn block_initialize(block: &mut Block, block_size: u64, isize: usize) {
     block.set_size(block_size);
 
     let data = block.data_mut();
     data.set_position(0);
-    data.resize(r#isize);
+    data.resize(isize);
 }
 
 fn inflate(src: &[u8], crc32: u32, dst: &mut [u8]) -> io::Result<()> {
@@ -188,9 +188,9 @@ mod tests {
     fn test_parse_trailer() -> io::Result<()> {
         let (_, src) = BGZF_EOF.split_last_chunk().unwrap();
 
-        let (crc32, r#isize) = parse_trailer(src)?;
+        let (crc32, isize) = parse_trailer(src)?;
         assert_eq!(crc32, 0);
-        assert_eq!(r#isize, 0);
+        assert_eq!(isize, 0);
 
         Ok(())
     }

@@ -60,9 +60,9 @@ where
 {
     writer.write_u32::<LittleEndian>(checksum)?;
 
-    let r#isize = u32::try_from(uncompressed_len)
+    let isize = u32::try_from(uncompressed_len)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(r#isize)?;
+    writer.write_u32::<LittleEndian>(isize)?;
 
     Ok(())
 }

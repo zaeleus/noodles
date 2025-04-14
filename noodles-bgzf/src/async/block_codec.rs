@@ -97,9 +97,9 @@ fn put_header(dst: &mut BytesMut, block_size: usize) -> io::Result<()> {
 fn put_trailer(dst: &mut BytesMut, checksum: u32, uncompressed_len: usize) -> io::Result<()> {
     dst.put_u32_le(checksum);
 
-    let r#isize = u32::try_from(uncompressed_len)
+    let isize = u32::try_from(uncompressed_len)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    dst.put_u32_le(r#isize);
+    dst.put_u32_le(isize);
 
     Ok(())
 }
@@ -145,8 +145,8 @@ mod tests {
 
         let cdata = vec![0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00];
         let crc32 = 0x802a58a1;
-        let r#isize = 7;
-        let data = (cdata, crc32, r#isize);
+        let isize = 7;
+        let data = (cdata, crc32, isize);
 
         let mut dst = BytesMut::new();
 
