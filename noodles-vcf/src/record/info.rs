@@ -1,6 +1,6 @@
 mod field;
 
-use std::{io, iter};
+use std::io;
 
 use self::field::parse_field;
 use crate::{variant::record::info::field::Value, Header};
@@ -20,18 +20,21 @@ impl<'r> Info<'r> {
         header: &'h Header,
         key: &str,
     ) -> Option<io::Result<Option<Value<'r>>>> {
-        for result in self.iter(header) {
-            match result {
-                Ok((k, v)) => {
-                    if k == key {
-                        return Some(Ok(v));
-                    }
-                }
-                Err(e) => return Some(Err(e)),
-            }
+        const DELIMITER: char = ';';
+        const SEPARATOR: char = '=';
+
+        if self.0.is_empty() {
+            return None;
         }
 
-        None
+        let field = self.0.split(DELIMITER).find(|s| {
+            let Some(rest) = s.strip_prefix(key) else {
+                return false;
+            };
+            rest.is_empty() || rest.starts_with(SEPARATOR)
+        })?;
+
+        Some(parse_field(field, header).map(|(_, v)| v))
     }
 
     /// Returns an iterator over all fields.
@@ -39,15 +42,13 @@ impl<'r> Info<'r> {
         &'r self,
         header: &'h Header,
     ) -> impl Iterator<Item = io::Result<(&'r str, Option<Value<'r>>)>> + 'r {
-        let mut src = self.0;
+        const DELIMITER: char = ';';
 
-        iter::from_fn(move || {
-            if src.is_empty() {
-                None
-            } else {
-                Some(parse_field(&mut src, header))
-            }
-        })
+        (!self.0.is_empty())
+            .then(|| self.0.split(DELIMITER))
+            .into_iter()
+            .flatten()
+            .map(|s| parse_field(s, header))
     }
 }
 
