@@ -2,7 +2,7 @@
 
 pub mod field;
 
-use std::{fmt, io, iter};
+use std::{borrow::Borrow, fmt, io, iter};
 
 use self::field::parse_field;
 use crate::alignment::record::data::field::{Tag, Value};
@@ -18,6 +18,25 @@ impl<'a> Data<'a> {
     /// Returns whether there are any data fields.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+
+    /// Returns the value for the given tag.
+    pub fn get<K>(&self, tag: &K) -> Option<io::Result<Value<'_>>>
+    where
+        K: Borrow<[u8; 2]>,
+    {
+        for result in self.iter() {
+            match result {
+                Ok((t, value)) => {
+                    if &t == tag.borrow() {
+                        return Some(Ok(value));
+                    }
+                }
+                Err(e) => return Some(Err(e)),
+            }
+        }
+
+        None
     }
 
     /// Returns an iterator over all tag-value pairs.
@@ -53,18 +72,7 @@ impl crate::alignment::record::Data for Data<'_> {
     }
 
     fn get(&self, tag: &Tag) -> Option<io::Result<Value<'_>>> {
-        for result in self.iter() {
-            match result {
-                Ok((t, value)) => {
-                    if &t == tag {
-                        return Some(Ok(value));
-                    }
-                }
-                Err(e) => return Some(Err(e)),
-            }
-        }
-
-        None
+        self.get(tag)
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_> {
@@ -81,6 +89,21 @@ impl AsRef<[u8]> for Data<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_get() -> io::Result<()> {
+        let data = Data::new(b"");
+        assert!(data.get(&Tag::ALIGNMENT_HIT_COUNT).is_none());
+        assert!(data.get(&Tag::COMMENT).is_none());
+
+        let data = Data::new(b"NH:i:1");
+        assert!(matches!(
+            data.get(&Tag::ALIGNMENT_HIT_COUNT).transpose()?,
+            Some(Value::Int32(1))
+        ));
+
+        Ok(())
+    }
 
     #[test]
     fn test_iter() -> io::Result<()> {

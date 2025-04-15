@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * sam/record/data: Add lookup by tag (`Data::get`).
+
 ## 0.75.0 - 2025-04-13
 
 ### Changed
