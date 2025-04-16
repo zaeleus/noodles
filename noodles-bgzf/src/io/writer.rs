@@ -160,8 +160,8 @@ where
         let crc32 = deflate::encode(&self.staging_buf, self.compression_level, compressed_data)?;
 
         let inner = self.inner.as_mut().unwrap();
-        let uncompressed_len = self.staging_buf.len();
-        let block_size = write_frame(inner, compressed_data, crc32, uncompressed_len)?;
+        let uncompressed_size = self.staging_buf.len();
+        let block_size = write_frame(inner, compressed_data, crc32, uncompressed_size)?;
 
         self.position += block_size as u64;
 

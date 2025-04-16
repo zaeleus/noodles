@@ -8,7 +8,7 @@ pub(crate) fn write_frame<W>(
     writer: &mut W,
     compressed_data: &[u8],
     crc32: u32,
-    uncompressed_len: usize,
+    uncompressed_size: usize,
 ) -> io::Result<usize>
 where
     W: Write,
@@ -18,7 +18,7 @@ where
 
     writer.write_all(compressed_data)?;
 
-    write_trailer(writer, crc32, uncompressed_len)?;
+    write_trailer(writer, crc32, uncompressed_size)?;
 
     Ok(block_size)
 }
@@ -54,13 +54,13 @@ where
     Ok(())
 }
 
-fn write_trailer<W>(writer: &mut W, checksum: u32, uncompressed_len: usize) -> io::Result<()>
+fn write_trailer<W>(writer: &mut W, checksum: u32, uncompressed_size: usize) -> io::Result<()>
 where
     W: Write,
 {
     writer.write_u32::<LittleEndian>(checksum)?;
 
-    let isize = u32::try_from(uncompressed_len)
+    let isize = u32::try_from(uncompressed_size)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_u32::<LittleEndian>(isize)?;
 

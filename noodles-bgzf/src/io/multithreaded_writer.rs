@@ -190,8 +190,8 @@ where
     thread::spawn(move || {
         while let Ok(buffered_rx) = write_rx.recv() {
             if let Ok(result) = buffered_rx.recv() {
-                let (compressed_data, crc32, uncompressed_len) = result?;
-                write_frame(&mut writer, &compressed_data, crc32, uncompressed_len)?;
+                let (compressed_data, crc32, uncompressed_size) = result?;
+                write_frame(&mut writer, &compressed_data, crc32, uncompressed_size)?;
             }
         }
 
