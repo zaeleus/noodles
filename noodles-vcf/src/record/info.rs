@@ -20,18 +20,21 @@ impl<'r> Info<'r> {
         header: &'h Header,
         key: &str,
     ) -> Option<io::Result<Option<Value<'r>>>> {
-        for result in self.iter(header) {
-            match result {
-                Ok((k, v)) => {
-                    if k == key {
-                        return Some(Ok(v));
-                    }
-                }
-                Err(e) => return Some(Err(e)),
-            }
+        const DELIMITER: char = ';';
+        const SEPARATOR: char = '=';
+
+        if self.0.is_empty() {
+            return None;
         }
 
-        None
+        let mut field = self.0.split(DELIMITER).find(|s| {
+            let Some(rest) = s.strip_prefix(key) else {
+                return false;
+            };
+            rest.is_empty() || rest.starts_with(SEPARATOR)
+        })?;
+
+        Some(parse_field(&mut field, header).map(|(_, v)| v))
     }
 
     /// Returns an iterator over all fields.
