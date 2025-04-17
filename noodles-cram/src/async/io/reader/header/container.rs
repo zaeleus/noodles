@@ -26,6 +26,9 @@ where
     }
 
     /// Returns a raw SAM header reader.
+    ///
+    /// The caller is responsible of discarding any extra padding in the header text, e.g., using
+    /// [`sam_header::Reader::discard_to_end`].
     pub async fn raw_sam_header_reader(
         &mut self,
     ) -> io::Result<sam_header::Reader<Decoder<&mut Take<R>>>> {

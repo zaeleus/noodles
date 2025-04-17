@@ -49,6 +49,9 @@ where
 
     /// Returns a header container reader.
     ///
+    /// The caller is responsible of discarding any extra padding in the header container, e.g.,
+    /// using [`container::Reader::discard_to_end`].
+    ///
     /// The position of the stream is expected to be at the start of a header container.
     pub async fn container_reader(&mut self) -> io::Result<container::Reader<&mut R>> {
         let len = container::read_header(&mut self.inner).await?;
