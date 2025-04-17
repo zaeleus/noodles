@@ -1,6 +1,6 @@
 mod field;
 
-use std::io;
+use std::{io, iter};
 
 use self::field::parse_field;
 use crate::{variant::record::info::field::Value, Header};
@@ -27,14 +27,14 @@ impl<'r> Info<'r> {
             return None;
         }
 
-        let field = self.0.split(DELIMITER).find(|s| {
+        let mut field = self.0.split(DELIMITER).find(|s| {
             let Some(rest) = s.strip_prefix(key) else {
                 return false;
             };
             rest.is_empty() || rest.starts_with(SEPARATOR)
         })?;
 
-        Some(parse_field(field, header).map(|(_, v)| v))
+        Some(parse_field(&mut field, header).map(|(_, v)| v))
     }
 
     /// Returns an iterator over all fields.
@@ -42,13 +42,15 @@ impl<'r> Info<'r> {
         &'r self,
         header: &'h Header,
     ) -> impl Iterator<Item = io::Result<(&'r str, Option<Value<'r>>)>> + 'r {
-        const DELIMITER: char = ';';
+        let mut src = self.0;
 
-        (!self.0.is_empty())
-            .then(|| self.0.split(DELIMITER))
-            .into_iter()
-            .flatten()
-            .map(|s| parse_field(s, header))
+        iter::from_fn(move || {
+            if src.is_empty() {
+                None
+            } else {
+                Some(parse_field(&mut src, header))
+            }
+        })
     }
 }
 
