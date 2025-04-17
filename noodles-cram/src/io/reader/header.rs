@@ -28,16 +28,22 @@ where
     }
 
     /// Reads the magic number.
+    ///
+    /// The position of the stream is expected to be at the start.
     pub fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner)
     }
 
     /// Reads the format version.
+    ///
+    /// The position of the stream is expected to be directly after the magic number.
     pub fn read_format_version(&mut self) -> io::Result<Version> {
         read_format_version(&mut self.inner)
     }
 
     /// Reads the file ID.
+    ///
+    /// The position of the stream is expected to be directly after the format version.
     pub fn read_file_id(&mut self) -> io::Result<[u8; 20]> {
         read_file_id(&mut self.inner)
     }
@@ -46,6 +52,8 @@ where
     ///
     /// The caller is responsible of discarding any extra padding in the header container, e.g.,
     /// using [`container::Reader::discard_to_end`].
+    ///
+    /// The position of the stream is expected to be at the start of a header container.
     pub fn container_reader(&mut self) -> io::Result<container::Reader<&mut R>> {
         let len = container::read_header(&mut self.inner)?;
         Ok(container::Reader::new(&mut self.inner, len))
