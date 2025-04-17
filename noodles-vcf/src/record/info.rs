@@ -110,6 +110,30 @@ mod tests {
     }
 
     #[test]
+    fn test_get() {
+        use crate::variant::record::info::field::key;
+
+        let header = Header::default();
+
+        let info = Info::new("");
+        assert!(info.get(&header, key::SAMPLES_WITH_DATA_COUNT).is_none());
+
+        let info = Info::new("NS=2;DP=.");
+
+        assert!(matches!(
+            info.get(&header, key::SAMPLES_WITH_DATA_COUNT),
+            Some(Ok(Some(Value::Integer(2))))
+        ));
+
+        assert!(matches!(
+            info.get(&header, key::TOTAL_DEPTH),
+            Some(Ok(None))
+        ));
+
+        assert!(info.get(&header, key::END_POSITION).is_none());
+    }
+
+    #[test]
     fn test_iter() {
         use crate::variant::record::info::field::key;
 
