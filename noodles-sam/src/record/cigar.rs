@@ -125,3 +125,21 @@ impl<'a> TryFrom<Cigar<'a>> for crate::alignment::record_buf::Cigar {
         Ok(cigar)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::alignment::record::Cigar as _;
+
+    #[test]
+    fn test_len() {
+        let cigar = Cigar::new(b"");
+        assert_eq!(cigar.len(), 0);
+
+        let cigar = Cigar::new(b"8M");
+        assert_eq!(cigar.len(), 1);
+
+        let cigar = Cigar::new(b"8M13N");
+        assert_eq!(cigar.len(), 2);
+    }
+}
