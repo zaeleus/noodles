@@ -101,6 +101,17 @@ mod tests {
             data.get(&Tag::ALIGNMENT_HIT_COUNT).transpose()?,
             Some(Value::Int32(1))
         ));
+        assert!(data.get(&Tag::COMMENT).is_none());
+
+        let data = Data::new(b"NH:i:1\tCO:Z:ndls");
+        assert!(matches!(
+            data.get(&Tag::ALIGNMENT_HIT_COUNT).transpose()?,
+            Some(Value::Int32(1))
+        ));
+        assert!(matches!(
+            data.get(&Tag::COMMENT).transpose()?,
+            Some(Value::String(s)) if s == b"ndls"
+        ));
 
         Ok(())
     }
