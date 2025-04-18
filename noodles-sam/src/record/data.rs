@@ -91,6 +91,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_is_empty() {
+        let data = Data::new(b"");
+        assert!(data.is_empty());
+
+        let data = Data::new(b"NH:i:1");
+        assert!(!data.is_empty());
+    }
+
+    #[test]
     fn test_get() -> io::Result<()> {
         let data = Data::new(b"");
         assert!(data.get(&Tag::ALIGNMENT_HIT_COUNT).is_none());
