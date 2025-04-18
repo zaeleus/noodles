@@ -112,17 +112,11 @@ impl AsRef<[u8]> for Cigar<'_> {
 impl<'a> TryFrom<Cigar<'a>> for crate::alignment::record_buf::Cigar {
     type Error = io::Error;
 
-    fn try_from(Cigar(src): Cigar<'a>) -> Result<Self, Self::Error> {
-        use crate::io::reader::record_buf::parse_cigar;
-
-        let mut cigar = Self::default();
-
-        if !src.is_empty() {
-            parse_cigar(src, &mut cigar)
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        }
-
-        Ok(cigar)
+    fn try_from(cigar: Cigar<'a>) -> Result<Self, Self::Error> {
+        cigar
+            .iter()
+            .map(|result| result.map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+            .collect()
     }
 }
 

@@ -9,20 +9,17 @@ mod reference_sequence_id;
 mod sequence;
 mod template_length;
 
-pub(crate) use self::{
-    cigar::parse_cigar, flags::parse_flags, template_length::parse_template_length,
-};
-
 use std::{
     error, fmt,
     io::{self, BufRead},
 };
 
 use self::{
-    data::parse_data, mapping_quality::parse_mapping_quality, name::parse_name,
+    cigar::parse_cigar, data::parse_data, mapping_quality::parse_mapping_quality, name::parse_name,
     position::parse_alignment_start, quality_scores::parse_quality_scores,
     reference_sequence_id::parse_reference_sequence_id, sequence::parse_sequence,
 };
+pub(crate) use self::{flags::parse_flags, template_length::parse_template_length};
 use super::read_line;
 use crate::{alignment::RecordBuf, Header};
 

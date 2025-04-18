@@ -32,7 +32,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(crate) fn parse_cigar(mut src: &[u8], cigar: &mut Cigar) -> Result<(), ParseError> {
+pub(super) fn parse_cigar(mut src: &[u8], cigar: &mut Cigar) -> Result<(), ParseError> {
     if src.is_empty() {
         return Err(ParseError::Empty);
     }
