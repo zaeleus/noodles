@@ -2,7 +2,7 @@ use std::{fmt, io, iter};
 
 use crate::{alignment::record::cigar::Op, io::reader::record_buf::cigar::op};
 
-/// Raw SAM record CIGAR operations.
+/// SAM record CIGAR operations.
 #[derive(Eq, PartialEq)]
 pub struct Cigar<'a>(&'a [u8]);
 

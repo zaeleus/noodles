@@ -1,4 +1,4 @@
-//! SAM record data field value and types.
+//! SAM record data field value.
 
 mod array;
 pub mod base_modifications;

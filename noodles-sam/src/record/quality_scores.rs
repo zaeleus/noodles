@@ -1,13 +1,11 @@
-//! Raw SAM record quality scores.
-
 use std::io;
 
-/// Raw SAM record quality scores.
+/// SAM record quality scores.
 #[derive(Debug, Eq, PartialEq)]
 pub struct QualityScores<'a>(&'a [u8]);
 
 impl<'a> QualityScores<'a> {
-    /// Creates raw SAM record quality scores.
+    /// Creates SAM record quality scores.
     ///
     /// # Examples
     ///

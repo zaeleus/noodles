@@ -1,4 +1,4 @@
-//! SAM record data field and components.
+//! SAM record data field.
 
 mod tag;
 mod ty;

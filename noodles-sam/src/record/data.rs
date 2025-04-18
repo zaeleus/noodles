@@ -1,4 +1,4 @@
-//! SAM record data and fields.
+//! SAM record data.
 
 pub mod field;
 
@@ -7,7 +7,7 @@ use std::{borrow::Borrow, fmt, io, iter};
 use self::field::parse_field;
 use crate::alignment::record::data::field::{Tag, Value};
 
-/// Raw SAM record data.
+/// SAM record data.
 pub struct Data<'a>(&'a [u8]);
 
 impl<'a> Data<'a> {

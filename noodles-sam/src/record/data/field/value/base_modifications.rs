@@ -1,4 +1,4 @@
-//! SAM record data field value for base modifications.
+//! SAM record data field base modifications value.
 
 pub mod group;
 mod parser;

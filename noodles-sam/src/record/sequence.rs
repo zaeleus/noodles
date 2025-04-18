@@ -1,4 +1,4 @@
-/// A raw SAM record sequence.
+/// A SAM record sequence.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Sequence<'a>(&'a [u8]);
 
