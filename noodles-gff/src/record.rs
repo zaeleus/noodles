@@ -1,4 +1,4 @@
-//! Raw GFF record.
+//! GFF record.
 
 pub mod attributes;
 pub(crate) mod fields;
@@ -14,7 +14,7 @@ use crate::feature::record::{Phase, Strand};
 
 const MISSING: &[u8] = b".";
 
-/// An immutable, lazily-evalulated GFF record.
+/// A GFF record.
 #[derive(Clone, Eq, PartialEq)]
 pub struct Record<'l>(Fields<'l>);
 

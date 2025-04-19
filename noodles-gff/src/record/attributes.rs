@@ -1,4 +1,4 @@
-//! Raw GFF record attributes.
+//! GFF record attributes.
 
 pub mod field;
 
@@ -8,7 +8,7 @@ use bstr::BStr;
 
 use self::field::{parse_field, Value};
 
-/// Raw GFF record attributes.
+/// GFF record attributes.
 pub struct Attributes<'a>(&'a [u8]);
 
 impl<'a> Attributes<'a> {

@@ -1,4 +1,4 @@
-//! Raw GFF record attributes field.
+//! GFF record attributes field.
 
 mod tag;
 mod value;
