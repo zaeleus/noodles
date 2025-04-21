@@ -39,15 +39,10 @@ impl<'a> Attributes<'a> {
 
     /// Returns an iterator over all tag-value pairs.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<(Cow<'_, BStr>, Value<'_>)>> {
-        let mut src = self.0;
+        use self::field::next_field;
 
-        iter::from_fn(move || {
-            if src.is_empty() {
-                None
-            } else {
-                Some(parse_field(&mut src))
-            }
-        })
+        let mut src = self.0;
+        iter::from_fn(move || next_field(&mut src).map(parse_field))
     }
 }
 

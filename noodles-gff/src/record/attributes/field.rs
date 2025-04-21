@@ -10,12 +10,22 @@ use bstr::{BStr, ByteSlice};
 pub use self::value::Value;
 use self::{tag::parse_tag, value::parse_value};
 
-pub(super) fn parse_field<'a>(src: &mut &'a [u8]) -> io::Result<(Cow<'a, BStr>, Value<'a>)> {
+pub(super) fn parse_field(src: &[u8]) -> io::Result<(Cow<'_, BStr>, Value<'_>)> {
+    split_field(src).map(|(t, v)| (parse_tag(t), parse_value(v)))
+}
+
+pub(super) fn next_field<'a>(src: &mut &'a [u8]) -> Option<&'a [u8]> {
     const DELIMITER: u8 = b';';
 
     let (buf, rest) = split_once(src, DELIMITER).unwrap_or_else(|| src.split_at(src.len()));
+
     *src = rest;
-    split_field(buf).map(|(t, v)| (parse_tag(t), parse_value(v)))
+
+    if buf.is_empty() {
+        None
+    } else {
+        Some(buf)
+    }
 }
 
 fn split_field(src: &[u8]) -> io::Result<(&[u8], &[u8])> {
@@ -46,26 +56,23 @@ mod tests {
 
     #[test]
     fn test_parse_field() -> io::Result<()> {
-        let mut src = &b"ID=1;Name=ndls"[..];
         assert_eq!(
-            parse_field(&mut src)?,
+            parse_field(b"ID=1")?,
             (
                 Cow::from(BStr::new("ID")),
                 Value::String(Cow::from(BStr::new("1")))
             )
         );
         assert_eq!(
-            parse_field(&mut src)?,
+            parse_field(b"Name=ndls")?,
             (
                 Cow::from(BStr::new("Name")),
                 Value::String(Cow::from(BStr::new("ndls")))
             )
         );
-        assert!(src.is_empty());
 
-        let mut src = &b"ID"[..];
         assert!(matches!(
-            parse_field(&mut src),
+            parse_field(b"ID"),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
