@@ -12,16 +12,17 @@ use self::{tag::parse_tag, value::parse_value};
 
 pub(super) fn parse_field<'a>(src: &mut &'a [u8]) -> io::Result<(Cow<'a, BStr>, Value<'a>)> {
     const DELIMITER: u8 = b';';
-    const SEPARATOR: u8 = b'=';
 
     let (buf, rest) = split_once(src, DELIMITER).unwrap_or_else(|| src.split_at(src.len()));
-
     *src = rest;
+    split_field(buf).map(|(t, v)| (parse_tag(t), parse_value(v)))
+}
 
-    if let Some((t, v)) = split_once(buf, SEPARATOR) {
-        let tag = parse_tag(t);
-        let value = parse_value(v);
-        Ok((tag, value))
+fn split_field(src: &[u8]) -> io::Result<(&[u8], &[u8])> {
+    const SEPARATOR: u8 = b'=';
+
+    if let Some((t, v)) = split_once(src, SEPARATOR) {
+        Ok((t, v))
     } else {
         Err(io::Error::new(io::ErrorKind::InvalidData, "invalid field"))
     }
