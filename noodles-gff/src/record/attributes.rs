@@ -103,7 +103,7 @@ mod tests {
         let attributes = Attributes::new(b"");
         assert!(attributes.is_empty());
 
-        let attributes = Attributes::new(b"ID=1;Name=ndls");
+        let attributes = Attributes::new(b"ID=1;Name%3F=ndls");
         assert!(!attributes.is_empty());
     }
 
@@ -131,7 +131,7 @@ mod tests {
         let attributes = Attributes::new(b"");
         assert!(attributes.iter().next().is_none());
 
-        let attributes = Attributes::new(b"ID=1;Name=ndls");
+        let attributes = Attributes::new(b"ID=1;Name%3F=ndls");
         let actual: Vec<_> = attributes.iter().collect::<Result<_, _>>()?;
         let expected = vec![
             (
@@ -139,7 +139,7 @@ mod tests {
                 Value::String(Cow::from(BStr::new("1"))),
             ),
             (
-                Cow::from(BStr::new("Name")),
+                Cow::from(BStr::new("Name?")),
                 Value::String(Cow::from(BStr::new("ndls"))),
             ),
         ];
