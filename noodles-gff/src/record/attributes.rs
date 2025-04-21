@@ -108,11 +108,22 @@ mod tests {
     }
 
     #[test]
-    fn test_get() {
+    fn test_get() -> io::Result<()> {
         let attributes = Attributes::new(b"ID=1;Name%3F=ndls");
-        assert!(attributes.get(b"ID").is_some());
-        assert!(attributes.get(b"Name?").is_some());
+
+        assert_eq!(
+            attributes.get(b"ID").transpose()?,
+            Some(Value::String(Cow::from(BStr::new("1"))))
+        );
+
+        assert_eq!(
+            attributes.get(b"Name?").transpose()?,
+            Some(Value::String(Cow::from(BStr::new("ndls"))))
+        );
+
         assert!(attributes.get(b"comment").is_none());
+
+        Ok(())
     }
 
     #[test]
