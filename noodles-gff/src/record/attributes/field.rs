@@ -8,7 +8,7 @@ use std::{borrow::Cow, io};
 use bstr::{BStr, ByteSlice};
 
 pub use self::value::Value;
-use self::{tag::parse_tag, value::parse_value};
+pub(super) use self::{tag::parse_tag, value::parse_value};
 
 pub(super) fn parse_field(src: &[u8]) -> io::Result<(Cow<'_, BStr>, Value<'_>)> {
     split_field(src).map(|(t, v)| (parse_tag(t), parse_value(v)))
@@ -28,7 +28,7 @@ pub(super) fn next_field<'a>(src: &mut &'a [u8]) -> Option<&'a [u8]> {
     }
 }
 
-fn split_field(src: &[u8]) -> io::Result<(&[u8], &[u8])> {
+pub(super) fn split_field(src: &[u8]) -> io::Result<(&[u8], &[u8])> {
     const SEPARATOR: u8 = b'=';
 
     if let Some((t, v)) = split_once(src, SEPARATOR) {

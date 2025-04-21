@@ -6,7 +6,7 @@ use std::{borrow::Cow, fmt, io, iter};
 
 use bstr::BStr;
 
-use self::field::{parse_field, Value};
+use self::field::{next_field, parse_field, parse_tag, parse_value, split_field, Value};
 
 /// GFF record attributes.
 pub struct Attributes<'a>(&'a [u8]);
@@ -23,14 +23,16 @@ impl<'a> Attributes<'a> {
 
     /// Returns the value of the given tag.
     pub fn get(&self, tag: &[u8]) -> Option<io::Result<Value<'_>>> {
-        for result in self.iter() {
-            match result {
-                Ok((t, value)) => {
-                    if *t == tag {
-                        return Some(Ok(value));
-                    }
-                }
+        let mut src = self.0;
+
+        while let Some(s) = next_field(&mut src) {
+            let (t, v) = match split_field(s) {
+                Ok(srcs) => srcs,
                 Err(e) => return Some(Err(e)),
+            };
+
+            if parse_tag(t).as_ref() == tag {
+                return Some(Ok(parse_value(v)));
             }
         }
 
@@ -39,8 +41,6 @@ impl<'a> Attributes<'a> {
 
     /// Returns an iterator over all tag-value pairs.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<(Cow<'_, BStr>, Value<'_>)>> {
-        use self::field::next_field;
-
         let mut src = self.0;
         iter::from_fn(move || next_field(&mut src).map(parse_field))
     }
@@ -109,8 +109,9 @@ mod tests {
 
     #[test]
     fn test_get() {
-        let attributes = Attributes::new(b"ID=1;Name=ndls");
+        let attributes = Attributes::new(b"ID=1;Name%3F=ndls");
         assert!(attributes.get(b"ID").is_some());
+        assert!(attributes.get(b"Name?").is_some());
         assert!(attributes.get(b"comment").is_none());
     }
 

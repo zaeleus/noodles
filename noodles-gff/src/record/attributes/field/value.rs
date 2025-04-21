@@ -34,7 +34,7 @@ impl<'a> From<Value<'a>> for crate::feature::record::attributes::field::Value<'a
     }
 }
 
-pub(super) fn parse_value(src: &[u8]) -> Value<'_> {
+pub(crate) fn parse_value(src: &[u8]) -> Value<'_> {
     if is_array(src) {
         Value::Array(Array::new(src))
     } else {

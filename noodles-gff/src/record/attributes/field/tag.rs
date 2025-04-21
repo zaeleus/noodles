@@ -4,7 +4,7 @@ use bstr::BStr;
 
 use super::percent_decode;
 
-pub(super) fn parse_tag(src: &[u8]) -> Cow<'_, BStr> {
+pub(crate) fn parse_tag(src: &[u8]) -> Cow<'_, BStr> {
     percent_decode(src)
 }
 
