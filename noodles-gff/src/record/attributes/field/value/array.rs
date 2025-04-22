@@ -4,7 +4,7 @@ use bstr::{BStr, ByteSlice};
 
 use crate::record::attributes::field::percent_decode;
 
-/// A raw GFF record attributes field array value.
+/// A GFF record attributes field array value.
 #[derive(Eq, PartialEq)]
 pub struct Array<'a>(&'a [u8]);
 

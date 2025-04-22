@@ -7,7 +7,7 @@ use bstr::BStr;
 use self::array::Array;
 use super::percent_decode;
 
-/// A raw GFF record attributes field value.
+/// A GFF record attributes field value.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Value<'a> {
     /// A string.
