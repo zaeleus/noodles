@@ -5,15 +5,14 @@ use std::io;
 use noodles_core::Position;
 
 pub(crate) use self::bounds::Bounds;
-use super::{AlternateBases, Filters, Ids, Info, Samples};
+
+const MISSING: &str = ".";
 
 #[derive(Clone, Eq, PartialEq)]
 pub(crate) struct Fields {
     pub(crate) buf: String,
     pub(crate) bounds: Bounds,
 }
-
-const MISSING: &str = ".";
 
 impl Fields {
     pub(super) fn reference_sequence_name(&self) -> &str {
@@ -36,26 +35,22 @@ impl Fields {
         }
     }
 
-    pub(super) fn ids(&self) -> Ids<'_> {
-        let src = match &self.buf[self.bounds.ids_range()] {
+    pub(super) fn ids(&self) -> &str {
+        match &self.buf[self.bounds.ids_range()] {
             MISSING => "",
-            buf => buf,
-        };
-
-        Ids::new(src)
+            src => src,
+        }
     }
 
     pub(super) fn reference_bases(&self) -> &str {
         &self.buf[self.bounds.reference_bases_range()]
     }
 
-    pub(super) fn alternate_bases(&self) -> AlternateBases {
-        let src = match &self.buf[self.bounds.alternate_bases_range()] {
+    pub(super) fn alternate_bases(&self) -> &str {
+        match &self.buf[self.bounds.alternate_bases_range()] {
             MISSING => "",
-            buf => buf,
-        };
-
-        AlternateBases::new(src)
+            src => src,
+        }
     }
 
     pub(super) fn quality_score(&self) -> Option<io::Result<f32>> {
@@ -68,25 +63,21 @@ impl Fields {
         }
     }
 
-    pub(super) fn filters(&self) -> Filters<'_> {
-        let src = match &self.buf[self.bounds.filters_range()] {
+    pub(super) fn filters(&self) -> &str {
+        match &self.buf[self.bounds.filters_range()] {
             MISSING => "",
-            buf => buf,
-        };
-
-        Filters::new(src)
+            src => src,
+        }
     }
 
-    pub(super) fn info(&self) -> Info<'_> {
-        let src = match &self.buf[self.bounds.info_range()] {
+    pub(super) fn info(&self) -> &str {
+        match &self.buf[self.bounds.info_range()] {
             MISSING => "",
-            buf => buf,
-        };
-
-        Info::new(src)
+            src => src,
+        }
     }
 
-    pub(super) fn samples(&self) -> Samples<'_> {
+    pub(super) fn samples(&self) -> &str {
         const DELIMITER: char = '\t';
 
         let src = &self.buf[self.bounds.samples_range()];
@@ -99,9 +90,9 @@ impl Fields {
         };
 
         if src.is_empty() || is_missing() {
-            Samples::new("")
+            ""
         } else {
-            Samples::new(src)
+            src
         }
     }
 }

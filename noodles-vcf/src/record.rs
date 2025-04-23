@@ -43,7 +43,7 @@ impl Record {
 
     /// Returns the IDs.
     pub fn ids(&self) -> Ids<'_> {
-        self.0.ids()
+        Ids::new(self.0.ids())
     }
 
     /// Returns the reference bases.
@@ -53,7 +53,7 @@ impl Record {
 
     /// Returns the alternate bases.
     pub fn alternate_bases(&self) -> AlternateBases<'_> {
-        self.0.alternate_bases()
+        AlternateBases::new(self.0.alternate_bases())
     }
 
     /// Returns the quality score.
@@ -63,17 +63,17 @@ impl Record {
 
     /// Returns the filters.
     pub fn filters(&self) -> Filters<'_> {
-        self.0.filters()
+        Filters::new(self.0.filters())
     }
 
     /// Returns the info.
     pub fn info(&self) -> Info<'_> {
-        self.0.info()
+        Info::new(self.0.info())
     }
 
     /// Returns the samples.
     pub fn samples(&self) -> Samples<'_> {
-        self.0.samples()
+        Samples::new(self.0.samples())
     }
 }
 
