@@ -11,7 +11,7 @@ use crate::Header;
 
 const DELIMITER: char = '\t';
 
-/// Raw VCF record genotypes.
+/// VCF record genotypes.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Samples<'r>(&'r str);
 

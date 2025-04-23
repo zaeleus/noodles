@@ -2,7 +2,7 @@ use std::{io, iter};
 
 use crate::Header;
 
-/// Raw VCF record filters.
+/// VCF record filters.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Filters<'r>(&'r str);
 

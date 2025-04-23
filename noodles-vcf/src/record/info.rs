@@ -5,7 +5,7 @@ use std::{io, iter};
 use self::field::parse_field;
 use crate::{variant::record::info::field::Value, Header};
 
-/// Raw VCF record info.
+/// VCF record info.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Info<'r>(&'r str);
 

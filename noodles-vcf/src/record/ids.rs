@@ -1,6 +1,6 @@
 use std::iter;
 
-/// Raw VCF record IDs.
+/// VCF record IDs.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Ids<'a>(&'a str);
 
