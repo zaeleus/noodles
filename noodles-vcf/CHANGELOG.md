@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/record/info: Avoid parsing skipped fields ([#337]).
+
+    When calling `Info::get`, the field value is only parsed upon a field key
+    match.
+
+[#337]: https://github.com/zaeleus/noodles/pull/337
+
 ## 0.77.0 - 2025-04-13
 
 ### Changed
