@@ -6,7 +6,7 @@ use std::{borrow::Cow, fmt, io, iter};
 
 use bstr::BStr;
 
-use self::field::{next_field, parse_field, parse_tag, parse_value, split_field, Value};
+use self::field::Value;
 
 /// GFF record attributes.
 pub struct Attributes<'a>(&'a [u8]);
@@ -25,14 +25,14 @@ impl<'a> Attributes<'a> {
     pub fn get(&self, tag: &[u8]) -> Option<io::Result<Value<'_>>> {
         let mut src = self.0;
 
-        while let Some(s) = next_field(&mut src) {
-            let (t, v) = match split_field(s) {
+        while let Some(result) = field::next(&mut src) {
+            let (t, v) = match result {
                 Ok(srcs) => srcs,
                 Err(e) => return Some(Err(e)),
             };
 
-            if parse_tag(t).as_ref() == tag {
-                return Some(Ok(parse_value(v)));
+            if field::parse_tag(t).as_ref() == tag {
+                return Some(Ok(field::parse_value(v)));
             }
         }
 
@@ -42,7 +42,10 @@ impl<'a> Attributes<'a> {
     /// Returns an iterator over all tag-value pairs.
     pub fn iter(&self) -> impl Iterator<Item = io::Result<(Cow<'_, BStr>, Value<'_>)>> {
         let mut src = self.0;
-        iter::from_fn(move || next_field(&mut src).map(parse_field))
+
+        iter::from_fn(move || {
+            field::next(&mut src).map(|result| result.map(|(t, v)| field::parse(t, v)))
+        })
     }
 }
 
