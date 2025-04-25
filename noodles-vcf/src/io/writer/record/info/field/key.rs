@@ -16,6 +16,8 @@ where
 
 // § 1.6.1.8 "Fixed fields: INFO" (2023-08-23): "`^([A-Za-z_][0-9A-Za-z_.]*|1000G)$`".
 fn is_valid(s: &str) -> bool {
+    use crate::variant::record::info::field::key;
+
     fn is_valid_char(c: char) -> bool {
         c.is_ascii_alphanumeric() || matches!(c, '_' | '.')
     }
@@ -27,7 +29,7 @@ fn is_valid(s: &str) -> bool {
         .map(|c| c.is_ascii_alphabetic() || c == '_')
         .unwrap_or_default();
 
-    (is_valid_first_char && chars.all(is_valid_char)) || s == "1000G"
+    (is_valid_first_char && chars.all(is_valid_char)) || s == key::IS_IN_1000_GENOMES
 }
 
 #[cfg(test)]
