@@ -307,7 +307,7 @@ fn calculate_template_length_chunk(
         end - start + 1
     };
 
-    i32::try_from(len).expect("invalid tempalte length")
+    i32::try_from(len).expect("invalid template length")
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
