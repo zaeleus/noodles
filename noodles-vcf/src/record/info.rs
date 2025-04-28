@@ -2,7 +2,6 @@ mod field;
 
 use std::{io, iter};
 
-use self::field::parse_field;
 use crate::{variant::record::info::field::Value, Header};
 
 /// VCF record info.
@@ -20,21 +19,20 @@ impl<'r> Info<'r> {
         header: &'h Header,
         key: &str,
     ) -> Option<io::Result<Option<Value<'r>>>> {
-        const DELIMITER: char = ';';
-        const SEPARATOR: char = '=';
+        let mut src = self.0;
 
-        if self.0.is_empty() {
-            return None;
+        while let Some(result) = field::next(&mut src) {
+            let (k, v) = match result {
+                Ok(srcs) => srcs,
+                Err(e) => return Some(Err(e)),
+            };
+
+            if k == key {
+                return Some(field::parse_value(header, k, v));
+            }
         }
 
-        let mut field = self.0.split(DELIMITER).find(|s| {
-            let Some(rest) = s.strip_prefix(key) else {
-                return false;
-            };
-            rest.is_empty() || rest.starts_with(SEPARATOR)
-        })?;
-
-        Some(parse_field(&mut field, header).map(|(_, v)| v))
+        None
     }
 
     /// Returns an iterator over all fields.
@@ -45,11 +43,9 @@ impl<'r> Info<'r> {
         let mut src = self.0;
 
         iter::from_fn(move || {
-            if src.is_empty() {
-                None
-            } else {
-                Some(parse_field(&mut src, header))
-            }
+            field::next(&mut src).map(|result| {
+                result.and_then(|(k, v)| field::parse_value(header, k, v).map(|value| (k, value)))
+            })
         })
     }
 }

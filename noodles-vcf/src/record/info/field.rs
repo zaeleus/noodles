@@ -2,37 +2,19 @@ mod value;
 
 use std::io;
 
-use self::value::parse_value;
 use crate::{header::record::value::map::info::Type, variant::record::info::field::Value, Header};
 
-pub(super) fn parse_field<'a>(
-    src: &mut &'a str,
+const DELIMITER: u8 = b';';
+const SEPARATOR: u8 = b'=';
+
+pub(super) fn parse_value<'a>(
     header: &Header,
-) -> io::Result<(&'a str, Option<Value<'a>>)> {
+    key: &str,
+    raw_value: Option<&'a str>,
+) -> io::Result<Option<Value<'a>>> {
     use crate::header::record::value::map::info::definition::definition;
 
-    const DELIMITER: char = ';';
-    const MAX_COMPONENTS: usize = 2;
     const MISSING: &str = ".";
-    const SEPARATOR: char = '=';
-
-    let (buf, rest) = match src.find(DELIMITER) {
-        Some(i) => {
-            let (buf, rest) = src.split_at(i);
-            (buf, &rest[1..])
-        }
-        None => src.split_at(src.len()),
-    };
-
-    *src = rest;
-
-    if buf.is_empty() {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    }
-
-    let mut components = buf.splitn(MAX_COMPONENTS, SEPARATOR);
-    let key = components.next().unwrap_or_default();
-    let raw_value = components.next();
 
     let definition = header
         .infos()
@@ -41,17 +23,134 @@ pub(super) fn parse_field<'a>(
         .or_else(|| definition(header.file_format(), key).map(|(n, t, _)| (n, t)));
 
     if definition.is_none() && raw_value.is_none() {
-        return Ok((key, Some(Value::Flag)));
+        return Ok(Some(Value::Flag));
     }
 
     let (number, ty) = definition.unwrap_or_default();
 
-    let value = match raw_value {
-        Some(MISSING) => None,
-        Some(t) => parse_value(t, number, ty).map(Some)?,
-        None if ty == Type::Flag => Some(Value::Flag),
-        None => return Err(io::Error::new(io::ErrorKind::InvalidData, "missing value")),
+    match raw_value {
+        Some(MISSING) => Ok(None),
+        Some(v) => value::parse_value(v, number, ty).map(Some),
+        None if ty == Type::Flag => Ok(Some(Value::Flag)),
+        None => Err(io::Error::new(io::ErrorKind::InvalidData, "missing value")),
+    }
+}
+
+pub(super) fn next<'a>(src: &mut &'a str) -> Option<io::Result<(&'a str, Option<&'a str>)>> {
+    if src.is_empty() {
+        return None;
+    }
+
+    let (key, is_separated) = match read_key(src) {
+        Ok((k, is_eof)) => (k, is_eof),
+        Err(e) => return Some(Err(e)),
     };
 
-    Ok((key, value))
+    if !is_separated {
+        return Some(Ok((key, None)));
+    }
+
+    let value = match read_value(src) {
+        Ok(v) => v,
+        Err(e) => return Some(Err(e)),
+    };
+
+    Some(Ok((key, Some(value))))
+}
+
+fn read_key<'a>(src: &mut &'a str) -> io::Result<(&'a str, bool)> {
+    let s = src.as_bytes();
+
+    let mut r#match = None;
+
+    let key = if let Some(i) = memchr::memchr2(SEPARATOR, DELIMITER, s) {
+        let (k, rest) = src.split_at(i);
+        *src = &rest[1..];
+        r#match = Some(s[i]);
+        k
+    } else {
+        let (k, rest) = src.split_at(src.len());
+        *src = rest;
+        k
+    };
+
+    let is_delimited = matches!(r#match, Some(DELIMITER));
+
+    if src.is_empty() && is_delimited {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "unexpected field delimiter after key",
+        ))
+    } else if key.is_empty() {
+        Err(io::Error::new(io::ErrorKind::InvalidData, "missing key"))
+    } else {
+        let is_separated = matches!(r#match, Some(SEPARATOR));
+        Ok((key, is_separated))
+    }
+}
+
+fn read_value<'a>(src: &mut &'a str) -> io::Result<&'a str> {
+    let mut is_delimited = false;
+
+    let value = if let Some(i) = memchr::memchr(DELIMITER, src.as_bytes()) {
+        let (v, rest) = src.split_at(i);
+        *src = &rest[1..];
+        is_delimited = true;
+        v
+    } else {
+        let (v, rest) = src.split_at(src.len());
+        *src = rest;
+        v
+    };
+
+    if src.is_empty() && is_delimited {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "unexpected field delimiter after value",
+        ))
+    } else {
+        Ok(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_next() -> io::Result<()> {
+        let mut src = "";
+        assert!(next(&mut src).is_none());
+
+        let mut src = "NS=2";
+        assert_eq!(next(&mut src).transpose()?, Some(("NS", Some("2"))));
+
+        let mut src = "NS=2;DP=.;H3";
+        assert_eq!(next(&mut src).transpose()?, Some(("NS", Some("2"))));
+        assert_eq!(next(&mut src).transpose()?, Some(("DP", Some("."))));
+        assert_eq!(next(&mut src).transpose()?, Some(("H3", None)));
+
+        // unexpected field delimiter after key
+        let mut src = "H3;";
+        assert!(matches!(
+            next(&mut src),
+            Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
+        // missing key
+        let mut src = ";";
+        assert!(matches!(
+            next(&mut src),
+            Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
+        // unexpected field delimiter after value
+        let mut src = "NS=2;";
+        assert!(matches!(
+            next(&mut src),
+            Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
+        Ok(())
+    }
 }
