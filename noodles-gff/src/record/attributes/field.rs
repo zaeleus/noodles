@@ -81,6 +81,13 @@ mod tests {
             Some((&b"Name%3F"[..], &b"ndls"[..]))
         );
 
+        // The semicolon (`;`) is supposed to be a field separator (§ 3.8 "Description of the
+        // Format: Column 9 'attributes'" (2020-08-18)); however, the specification has an example
+        // with it as a trailing delimiter in § 3.5 "Circular Genomes" (2020-08-18).
+        let mut src = &b"ID=1;"[..];
+        assert_eq!(next(&mut src).transpose()?, Some((&b"ID"[..], &b"1"[..])));
+        assert!(next(&mut src).is_none());
+
         let mut src = &b"ID"[..];
         assert!(matches!(
             next(&mut src),
