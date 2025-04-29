@@ -71,6 +71,9 @@ mod tests {
 
     #[test]
     fn test_next() -> io::Result<()> {
+        let mut src = &b""[..];
+        assert!(next(&mut src).is_none());
+
         let mut src = &b"ID=1;Name%3F=ndls"[..];
         assert_eq!(next(&mut src).transpose()?, Some((&b"ID"[..], &b"1"[..])));
         assert_eq!(
