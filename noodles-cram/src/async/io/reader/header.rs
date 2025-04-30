@@ -29,6 +29,23 @@ where
     /// Reads the magic number.
     ///
     /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// let magic_number = header_reader.read_magic_number().await?;
+    /// assert_eq!(magic_number, *b"CRAM");
+    /// # Ok::<_, std::io::Error>(())
+    /// # }
+    /// ```
     pub async fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner).await
     }
@@ -36,6 +53,24 @@ where
     /// Reads the format version.
     ///
     /// The position of the stream is expected to be directly after the magic number.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number().await?;
+    ///
+    /// let _format_version = header_reader.read_format_version().await?;
+    /// # Ok::<_, std::io::Error>(())
+    /// # }
+    /// ```
     pub async fn read_format_version(&mut self) -> io::Result<Version> {
         read_format_version(&mut self.inner).await
     }
@@ -43,6 +78,25 @@ where
     /// Reads the file ID.
     ///
     /// The position of the stream is expected to be directly after the format version.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number().await?;
+    /// header_reader.read_format_version().await?;
+    ///
+    /// let _file_id = header_reader.read_file_id().await?;
+    /// # Ok::<_, std::io::Error>(())
+    /// # }
+    /// ```
     pub async fn read_file_id(&mut self) -> io::Result<[u8; 20]> {
         read_file_id(&mut self.inner).await
     }
@@ -53,6 +107,28 @@ where
     /// using [`container::Reader::discard_to_end`].
     ///
     /// The position of the stream is expected to be at the start of a header container.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> std::io::Result<()> {
+    /// use noodles_cram as cram;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number().await?;
+    /// header_reader.read_format_version().await?;
+    /// header_reader.read_file_id().await?;
+    ///
+    /// let mut container_reader = header_reader.container_reader().await?;
+    /// let header = { /* ... */ };
+    /// container_reader.discard_to_end().await?;
+    /// # Ok::<_, std::io::Error>(())
+    /// # }
+    /// ```
     pub async fn container_reader(&mut self) -> io::Result<container::Reader<&mut R>> {
         let len = container::read_header(&mut self.inner).await?;
         Ok(container::Reader::new(&mut self.inner, len))

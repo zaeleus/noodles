@@ -30,6 +30,20 @@ where
     /// Reads the magic number.
     ///
     /// The position of the stream is expected to be at the start.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// let magic_number = header_reader.read_magic_number()?;
+    /// assert_eq!(magic_number, *b"CRAM");
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn read_magic_number(&mut self) -> io::Result<[u8; MAGIC_NUMBER.len()]> {
         read_magic_number(&mut self.inner)
     }
@@ -37,6 +51,21 @@ where
     /// Reads the format version.
     ///
     /// The position of the stream is expected to be directly after the magic number.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    ///
+    /// let _format_version = header_reader.read_format_version()?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn read_format_version(&mut self) -> io::Result<Version> {
         read_format_version(&mut self.inner)
     }
@@ -44,6 +73,22 @@ where
     /// Reads the file ID.
     ///
     /// The position of the stream is expected to be directly after the format version.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    /// header_reader.read_format_version()?;
+    ///
+    /// let _file_id = header_reader.read_file_id()?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn read_file_id(&mut self) -> io::Result<[u8; 20]> {
         read_file_id(&mut self.inner)
     }
@@ -54,6 +99,25 @@ where
     /// using [`container::Reader::discard_to_end`].
     ///
     /// The position of the stream is expected to be at the start of a header container.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    ///
+    /// let mut header_reader = reader.header_reader();
+    /// header_reader.read_magic_number()?;
+    /// header_reader.read_format_version()?;
+    /// header_reader.read_file_id()?;
+    ///
+    /// let mut container_reader = header_reader.container_reader()?;
+    /// let header = { /* ... */ };
+    /// container_reader.discard_to_end()?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn container_reader(&mut self) -> io::Result<container::Reader<&mut R>> {
         let len = container::read_header(&mut self.inner)?;
         Ok(container::Reader::new(&mut self.inner, len))
