@@ -58,7 +58,7 @@ impl Record {
 
     /// Returns the quality score.
     pub fn quality_score(&self) -> Option<io::Result<f32>> {
-        self.0.quality_score()
+        self.0.quality_score().map(parse_quality_score)
     }
 
     /// Returns the filters.
@@ -142,4 +142,9 @@ impl crate::variant::Record for Record {
     fn samples(&self) -> io::Result<Box<dyn crate::variant::record::Samples + '_>> {
         Ok(Box::new(self.samples()))
     }
+}
+
+fn parse_quality_score(s: &str) -> io::Result<f32> {
+    s.parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }

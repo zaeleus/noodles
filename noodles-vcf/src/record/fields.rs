@@ -53,13 +53,10 @@ impl Fields {
         }
     }
 
-    pub(super) fn quality_score(&self) -> Option<io::Result<f32>> {
+    pub(super) fn quality_score(&self) -> Option<&str> {
         match &self.buf[self.bounds.quality_score_range()] {
             MISSING => None,
-            src => Some(
-                src.parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
-            ),
+            src => Some(src),
         }
     }
 
