@@ -67,9 +67,9 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
-    let compressed_len = dst[9..].len();
+    let compressed_size = dst[9..].len();
     let mut writer = &mut dst[..9];
-    write_header(&mut writer, Order::One, compressed_len, src.len())?;
+    write_header(&mut writer, Order::One, compressed_size, src.len())?;
 
     Ok(dst)
 }
@@ -190,8 +190,8 @@ mod tests {
         let expected = [
             // header
             0x01, // order = 1
-            0x36, 0x00, 0x00, 0x00, // compressed_len = 54
-            0x2c, 0x00, 0x00, 0x00, // uncompressed_len = 44
+            0x36, 0x00, 0x00, 0x00, // compressed size = 54
+            0x2c, 0x00, 0x00, 0x00, // uncompressed size = 44
             // frequency table
             0x00, // syms[0] = '\0' {
             0x61, // syms[1] = 'a'

@@ -180,8 +180,8 @@ mod tests {
         let expected = [
             // header
             0x00, // order = 0
-            0x1f, 0x00, 0x00, 0x00, // compressed_len = 31
-            0x0b, 0x00, 0x00, 0x00, // uncompressed_len = 11
+            0x1f, 0x00, 0x00, 0x00, // compressed size = 31
+            0x0b, 0x00, 0x00, 0x00, // uncompressed size = 11
             // frequency table
             0x61, // sym = 'a'
             0x87, 0x47, // f['a'] = 1863
