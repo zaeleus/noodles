@@ -1,8 +1,7 @@
 use std::io::{self, BufRead};
 
-use crate::{directive_buf::key, feature::RecordBuf, LineBuf};
-
 use super::LineBufs;
+use crate::{directive_buf::key, feature::RecordBuf, LineBuf};
 
 /// Returns an iterator over records of a GFF reader.
 ///

@@ -5,14 +5,13 @@ mod line_bufs;
 mod lines;
 mod record_bufs;
 
-pub use self::{line_bufs::LineBufs, lines::Lines, record_bufs::RecordBufs};
-
 use std::io::{self, BufRead, Read, Seek};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
+pub use self::{line_bufs::LineBufs, lines::Lines, record_bufs::RecordBufs};
 use crate::{feature::RecordBuf, Line};
 
 /// A GFF reader.
