@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util/variant: Add variant record (`variant::Record`).
+
 ## 0.66.0 - 2025-04-13
 
 ### Changed
