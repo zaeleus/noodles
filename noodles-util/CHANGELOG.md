@@ -6,6 +6,8 @@
 
   * util/variant: Add variant record (`variant::Record`).
 
+  * util/variant/io/reader: Add variant record reader (`Reader::read_record`).
+
 ## 0.66.0 - 2025-04-13
 
 ### Changed
