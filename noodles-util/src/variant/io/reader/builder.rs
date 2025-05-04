@@ -88,6 +88,8 @@ impl Builder {
     where
         R: Read + 'static,
     {
+        use super::Inner;
+
         let mut reader = BufReader::new(reader);
 
         let compression_method = match self.compression_method {
@@ -100,22 +102,22 @@ impl Builder {
             None => detect_format(&mut reader, compression_method)?,
         };
 
-        let inner: Box<dyn vcf::variant::io::Read<_>> = match (format, compression_method) {
+        let inner = match (format, compression_method) {
             (Format::Vcf, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
-                Box::new(vcf::io::Reader::new(inner))
+                Inner::Vcf(vcf::io::Reader::new(inner))
             }
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
-                Box::new(vcf::io::Reader::new(inner))
+                Inner::Vcf(vcf::io::Reader::new(inner))
             }
             (Format::Bcf, None) => {
                 let inner: Box<dyn BufRead> = Box::new(reader);
-                Box::new(bcf::io::Reader::from(inner))
+                Inner::Bcf(bcf::io::Reader::from(inner))
             }
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
                 let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
-                Box::new(bcf::io::Reader::from(inner))
+                Inner::Bcf(bcf::io::Reader::from(inner))
             }
         };
 

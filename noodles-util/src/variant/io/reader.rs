@@ -6,11 +6,20 @@ pub use self::builder::Builder;
 
 use std::io::{self, BufRead};
 
-use noodles_vcf::{self as vcf, variant::Record};
+use noodles_bcf as bcf;
+use noodles_vcf::{
+    self as vcf,
+    variant::{io::Read, Record},
+};
+
+enum Inner<R> {
+    Vcf(vcf::io::Reader<R>),
+    Bcf(bcf::io::Reader<R>),
+}
 
 /// A variant reader.
 pub struct Reader<R> {
-    inner: Box<dyn vcf::variant::io::Read<R>>,
+    inner: Inner<R>,
 }
 
 impl<R> Reader<R>
@@ -33,7 +42,10 @@ where
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<vcf::Header> {
-        self.inner.read_variant_header()
+        match &mut self.inner {
+            Inner::Vcf(reader) => reader.read_variant_header(),
+            Inner::Bcf(reader) => reader.read_variant_header(),
+        }
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -62,6 +74,9 @@ where
         &'a mut self,
         header: &'a vcf::Header,
     ) -> impl Iterator<Item = io::Result<Box<dyn Record>>> + 'a {
-        self.inner.variant_records(header)
+        match &mut self.inner {
+            Inner::Vcf(reader) => reader.variant_records(header),
+            Inner::Bcf(reader) => reader.variant_records(header),
+        }
     }
 }
