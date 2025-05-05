@@ -4,6 +4,8 @@
 
 ### Added
 
+  * util/alignment: Add alignment record (`alignment::Record`).
+
   * util/variant: Add variant record (`variant::Record`).
 
   * util/variant/io/reader: Add variant record reader (`Reader::read_record`).
