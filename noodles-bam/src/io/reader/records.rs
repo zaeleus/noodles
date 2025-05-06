@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use super::Reader;
 use crate::Record;
 
-/// An iterator over lazily-evalulated records of a BAM reader.
+/// An iterator over lazily-evaluated records of a BAM reader.
 ///
 /// This is created by calling [`Reader::records`].
 pub struct Records<'a, R> {
