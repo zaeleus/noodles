@@ -29,7 +29,7 @@ pub fn index<P>(src: P) -> io::Result<bai::Index>
 where
     P: AsRef<Path>,
 {
-    let mut reader = crate::io::reader::Builder.build_from_path(src)?;
+    let mut reader = super::open(src)?;
     index_inner(&mut reader)
 }
 
