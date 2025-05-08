@@ -1,4 +1,4 @@
-use std::{fs::File, io, path::Path};
+use std::{io, path::Path};
 
 use noodles_bgzf as bgzf;
 use noodles_csi::{
@@ -26,7 +26,7 @@ pub fn index<P>(src: P) -> io::Result<csi::Index>
 where
     P: AsRef<Path>,
 {
-    let mut reader = File::open(src).map(Reader::new)?;
+    let mut reader = super::open(src)?;
     index_inner(&mut reader)
 }
 
