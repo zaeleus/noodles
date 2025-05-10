@@ -36,6 +36,7 @@
 pub mod r#async;
 
 pub(crate) mod deflate;
+pub mod fs;
 mod gz;
 pub mod gzi;
 pub mod io;

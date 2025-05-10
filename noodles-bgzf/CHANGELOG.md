@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf/fs: Add `open` function.
+
 ## 0.39.0 - 2025-04-13
 
 ### Fixed
