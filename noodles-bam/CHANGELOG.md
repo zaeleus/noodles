@@ -23,7 +23,7 @@
 
 ### Fixed
 
-  * bam/record/sequence/iter: Fix size hint calcuation.
+  * bam/record/sequence/iter: Fix size hint calculation.
 
 ## 0.76.0 - 2025-02-06
 
