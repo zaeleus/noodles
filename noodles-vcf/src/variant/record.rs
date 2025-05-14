@@ -58,12 +58,17 @@ pub trait Record {
     /// Returns or calculates the variant end position.
     ///
     /// If available, this returns the value of the `END` INFO field. Otherwise, it is calculated
-    /// using the [variant start position] and [reference bases length].
+    /// using the [variant start position] and the maximum value of one of the following:
+    ///
+    ///  1. the [number of reference bases],
+    ///  2. the maximum `SVLEN` INFO field value,
+    ///  3. the maximum `LENGTH` samples field value, or
+    ///  4. positon 1.
     ///
     /// This position is 1-based, inclusive.
     ///
     /// [variant start position]: `Self::variant_start`
-    /// [reference bases length]: `ReferenceBases::len`
+    /// [number of reference bases]: `ReferenceBases::len`
     fn variant_end(&self, header: &Header) -> io::Result<Position> {
         if let Some(position) = info_end(header, &self.info()).transpose()? {
             Ok(position)
