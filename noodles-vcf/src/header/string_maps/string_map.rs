@@ -1,4 +1,4 @@
-use std::{collections::HashMap, mem};
+use std::collections::HashMap;
 
 /// An indexed map of VCF strings.
 ///
@@ -51,7 +51,7 @@ impl StringMap {
     fn insert_full(&mut self, value: String) -> (usize, Option<String>) {
         match self.get_index_of(&value) {
             Some(i) => {
-                let entry = mem::replace(&mut self.entries[i], Some(value));
+                let entry = self.entries[i].replace(value);
                 (i, entry)
             }
             None => {
@@ -67,7 +67,7 @@ impl StringMap {
         }
 
         self.indices.insert(value.clone(), i);
-        mem::replace(&mut self.entries[i], Some(value))
+        self.entries[i].replace(value)
     }
 
     fn push(&mut self, value: String) -> usize {
