@@ -365,7 +365,7 @@ where
     /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     /// let header = reader.read_header().await?;
     ///
-    /// let index = bai::r#async::read("sample.bam.bai").await?;
+    /// let index = bai::r#async::fs::read("sample.bam.bai").await?;
     /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(&header, &index, &region)?;
     ///
@@ -408,7 +408,7 @@ where
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
     ///
-    /// let index = bai::r#async::read("sample.bam.bai").await?;
+    /// let index = bai::r#async::fs::read("sample.bam.bai").await?;
     /// let mut query = reader.query_unmapped(&index).await?;
     ///
     /// while let Some(record) = query.try_next().await? {

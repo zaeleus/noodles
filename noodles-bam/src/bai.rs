@@ -29,26 +29,6 @@ pub mod r#async;
 pub mod fs;
 pub mod io;
 
-#[deprecated(since = "0.73.0", note = "Use `bai::fs::read` instead.")]
-pub use self::fs::read;
-
-#[deprecated(since = "0.73.0", note = "Use `bai::fs::write` instead.")]
-pub use self::fs::write;
-
-#[deprecated(since = "0.68.0", note = "Use `bai::io::Reader` instead.")]
-pub use self::io::Reader;
-
-#[deprecated(since = "0.68.0", note = "Use `bai::io::Writer` instead.")]
-pub use self::io::Writer;
-
-#[cfg(feature = "async")]
-#[deprecated(since = "0.68.0", note = "Use `bai::r#async::io::Reader` instead.")]
-pub use self::r#async::Reader as AsyncReader;
-
-#[cfg(feature = "async")]
-#[deprecated(since = "0.68.0", note = "Use `bai::r#async::io::Writer` instead.")]
-pub use self::r#async::Writer as AsyncWriter;
-
 use noodles_csi::binning_index::{self, index::reference_sequence::index::LinearIndex};
 
 const DEPTH: u8 = 5;

@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(&src).await.map(bam::r#async::io::Reader::new)?;
     let header = reader.read_header().await?;
 
-    let index = bai::r#async::read(src.with_extension("bam.bai")).await?;
+    let index = bai::r#async::fs::read(src.with_extension("bam.bai")).await?;
 
     let mut records: Pin<Box<dyn Stream<Item = io::Result<bam::Record>>>> =
         if raw_region == UNMAPPED {

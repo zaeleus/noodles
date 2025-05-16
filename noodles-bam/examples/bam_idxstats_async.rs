@@ -19,7 +19,7 @@ async fn main() -> io::Result<()> {
     let mut reader = File::open(&src).await.map(bam::r#async::io::Reader::new)?;
     let header = reader.read_header().await?;
 
-    let index = bai::r#async::read(src.with_extension("bam.bai")).await?;
+    let index = bai::r#async::fs::read(src.with_extension("bam.bai")).await?;
 
     for ((reference_sequence_name, reference_sequence), index_reference_sequence) in header
         .reference_sequences()
