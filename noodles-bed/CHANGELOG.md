@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * bed: Remove deprecated items.
+
+    The following items are removed:
+
+      * `Reader` (0.14.0; use `io::Reader` instead) and
+      * `Writer` (0.14.0; `io::Writer`).
+
 ## 0.25.0 - 2025-05-16
 
 ### Changed
