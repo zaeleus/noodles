@@ -1,5 +1,40 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * bgzf: Remove deprecated items.
+
+    The following items are removed:
+
+      * `AsyncReader` (deprecated since 0.35.0; use `r#async::io::Reader` instead),
+      * `AsyncWriter` (0.35.0; `r#async::io::Writer`),
+      * `IndexedReader` (0.38.0; `io::IndexedReader`),
+      * `MultithreadedReader` (0.38.0; `io::MultithreadedReader`),
+      * `MultithreadedWriter` (0.38.0; `io::MultithreadedWriter`),
+      * `Reader` (0.38.0; `io::Reader`),
+      * `Writer` (0.38.0; `io::Writer`),
+      * `gzi::AsyncReader` (0.35.0; `gzi::r#async::io::Reader`),
+      * `gzi::Reader` (0.35.0; `gzi::io::Reader`),
+      * `gzi::r#async::Reader` (0.35.0; `gzi::r#async::io::Reader`),
+      * `gzi::r#async::read` (0.35.0; `gzi::r#async::fs::read`),
+      * `gzi::read` (0.35.0; `gzi::fs::read`),
+      * `io::writer::Builder::build_with_writer` (0.33.0;
+        `io::writer::Builder::build_from_writer`).
+      * `io::writer::CompressionLevel::best` (0.29.0;
+        `io::writer::CompressionLevel::BEST`),
+      * `io::writer::CompressionLevel::fast` (0.29.0;
+        `io::writer::CompressionLevel::FAST`),
+      * `io::writer::CompressionLevel::none` (0.29.0;
+        `io::writer::CompressionLevel::NONE`),
+      * `r#async::Reader` (0.38.0; `r#async::io::Reader`),
+      * `r#async::Writer` (0.38.0; `r#async::io::Writer`),
+      * `r#async::io::reader::Builder::build_with_reader` (0.33.0;
+        `r#async::io::reader::Builder::build_from_reader`), and
+      * `r#async::io::writer::Builder::build_with_writer` (0.33.0;
+        `r#async::io::writer::Builder::build_from_writer`),
+
 ## 0.40.0 - 2025-05-16
 
 ### Added

@@ -122,7 +122,7 @@ impl Builder {
             }
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 let encoder: Box<dyn AsyncWrite + Unpin> =
-                    Box::new(bgzf::r#async::Writer::new(writer));
+                    Box::new(bgzf::r#async::io::Writer::new(writer));
                 Writer::Vcf(vcf::r#async::io::Writer::new(encoder))
             }
             (Format::Bcf, None) => {
@@ -131,7 +131,7 @@ impl Builder {
             }
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
                 let encoder: Box<dyn AsyncWrite + Unpin> =
-                    Box::new(bgzf::r#async::Writer::new(writer));
+                    Box::new(bgzf::r#async::io::Writer::new(writer));
                 Writer::Bcf(bcf::r#async::io::Writer::from(encoder))
             }
         }

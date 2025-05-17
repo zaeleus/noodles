@@ -17,7 +17,7 @@ pub use super::fs::index;
 /// A buffered FASTA reader.
 pub enum BufReader<R> {
     /// bgzip-compressed.
-    Bgzf(bgzf::IndexedReader<R>),
+    Bgzf(bgzf::io::IndexedReader<R>),
     /// Uncompressed.
     Uncompressed(std::io::BufReader<R>),
 }

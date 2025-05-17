@@ -19,7 +19,7 @@ impl Builder {
     /// use noodles_bgzf::{self as bgzf, io::writer::CompressionLevel};
     ///
     /// let builder = bgzf::io::writer::Builder::default()
-    ///     .set_compression_level(CompressionLevel::best());
+    ///     .set_compression_level(CompressionLevel::BEST);
     /// ```
     pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {
         self.compression_level = compression_level;
@@ -46,14 +46,5 @@ impl Builder {
             compression_buf: Vec::new(),
             compression_level: self.compression_level.into(),
         }
-    }
-
-    /// Builds a BGZF writer from a writer.
-    #[deprecated(since = "0.33.0", note = "Use `Builder::build_from_writer` instead.")]
-    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
-    where
-        W: Write,
-    {
-        self.build_from_writer(writer)
     }
 }

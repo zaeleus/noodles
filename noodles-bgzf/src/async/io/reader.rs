@@ -44,7 +44,7 @@ where
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use tokio::io;
-    /// let reader = bgzf::r#async::Reader::new(io::empty());
+    /// let reader = bgzf::r#async::io::Reader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Builder::default().build_from_reader(inner)
@@ -57,7 +57,7 @@ where
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use tokio::io;
-    /// let reader = bgzf::r#async::Reader::new(io::empty());
+    /// let reader = bgzf::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -72,7 +72,7 @@ where
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use tokio::io;
-    /// let mut reader = bgzf::r#async::Reader::new(io::empty());
+    /// let mut reader = bgzf::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -88,7 +88,7 @@ where
     /// # use std::pin::Pin;
     /// use noodles_bgzf as bgzf;
     /// use tokio::io;
-    /// let mut reader = bgzf::r#async::Reader::new(io::empty());
+    /// let mut reader = bgzf::r#async::io::Reader::new(io::empty());
     /// let _inner = Pin::new(&mut reader).get_pin_mut();
     /// ```
     pub fn get_pin_mut(self: Pin<&mut Self>) -> Pin<&mut R> {
@@ -103,7 +103,7 @@ where
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use tokio::io;
-    /// let reader = bgzf::r#async::Reader::new(io::empty());
+    /// let reader = bgzf::r#async::io::Reader::new(io::empty());
     /// let _inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
@@ -118,7 +118,7 @@ where
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use tokio::io;
-    /// let reader = bgzf::r#async::Reader::new(io::empty());
+    /// let reader = bgzf::r#async::io::Reader::new(io::empty());
     /// assert_eq!(reader.position(), 0);
     /// ```
     pub fn position(&self) -> u64 {
@@ -132,7 +132,7 @@ where
     /// ```
     /// use noodles_bgzf as bgzf;
     /// use tokio::io;
-    /// let reader = bgzf::r#async::Reader::new(io::empty());
+    /// let reader = bgzf::r#async::io::Reader::new(io::empty());
     /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
     /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
@@ -153,7 +153,7 @@ where
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bgzf as bgzf;
     /// use tokio::io;
-    /// let mut reader = bgzf::r#async::Reader::new(io::empty());
+    /// let mut reader = bgzf::r#async::io::Reader::new(io::empty());
     /// reader.seek(bgzf::VirtualPosition::MIN).await?;
     /// # Ok(())
     /// # }
@@ -195,7 +195,7 @@ where
     /// use noodles_bgzf::{self as bgzf, gzi};
     /// use tokio::io;
     ///
-    /// let mut reader = bgzf::r#async::Reader::new(io::empty());
+    /// let mut reader = bgzf::r#async::io::Reader::new(io::empty());
     ///
     /// let index = gzi::Index::default();
     /// reader.seek_by_uncompressed_position(&index, 0).await?;

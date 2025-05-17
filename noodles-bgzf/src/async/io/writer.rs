@@ -45,7 +45,7 @@ where
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::r#async::Writer::new(Vec::new());
+    /// let writer = bgzf::r#async::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
         Builder::default().build_from_writer(inner)
@@ -57,7 +57,7 @@ where
     ///
     /// ```
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::r#async::Writer::new(Vec::new());
+    /// let writer = bgzf::r#async::io::Writer::new(Vec::new());
     /// assert!(writer.into_inner().is_empty());
     /// ```
     pub fn into_inner(self) -> W {

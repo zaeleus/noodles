@@ -17,7 +17,7 @@ fn main() -> io::Result<()> {
 
     let mut reader = File::open(src)?;
 
-    let mut writer = bgzf::MultithreadedWriter::with_worker_count(worker_count, io::stdout());
+    let mut writer = bgzf::io::MultithreadedWriter::with_worker_count(worker_count, io::stdout());
     io::copy(&mut reader, &mut writer)?;
     writer.finish()?;
 

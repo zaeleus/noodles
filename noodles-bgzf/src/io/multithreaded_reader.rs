@@ -55,7 +55,7 @@ impl<R> MultithreadedReader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::MultithreadedReader::new(io::empty());
+    /// let reader = bgzf::io::MultithreadedReader::new(io::empty());
     /// assert_eq!(reader.position(), 0);
     /// ```
     pub fn position(&self) -> u64 {
@@ -69,7 +69,7 @@ impl<R> MultithreadedReader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::MultithreadedReader::new(io::empty());
+    /// let reader = bgzf::io::MultithreadedReader::new(io::empty());
     /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::MIN);
     /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
@@ -83,7 +83,7 @@ impl<R> MultithreadedReader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let mut reader = bgzf::MultithreadedReader::new(io::empty());
+    /// let mut reader = bgzf::io::MultithreadedReader::new(io::empty());
     /// reader.finish()?;
     /// # Ok::<_, io::Error>(())
     /// ```
@@ -122,7 +122,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::MultithreadedReader::new(io::empty());
+    /// let reader = bgzf::io::MultithreadedReader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
         Self::with_worker_count(NonZeroUsize::MIN, inner)
@@ -136,7 +136,7 @@ where
     /// # use std::io;
     /// use std::num::NonZeroUsize;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::MultithreadedReader::with_worker_count(NonZeroUsize::MIN, io::empty());
+    /// let reader = bgzf::io::MultithreadedReader::with_worker_count(NonZeroUsize::MIN, io::empty());
     /// ```
     pub fn with_worker_count(worker_count: NonZeroUsize, inner: R) -> Self {
         Self {
@@ -154,7 +154,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let mut reader = bgzf::MultithreadedReader::new(io::empty());
+    /// let mut reader = bgzf::io::MultithreadedReader::new(io::empty());
     /// let _inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {

@@ -44,35 +44,6 @@ pub mod virtual_position;
 
 pub use self::virtual_position::VirtualPosition;
 
-#[deprecated(since = "0.38.0", note = "Use `bgzf::io::IndexedReader` instead.")]
-pub use self::io::IndexedReader;
-
-#[deprecated(
-    since = "0.38.0",
-    note = "Use `bgzf::io::MultithreadedReader` instead."
-)]
-pub use self::io::MultithreadedReader;
-
-#[deprecated(
-    since = "0.38.0",
-    note = "Use `bgzf::io::MultithreadedWriter` instead."
-)]
-pub use self::io::MultithreadedWriter;
-
-#[deprecated(since = "0.38.0", note = "Use `bgzf::io::Reader` instead.")]
-pub use self::io::Reader;
-
-#[deprecated(since = "0.38.0", note = "Use `bgzf::io::Writer` instead.")]
-pub use self::io::Writer;
-
-#[cfg(feature = "async")]
-#[deprecated(since = "0.35.0", note = "Use `bgzf::r#async::io::Reader` instead.")]
-pub use self::r#async::io::Reader as AsyncReader;
-
-#[cfg(feature = "async")]
-#[deprecated(since = "0.35.0", note = "Use `bgzf::r#async::Writer` instead.")]
-pub use self::r#async::Writer as AsyncWriter;
-
 // XLEN (2)
 const GZIP_XLEN_SIZE: usize = 2;
 
@@ -89,7 +60,10 @@ pub(crate) const BGZF_HEADER_SIZE: usize = gz::HEADER_SIZE + GZIP_XLEN_SIZE + BG
 mod tests {
     use std::io::{self, BufRead, Cursor, Read, Write};
 
-    use super::*;
+    use super::{
+        io::{MultithreadedReader, MultithreadedWriter, Reader, Writer},
+        *,
+    };
 
     #[test]
     fn test_self() -> io::Result<()> {

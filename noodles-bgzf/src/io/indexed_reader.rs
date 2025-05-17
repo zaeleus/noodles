@@ -23,7 +23,7 @@ impl<R> IndexedReader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf::{self as bgzf, gzi};
-    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// let reader = bgzf::io::IndexedReader::new(io::empty(), gzi::Index::default());
     /// let inner = reader.get_ref();
     /// ```
     pub fn get_ref(&self) -> &R {
@@ -37,7 +37,7 @@ impl<R> IndexedReader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf::{self as bgzf, gzi};
-    /// let mut reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// let mut reader = bgzf::io::IndexedReader::new(io::empty(), gzi::Index::default());
     /// let inner = reader.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut R {
@@ -51,7 +51,7 @@ impl<R> IndexedReader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf::{self as bgzf, gzi};
-    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// let reader = bgzf::io::IndexedReader::new(io::empty(), gzi::Index::default());
     /// let inner = reader.into_inner();
     /// ```
     pub fn into_inner(self) -> R {
@@ -70,7 +70,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf::{self as bgzf, gzi};
-    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// let reader = bgzf::io::IndexedReader::new(io::empty(), gzi::Index::default());
     /// ```
     pub fn new(inner: R, index: gzi::Index) -> Self {
         Self {
@@ -86,7 +86,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf::{self as bgzf, gzi};
-    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// let reader = bgzf::io::IndexedReader::new(io::empty(), gzi::Index::default());
     /// assert_eq!(reader.position(), 0);
     /// ```
     pub fn position(&self) -> u64 {
@@ -100,7 +100,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf::{self as bgzf, gzi};
-    /// let reader = bgzf::IndexedReader::new(io::empty(), gzi::Index::default());
+    /// let reader = bgzf::io::IndexedReader::new(io::empty(), gzi::Index::default());
     /// assert_eq!(reader.virtual_position(), bgzf::VirtualPosition::from(0));
     /// ```
     pub fn virtual_position(&self) -> VirtualPosition {
@@ -115,7 +115,7 @@ where
     /// # use std::io;
     /// use noodles_bgzf::{self as bgzf, gzi};
     /// let index = gzi::Index::default();
-    /// let reader = bgzf::IndexedReader::new(io::empty(), index.clone());
+    /// let reader = bgzf::io::IndexedReader::new(io::empty(), index.clone());
     /// assert_eq!(reader.index(), &index);
     /// ```
     pub fn index(&self) -> &gzi::Index {

@@ -67,7 +67,7 @@ use crate::Record;
 /// let _reader = bam::io::Reader::from(decoder);
 /// ```
 ///
-/// ### `noodles_bgzf::MultithreadedReader`
+/// ### `noodles_bgzf::io::MultithreadedReader`
 ///
 /// ```
 /// # use std::{fs::File, io, num::NonZeroUsize, thread};
@@ -75,7 +75,7 @@ use crate::Record;
 /// use noodles_bgzf as bgzf;
 ///
 /// let worker_count = thread::available_parallelism().unwrap_or(NonZeroUsize::MIN);
-/// let decoder = bgzf::MultithreadedReader::with_worker_count(worker_count, io::empty());
+/// let decoder = bgzf::io::MultithreadedReader::with_worker_count(worker_count, io::empty());
 /// let _reader = bam::io::Reader::from(decoder);
 /// ```
 pub struct Reader<R> {

@@ -126,7 +126,7 @@ impl Builder {
             }
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
                 let decoder: Box<dyn AsyncBufRead + Unpin> =
-                    Box::new(bgzf::r#async::Reader::new(reader));
+                    Box::new(bgzf::r#async::io::Reader::new(reader));
                 Reader::Vcf(vcf::r#async::io::Reader::new(decoder))
             }
             (Format::Bcf, None) => {
@@ -135,7 +135,7 @@ impl Builder {
             }
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
                 let decoder: Box<dyn AsyncBufRead + Unpin> =
-                    Box::new(bgzf::r#async::Reader::new(reader));
+                    Box::new(bgzf::r#async::io::Reader::new(reader));
                 Reader::Bcf(bcf::r#async::io::Reader::from(decoder))
             }
         };

@@ -55,13 +55,4 @@ impl Builder {
             worker_count,
         }
     }
-
-    /// Builds an async BGZF reader from an async reader.
-    #[deprecated(since = "0.33.0", note = "Use `Builder::build_from_reader` instead.")]
-    pub fn build_with_reader<R>(self, reader: R) -> Reader<R>
-    where
-        R: AsyncRead,
-    {
-        self.build_from_reader(reader)
-    }
 }

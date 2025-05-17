@@ -23,7 +23,7 @@ fn main() -> io::Result<()> {
 
     let mut reader = File::open(src)
         .map(BufReader::new)
-        .map(|file| bgzf::MultithreadedReader::with_worker_count(worker_count, file))?;
+        .map(|file| bgzf::io::MultithreadedReader::with_worker_count(worker_count, file))?;
 
     let stdout = io::stdout().lock();
     let mut writer = BufWriter::new(stdout);

@@ -49,45 +49,6 @@ impl CompressionLevel {
     pub const fn get(&self) -> u8 {
         self.0
     }
-
-    /// Returns a compression level to disable compression.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf::io::writer::CompressionLevel;
-    /// let compression_level = CompressionLevel::none();
-    /// ```
-    #[deprecated(since = "0.29.0", note = "Use `CompressionLevel::NONE` instead.")]
-    pub fn none() -> Self {
-        Self(0)
-    }
-
-    /// Returns a compression level optimized for speed.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf::io::writer::CompressionLevel;
-    /// let compression_level = CompressionLevel::fast();
-    /// ```
-    #[deprecated(since = "0.29.0", note = "Use `CompressionLevel::FAST` instead.")]
-    pub fn fast() -> Self {
-        Self(1)
-    }
-
-    /// Returns a compression level optimized for compression rate.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_bgzf::io::writer::CompressionLevel;
-    /// let compression_level = CompressionLevel::best();
-    /// ```
-    #[deprecated(since = "0.29.0", note = "Use `CompressionLevel::BEST` instead.")]
-    pub fn best() -> Self {
-        Self(MAX)
-    }
 }
 
 impl Default for CompressionLevel {
@@ -144,25 +105,9 @@ impl From<CompressionLevel> for flate2::Compression {
     }
 }
 
-#[allow(deprecated)]
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_none() {
-        assert_eq!(CompressionLevel::none(), CompressionLevel(0));
-    }
-
-    #[test]
-    fn test_fast() {
-        assert_eq!(CompressionLevel::fast(), CompressionLevel(1));
-    }
-
-    #[test]
-    fn test_best() {
-        assert_eq!(CompressionLevel::best(), CompressionLevel(MAX));
-    }
 
     #[test]
     fn test_default() {

@@ -55,7 +55,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::MultithreadedWriter::new(io::sink());
+    /// let writer = bgzf::io::MultithreadedWriter::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
         Builder::default().build_from_writer(inner)
@@ -69,7 +69,7 @@ where
     /// # use std::io;
     /// use std::num::NonZeroUsize;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::MultithreadedWriter::with_worker_count(NonZeroUsize::MIN, io::sink());
+    /// let writer = bgzf::io::MultithreadedWriter::with_worker_count(NonZeroUsize::MIN, io::sink());
     /// ```
     pub fn with_worker_count(worker_count: NonZeroUsize, inner: W) -> Self {
         Builder::default()
@@ -86,7 +86,7 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let mut writer = bgzf::MultithreadedWriter::new(io::sink());
+    /// let mut writer = bgzf::io::MultithreadedWriter::new(io::sink());
     /// writer.finish()?;
     /// # Ok::<_, io::Error>(())
     /// ```

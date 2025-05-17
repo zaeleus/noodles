@@ -29,7 +29,7 @@ impl Builder {
     /// use noodles_bgzf::{self as bgzf, io::writer::CompressionLevel};
     ///
     /// let builder = bgzf::r#async::io::writer::Builder::default()
-    ///     .set_compression_level(CompressionLevel::best());
+    ///     .set_compression_level(CompressionLevel::BEST);
     /// ```
     pub fn set_compression_level(mut self, compression_level: CompressionLevel) -> Self {
         self.compression_level = Some(compression_level);
@@ -79,14 +79,5 @@ impl Builder {
             eof_buf: Bytes::from_static(&BGZF_EOF),
             compression_level: compression_level.into(),
         }
-    }
-
-    /// Builds an async BGZF writer.
-    #[deprecated(since = "0.33.0", note = "Use `Builder::build_from_writer` instead.")]
-    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
-    where
-        W: AsyncWrite,
-    {
-        self.build_from_writer(writer)
     }
 }
