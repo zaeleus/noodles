@@ -219,19 +219,6 @@ where
         read_container(&mut self.inner, container).await
     }
 
-    /// Reads a container.
-    #[deprecated(since = "0.78.0", note = "Use `Reader::read_container` instead.")]
-    pub async fn read_data_container(&mut self) -> io::Result<Option<Container>> {
-        let mut container = Container::default();
-
-        read_container(&mut self.inner, &mut container)
-            .await
-            .map(|n| match n {
-                0 => None,
-                _ => Some(container),
-            })
-    }
-
     /// Returns an (async) stream over records starting from the current (input) stream position.
     ///
     /// The (input) stream position is expected to be at the start of a container.

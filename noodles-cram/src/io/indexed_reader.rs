@@ -74,16 +74,6 @@ where
         self.inner.read_container(container)
     }
 
-    /// Reads a container.
-    #[deprecated(
-        since = "0.78.0",
-        note = "Use `IndexedReader::read_container` instead."
-    )]
-    pub fn read_data_container(&mut self) -> io::Result<Option<Container>> {
-        #[allow(deprecated)]
-        self.inner.read_data_container()
-    }
-
     /// Returns a iterator over records starting from the current stream position.
     pub fn records<'r>(&'r mut self, header: &'r sam::Header) -> Records<'r, R> {
         self.inner.records(header)

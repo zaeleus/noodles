@@ -2,16 +2,11 @@
 
 pub mod io;
 
-#[deprecated(since = "0.74.0", note = "Use `crai::r#async::io::Reader` instead.")]
-pub use self::io::Reader;
-
-#[deprecated(since = "0.74.0", note = "Use `crai::r#async::io::Writer` instead.")]
-pub use self::io::Writer;
-
 use std::path::Path;
 
 use tokio::fs::File;
 
+use self::io::{Reader, Writer};
 use super::{Index, Record};
 
 /// Reads the entire contents of a CRAM index.

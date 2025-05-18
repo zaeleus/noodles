@@ -228,17 +228,6 @@ where
         read_container(&mut self.inner, container)
     }
 
-    /// Reads a container.
-    #[deprecated(since = "0.78.0", note = "Use `Reader::read_container` instead.")]
-    pub fn read_data_container(&mut self) -> io::Result<Option<Container>> {
-        let mut container = Container::default();
-
-        read_container(&mut self.inner, &mut container).map(|n| match n {
-            0 => None,
-            _ => Some(container),
-        })
-    }
-
     /// Returns a iterator over records starting from the current stream position.
     ///
     /// The stream is expected to be at the start of a container.

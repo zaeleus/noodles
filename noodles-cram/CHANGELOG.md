@@ -1,5 +1,44 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * cram: Remove deprecated items.
+
+    The following items are removed:
+
+      * `AsyncReader` (0.69.0; `r#async::io::Reader`),
+      * `AsyncWriter` (0.69.0; `r#async::io::Writer`),
+      * `Container` (0.78.0; `io::reader::Container`),
+      * `DataContainer` (0.78.0; `io::reader::Container`),
+      * `container::Container` (0.78.0; `io::reader::Container`),
+      * `container::DataContainer` (0.78.0; `io::reader::Container`),
+      * `crai::AsyncReader` (0.74.0; `crai::r#async::io::Reader`),
+      * `crai::AsyncWriter` (0.74.0; `crai::r#async::io::Writer`),
+      * `crai::Reader` (0.74.0; `crai::io::Reader`),
+      * `crai::Writer` (0.74.0; `crai::io::Writer`),
+      * `crai::r#async::Reader` (0.74.0; `crai::r#async::io::Reader`),
+      * `crai::r#async::Writer` (0.74.0; `crai::r#async::io::Writer`),
+      * `crai::read` (0.74.0; `crai::fs::read`),
+      * `crai::write` (0.74.0; `crai::fs::write`),
+      * `data_container` (deprecated since 0.78.0; use `container` instead),
+      * `index` (0.76.0; `fs::index`),
+      * `io::IndexedReader::read_data_container` (0.78.0;
+        `io::IndexedReader::read_container`),
+      * `io::Reader::read_data_container` (0.78.0;
+        `io::Reader::read_container`),
+      * `io::writer::Builder::build_with_path` (0.68.0;
+        `io::writer::Builder::build_from_path`),
+      * `io::writer::Builder::build_with_writer` (0.68.0;
+        `io::writer::Builder::build_from_writer`),
+      * `r#async::io::Reader::read_data_container` (0.78.0;
+        `r#async::io::Reader::read_container`),
+      * `r#async::io::writer::Builder::build_with_path` (0.68.0;
+        `r#async::io::writer::Builder::build_from_path`), and
+      * `r#async::io::writer::Builder::build_with_writer` (0.68.0;
+        `r#async::io::writer::Builder::build_from_writer`).
+
 ## 0.83.0 - 2025-05-16
 
 ### Changed

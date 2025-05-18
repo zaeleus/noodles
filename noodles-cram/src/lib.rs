@@ -16,26 +16,6 @@ use md5::{Digest, Md5};
 
 pub use self::{file_definition::FileDefinition, record::Record};
 
-#[deprecated(since = "0.78.0", note = "Use `cram::container` instead.")]
-pub use self::container as data_container;
-
-#[deprecated(since = "0.78.0", note = "Use `cram::io::reader::Container` instead.")]
-pub use self::io::reader::Container;
-
-#[deprecated(since = "0.78.0", note = "Use `cram::io::reader::Container` instead.")]
-pub use self::io::reader::Container as DataContainer;
-
-#[deprecated(since = "0.76.0", note = "Use `cram::fs::index` instead.")]
-pub use self::fs::index;
-
-#[cfg(feature = "async")]
-#[deprecated(since = "0.69.0", note = "Use `cram::r#async::io::Reader` instead.")]
-pub use self::r#async::io::Reader as AsyncReader;
-
-#[cfg(feature = "async")]
-#[deprecated(since = "0.69.0", note = "Use `cram::r#async::io::Writer` instead.")]
-pub use self::r#async::io::Writer as AsyncWriter;
-
 const MAGIC_NUMBER: [u8; 4] = *b"CRAM";
 const MD5_OUTPUT_SIZE: usize = 16;
 

@@ -77,15 +77,6 @@ impl Builder {
             .map(|file| self.build_from_writer(file))
     }
 
-    /// Builds an async CRAM writer from a path.
-    #[deprecated(since = "0.68.0", note = "Use `Builder::build_from_path` instead.")]
-    pub async fn build_with_path<P>(self, dst: P) -> io::Result<Writer<File>>
-    where
-        P: AsRef<Path>,
-    {
-        self.build_from_path(dst).await
-    }
-
     /// Builds an async CRAM writer from a writer.
     ///
     /// # Examples
@@ -112,14 +103,5 @@ impl Builder {
             records: Vec::with_capacity(RECORDS_PER_CONTAINER),
             record_counter: 0,
         }
-    }
-
-    /// Builds an async CRAM writer from a writer.
-    #[deprecated(since = "0.68.0", note = "Use `Builder::build_from_writer` instead.")]
-    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
-    where
-        W: AsyncWrite + Unpin,
-    {
-        self.build_from_writer(writer)
     }
 }
