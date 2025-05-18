@@ -11,16 +11,16 @@
       * `AsyncReader` (deprecated since 0.68.0; use `r#async::io::Reader`
         instead),
       * `AsyncWriter` (0.68.0; `r#async::io::Writer`),
-      * `bai::read` (0.73.0; `bai::fs::read`),
-      * `bai::write` (0.73.0; `bai::fs::write`),
-      * `bai::Reader` (0.68.0; `bai::io::Reader`),
-      * `bai::Writer` (0.68.0; `bai::io::Writer`),
       * `bai::AsyncReader` (0.68.0; `bai::r#async::io::Reader`),
       * `bai::AsyncWriter` (0.68.0; `bai::r#async::io::Writer`),
+      * `bai::Reader` (0.68.0; `bai::io::Reader`),
+      * `bai::Writer` (0.68.0; `bai::io::Writer`),
+      * `bai::r#async::Reader` (0.68.0; `bai::r#async::io::Reader`),
+      * `bai::r#async::Writer` (0.68.0; `bai::r#async::io::Writer`),
       * `bai::r#async::read` (0.73.0; `bai::r#async::fs::read`),
       * `bai::r#async::write` (0.73.0; `bai::r#async::fs::write`),
-      * `bai::r#async::Reader` (0.68.0; `bai::r#async::io::Reader`), and
-      * `bai::r#async::Writer` (0.68.0; `bai::r#async::io::Writer`).
+      * `bai::read` (0.73.0; `bai::fs::read`), and
+      * `bai::write` (0.73.0; `bai::fs::write`).
 
 ## 0.80.0 - 2025-05-16
 
