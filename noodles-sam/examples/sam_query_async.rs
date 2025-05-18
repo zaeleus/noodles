@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = reader.read_header().await?;
 
-    let index = csi::r#async::read(src.with_extension("sam.csi")).await?;
+    let index = csi::r#async::fs::read(src.with_extension("sam.csi")).await?;
 
     let mut records: Pin<Box<dyn Stream<Item = io::Result<sam::Record>>>> =
         if raw_region == UNMAPPED {

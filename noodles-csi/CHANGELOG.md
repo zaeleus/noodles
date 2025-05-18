@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * csi: Remove deprecated items.
+
+    The following items are removed:
+
+      * `AsyncReader` (deprecated since 0.39.0; use `r#async::io::Reader` instead),
+      * `AsyncWriter` (0.39.0; `r#async::io::Writer`),
+      * `Reader` (0.39.0; `io::Reader`),
+      * `Writer` (0.39.0; `io::Writer`),
+      * `r#async::Reader` (0.39.0; `r#async::io::Reader`),
+      * `r#async::Writer` (0.39.0; `r#async::io::Writer`),
+      * `r#async::read` (0.42.0; `r#async::fs::read`),
+      * `r#async::write` (0.42.0; `r#async::fs::write`),
+      * `read` (0.42.0; `fs::read`), and
+      * `write` (0.42.0; `fs::write`).
+
 ## 0.48.0 - 2025-05-16
 
 ### Changed

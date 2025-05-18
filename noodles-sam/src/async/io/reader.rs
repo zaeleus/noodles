@@ -345,7 +345,7 @@ where
     ///
     /// let header = reader.read_header().await?;
     ///
-    /// let index = csi::r#async::read("sample.sam.csi").await?;
+    /// let index = csi::r#async::fs::read("sample.sam.csi").await?;
     /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(&header, &index, &region)?;
     ///
@@ -397,7 +397,7 @@ where
     ///     .map(bgzf::r#async::io::Reader::new)
     ///     .map(sam::r#async::io::Reader::new)?;
     ///
-    /// let index = csi::r#async::read("sample.sam.csi").await?;
+    /// let index = csi::r#async::fs::read("sample.sam.csi").await?;
     /// let mut query = reader.query_unmapped(&index).await?;
     ///
     /// while let Some(record) = query.try_next().await? {

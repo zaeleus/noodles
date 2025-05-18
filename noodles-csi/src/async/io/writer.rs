@@ -19,7 +19,7 @@ impl<W> Writer<W> {
     /// ```
     /// use noodles_csi as csi;
     /// use tokio::io;
-    /// let writer = csi::r#async::Writer::new(io::sink());
+    /// let writer = csi::r#async::io::Writer::new(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &bgzf::r#async::io::Writer<W> {
@@ -33,7 +33,7 @@ impl<W> Writer<W> {
     /// ```
     /// use noodles_csi as csi;
     /// use tokio::io;
-    /// let mut writer = csi::r#async::Writer::new(io::sink());
+    /// let mut writer = csi::r#async::io::Writer::new(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut bgzf::r#async::io::Writer<W> {
@@ -47,7 +47,7 @@ impl<W> Writer<W> {
     /// ```
     /// use noodles_csi as csi;
     /// use tokio::io;
-    /// let writer = csi::r#async::Writer::new(io::sink());
+    /// let writer = csi::r#async::io::Writer::new(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> bgzf::r#async::io::Writer<W> {

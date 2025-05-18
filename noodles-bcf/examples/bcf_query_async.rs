@@ -22,7 +22,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = File::open(&src).await.map(bcf::r#async::io::Reader::new)?;
     let header = reader.read_header().await?;
 
-    let index = csi::r#async::read(src.with_extension("bcf.csi")).await?;
+    let index = csi::r#async::fs::read(src.with_extension("bcf.csi")).await?;
 
     let region = raw_region.parse()?;
     let mut query = reader.query(&header, &index, &region)?;

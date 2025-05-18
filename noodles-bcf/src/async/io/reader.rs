@@ -245,7 +245,7 @@ where
     /// let mut reader = File::open("sample.bcf").await.map(bcf::r#async::io::Reader::new)?;
     /// let header = reader.read_header().await?;
     ///
-    /// let index = csi::r#async::read("sample.bcf.csi").await?;
+    /// let index = csi::r#async::fs::read("sample.bcf.csi").await?;
     /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(&header, &index, &region)?;
     ///
