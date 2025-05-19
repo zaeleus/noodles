@@ -41,13 +41,14 @@
 pub mod r#async;
 
 pub mod fai;
+pub mod fs;
 pub mod io;
 pub mod record;
 
 pub use self::record::Record;
 
-#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::index` instead.")]
-pub use self::io::index;
+#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::fs::index` instead.")]
+pub use self::fs::index;
 
 #[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Indexer` instead.")]
 pub use self::io::Indexer;

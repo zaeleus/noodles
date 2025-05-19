@@ -3,7 +3,7 @@ use std::{
     str,
 };
 
-use super::fai::Record;
+use crate::fai::Record;
 
 /// A FASTQ indexer.
 #[derive(Debug)]
