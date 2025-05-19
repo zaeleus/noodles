@@ -44,16 +44,3 @@ pub use self::{
     directive::Directive, directive_buf::DirectiveBuf, line::Line, line_buf::LineBuf,
     record::Record,
 };
-
-#[deprecated(since = "0.33.0", note = "Use `noodles_gff::io::Reader` instead.")]
-pub use self::io::Reader;
-
-#[deprecated(since = "0.33.0", note = "Use `noodles_gff::io::Writer` instead.")]
-pub use self::io::Writer;
-
-#[cfg(feature = "async")]
-#[deprecated(
-    since = "0.40.0",
-    note = "Use `noodles_gff::r#async::io::Reader` instead."
-)]
-pub use self::r#async::io::Reader as AsyncReader;

@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * gff: Remove deprecated items.
+
+    The following items are removed:
+
+      * `AsyncReader` (deprecated since 0.40.0; use `r#async::io::Reader`
+        instead),
+      * `Reader` (0.33.0; `io::Reader`),
+      * `Writer` (0.33.0; `io::Writer`), and
+      * `r#async::Reader` (0.33.0; `r#async::io::Reader`).
+
 ## 0.49.0 - 2025-05-16
 
 ### Changed
