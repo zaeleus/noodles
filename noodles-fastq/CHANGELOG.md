@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * fastq: Remove deprecated items.
+
+    The following items are removed:
+
+      * `AsyncReader` (deprecated since 0.15.0; use `r#async::io::Reader`
+        instead),
+      * `AsyncWriter` (0.15.0; `r#async::io::Writer`),
+      * `Indexer` (0.11.0; `io::Indexer`),
+      * `Reader` (0.11.0; `io::Reader`),
+      * `Writer` (0.11.0; `io::Writer`),
+      * `fai::Reader` (0.15.0; `fai::io::Reader`),
+      * `fai::Record::len` (0.9.0; `fai::Record::length`),
+      * `fai::Writer` (0.15.0; `fai::io::Writer`),
+      * `index` (0.11.0; `fs::index`), and
+      * `reader` (0.11.0; `io::reader`).
+
 ## 0.18.0 - 2025-03-08
 
 ### Changed

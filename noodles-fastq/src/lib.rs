@@ -46,32 +46,3 @@ pub mod io;
 pub mod record;
 
 pub use self::record::Record;
-
-#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::fs::index` instead.")]
-pub use self::fs::index;
-
-#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Indexer` instead.")]
-pub use self::io::Indexer;
-
-#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::reader` instead.")]
-pub use self::io::reader;
-
-#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Reader` instead.")]
-pub use self::io::Reader;
-
-#[deprecated(since = "0.11.0", note = "Use `noodles_fastq::io::Writer` instead.")]
-pub use self::io::Writer;
-
-#[cfg(feature = "async")]
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_fastq::r#async::io::Reader` instead."
-)]
-pub use self::r#async::io::Reader as AsyncReader;
-
-#[cfg(feature = "async")]
-#[deprecated(
-    since = "0.15.0",
-    note = "Use `noodles_fastq::r#async::io::Writer` instead."
-)]
-pub use self::r#async::io::Writer as AsyncWriter;
