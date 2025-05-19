@@ -62,12 +62,6 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the phase.
-    #[deprecated(since = "0.41.0", note = "Use `Record::phase` instead.")]
-    pub fn frame(&self) -> Option<io::Result<Phase>> {
-        self.phase()
-    }
-
-    /// Returns the phase.
     pub fn phase(&self) -> Option<io::Result<Phase>> {
         parse_phase(self.0.phase())
     }

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * gtf: Remove deprecated items.
+
+    The following items are removed:
+
+      * `Reader` (deprecated since 0.32.0; use `io::Reader` instead),
+      * `Record::frame` (0.41.0; `Record::phase`), and
+      * `Writer` (0.32.0; `io::Writer`).
+
 ## 0.44.0 - 2025-05-16
 
 ### Changed
