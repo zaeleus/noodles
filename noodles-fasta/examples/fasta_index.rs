@@ -14,7 +14,7 @@ fn main() -> io::Result<()> {
     let index = fasta::fs::index(src)?;
 
     let stdout = io::stdout().lock();
-    let mut writer = fai::Writer::new(stdout);
+    let mut writer = fai::io::Writer::new(stdout);
 
     writer.write_index(&index)?;
 

@@ -11,9 +11,6 @@ use noodles_bgzf as bgzf;
 
 pub use self::{indexed_reader::IndexedReader, indexer::Indexer, reader::Reader, writer::Writer};
 
-#[deprecated(since = "0.48.0", note = "Use `fasta::fs::index` instead.")]
-pub use super::fs::index;
-
 /// A buffered FASTA reader.
 pub enum BufReader<R> {
     /// bgzip-compressed.

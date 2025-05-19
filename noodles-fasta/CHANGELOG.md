@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * fasta: Remove deprecated items.
+
+    The following items are removed:
+
+      * `AsyncReader` (deprecated since 0.45.0; use `r#async::io::Reader`
+        instead),
+      * `IndexedReader` (0.39.0; `io::IndexedReader`),
+      * `Reader` (0.39.0; `io::Reader`),
+      * `Writer` (0.39.0; `io::Writer`),
+      * `fai::AsyncReader` (0.44.0; `fai::r#async::io::Reader`),
+      * `fai::Reader` (0.44.0; `fai::io::Reader`),
+      * `fai::Record::len` (0.23.0; `fai::Record::length`),
+      * `fai::Writer` (0.44.0; `fai::io::Writer`),
+      * `fai::read` (0.47.0; `fai::fs::read`),
+      * `index` (0.39.0; `fs::index`),
+      * `indexed_reader` (0.39.0; `io::indexed_reader`),
+      * `io::index` (0.48.0; `fs::index`),
+      * `io::writer::Builder::build_with_writer` (0.43.0;
+        `io::writer::Builder::build_from_writer`),
+      * `r#async::Reader` (0.39.0; `r#async::io::Reader`),
+      * `reader` (0.39.0; `io::reader`), and
+      * `writer` (0.39.0; `io::writer`).
+
 ## 0.53.0 - 2025-05-16
 
 ### Changed

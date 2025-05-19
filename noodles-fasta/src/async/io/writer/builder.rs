@@ -6,7 +6,7 @@ use tokio::{
 };
 
 use super::Writer;
-use crate::writer::builder::DEFAULT_LINE_BASE_COUNT;
+use crate::io::writer::builder::DEFAULT_LINE_BASE_COUNT;
 
 /// An async FASTA writer builder.
 pub struct Builder {

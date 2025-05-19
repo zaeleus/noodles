@@ -62,21 +62,6 @@ impl Record {
     /// ```
     /// use noodles_fasta::fai;
     /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
-    /// assert_eq!(record.len(), 8);
-    /// ```
-    #[allow(clippy::len_without_is_empty)]
-    #[deprecated(since = "0.23.0", note = "Use `Record::length` instead.")]
-    pub fn len(&self) -> u64 {
-        self.length()
-    }
-
-    /// Returns the length of the sequence.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
     /// assert_eq!(record.length(), 8);
     /// ```
     pub fn length(&self) -> u64 {

@@ -63,15 +63,6 @@ impl Builder {
             line_base_count: self.line_base_count,
         }
     }
-
-    /// Builds a FASTA writer from a writer.
-    #[deprecated(since = "0.43.0", note = "Use `Builder::build_from_writer` instead.")]
-    pub fn build_with_writer<W>(self, writer: W) -> Writer<W>
-    where
-        W: Write,
-    {
-        self.build_from_writer(writer)
-    }
 }
 
 impl Default for Builder {
