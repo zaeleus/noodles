@@ -8,7 +8,8 @@
 
     The following items are removed:
 
-      * `AsyncReader` (0.69.0; `r#async::io::Reader`),
+      * `AsyncReader` (deprecated since 0.69.0; use `r#async::io::Reader`
+        instead),
       * `AsyncWriter` (0.69.0; `r#async::io::Writer`),
       * `Container` (0.78.0; `io::reader::Container`),
       * `DataContainer` (0.78.0; `io::reader::Container`),
@@ -22,7 +23,7 @@
       * `crai::r#async::Writer` (0.74.0; `crai::r#async::io::Writer`),
       * `crai::read` (0.74.0; `crai::fs::read`),
       * `crai::write` (0.74.0; `crai::fs::write`),
-      * `data_container` (deprecated since 0.78.0; use `container` instead),
+      * `data_container` (0.78.0; `container`),
       * `index` (0.76.0; `fs::index`),
       * `io::IndexedReader::read_data_container` (0.78.0;
         `io::IndexedReader::read_container`),
