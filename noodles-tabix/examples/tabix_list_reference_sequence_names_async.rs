@@ -13,7 +13,7 @@ async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
     let tabix_src = format!("{src}.tbi");
-    let index = tabix::r#async::read(tabix_src).await?;
+    let index = tabix::r#async::fs::read(tabix_src).await?;
 
     let header = index
         .header()

@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = reader.read_header().await?;
 
-    let index = tabix::r#async::read(src.with_extension("gz.tbi")).await?;
+    let index = tabix::r#async::fs::read(src.with_extension("gz.tbi")).await?;
     let mut query = reader.query(&header, &index, &region)?;
 
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());

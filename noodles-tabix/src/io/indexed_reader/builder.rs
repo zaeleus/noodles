@@ -48,7 +48,7 @@ fn read_associated_index<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,
 {
-    crate::read(build_index_src(src, "tbi"))
+    crate::fs::read(build_index_src(src, "tbi"))
 }
 
 fn build_index_src<P, S>(src: P, ext: S) -> PathBuf

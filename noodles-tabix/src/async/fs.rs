@@ -18,7 +18,7 @@ use crate::Index;
 /// # #[tokio::main]
 /// # async fn main() -> std::io::Result<()> {
 /// use noodles_tabix as tabix;
-/// let index = tabix::r#async::read("sample.vcf.gz.tbi").await?;
+/// let index = tabix::r#async::fs::read("sample.vcf.gz.tbi").await?;
 /// # Ok(())
 /// # }
 /// ```
@@ -44,7 +44,7 @@ where
 /// use noodles_tabix as tabix;
 ///
 /// let index = tabix::Index::builder().set_header(Header::default()).build();
-/// tabix::r#async::write("sample.vcf.gz.tbi", &index).await?;
+/// tabix::r#async::fs::write("sample.vcf.gz.tbi", &index).await?;
 /// # Ok(())
 /// # }
 /// ```
