@@ -38,11 +38,3 @@ pub mod io;
 pub mod record;
 
 pub use self::{header::Header, record::Record};
-
-#[cfg(feature = "async")]
-#[deprecated(since = "0.65.0", note = "Use `sam::r#async::io::Reader` instead.")]
-pub use self::r#async::io::Reader as AsyncReader;
-
-#[cfg(feature = "async")]
-#[deprecated(since = "0.65.0", note = "Use `sam::r#async::io::Writer` instead.")]
-pub use self::r#async::io::Writer as AsyncWriter;

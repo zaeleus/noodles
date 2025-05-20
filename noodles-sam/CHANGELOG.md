@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * sam: Remove deprecated items.
+
+    The following items are removed:
+
+      * `AsyncReader` (deprecated since 0.65.0; use `r#async::io::Reader`
+        instead),
+      * `AsyncWriter` (0.65.0; `r#async::io::Writer`),
+      * `alignment::record::Flags::PROPERLY_ALIGNED` (0.54.0;
+        `alignment::record::Flags::PROPERLY_SEGMENTED`), and
+      * `alignment::record::Flags::is_properly_aligned` (0.54.0;
+        `alignment::record::Flags::is_properly_segmented`).
+
 ## 0.76.0 - 2025-05-16
 
 ### Added

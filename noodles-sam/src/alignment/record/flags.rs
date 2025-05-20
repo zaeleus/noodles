@@ -5,9 +5,6 @@ bitflags::bitflags! {
         /// Read is segmented (`0x01`).
         const SEGMENTED = 0x01;
         /// Each segment in the read is properly aligned (`0x02`).
-        #[deprecated(since = "0.54.0", note = "Use `PROPERLY_SEGMENTED` instead.")]
-        const PROPERLY_ALIGNED = 0x02;
-        /// Each segment in the read is properly aligned (`0x02`).
         const PROPERLY_SEGMENTED = 0x02;
         /// Read is unmapped (`Ox04`).
         const UNMAPPED = 0x04;
@@ -44,21 +41,6 @@ impl Flags {
     /// ```
     pub fn is_segmented(self) -> bool {
         self.contains(Self::SEGMENTED)
-    }
-
-    /// Returns whether the `PROPERLY_ALIGNED` flag is set.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use noodles_sam::alignment::record::Flags;
-    /// assert!(Flags::PROPERLY_ALIGNED.is_properly_aligned());
-    /// assert!(!Flags::UNMAPPED.is_properly_aligned());
-    /// ```
-    #[allow(deprecated)]
-    #[deprecated(since = "0.54.0", note = "Use `Flags::is_properly_segmented` instead.")]
-    pub fn is_properly_aligned(self) -> bool {
-        self.contains(Self::PROPERLY_ALIGNED)
     }
 
     /// Returns whether the `PROPERLY_SEGMENTED` flag is set.
@@ -217,7 +199,6 @@ impl From<Flags> for u16 {
     }
 }
 
-#[allow(deprecated)]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -228,7 +209,6 @@ mod tests {
 
         assert!(flags.is_empty());
         assert!(!flags.is_segmented());
-        assert!(!flags.is_properly_aligned());
         assert!(!flags.is_properly_segmented());
         assert!(!flags.is_unmapped());
         assert!(!flags.is_mate_unmapped());
@@ -245,7 +225,6 @@ mod tests {
     #[test]
     fn test_contains() {
         assert!(Flags::SEGMENTED.is_segmented());
-        assert!(Flags::PROPERLY_ALIGNED.is_properly_aligned());
         assert!(Flags::PROPERLY_SEGMENTED.is_properly_segmented());
         assert!(Flags::UNMAPPED.is_unmapped());
         assert!(Flags::MATE_UNMAPPED.is_mate_unmapped());
