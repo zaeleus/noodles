@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * vcf: Remove `index`.
+
+    `index` was deprecated since 0.73.0; use `fs::index` instead.
+
 ## 0.78.0 - 2025-05-16
 
 ### Changed

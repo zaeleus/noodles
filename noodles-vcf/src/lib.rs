@@ -28,8 +28,5 @@ pub mod variant;
 
 pub use self::{header::Header, record::Record};
 
-#[deprecated(since = "0.73.0", note = "Use `vcf::fs::index` instead.")]
-pub use self::fs::index;
-
 #[cfg(feature = "async")]
 pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};
