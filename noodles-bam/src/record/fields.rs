@@ -106,8 +106,12 @@ impl Fields {
 
     pub(super) fn sequence(&self) -> Sequence<'_> {
         let src = &self.buf[self.bounds.sequence_range()];
-        let quality_scores_range = self.bounds.quality_scores_range();
-        let base_count = quality_scores_range.end - quality_scores_range.start;
+
+        let buf = &self.buf[bounds::READ_LENGTH_RANGE];
+        // SAFETY: `buf.len() == 4`.
+        let n = u32::from_le_bytes(buf.try_into().unwrap());
+        let base_count = usize::try_from(n).unwrap();
+
         Sequence::new(src, base_count)
     }
 
