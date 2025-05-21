@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+  * bam/record/fields: Return empty quality scores when missing.
+
+    This previously returned a representation of missing quality scores.
+
 ### Removed
 
   * bam: Remove deprecated items.

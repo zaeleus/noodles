@@ -116,7 +116,18 @@ impl Fields {
     }
 
     pub(super) fn quality_scores(&self) -> QualityScores<'_> {
-        let src = &self.buf[self.bounds.quality_scores_range()];
+        const MISSING: u8 = 0xff;
+
+        let buf = &self.buf[self.bounds.quality_scores_range()];
+
+        // § 4.2.3 "SEQ and QUAL encoding" (2024-11-06): "When base quality are omitted but the
+        // sequence is not, `qual` is filled with `0xFF` bytes (to length `l_seq`)."
+        let src = if buf.iter().all(|&b| b == MISSING) {
+            &[]
+        } else {
+            buf
+        };
+
         QualityScores::new(src)
     }
 
