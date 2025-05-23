@@ -3,4 +3,8 @@
 mod reader;
 mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+#[cfg(feature = "async")]
+#[deprecated(since = "0.76.0", note = "Use `bcf::r#async::io::Reader` instead.")]
+pub use self::reader::Reader;
+
+pub use self::writer::Writer;

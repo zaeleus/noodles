@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * bcf: Deprecate `AsyncReader`.
+
+    Use `bcf::r#async::io::Reader` instead.
+
 ## 0.75.0 - 2025-05-16
 
 ### Changed

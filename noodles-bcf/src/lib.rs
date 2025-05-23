@@ -10,6 +10,10 @@ pub mod record;
 pub use self::record::Record;
 
 #[cfg(feature = "async")]
-pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};
+#[deprecated(since = "0.76.0", note = "Use `bcf::r#async::io::Reader` instead.")]
+pub use self::r#async::io::Reader as AsyncReader;
+
+#[cfg(feature = "async")]
+pub use self::r#async::io::Writer as AsyncWriter;
 
 const MAGIC_NUMBER: [u8; 3] = *b"BCF";
