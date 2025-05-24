@@ -4,9 +4,11 @@
 
 ### Deprecated
 
-  * bcf: Deprecate `AsyncReader`.
+  * bcf: Deprecate async re-exports (`AsyncReader` and
+    `AsyncWriter`).
 
-    Use `bcf::r#async::io::Reader` instead.
+    Use `bcf::r#async::io::Reader` and `bcf::r#async::io::Writer`
+    instead.
 
 ## 0.75.0 - 2025-05-16
 
