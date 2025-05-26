@@ -3,4 +3,7 @@
 mod reader;
 mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+#[deprecated(since = "0.79.0", note = "Use `vcf::r#async::io::Reader` instead.")]
+pub use self::reader::Reader;
+
+pub use self::writer::Writer;

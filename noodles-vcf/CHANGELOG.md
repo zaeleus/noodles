@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Deprecated
+
+  * vcf: Deprecate `AsyncReader`.
+
+    Use `vcf::r#async::io::Reader` instead.
+
 ### Removed
 
   * vcf: Remove `index`.

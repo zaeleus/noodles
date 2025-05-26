@@ -29,4 +29,8 @@ pub mod variant;
 pub use self::{header::Header, record::Record};
 
 #[cfg(feature = "async")]
-pub use self::r#async::io::{Reader as AsyncReader, Writer as AsyncWriter};
+#[deprecated(since = "0.79.0", note = "Use `vcf::r#async::io::Reader` instead.")]
+pub use self::r#async::io::Reader as AsyncReader;
+
+#[cfg(feature = "async")]
+pub use self::r#async::io::Writer as AsyncWriter;
