@@ -21,7 +21,7 @@ impl<'a> QualityScores<'a> {
         self.0.len()
     }
 
-    /// Returns an iterator over the scores
+    /// Returns an iterator over the scores.
     pub fn iter(&self) -> impl Iterator<Item = u8> + 'a {
         self.0.iter().copied()
     }
