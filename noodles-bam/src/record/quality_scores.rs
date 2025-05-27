@@ -20,6 +20,11 @@ impl<'a> QualityScores<'a> {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    /// Returns an iterator over the scores.
+    pub fn iter(&self) -> impl Iterator<Item = u8> + 'a {
+        self.0.iter().copied()
+    }
 }
 
 impl sam::alignment::record::QualityScores for QualityScores<'_> {

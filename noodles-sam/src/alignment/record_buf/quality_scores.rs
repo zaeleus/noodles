@@ -14,6 +14,16 @@ impl QualityScores {
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+
+    /// Returns the number of scores.
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Returns an iterator over the scores.
+    pub fn iter(&self) -> impl Iterator<Item = u8> + '_ {
+        self.0.iter().copied()
+    }
 }
 
 impl AsRef<[u8]> for QualityScores {
