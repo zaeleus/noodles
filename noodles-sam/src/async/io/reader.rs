@@ -338,14 +338,14 @@ where
     /// use noodles_sam as sam;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.sam")
+    /// let mut reader = File::open("sample.sam.gz")
     ///     .await
     ///     .map(bgzf::r#async::io::Reader::new)
     ///     .map(sam::r#async::io::Reader::new)?;
     ///
     /// let header = reader.read_header().await?;
     ///
-    /// let index = csi::r#async::fs::read("sample.sam.csi").await?;
+    /// let index = csi::r#async::fs::read("sample.sam.gz.csi").await?;
     /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(&header, &index, &region)?;
     ///
@@ -392,12 +392,12 @@ where
     /// use noodles_sam as sam;
     /// use tokio::fs::File;
     ///
-    /// let mut reader = File::open("sample.sam")
+    /// let mut reader = File::open("sample.sam.gz")
     ///     .await
     ///     .map(bgzf::r#async::io::Reader::new)
     ///     .map(sam::r#async::io::Reader::new)?;
     ///
-    /// let index = csi::r#async::fs::read("sample.sam.csi").await?;
+    /// let index = csi::r#async::fs::read("sample.sam.gz.csi").await?;
     /// let mut query = reader.query_unmapped(&index).await?;
     ///
     /// while let Some(record) = query.try_next().await? {
