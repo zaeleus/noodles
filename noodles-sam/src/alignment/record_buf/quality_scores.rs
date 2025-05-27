@@ -21,8 +21,8 @@ impl QualityScores {
     }
 
     /// Returns an iterator over the scores
-    pub fn iter(&self) -> impl Iterator<Item = u8> {
-        self.as_ref().iter()
+    pub fn iter(&self) -> impl Iterator<Item = &u8> {
+        self.0.iter()
     }
 }
 
