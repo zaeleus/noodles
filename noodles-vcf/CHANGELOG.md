@@ -4,9 +4,9 @@
 
 ### Deprecated
 
-  * vcf: Deprecate `AsyncReader`.
+  * vcf: Deprecate async re-exports (`AsyncReader` and `AsyncWriter`).
 
-    Use `vcf::r#async::io::Reader` instead.
+    Use `vcf::r#async::io::Reader` and `vcf::r#async::io::Writer` instead.
 
 ### Removed
 

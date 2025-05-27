@@ -33,4 +33,5 @@ pub use self::{header::Header, record::Record};
 pub use self::r#async::io::Reader as AsyncReader;
 
 #[cfg(feature = "async")]
+#[deprecated(since = "0.79.0", note = "Use `vcf::r#async::io::Writer` instead.")]
 pub use self::r#async::io::Writer as AsyncWriter;
