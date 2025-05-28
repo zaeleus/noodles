@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/alignment/record_buf/quality_scores: Add
+    `QualityScores::len` and `QualityScores::iter` ([#338]).
+
+    These implementations are also provided by
+    `sam::alignment::record::QualityScores`.
+
+[#338]: https://github.com/zaeleus/noodles/pull/338
+
 ### Removed
 
   * sam: Remove deprecated items.
