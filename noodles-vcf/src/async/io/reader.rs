@@ -131,7 +131,7 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> tokio::io::Result<()> {
+    /// # async fn main() -> std::io::Result<()> {
     /// use noodles_vcf as vcf;
     /// use tokio::io::AsyncReadExt;
     ///
@@ -164,10 +164,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> std::io::Result<()> {
     /// use noodles_vcf as vcf;
     ///
     /// let data = b"##fileformat=VCFv4.3
@@ -200,10 +198,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> std::io::Result<()> {
     /// use noodles_vcf as vcf;
     ///
     /// let data = b"##fileformat=VCFv4.3
