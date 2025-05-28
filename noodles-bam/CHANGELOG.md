@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Added
+
+  * bam/record/quality_scores: Add `QualityScores::iter` ([#338]).
+
+    This implementation is also provided by
+    `sam::alignment::record::QualityScores`.
+
+[#338]: https://github.com/zaeleus/noodles/pull/338
+
 ### Changed
 
   * bam/record/fields: Return empty quality scores when missing.
