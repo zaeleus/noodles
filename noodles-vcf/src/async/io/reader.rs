@@ -344,7 +344,7 @@ where
     pub fn record_bufs<'r, 'h: 'r>(
         &'r mut self,
         header: &'h Header,
-    ) -> impl Stream<Item = io::Result<RecordBuf>> + 'r {
+    ) -> impl Stream<Item = io::Result<RecordBuf>> + use<'r, R> {
         Box::pin(stream::try_unfold(self, move |reader| async move {
             let mut record = RecordBuf::default();
 
@@ -402,7 +402,7 @@ where
         header: &'r Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + 'r>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, I, R>>
     where
         I: BinningIndex,
     {

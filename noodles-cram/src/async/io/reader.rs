@@ -325,7 +325,7 @@ where
         header: &'h sam::Header,
         index: &'i crai::Index,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<sam::alignment::RecordBuf>> + 'r> {
+    ) -> io::Result<impl Stream<Item = io::Result<sam::alignment::RecordBuf>> + use<'r, R>> {
         use self::query::query;
 
         let reference_sequence_id = header

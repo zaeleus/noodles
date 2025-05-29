@@ -10,7 +10,7 @@ impl<'a> Keys<'a> {
     }
 
     /// Returns an iterator over keys.
-    pub fn iter(&self) -> impl Iterator<Item = &'a str> + 'a {
+    pub fn iter(&self) -> impl Iterator<Item = &'a str> + use<'a> {
         let mut src = self.0;
 
         iter::from_fn(move || {

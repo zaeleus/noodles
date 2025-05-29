@@ -32,7 +32,7 @@ where
     }
 
     /// Returns an iterator over records starting from the current stream position.
-    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Box<dyn Record>>> + '_ {
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Box<dyn Record>>> + use<'_, R> {
         let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
             Self::Vcf(reader) => Box::new(
                 reader
@@ -59,7 +59,7 @@ where
         &'r mut self,
         header: &'h vcf::Header,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn Record>>> + 'r> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn Record>>> + use<'r, R>> {
         let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
             Self::Vcf(reader) => Box::new(
                 reader

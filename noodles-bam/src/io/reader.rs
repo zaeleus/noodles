@@ -415,7 +415,7 @@ where
     pub fn query_unmapped<'r, I>(
         &'r mut self,
         index: &I,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, I, R>>
     where
         I: BinningIndex,
     {

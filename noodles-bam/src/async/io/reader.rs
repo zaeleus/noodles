@@ -380,7 +380,7 @@ where
         header: &sam::Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'_, I, R>>
     where
         I: BinningIndex,
     {
@@ -420,7 +420,7 @@ where
     pub async fn query_unmapped<I>(
         &mut self,
         index: &I,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'_, I, R>>
     where
         I: BinningIndex,
     {

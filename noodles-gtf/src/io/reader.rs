@@ -218,7 +218,7 @@ where
         &'r mut self,
         index: &I,
         region: &'r Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + 'r>
+    ) -> io::Result<impl Iterator<Item = io::Result<RecordBuf>> + use<'r, I, R>>
     where
         I: BinningIndex,
     {

@@ -98,12 +98,14 @@ where
         &'a mut self,
         header: &'a Header,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'a> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'a, R>> {
         self.inner.query(header, &self.index, region)
     }
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.
-    pub fn query_unmapped(&mut self) -> io::Result<impl Iterator<Item = io::Result<Record>> + '_> {
+    pub fn query_unmapped(
+        &mut self,
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'_, R>> {
         self.inner.query_unmapped(&self.index)
     }
 }

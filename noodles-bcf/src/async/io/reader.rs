@@ -260,7 +260,7 @@ where
         header: &vcf::Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + '_>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'_, I, R>>
     where
         I: BinningIndex,
     {

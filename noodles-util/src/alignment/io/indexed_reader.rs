@@ -68,7 +68,7 @@ where
     pub fn records<'r, 'h: 'r>(
         &'r mut self,
         header: &'h sam::Header,
-    ) -> impl Iterator<Item = io::Result<Box<dyn Record>>> + 'r {
+    ) -> impl Iterator<Item = io::Result<Box<dyn Record>>> + use<'r, R> {
         let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
             Self::Sam(reader) => Box::new(
                 reader
@@ -120,7 +120,7 @@ where
         &'r mut self,
         header: &'h sam::Header,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn Record>>> + 'r> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn Record>>> + use<'r, R>> {
         let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
             Self::Sam(reader) => {
                 let query = reader.query(header, region)?;

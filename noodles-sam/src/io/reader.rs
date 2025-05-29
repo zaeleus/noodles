@@ -354,7 +354,7 @@ where
         header: &'h Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + 'r>
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, I, R>>
     where
         I: BinningIndex,
     {
@@ -396,7 +396,7 @@ where
     pub fn query_unmapped<I>(
         &mut self,
         index: &I,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + '_>
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'_, I, R>>
     where
         I: BinningIndex,
     {
