@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * refget: Raise minimum supported Rust version (MSRV) to 1.82.0.
+
 ## 0.7.0 - 2025-03-08
 
 ### Changed

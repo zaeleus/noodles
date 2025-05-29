@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf: Raise minimum supported Rust version (MSRV) to 1.82.0.
+
 ## 0.79.0 - 2025-05-29
 
 ### Deprecated

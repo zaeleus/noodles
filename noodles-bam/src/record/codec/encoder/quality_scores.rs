@@ -25,7 +25,7 @@ where
             }
         }
     } else if quality_scores.is_empty() {
-        dst.extend(repeat_n(MISSING, base_count));
+        dst.extend(iter::repeat_n(MISSING, base_count));
     } else {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
@@ -45,14 +45,6 @@ fn is_valid_score(score: u8) -> bool {
     // range [0, 93]..."
     const MAX_SCORE: u8 = 93;
     score <= MAX_SCORE
-}
-
-// TODO: Use `iter::repeat_n` when the MSRV is raised to or above 1.82.0.
-fn repeat_n<T>(element: T, count: usize) -> impl Iterator<Item = T>
-where
-    T: Clone,
-{
-    iter::repeat(element).take(count)
 }
 
 #[cfg(test)]

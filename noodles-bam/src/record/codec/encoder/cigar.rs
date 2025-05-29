@@ -76,9 +76,8 @@ mod tests {
 
         const MAX_CIGAR_OP_COUNT: usize = (1 << 16) - 1;
         buf.clear();
-        let cigar: CigarBuf = iter::repeat(Op::new(Kind::Match, 1))
-            .take(MAX_CIGAR_OP_COUNT + 1)
-            .collect();
+        let cigar: CigarBuf =
+            iter::repeat_n(Op::new(Kind::Match, 1), MAX_CIGAR_OP_COUNT + 1).collect();
         let overflowing_cigar = overflowing_write_cigar_op_count(&mut buf, 4, &cigar)?;
         assert_eq!(buf, [0x02, 0x00]);
         assert_eq!(
