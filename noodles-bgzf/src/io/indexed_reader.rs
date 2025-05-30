@@ -7,7 +7,7 @@ pub use self::builder::Builder;
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
 use super::Reader;
-use crate::{gzi, VirtualPosition};
+use crate::{VirtualPosition, gzi};
 
 /// An indexed BGZF reader.
 pub struct IndexedReader<R> {

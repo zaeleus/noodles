@@ -6,13 +6,12 @@ use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value,
 use crate::header::{
     parser::Context,
     record::value::{
-        map::{
-            self,
-            read_group::{tag, Tag},
-            tag::Other,
-            OtherFields, ReadGroup,
-        },
         Map,
+        map::{
+            self, OtherFields, ReadGroup,
+            read_group::{Tag, tag},
+            tag::Other,
+        },
     },
 };
 

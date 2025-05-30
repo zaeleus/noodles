@@ -4,7 +4,7 @@ pub(crate) mod tag;
 
 pub use self::tag::Tag;
 
-use super::{builder, Inner, Map};
+use super::{Inner, Map, builder};
 
 /// An inner VCF header other map value.
 #[derive(Clone, Debug, Eq, PartialEq)]

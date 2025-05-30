@@ -7,7 +7,7 @@ use std::io;
 use noodles_core::Position;
 use noodles_vcf::{
     self as vcf,
-    header::record::value::{map::Contig, Map},
+    header::record::value::{Map, map::Contig},
     variant::io::Write,
 };
 

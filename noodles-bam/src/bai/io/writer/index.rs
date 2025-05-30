@@ -37,8 +37,8 @@ where
 mod tests {
     use noodles_bgzf as bgzf;
     use noodles_csi::binning_index::index::{
-        reference_sequence::{bin::Chunk, Bin},
         ReferenceSequence,
+        reference_sequence::{Bin, bin::Chunk},
     };
 
     use super::*;

@@ -11,8 +11,8 @@ use noodles_vcf as vcf;
 
 use super::IndexedReader;
 use crate::variant::io::{
-    reader::builder::{detect_compression_method, detect_format},
     CompressionMethod, Format,
+    reader::builder::{detect_compression_method, detect_format},
 };
 
 /// An indexed variant reader builder.

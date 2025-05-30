@@ -6,7 +6,7 @@ use std::io::{self, Read};
 
 use byteorder::ReadBytesExt;
 
-use super::parameter::{fqz_decode_single_param, Parameter};
+use super::parameter::{Parameter, fqz_decode_single_param};
 
 const VERSION: u8 = 5;
 

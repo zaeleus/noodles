@@ -13,14 +13,14 @@ use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
     alignment::{
-        io::Write,
-        record::cigar::{op::Kind, Op},
-        record_buf::{QualityScores, Sequence},
         RecordBuf,
+        io::Write,
+        record::cigar::{Op, op::Kind},
+        record_buf::{QualityScores, Sequence},
     },
     header::record::value::{
-        map::{Program, ReferenceSequence},
         Map,
+        map::{Program, ReferenceSequence},
     },
 };
 

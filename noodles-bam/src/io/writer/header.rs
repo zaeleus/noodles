@@ -96,8 +96,8 @@ mod tests {
     #[test]
     fn test_write_raw_header() -> Result<(), Box<dyn std::error::Error>> {
         use sam::header::record::value::{
-            map::{self, header::Version},
             Map,
+            map::{self, header::Version},
         };
 
         let header = sam::Header::builder()
@@ -120,7 +120,7 @@ mod tests {
 
     #[test]
     fn test_write_reference_sequences() -> io::Result<()> {
-        use sam::header::record::value::{map::ReferenceSequence, Map};
+        use sam::header::record::value::{Map, map::ReferenceSequence};
 
         let reference_sequences = [(BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
             .into_iter()

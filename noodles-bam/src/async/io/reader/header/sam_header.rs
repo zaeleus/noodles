@@ -4,7 +4,7 @@ use bstr::ByteSlice;
 use pin_project_lite::pin_project;
 use std::{
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
 };
 use tokio::io::{
     self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt, BufReader, ReadBuf, Take,

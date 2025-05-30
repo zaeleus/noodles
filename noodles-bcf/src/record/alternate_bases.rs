@@ -31,7 +31,7 @@ impl vcf::variant::record::AlternateBases for AlternateBases<'_> {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
-        use super::{value::read_value, Value};
+        use super::{Value, value::read_value};
 
         let mut src = self.src;
 

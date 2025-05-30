@@ -1,9 +1,9 @@
 use crate::header::{
-    record::value::{
-        map::{AlternativeAllele, Contig, Filter, Format, Info},
-        Map,
-    },
     FileFormat,
+    record::value::{
+        Map,
+        map::{AlternativeAllele, Contig, Filter, Format, Info},
+    },
 };
 
 /// A reference to an entry in the header.

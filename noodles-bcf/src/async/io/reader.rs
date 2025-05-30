@@ -2,7 +2,7 @@ pub mod header;
 mod query;
 mod record;
 
-use futures::{stream, Stream};
+use futures::{Stream, stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
@@ -255,12 +255,12 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<I>(
-        &mut self,
+    pub fn query<'r, I>(
+        &'r mut self,
         header: &vcf::Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'_, I, R>>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, I, R>>
     where
         I: BinningIndex,
     {

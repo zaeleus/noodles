@@ -6,11 +6,11 @@ use crate::{
     container::{
         block,
         compression_header::{
-            encoding::{
-                codec::{Byte, ByteArray, Integer},
-                Kind,
-            },
             Encoding,
+            encoding::{
+                Kind,
+                codec::{Byte, ByteArray, Integer},
+            },
         },
     },
     io::writer::num::write_itf8,

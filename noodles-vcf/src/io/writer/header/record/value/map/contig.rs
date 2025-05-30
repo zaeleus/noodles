@@ -2,8 +2,8 @@ use std::io::{self, Write};
 
 use super::{write_delimiter, write_other_fields, write_value_field};
 use crate::header::record::value::{
-    map::{contig::tag, Contig},
     Map,
+    map::{Contig, contig::tag},
 };
 
 pub(crate) fn write_contig<W>(writer: &mut W, contig: &Map<Contig>) -> io::Result<()>

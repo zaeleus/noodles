@@ -7,7 +7,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use self::header::write_header;
-use super::{Order, LOWER_BOUND, STATE_COUNT};
+use super::{LOWER_BOUND, Order, STATE_COUNT};
 
 pub fn encode(order: Order, src: &[u8]) -> io::Result<Vec<u8>> {
     match order {

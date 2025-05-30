@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use flate2::Crc;
 
-use crate::{gz, io::Block, BGZF_HEADER_SIZE};
+use crate::{BGZF_HEADER_SIZE, gz, io::Block};
 
 const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
 

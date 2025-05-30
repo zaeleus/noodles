@@ -2,10 +2,10 @@ mod subtype;
 
 use std::io;
 
-use noodles_sam::alignment::record::data::field::value::{array::Subtype, Array};
+use noodles_sam::alignment::record::data::field::value::{Array, array::Subtype};
 
 use crate::record::codec::encoder::num::{
-    write_f32_le, write_i16_le, write_i32_le, write_i8, write_u16_le, write_u32_le, write_u8,
+    write_f32_le, write_i8, write_i16_le, write_i32_le, write_u8, write_u16_le, write_u32_le,
 };
 
 use self::subtype::write_subtype;

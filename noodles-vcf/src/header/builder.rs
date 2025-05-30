@@ -1,13 +1,13 @@
 use super::{
+    AlternativeAlleles, Contigs, FileFormat, Filters, Formats, Header, Infos, OtherRecords,
+    SampleNames, StringMaps,
     record::{
         self,
         value::{
-            map::{AlternativeAllele, Contig, Filter, Format, Info},
             Map,
+            map::{AlternativeAllele, Contig, Filter, Format, Info},
         },
     },
-    AlternativeAlleles, Contigs, FileFormat, Filters, Formats, Header, Infos, OtherRecords,
-    SampleNames, StringMaps,
 };
 
 use indexmap::IndexMap;

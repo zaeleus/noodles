@@ -1,7 +1,7 @@
 use std::slice;
 
 use noodles_core::Position;
-use noodles_sam::alignment::record::cigar::{op::Kind, Op};
+use noodles_sam::alignment::record::cigar::{Op, op::Kind};
 
 use crate::record::Feature;
 

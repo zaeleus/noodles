@@ -30,11 +30,7 @@ impl MappingQuality {
     /// assert!(MappingQuality::new(255).is_none());
     /// ```
     pub const fn new(n: u8) -> Option<Self> {
-        if n == MISSING {
-            None
-        } else {
-            Some(Self(n))
-        }
+        if n == MISSING { None } else { Some(Self(n)) }
     }
 
     /// Returns the inner value.

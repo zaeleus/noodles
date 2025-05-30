@@ -6,11 +6,11 @@ mod deflater;
 
 use std::{
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
 };
 
 use bytes::{Buf, Bytes, BytesMut};
-use futures::{sink::Buffer, Sink};
+use futures::{Sink, sink::Buffer};
 use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncWrite};
 

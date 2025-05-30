@@ -19,7 +19,7 @@ use self::{
     reference_bases::parse_reference_bases, reference_sequence_name::parse_reference_sequence_name,
     samples::parse_samples,
 };
-use crate::{variant::RecordBuf, Header};
+use crate::{Header, variant::RecordBuf};
 
 const MISSING: &str = ".";
 

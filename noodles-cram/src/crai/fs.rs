@@ -3,8 +3,8 @@
 use std::{fs::File, path::Path};
 
 use super::{
-    io::{Reader, Writer},
     Index, Record,
+    io::{Reader, Writer},
 };
 
 /// Reads the entire contents of a CRAM index.

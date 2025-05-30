@@ -2,7 +2,7 @@ use std::io;
 
 use noodles_sam::alignment::record::Sequence;
 
-use super::num::{write_u32_le, write_u8};
+use super::num::{write_u8, write_u32_le};
 
 pub(super) fn write_length(dst: &mut Vec<u8>, base_count: usize) -> io::Result<()> {
     let n =

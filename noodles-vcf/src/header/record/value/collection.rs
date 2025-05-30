@@ -5,7 +5,7 @@ use std::{error, fmt};
 use indexmap::IndexMap;
 
 use super::Value;
-use crate::header::record::value::{map, Map};
+use crate::header::record::value::{Map, map};
 
 /// A collection of VCF header record other values.
 #[derive(Clone, Debug, Eq, PartialEq)]

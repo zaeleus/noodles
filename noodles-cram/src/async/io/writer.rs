@@ -14,8 +14,8 @@ use self::{
     header::{write_file_definition, write_file_header, write_header},
 };
 use crate::{
-    io::writer::{Options, Record},
     FileDefinition,
+    io::writer::{Options, Record},
 };
 
 /// An async CRAM writer.

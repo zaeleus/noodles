@@ -9,7 +9,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use self::reference_sequence_names::read_reference_sequence_names;
-use crate::binning_index::index::{header::format, Header};
+use crate::binning_index::index::{Header, header::format};
 
 /// An error returned when a CSI header fails to be read.
 #[derive(Debug)]

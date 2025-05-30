@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn test_read_key() -> Result<(), vcf::header::ParseError> {
         use vcf::{
-            header::{record::value::Map, StringMaps},
+            header::{StringMaps, record::value::Map},
             variant::record::samples::keys::key,
         };
 

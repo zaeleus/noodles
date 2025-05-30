@@ -5,11 +5,11 @@ use std::io::{self, Write};
 
 use self::kind::write_kind;
 use crate::header::record::{
-    value::{
-        map::{Header, Program, ReadGroup, ReferenceSequence},
-        Map,
-    },
     Kind,
+    value::{
+        Map,
+        map::{Header, Program, ReadGroup, ReferenceSequence},
+    },
 };
 
 const DELIMITER: u8 = b'\t';

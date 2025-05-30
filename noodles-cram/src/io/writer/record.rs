@@ -6,7 +6,7 @@ use noodles_core::Position;
 use noodles_sam::{
     self as sam,
     alignment::{
-        record::{data::field::Tag, MappingQuality},
+        record::{MappingQuality, data::field::Tag},
         record_buf::data::field::Value,
     },
 };

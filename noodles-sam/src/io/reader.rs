@@ -19,7 +19,7 @@ use noodles_csi::BinningIndex;
 pub(crate) use self::record::read_record;
 pub use self::{builder::Builder, record_bufs::RecordBufs};
 use self::{header::read_header, query::Query, record_buf::read_record_buf};
-use crate::{alignment::RecordBuf, header::ReferenceSequences, Header, Record};
+use crate::{Header, Record, alignment::RecordBuf, header::ReferenceSequences};
 
 /// A SAM reader.
 ///
@@ -295,7 +295,7 @@ where
     /// }
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> {
         let mut record = Record::default();
 
         iter::from_fn(move || match self.read_record(&mut record) {
@@ -354,7 +354,7 @@ where
         header: &'h Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, I, R>>
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, 'h, I, R>>
     where
         I: BinningIndex,
     {
@@ -393,10 +393,10 @@ where
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn query_unmapped<I>(
-        &mut self,
+    pub fn query_unmapped<'r, I>(
+        &'r mut self,
         index: &I,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'_, I, R>>
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, I, R>>
     where
         I: BinningIndex,
     {
@@ -408,19 +408,21 @@ where
 
         let mut record = Record::default();
 
-        Ok(iter::from_fn(move || loop {
-            match self.read_record(&mut record) {
-                Ok(0) => return None,
-                Ok(_) => {
-                    let result = record.flags().map(|flags| flags.is_unmapped());
+        Ok(iter::from_fn(move || {
+            loop {
+                match self.read_record(&mut record) {
+                    Ok(0) => return None,
+                    Ok(_) => {
+                        let result = record.flags().map(|flags| flags.is_unmapped());
 
-                    match result {
-                        Ok(true) => return Some(Ok(record.clone())),
-                        Ok(false) => {}
-                        Err(e) => return Some(Err(e)),
+                        match result {
+                            Ok(true) => return Some(Ok(record.clone())),
+                            Ok(false) => {}
+                            Err(e) => return Some(Err(e)),
+                        }
                     }
+                    Err(e) => return Some(Err(e)),
                 }
-                Err(e) => return Some(Err(e)),
             }
         }))
     }

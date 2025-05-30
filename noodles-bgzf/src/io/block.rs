@@ -1,7 +1,7 @@
 mod data;
 
 use self::data::Data;
-use crate::{virtual_position, VirtualPosition};
+use crate::{VirtualPosition, virtual_position};
 
 /// A BGZF block.
 ///

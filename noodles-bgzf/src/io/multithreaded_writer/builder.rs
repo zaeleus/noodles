@@ -58,7 +58,7 @@ impl Builder {
     where
         W: Write + Send + 'static,
     {
-        use super::{spawn_deflaters, spawn_writer, State};
+        use super::{State, spawn_deflaters, spawn_writer};
 
         let worker_count = self.worker_count.get();
 

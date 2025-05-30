@@ -4,7 +4,7 @@ use noodles_bgzf as bgzf;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_tabix as tabix;
 
-use crate::{io::Reader, variant::Record as _, Record};
+use crate::{Record, io::Reader, variant::Record as _};
 
 /// Indexes a bgzipped-compressed VCF file.
 ///

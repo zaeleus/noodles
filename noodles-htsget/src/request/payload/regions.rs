@@ -1,9 +1,9 @@
 use std::str;
 
-use noodles_core::{region::Interval, Region};
+use noodles_core::{Region, region::Interval};
 use serde::{
-    ser::{self, SerializeMap, SerializeSeq},
     Serialize, Serializer,
+    ser::{self, SerializeMap, SerializeSeq},
 };
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]

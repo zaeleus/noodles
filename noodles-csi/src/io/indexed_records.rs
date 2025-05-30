@@ -6,10 +6,10 @@ use std::io::{self, BufRead, Lines};
 
 use noodles_core::Region;
 
-use self::record::parse_record;
 pub use self::record::Record;
+use self::record::parse_record;
 use super::FilterByRegion;
-use crate::binning_index::index::{header::format::CoordinateSystem, Header};
+use crate::binning_index::index::{Header, header::format::CoordinateSystem};
 
 /// An iterator over indexed records.
 pub struct IndexedRecords<R> {

@@ -6,7 +6,7 @@ pub use self::tag::Tag;
 
 use indexmap::IndexMap;
 
-use super::{builder, Described, Indexed, Inner, Map};
+use super::{Described, Indexed, Inner, Map, builder};
 
 /// An inner VCF header filter map value.
 #[derive(Clone, Debug, Eq, PartialEq)]

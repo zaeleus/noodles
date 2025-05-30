@@ -1,7 +1,7 @@
 use tokio::io::{self, AsyncBufRead};
 
 use super::read_line;
-use crate::{alignment::RecordBuf, Header};
+use crate::{Header, alignment::RecordBuf};
 
 pub(super) async fn read_record_buf<R>(
     reader: &mut R,

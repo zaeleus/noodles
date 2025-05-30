@@ -2,15 +2,14 @@ use std::{error, fmt, str};
 
 use super::field::{parse_key, parse_value};
 use crate::header::{
-    record::value::{
-        map::{
-            self,
-            other::{tag, Tag},
-            Other, OtherFields,
-        },
-        Map,
-    },
     FileFormat,
+    record::value::{
+        Map,
+        map::{
+            self, Other, OtherFields,
+            other::{Tag, tag},
+        },
+    },
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

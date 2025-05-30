@@ -1,6 +1,6 @@
 use std::vec;
 
-use futures::{stream, Stream};
+use futures::{Stream, stream};
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
@@ -34,7 +34,7 @@ pub fn query<R>(
     chunks: Vec<Chunk>,
     chromosome_id: usize,
     interval: Interval,
-) -> impl Stream<Item = io::Result<Record>> + '_
+) -> impl Stream<Item = io::Result<Record>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {

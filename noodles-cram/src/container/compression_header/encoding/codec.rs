@@ -6,8 +6,8 @@ use std::io;
 
 pub use self::{byte::Byte, byte_array::ByteArray, integer::Integer};
 use crate::io::{
-    reader::container::slice::records::ExternalDataReaders,
-    writer::container::slice::records::ExternalDataWriters, BitReader, BitWriter,
+    BitReader, BitWriter, reader::container::slice::records::ExternalDataReaders,
+    writer::container::slice::records::ExternalDataWriters,
 };
 
 pub trait Decode<'de> {

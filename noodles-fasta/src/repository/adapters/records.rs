@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::{repository::Adapter, Record};
+use crate::{Record, repository::Adapter};
 
 impl Adapter for Vec<Record> {
     fn get(&mut self, name: &[u8]) -> Option<io::Result<Record>> {

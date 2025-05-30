@@ -3,7 +3,7 @@ mod field;
 use std::{error, fmt};
 
 use self::field::parse_field;
-use crate::{variant::record_buf::Info, Header};
+use crate::{Header, variant::record_buf::Info};
 
 /// An error when raw VCF record info fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

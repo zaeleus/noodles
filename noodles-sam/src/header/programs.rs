@@ -3,7 +3,7 @@ use std::io;
 use bstr::{BStr, BString, ByteVec};
 use indexmap::{IndexMap, IndexSet};
 
-use super::record::value::map::{program::tag, Map, Program};
+use super::record::value::map::{Map, Program, program::tag};
 
 type Inner = IndexMap<BString, Map<Program>>;
 

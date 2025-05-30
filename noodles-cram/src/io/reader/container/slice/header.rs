@@ -2,9 +2,9 @@ use std::io;
 
 use crate::{
     container::{
+        ReferenceSequenceContext,
         block::{self, ContentType},
         slice::Header,
-        ReferenceSequenceContext,
     },
     io::reader::{
         container::read_block_as,

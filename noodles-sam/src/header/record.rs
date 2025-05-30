@@ -7,8 +7,8 @@ use bstr::BString;
 
 pub use self::kind::Kind;
 use self::value::{
-    map::{self, Program, ReadGroup, ReferenceSequence},
     Map,
+    map::{self, Program, ReadGroup, ReferenceSequence},
 };
 
 /// A SAM header record.

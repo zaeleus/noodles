@@ -9,11 +9,11 @@ use noodles_vcf::{
     header::record::value::map::format::{self, Number},
     variant::record::samples::{
         keys::key,
-        series::{value::Array, Value},
+        series::{Value, value::Array},
     },
 };
 
-use crate::record::value::{array::Values, read_type, read_value, Type};
+use crate::record::value::{Type, array::Values, read_type, read_value};
 
 /// A BCF record samples series.
 pub struct Series<'r> {
@@ -333,7 +333,7 @@ fn get_genotype_value<'r>(
 #[cfg(test)]
 mod tests {
     use noodles_vcf::{
-        header::{record::value::Map, StringMaps},
+        header::{StringMaps, record::value::Map},
         variant::record::samples::Series as _,
     };
 

@@ -11,8 +11,8 @@ use noodles_sam::{self as sam, alignment::RecordBuf};
 
 pub use self::builder::Builder;
 use super::{
-    reader::{Query, RecordBufs, Records},
     Reader,
+    reader::{Query, RecordBufs, Records},
 };
 use crate::Record;
 
@@ -64,7 +64,7 @@ where
 
     /// Returns an iterator over alignment record buffers starting from the current stream
     /// position.
-    pub fn record_bufs<'a>(&'a mut self, header: &'a sam::Header) -> RecordBufs<'a, R> {
+    pub fn record_bufs<'r, 'h: 'r>(&'r mut self, header: &'h sam::Header) -> RecordBufs<'r, 'h, R> {
         self.inner.record_bufs(header)
     }
 
@@ -100,16 +100,16 @@ where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     /// Returns an iterator over records that intersect the given region.
-    pub fn query<'a>(
-        &'a mut self,
-        header: &'a sam::Header,
+    pub fn query<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
         region: &Region,
-    ) -> io::Result<Query<'a, R>> {
+    ) -> io::Result<Query<'r, R>> {
         self.inner.query(header, &self.index, region)
     }
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.
-    pub fn query_unmapped(&mut self) -> io::Result<impl Iterator<Item = io::Result<Record>> + '_> {
+    pub fn query_unmapped(&mut self) -> io::Result<impl Iterator<Item = io::Result<Record>>> {
         self.inner.query_unmapped(&self.index)
     }
 }

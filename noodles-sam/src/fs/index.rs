@@ -4,14 +4,14 @@ use noodles_bgzf as bgzf;
 use noodles_core::Position;
 use noodles_csi::{
     self as csi,
-    binning_index::{index::reference_sequence::bin::Chunk, Indexer},
+    binning_index::{Indexer, index::reference_sequence::bin::Chunk},
 };
 
 use crate::{
+    Header, Record,
     alignment::Record as _,
     header::record::value::map::header::{sort_order::COORDINATE, tag::SORT_ORDER},
     io::Reader,
-    Header, Record,
 };
 
 /// Indexes a bgzipped-compressed SAM file.
@@ -106,8 +106,8 @@ fn alignment_context(
 mod tests {
     use super::*;
     use crate::header::record::value::{
-        map::{self, builder::BuildError},
         Map,
+        map::{self, builder::BuildError},
     };
 
     #[test]

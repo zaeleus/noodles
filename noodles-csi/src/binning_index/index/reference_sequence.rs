@@ -11,7 +11,7 @@ use std::{io, num::NonZeroUsize};
 use bit_vec::BitVec;
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Position};
+use noodles_core::{Position, region::Interval};
 
 use self::bin::Chunk;
 use super::resolve_interval;
@@ -246,11 +246,7 @@ const M: usize = match NonZeroUsize::new(8) {
 
 // parent of i = floor((i - 1) / M)
 pub(crate) fn parent_id(id: usize) -> Option<usize> {
-    if id > 0 {
-        Some((id - 1) / M)
-    } else {
-        None
-    }
+    if id > 0 { Some((id - 1) / M) } else { None }
 }
 
 // `CSIv1.pdf` (2020-07-21)

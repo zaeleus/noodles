@@ -4,7 +4,7 @@ use byteorder::WriteBytesExt;
 
 use super::{state_renormalize, state_step, write_header, write_states};
 use crate::{
-    codecs::rans_4x8::{Order, ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT},
+    codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, Order, STATE_COUNT},
     io::writer::num::write_itf8,
 };
 

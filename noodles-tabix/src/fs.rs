@@ -3,8 +3,8 @@
 use std::{fs::File, io, path::Path};
 
 use super::{
-    io::{Reader, Writer},
     Index,
+    io::{Reader, Writer},
 };
 
 /// Reads the entire contents of a tabix index.

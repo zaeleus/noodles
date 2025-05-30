@@ -1,7 +1,7 @@
 use std::{io, iter};
 
-use super::{series::value::parse_value, Keys};
-use crate::{variant::record::samples::series::Value, Header};
+use super::{Keys, series::value::parse_value};
+use crate::{Header, variant::record::samples::series::Value};
 
 /// A VCF record samples sample.
 #[derive(Debug, Eq, PartialEq)]

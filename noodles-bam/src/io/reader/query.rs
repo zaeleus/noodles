@@ -11,19 +11,19 @@ use crate::Record;
 /// An iterator over records of a BAM reader that intersects a given region.
 ///
 /// This is created by calling [`Reader::query`].
-pub struct Query<'a, R> {
-    reader: Reader<csi::io::Query<'a, R>>,
+pub struct Query<'r, R> {
+    reader: Reader<csi::io::Query<'r, R>>,
     reference_sequence_id: usize,
     interval: Interval,
     record: Record,
 }
 
-impl<'a, R> Query<'a, R>
+impl<'r, R> Query<'r, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     pub(super) fn new(
-        reader: &'a mut R,
+        reader: &'r mut R,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
         interval: Interval,
@@ -105,14 +105,14 @@ mod tests {
     use noodles_sam::{
         self as sam,
         alignment::{
+            RecordBuf,
             io::Write,
             record::{
-                cigar::{op::Kind, Op},
                 Flags,
+                cigar::{Op, op::Kind},
             },
-            RecordBuf,
         },
-        header::record::value::{map::ReferenceSequence, Map},
+        header::record::value::{Map, map::ReferenceSequence},
     };
 
     use super::*;

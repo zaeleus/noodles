@@ -97,8 +97,8 @@ impl Default for Repository {
 mod tests {
     use super::*;
     use crate::{
-        record::{Definition, Sequence},
         Record,
+        record::{Definition, Sequence},
     };
 
     #[test]

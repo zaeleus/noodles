@@ -7,20 +7,20 @@ use super::Reader;
 /// An iterator over records of a BAM reader.
 ///
 /// This is created by calling [`Reader::record_bufs`].
-pub struct RecordBufs<'a, R>
+pub struct RecordBufs<'r, 'h: 'r, R>
 where
     R: Read,
 {
-    reader: &'a mut Reader<R>,
-    header: &'a sam::Header,
+    reader: &'r mut Reader<R>,
+    header: &'h sam::Header,
     record: RecordBuf,
 }
 
-impl<'a, R> RecordBufs<'a, R>
+impl<'r, 'h: 'r, R> RecordBufs<'r, 'h, R>
 where
     R: Read,
 {
-    pub(super) fn new(reader: &'a mut Reader<R>, header: &'a sam::Header) -> Self {
+    pub(super) fn new(reader: &'r mut Reader<R>, header: &'h sam::Header) -> Self {
         Self {
             reader,
             header,
@@ -29,7 +29,7 @@ where
     }
 }
 
-impl<R> Iterator for RecordBufs<'_, R>
+impl<R> Iterator for RecordBufs<'_, '_, R>
 where
     R: Read,
 {

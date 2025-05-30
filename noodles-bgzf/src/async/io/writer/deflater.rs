@@ -2,7 +2,7 @@ use std::{
     future::Future,
     io,
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
 };
 
 use futures::Sink;

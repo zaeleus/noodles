@@ -1,6 +1,6 @@
 //! Binning index builder.
 
-use super::{reference_sequence, Header, Index, ReferenceSequence};
+use super::{Header, Index, ReferenceSequence, reference_sequence};
 
 /// A binning index builder.
 pub struct Builder<I> {

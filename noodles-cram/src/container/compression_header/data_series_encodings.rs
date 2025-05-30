@@ -5,8 +5,8 @@ pub(crate) mod data_series;
 pub use self::data_series::DataSeries;
 
 use super::{
-    encoding::codec::{Byte, ByteArray, Integer},
     Encoding,
+    encoding::codec::{Byte, ByteArray, Integer},
 };
 use crate::container::block;
 

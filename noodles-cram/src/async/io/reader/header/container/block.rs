@@ -8,8 +8,8 @@ use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncRead, AsyncReadExt, BufReader, ReadBuf, Take};
 
 use crate::{
-    container::block::{CompressionMethod, ContentType},
     r#async::io::reader::num::{read_itf8, read_itf8_as},
+    container::block::{CompressionMethod, ContentType},
 };
 
 pub(super) async fn read_block<R>(reader: &mut R) -> io::Result<Decoder<&mut R>>
@@ -41,7 +41,7 @@ where
                     CompressionMethod::Gzip,
                     compression_method,
                 ),
-            ))
+            ));
         }
     };
 

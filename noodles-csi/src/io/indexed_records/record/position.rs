@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use noodles_core::{position, Position};
+use noodles_core::{Position, position};
 
 use crate::binning_index::index::header::format::CoordinateSystem;
 

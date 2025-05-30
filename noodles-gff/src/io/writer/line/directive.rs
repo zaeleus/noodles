@@ -4,8 +4,8 @@ use std::io::{self, Write};
 
 use self::value::write_value;
 use crate::{
-    directive_buf::{key, Value},
     DirectiveBuf,
+    directive_buf::{Value, key},
 };
 
 pub(crate) fn write_directive<W>(writer: &mut W, directive: &DirectiveBuf) -> io::Result<()>
@@ -42,7 +42,7 @@ where
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "invalid directive",
-            ))
+            ));
         }
     }
 

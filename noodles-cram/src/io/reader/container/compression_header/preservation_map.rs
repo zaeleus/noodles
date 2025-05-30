@@ -5,7 +5,7 @@ use std::io;
 
 use self::{substitution_matrix::read_substitution_matrix, tag_sets::read_tag_sets};
 use crate::{
-    container::compression_header::{preservation_map::Key, PreservationMap},
+    container::compression_header::{PreservationMap, preservation_map::Key},
     io::reader::collections::read_map,
 };
 
@@ -88,7 +88,7 @@ mod tests {
         use noodles_sam::alignment::record::data::field::{Tag, Type};
 
         use crate::container::compression_header::preservation_map::{
-            tag_sets, SubstitutionMatrix,
+            SubstitutionMatrix, tag_sets,
         };
 
         let src = [

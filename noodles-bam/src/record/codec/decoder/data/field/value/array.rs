@@ -4,7 +4,7 @@ use std::{error, fmt, num};
 
 use noodles_sam::alignment::{
     record::data::field::value::array::Subtype,
-    record_buf::data::field::{value::Array, Value},
+    record_buf::data::field::{Value, value::Array},
 };
 
 use self::subtype::read_subtype;

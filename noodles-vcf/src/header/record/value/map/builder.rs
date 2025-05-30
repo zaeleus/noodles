@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use super::{tag, Map, OtherFields};
+use super::{Map, OtherFields, tag};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum BuildError {

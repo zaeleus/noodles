@@ -80,14 +80,13 @@ mod tests {
         self as vcf,
         variant::{
             record::{
-                info,
-                samples::{self, series::value::genotype::Phasing, Sample},
-                AlternateBases, Filters, Info, Samples,
+                AlternateBases, Filters, Info, Samples, info,
+                samples::{self, Sample, series::value::genotype::Phasing},
             },
             record_buf::{
-                info::field::Value as InfoFieldValue,
-                samples::sample::{value::genotype::Allele, Value as GenotypeFieldValue},
                 Samples as VcfGenotypes,
+                info::field::Value as InfoFieldValue,
+                samples::sample::{Value as GenotypeFieldValue, value::genotype::Allele},
             },
         },
     };

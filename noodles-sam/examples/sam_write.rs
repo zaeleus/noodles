@@ -8,8 +8,8 @@ use std::io;
 
 use noodles_sam::{
     self as sam,
-    alignment::{io::Write, RecordBuf},
-    header::record::value::{map::Program, Map},
+    alignment::{RecordBuf, io::Write},
+    header::record::value::{Map, map::Program},
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

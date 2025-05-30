@@ -1,11 +1,11 @@
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::{
-    container::{Header, ReferenceSequenceContext},
     r#async::io::reader::{
-        num::{read_itf8, read_itf8_as, read_ltf8_as},
         CrcReader,
+        num::{read_itf8, read_itf8_as, read_ltf8_as},
     },
+    container::{Header, ReferenceSequenceContext},
 };
 
 pub async fn read_header<R>(reader: &mut R, header: &mut Header) -> io::Result<usize>

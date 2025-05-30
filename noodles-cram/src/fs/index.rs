@@ -5,11 +5,11 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use crate::{
-    container::{slice, CompressionHeader},
+    container::{CompressionHeader, slice},
     crai,
     io::{
-        reader::{container::Slice, Container},
         Reader,
+        reader::{Container, container::Slice},
     },
 };
 

@@ -6,7 +6,7 @@ use self::record::{
     write_alternative_allele, write_contig, write_file_format, write_filter, write_format,
     write_info, write_other,
 };
-use crate::{header::SampleNames, Header};
+use crate::{Header, header::SampleNames};
 
 pub(super) fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>
 where

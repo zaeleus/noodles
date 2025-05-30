@@ -5,8 +5,8 @@ use std::io;
 use noodles_sam::{
     self as sam,
     alignment::record::{
-        cigar::{op::Kind, Op},
         Cigar,
+        cigar::{Op, op::Kind},
     },
 };
 

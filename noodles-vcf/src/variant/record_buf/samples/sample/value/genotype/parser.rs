@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use super::{allele, Allele, Genotype};
+use super::{Allele, Genotype, allele};
 use crate::variant::record::samples::series::value::genotype::Phasing;
 
 /// An error returned when a raw VCF record genotype value fails to parse.

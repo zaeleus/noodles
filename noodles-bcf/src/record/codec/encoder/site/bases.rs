@@ -5,7 +5,7 @@ use std::{
 
 use noodles_vcf::variant::record::{AlternateBases, ReferenceBases};
 
-use crate::record::codec::{encoder::value::write_value, Value};
+use crate::record::codec::{Value, encoder::value::write_value};
 
 pub(super) fn write_bases<W, R, A>(
     writer: &mut W,

@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use noodles_vcf::variant::record::Ids;
 
-use crate::record::codec::{encoder::value::write_value, Value};
+use crate::record::codec::{Value, encoder::value::write_value};
 
 pub(super) fn write_ids<W, I>(writer: &mut W, ids: I) -> io::Result<()>
 where

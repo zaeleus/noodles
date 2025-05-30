@@ -206,9 +206,9 @@ where
 #[cfg(test)]
 mod tests {
     use sam::alignment::{
+        RecordBuf,
         record::Flags,
         record_buf::{QualityScores, Sequence},
-        RecordBuf,
     };
 
     use super::*;
@@ -245,8 +245,8 @@ mod tests {
     }
 
     #[test]
-    fn test_write_alignment_record_with_sequence_length_less_than_quality_scores_length(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_alignment_record_with_sequence_length_less_than_quality_scores_length()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
@@ -263,8 +263,8 @@ mod tests {
     }
 
     #[test]
-    fn test_write_alignment_record_with_sequence_length_greater_than_quality_scores_length(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_alignment_record_with_sequence_length_greater_than_quality_scores_length()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
@@ -281,8 +281,8 @@ mod tests {
     }
 
     #[test]
-    fn test_write_alignment_record_with_no_sequence_and_with_quality_scores(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_alignment_record_with_no_sequence_and_with_quality_scores()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
@@ -295,8 +295,8 @@ mod tests {
     }
 
     #[test]
-    fn test_write_alignment_record_with_sequence_and_no_quality_scores(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_alignment_record_with_sequence_and_no_quality_scores()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
@@ -322,8 +322,8 @@ mod tests {
     }
 
     #[test]
-    fn test_write_alignment_record_with_sequence_and_quality_scores(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_alignment_record_with_sequence_and_quality_scores()
+    -> Result<(), Box<dyn std::error::Error>> {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();

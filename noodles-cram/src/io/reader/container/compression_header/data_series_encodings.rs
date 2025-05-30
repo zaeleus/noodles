@@ -5,7 +5,7 @@ use super::{
     read_integer_encoding,
 };
 use crate::{
-    container::compression_header::{data_series_encodings::DataSeries, DataSeriesEncodings},
+    container::compression_header::{DataSeriesEncodings, data_series_encodings::DataSeries},
     io::reader::collections::read_map,
 };
 

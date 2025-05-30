@@ -5,9 +5,9 @@ use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 
 use super::Reader;
-use crate::{alignment::Record as _, Header, Record};
+use crate::{Header, Record, alignment::Record as _};
 
-pub struct Query<'r, 'h, R> {
+pub struct Query<'r, 'h: 'r, R> {
     reader: Reader<csi::io::Query<'r, R>>,
     header: &'h Header,
     reference_sequence_id: usize,
@@ -15,7 +15,7 @@ pub struct Query<'r, 'h, R> {
     record: Record,
 }
 
-impl<'r, 'h, R> Query<'r, 'h, R>
+impl<'r, 'h: 'r, R> Query<'r, 'h, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {

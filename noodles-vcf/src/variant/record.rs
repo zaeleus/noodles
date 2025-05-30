@@ -111,7 +111,7 @@ fn info_end<I>(header: &Header, info: &I) -> Option<io::Result<Position>>
 where
     I: Info,
 {
-    use self::info::field::{key, Value};
+    use self::info::field::{Value, key};
 
     let value = match info.get(header, key::END_POSITION).transpose() {
         Ok(value) => value??,
@@ -137,7 +137,7 @@ fn info_max_sv_len<I>(header: &Header, info: &I) -> Option<io::Result<Option<usi
 where
     I: Info,
 {
-    use self::info::field::{key, value::Array, Value};
+    use self::info::field::{Value, key, value::Array};
 
     let value = match info.get(header, key::SV_LENGTHS).transpose() {
         Ok(value) => value??,
@@ -157,7 +157,7 @@ where
                                 return Some(Err(io::Error::new(
                                     io::ErrorKind::InvalidData,
                                     "invalid INFO SVLEN value",
-                                )))
+                                )));
                             }
                         };
 
@@ -172,7 +172,7 @@ where
             return Some(Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "invalid INFO SVLEN position value",
-            )))
+            )));
         }
     }
 
@@ -206,7 +206,7 @@ where
                         return Some(Err(io::Error::new(
                             io::ErrorKind::InvalidData,
                             "invalid FORMAT LEN value",
-                        )))
+                        )));
                     }
                 };
 
@@ -216,7 +216,7 @@ where
                 return Some(Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     "invalid FORMAT LEN type",
-                )))
+                )));
             }
             None => {}
         }
@@ -310,7 +310,7 @@ mod tests {
     fn test_variant_end_with_samples_len() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{
             record::samples::keys::key,
-            record_buf::{samples::sample::Value, Samples},
+            record_buf::{Samples, samples::sample::Value},
         };
 
         let header = Header::default();

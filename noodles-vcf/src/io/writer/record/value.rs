@@ -1,4 +1,4 @@
-use percent_encoding::{utf8_percent_encode, AsciiSet, PercentEncode, CONTROLS};
+use percent_encoding::{AsciiSet, CONTROLS, PercentEncode, utf8_percent_encode};
 
 // § 1.2 "Character encoding, non-printable characters and characters with special meaning" (2023-08-23)
 const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS

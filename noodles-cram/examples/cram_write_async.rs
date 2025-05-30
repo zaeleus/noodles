@@ -13,12 +13,12 @@ use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
     alignment::{
-        record::cigar::{op::Kind, Op},
+        record::cigar::{Op, op::Kind},
         record_buf::{QualityScores, Sequence},
     },
     header::record::value::{
-        map::{Program, ReferenceSequence},
         Map,
+        map::{Program, ReferenceSequence},
     },
 };
 use tokio::io;

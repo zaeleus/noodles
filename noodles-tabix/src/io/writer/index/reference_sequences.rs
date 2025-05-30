@@ -5,8 +5,8 @@ mod metadata;
 use std::io::{self, Write};
 
 use noodles_csi::binning_index::{
-    index::{reference_sequence::index::LinearIndex, ReferenceSequence},
     ReferenceSequence as _,
+    index::{ReferenceSequence, reference_sequence::index::LinearIndex},
 };
 
 use self::{bins::write_bins, intervals::write_intervals, metadata::write_metadata};

@@ -10,8 +10,8 @@ use std::{
 use noodles_vcf::{
     self as vcf,
     variant::record::{
-        samples::{keys::key, series::Value, Sample},
         AlternateBases,
+        samples::{Sample, keys::key, series::Value},
     },
 };
 

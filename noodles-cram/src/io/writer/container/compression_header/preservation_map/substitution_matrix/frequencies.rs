@@ -1,7 +1,7 @@
 use std::cmp;
 
 use crate::container::compression_header::preservation_map::{
-    substitution_matrix::Base, SubstitutionMatrix,
+    SubstitutionMatrix, substitution_matrix::Base,
 };
 
 /// A frequency table of reference-read base substitutions.

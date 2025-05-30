@@ -17,11 +17,11 @@ pub use self::{
     quality_scores::QualityScores, sequence::Sequence,
 };
 use crate::{
-    header::{
-        record::value::{map::ReferenceSequence, Map},
-        ReferenceSequences,
-    },
     Header,
+    header::{
+        ReferenceSequences,
+        record::value::{Map, map::ReferenceSequence},
+    },
 };
 
 /// An alignment record.
@@ -34,7 +34,7 @@ pub trait Record {
 
     /// Returns the reference sequence ID.
     fn reference_sequence_id<'r, 'h: 'r>(&'r self, header: &'h Header)
-        -> Option<io::Result<usize>>;
+    -> Option<io::Result<usize>>;
 
     /// Returns the alignment start.
     ///
@@ -202,8 +202,8 @@ mod tests {
     #[test]
     fn test_alignment_end() -> Result<(), Box<dyn std::error::Error>> {
         use crate::alignment::{
-            record::cigar::{op::Kind, Op},
             RecordBuf,
+            record::cigar::{Op, op::Kind},
         };
 
         let record = RecordBuf::builder()

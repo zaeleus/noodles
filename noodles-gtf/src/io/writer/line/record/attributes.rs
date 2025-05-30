@@ -34,7 +34,7 @@ where
 #[cfg(test)]
 mod tests {
     use bstr::BString;
-    use noodles_gff::feature::record_buf::{attributes::field::Value, Attributes as AttributesBuf};
+    use noodles_gff::feature::record_buf::{Attributes as AttributesBuf, attributes::field::Value};
 
     use super::*;
 

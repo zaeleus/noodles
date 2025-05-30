@@ -4,9 +4,9 @@ use noodles_core::Position;
 use noodles_csi::{
     self as csi,
     binning_index::index::{
+        Header,
         header::ReferenceSequenceNames,
         reference_sequence::{bin::Chunk, index::LinearIndex},
-        Header,
     },
 };
 

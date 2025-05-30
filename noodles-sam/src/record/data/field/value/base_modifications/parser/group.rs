@@ -2,7 +2,7 @@ use std::{error, fmt};
 
 use crate::{
     alignment::record_buf::Sequence,
-    record::data::field::value::base_modifications::{group::UnmodifiedBase, Group},
+    record::data::field::value::base_modifications::{Group, group::UnmodifiedBase},
 };
 
 mod modifications;
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn test_parse_group() {
         use crate::record::data::field::value::base_modifications::group::{
-            modification, Status, Strand, UnmodifiedBase,
+            Status, Strand, UnmodifiedBase, modification,
         };
 
         let is_reverse_complemented = false;

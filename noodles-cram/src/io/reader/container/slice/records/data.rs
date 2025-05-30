@@ -4,8 +4,8 @@ use bstr::{BStr, ByteSlice};
 use noodles_sam::alignment::record::data::field::Type;
 
 use crate::record::data::field::{
-    value::{array::Values, Array},
     Value,
+    value::{Array, array::Values},
 };
 
 pub(super) fn read_value(src: &[u8], ty: Type) -> io::Result<Value<'_>> {

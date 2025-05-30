@@ -9,7 +9,7 @@ use std::io;
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 
-use self::index::{reference_sequence::bin::Chunk, Header};
+use self::index::{Header, reference_sequence::bin::Chunk};
 pub use self::{index::Index, indexer::Indexer, reference_sequence::ReferenceSequence};
 
 /// A binning index.

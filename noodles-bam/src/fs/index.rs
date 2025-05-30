@@ -2,14 +2,14 @@ use std::{io, path::Path};
 
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
-use noodles_csi::binning_index::{index::reference_sequence::bin::Chunk, Indexer};
+use noodles_csi::binning_index::{Indexer, index::reference_sequence::bin::Chunk};
 use noodles_sam::{
     self as sam,
     alignment::Record as _,
     header::record::value::map::header::{sort_order::COORDINATE, tag::SORT_ORDER},
 };
 
-use crate::{bai, io::Reader, Record};
+use crate::{Record, bai, io::Reader};
 
 /// Indexes a BAM file.
 ///
@@ -100,12 +100,12 @@ mod tests {
     use std::num::NonZeroUsize;
 
     use bstr::BString;
-    use noodles_csi::{binning_index::ReferenceSequence as _, BinningIndex};
+    use noodles_csi::{BinningIndex, binning_index::ReferenceSequence as _};
     use noodles_sam::{
-        alignment::{io::Write, record::Flags, RecordBuf},
+        alignment::{RecordBuf, io::Write, record::Flags},
         header::record::value::{
-            map::{self, builder::BuildError, ReferenceSequence},
             Map,
+            map::{self, ReferenceSequence, builder::BuildError},
         },
     };
 

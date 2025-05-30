@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 
 use crate::header::record::value::map::{
     self,
-    tag::{Other, LENGTH},
+    tag::{LENGTH, Other},
 };
 
 pub(crate) type Tag = map::tag::Tag<Standard>;

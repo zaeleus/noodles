@@ -4,12 +4,12 @@ use bstr::ByteSlice;
 use pin_project_lite::pin_project;
 use std::{
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
 };
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, ReadBuf};
 
 use super::read_line;
-use crate::{header, Header};
+use crate::{Header, header};
 
 pin_project! {
     /// An async SAM header reader.
@@ -110,8 +110,8 @@ mod tests {
 
     use super::*;
     use crate::header::record::value::{
-        map::{self, header::Version, ReferenceSequence},
         Map,
+        map::{self, ReferenceSequence, header::Version},
     };
 
     #[tokio::test]

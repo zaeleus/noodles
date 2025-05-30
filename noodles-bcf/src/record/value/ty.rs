@@ -28,7 +28,7 @@ pub(crate) fn read_type(src: &mut &[u8]) -> io::Result<Option<Type>> {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     "invalid length value",
-                ))
+                ));
             }
         };
     }

@@ -5,8 +5,8 @@ use std::{error, fmt};
 
 use self::string::parse_string;
 use crate::header::{
-    record::{key, Key, Value},
     FileFormat, Record,
+    record::{Key, Value, key},
 };
 
 /// An error returned when a VCF header record value fails to parse.
@@ -135,8 +135,10 @@ impl fmt::Display for ParseError {
                     f,
                     "{} definition mismatch: ID={id}: expected Number={:?},Type={}, got Number={:?},Type={}",
                     key::FORMAT,
-                    expected_number, expected_type,
-                    actual_number, actual_type,
+                    expected_number,
+                    expected_type,
+                    actual_number,
+                    actual_type,
                 )
             }
             Self::InfoDefinitionMismatch {
@@ -151,8 +153,10 @@ impl fmt::Display for ParseError {
                     f,
                     "{} definition mismatch: ID={id}: expected Number={:?},Type={}, got Number={:?},Type={}",
                     key::INFO,
-                    expected_number, expected_type,
-                    actual_number, actual_type,
+                    expected_number,
+                    expected_type,
+                    actual_number,
+                    actual_type,
                 )
             }
         }

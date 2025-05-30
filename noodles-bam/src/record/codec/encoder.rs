@@ -148,7 +148,7 @@ mod tests {
     use noodles_core::Position;
     use noodles_sam::{
         alignment::RecordBuf,
-        header::record::value::{map::ReferenceSequence, Map},
+        header::record::value::{Map, map::ReferenceSequence},
     };
 
     use super::*;
@@ -184,11 +184,11 @@ mod tests {
     fn test_encode_with_all_fields() -> Result<(), Box<dyn std::error::Error>> {
         use sam::alignment::{
             record::{
-                cigar::{op::Kind, Op},
-                data::field::Tag,
                 Flags, MappingQuality,
+                cigar::{Op, op::Kind},
+                data::field::Tag,
             },
-            record_buf::{data::field::Value, QualityScores, Sequence},
+            record_buf::{QualityScores, Sequence, data::field::Value},
         };
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
@@ -262,11 +262,11 @@ mod tests {
     fn test_encode_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
         use sam::alignment::{
             record::{
-                cigar::{op::Kind, Op},
-                data::field::Tag,
                 Flags,
+                cigar::{Op, op::Kind},
+                data::field::Tag,
             },
-            record_buf::{data::field::Value, Cigar, Sequence},
+            record_buf::{Cigar, Sequence, data::field::Value},
         };
 
         const BASE_COUNT: usize = 65536;

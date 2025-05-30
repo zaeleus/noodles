@@ -1,7 +1,7 @@
 use std::io::{self, BufRead};
 
 use super::Reader;
-use crate::{feature::RecordBuf, line::Kind, Line, LineBuf};
+use crate::{Line, LineBuf, feature::RecordBuf, line::Kind};
 
 /// An iterator over lines of a GFF reader.
 ///

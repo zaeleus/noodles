@@ -5,7 +5,7 @@ use std::{
 
 use bstr::BString;
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
+use noodles_sam::header::record::value::{Map, map::ReferenceSequence};
 
 use crate::io::reader::bytes_with_nul_to_bstring;
 

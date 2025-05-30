@@ -2,8 +2,8 @@ use std::{error, fmt, num, str};
 
 use crate::{
     header::record::value::map::info::{Number, Type},
-    io::reader::record_buf::{value, MISSING},
-    variant::record_buf::info::field::{value::Array, Value},
+    io::reader::record_buf::{MISSING, value},
+    variant::record_buf::info::field::{Value, value::Array},
 };
 
 const DELIMITER: char = ',';

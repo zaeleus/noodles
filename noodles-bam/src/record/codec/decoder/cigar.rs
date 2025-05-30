@@ -5,9 +5,9 @@ use std::{error, fmt, mem};
 use noodles_sam::{
     self as sam,
     alignment::{
-        record::cigar::{op::Kind, Op},
-        record_buf::Cigar,
         RecordBuf,
+        record::cigar::{Op, op::Kind},
+        record_buf::Cigar,
     },
 };
 
@@ -75,7 +75,7 @@ pub(super) fn read_cigar(
 pub(super) fn resolve(record: &mut RecordBuf) -> Result<(), DecodeError> {
     use sam::alignment::{
         record::data::field::Tag,
-        record_buf::data::field::{value::Array, Value},
+        record_buf::data::field::{Value, value::Array},
     };
 
     if let [op_0, op_1] = record.cigar().as_ref() {
@@ -168,8 +168,8 @@ mod tests {
         use sam::alignment::{
             record::{cigar::Op, data::field::Tag},
             record_buf::{
-                data::field::{value::Array, Value},
                 Sequence,
+                data::field::{Value, value::Array},
             },
         };
 

@@ -63,7 +63,7 @@ mod tests {
 
     #[test]
     fn test_write_reference_sequence_id() -> Result<(), EncodeError> {
-        use sam::header::record::value::{map::ReferenceSequence, Map};
+        use sam::header::record::value::{Map, map::ReferenceSequence};
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
             Some(length) => length,

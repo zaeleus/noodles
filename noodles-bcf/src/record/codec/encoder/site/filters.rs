@@ -40,7 +40,7 @@ mod tests {
     #[test]
     fn test_write_filters() -> Result<(), Box<dyn std::error::Error>> {
         use vcf::{
-            header::record::value::{map::Filter, Map},
+            header::record::value::{Map, map::Filter},
             variant::record_buf::Filters,
         };
 

@@ -285,7 +285,7 @@ where
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn record_bufs<'a>(&'a mut self, header: &'a sam::Header) -> RecordBufs<'a, R> {
+    pub fn record_bufs<'r, 'h: 'r>(&'r mut self, header: &'h sam::Header) -> RecordBufs<'r, 'h, R> {
         RecordBufs::new(self, header)
     }
 
@@ -372,12 +372,12 @@ where
     /// }
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<I>(
-        &mut self,
+    pub fn query<'r, I>(
+        &'r mut self,
         header: &sam::Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<Query<'_, R>>
+    ) -> io::Result<Query<'r, R>>
     where
         I: BinningIndex,
     {

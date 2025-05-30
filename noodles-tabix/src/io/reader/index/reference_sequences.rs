@@ -4,7 +4,7 @@ mod intervals;
 use std::io::{self, Read};
 
 use noodles_csi::binning_index::index::{
-    reference_sequence::index::LinearIndex, ReferenceSequence,
+    ReferenceSequence, reference_sequence::index::LinearIndex,
 };
 
 use self::{bins::read_bins, intervals::read_intervals};

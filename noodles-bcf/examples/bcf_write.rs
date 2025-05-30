@@ -11,8 +11,8 @@ use noodles_core::Position;
 use noodles_vcf::{
     self as vcf,
     header::record::value::{
-        map::{Contig, Filter},
         Map,
+        map::{Contig, Filter},
     },
     variant::io::Write,
 };

@@ -12,13 +12,13 @@ use indexmap::IndexMap;
 pub(super) use self::record::parse_record;
 pub use self::{builder::Builder, entry::Entry, file_format_option::FileFormatOption};
 use super::{
-    file_format::FileFormat,
-    record::value::{
-        map::{AlternativeAllele, Contig, Filter, Format, Info},
-        Map,
-    },
     AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, Record,
     SampleNames, StringMaps,
+    file_format::FileFormat,
+    record::value::{
+        Map,
+        map::{AlternativeAllele, Contig, Filter, Format, Info},
+    },
 };
 
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -396,7 +396,7 @@ mod tests {
     #[test]
     fn test_from_str() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
-            header::record::{value::map::Other, Value},
+            header::record::{Value, value::map::Other},
             variant::record::{info, samples},
         };
 

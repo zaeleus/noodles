@@ -2,8 +2,8 @@ use std::io::{self, Write};
 
 use crate::{
     alignment::record::{
-        cigar::{op::Kind, Op},
         Cigar,
+        cigar::{Op, op::Kind},
     },
     io::writer::num,
 };

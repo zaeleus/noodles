@@ -8,10 +8,10 @@ pub use self::{key::Key, value::Value};
 use std::str::FromStr;
 
 use self::value::{
-    map::{AlternativeAllele, Contig, Filter, Format, Info},
     Map,
+    map::{AlternativeAllele, Contig, Filter, Format, Info},
 };
-use super::{parser::record::ParseError, FileFormat};
+use super::{FileFormat, parser::record::ParseError};
 
 /// A VCF header record.
 #[derive(Clone, Debug, Eq, PartialEq)]

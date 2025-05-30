@@ -46,7 +46,7 @@ mod tests {
     #[test]
     fn test_write_record() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_core::Position;
-        use vcf::header::record::value::{map::Contig, Map};
+        use vcf::header::record::value::{Map, map::Contig};
 
         let header = vcf::Header::builder()
             .add_contig("sq0", Map::<Contig>::new())

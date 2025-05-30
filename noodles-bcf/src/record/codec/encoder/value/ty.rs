@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use super::write_value;
-use crate::record::codec::value::{Int16, Int32, Int8, Type, Value};
+use crate::record::codec::value::{Int8, Int16, Int32, Type, Value};
 
 // § 6.3.3 Type encoding (2021-01-13)
 const MAX_TYPE_LEN: usize = 0x0f;

@@ -15,12 +15,12 @@ use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
-    alignment::record::{data::field::Tag, MappingQuality},
+    alignment::record::{MappingQuality, data::field::Tag},
 };
 
 use self::{
     cigar::Cigar,
-    data::{field::Value, Data},
+    data::{Data, field::Value},
     quality_scores::QualityScores,
     sequence::Sequence,
 };

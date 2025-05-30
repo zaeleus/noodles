@@ -12,7 +12,7 @@ use noodles_core::Region;
 use noodles_csi::{self as csi, BinningIndex};
 
 pub use self::{line_bufs::LineBufs, lines::Lines, record_bufs::RecordBufs};
-use crate::{feature::RecordBuf, Line};
+use crate::{Line, feature::RecordBuf};
 
 /// A GFF reader.
 pub struct Reader<R> {

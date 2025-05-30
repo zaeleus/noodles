@@ -6,8 +6,8 @@ mod sam_header;
 
 use tokio::io::{self, AsyncRead, AsyncReadExt, Take};
 
-use self::block::read_block;
 pub use self::block::Decoder;
+use self::block::read_block;
 pub(super) use self::header::read_header;
 
 /// An async CRAM header container reader.

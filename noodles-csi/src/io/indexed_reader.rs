@@ -3,7 +3,7 @@ use std::io::{self, Read, Seek};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 
-use super::{indexed_records::Record, Query};
+use super::{Query, indexed_records::Record};
 use crate::BinningIndex;
 
 /// An indexed reader.

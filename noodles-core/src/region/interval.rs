@@ -6,7 +6,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{position, Position};
+use crate::{Position, position};
 
 /// An interval.
 ///

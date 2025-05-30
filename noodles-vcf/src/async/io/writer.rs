@@ -1,6 +1,6 @@
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::{variant::io::Write, Header, Record};
+use crate::{Header, Record, variant::io::Write};
 
 /// An async VCF writer.
 ///

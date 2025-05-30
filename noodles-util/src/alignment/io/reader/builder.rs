@@ -158,7 +158,7 @@ impl Builder {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     "invalid format compression method: CRAM cannot be bgzip-compressed",
-                ))
+                ));
             }
         };
 

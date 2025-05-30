@@ -2,14 +2,14 @@ pub mod header;
 mod query;
 mod record;
 
-use futures::{stream, Stream};
+use futures::{Stream, stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::{header::read_header, query::query, record::read_record};
-use crate::{io::reader::resolve_region, variant::RecordBuf, Header, Record};
+use crate::{Header, Record, io::reader::resolve_region, variant::RecordBuf};
 
 const LINE_FEED: char = '\n';
 const CARRIAGE_RETURN: char = '\r';
@@ -344,7 +344,7 @@ where
     pub fn record_bufs<'r, 'h: 'r>(
         &'r mut self,
         header: &'h Header,
-    ) -> impl Stream<Item = io::Result<RecordBuf>> + use<'r, R> {
+    ) -> impl Stream<Item = io::Result<RecordBuf>> + use<'r, 'h, R> {
         Box::pin(stream::try_unfold(self, move |reader| async move {
             let mut record = RecordBuf::default();
 
@@ -397,12 +397,12 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<'r, I>(
+    pub fn query<'r, 'h: 'r, I>(
         &'r mut self,
-        header: &'r Header,
+        header: &'h Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, I, R>>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, 'h, I, R>>
     where
         I: BinningIndex,
     {

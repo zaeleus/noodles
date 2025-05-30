@@ -4,8 +4,8 @@ use std::{error, fmt, str};
 
 pub use self::ty::read_type;
 use crate::record::codec::{
-    value::{Array, Float, Int16, Int32, Int8, Type},
     Value,
+    value::{Array, Float, Int8, Int16, Int32, Type},
 };
 
 pub fn read_value<'a>(src: &mut &'a [u8]) -> Result<Option<Value<'a>>, DecodeError> {

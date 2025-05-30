@@ -13,13 +13,13 @@ use crate::{
     calculate_normalized_sequence_digest,
     codecs::Encoder,
     container::{
+        BlockContentEncoderMap, CompressionHeader, ReferenceSequenceContext,
         block::{self, CompressionMethod, ContentType},
         slice::Header,
-        BlockContentEncoderMap, CompressionHeader, ReferenceSequenceContext,
     },
     io::{
-        writer::{container::block::Block, Options, Record},
         BitWriter,
+        writer::{Options, Record, container::block::Block},
     },
     record::Flags,
 };

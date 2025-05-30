@@ -38,7 +38,7 @@ mod tests {
     use std::num::NonZeroUsize;
 
     use super::*;
-    use crate::header::record::value::{map::ReferenceSequence, Map};
+    use crate::header::record::value::{Map, map::ReferenceSequence};
 
     #[test]
     fn test_parse_reference_sequence_id() {

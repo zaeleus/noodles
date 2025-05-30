@@ -2,7 +2,7 @@ mod value;
 
 use std::io;
 
-use crate::{header::record::value::map::info::Type, variant::record::info::field::Value, Header};
+use crate::{Header, header::record::value::map::info::Type, variant::record::info::field::Value};
 
 const DELIMITER: u8 = b';';
 const SEPARATOR: u8 = b'=';

@@ -52,7 +52,7 @@ where
 mod tests {
     use super::*;
     use crate::{
-        alignment::record::{cigar::op::Kind, Cigar},
+        alignment::record::{Cigar, cigar::op::Kind},
         alignment::record_buf::Cigar as CigarBuf,
     };
 

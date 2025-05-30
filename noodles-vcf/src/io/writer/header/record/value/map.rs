@@ -13,7 +13,7 @@ pub(crate) use self::{
     format::write_format, info::write_info, meta::write_meta, other::write_other,
 };
 use crate::{
-    header::record::value::map::{self, tag, OtherFields},
+    header::record::value::map::{self, OtherFields, tag},
     io::writer::header::record::write_separator,
 };
 

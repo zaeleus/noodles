@@ -6,9 +6,8 @@ use std::io;
 
 use bstr::BString;
 use noodles_gff::{
-    self as gff,
-    directive_buf::{key, Value},
-    LineBuf,
+    self as gff, LineBuf,
+    directive_buf::{Value, key},
 };
 
 fn main() -> io::Result<()> {

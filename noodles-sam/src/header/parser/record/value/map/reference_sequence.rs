@@ -9,13 +9,12 @@ use super::field::{consume_delimiter, consume_separator, parse_tag, parse_value,
 use crate::header::{
     parser::Context,
     record::value::{
-        map::{
-            self,
-            reference_sequence::{tag, Tag},
-            tag::Other,
-            OtherFields, ReferenceSequence,
-        },
         Map,
+        map::{
+            self, OtherFields, ReferenceSequence,
+            reference_sequence::{Tag, tag},
+            tag::Other,
+        },
     },
 };
 

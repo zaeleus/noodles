@@ -7,9 +7,9 @@ use std::{
 use noodles_vcf::variant::record::info::field::{self, value::array::Values};
 
 use crate::record::codec::{
-    encoder::value,
-    value::{Array, Float, Int16, Int32, Int8},
     Value,
+    encoder::value,
+    value::{Array, Float, Int8, Int16, Int32},
 };
 
 const MISSING_VALUE: char = '.';

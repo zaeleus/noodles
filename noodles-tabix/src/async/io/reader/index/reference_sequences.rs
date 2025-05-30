@@ -3,7 +3,7 @@ mod intervals;
 mod metadata;
 
 use noodles_csi::binning_index::index::{
-    reference_sequence::index::LinearIndex, ReferenceSequence,
+    ReferenceSequence, reference_sequence::index::LinearIndex,
 };
 use tokio::io::{self, AsyncRead};
 

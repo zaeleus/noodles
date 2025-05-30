@@ -30,7 +30,7 @@ mod tests {
     use std::num::NonZeroUsize;
 
     use bstr::BString;
-    use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
+    use noodles_sam::header::record::value::{Map, map::ReferenceSequence};
 
     use super::*;
 

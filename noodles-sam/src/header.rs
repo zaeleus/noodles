@@ -88,8 +88,8 @@ use indexmap::IndexMap;
 
 pub use self::programs::Programs;
 use self::record::value::{
-    map::{self, ReadGroup, ReferenceSequence},
     Map,
+    map::{self, ReadGroup, ReferenceSequence},
 };
 
 /// A reference sequence dictionary.

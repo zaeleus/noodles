@@ -3,7 +3,7 @@ use std::io;
 use crate::{
     header::record::value::map::info::{Number, Type},
     io::reader::record_buf::value::percent_decode,
-    variant::record::info::field::{value::Array, Value},
+    variant::record::info::field::{Value, value::Array},
 };
 
 pub(super) fn parse_value(src: &str, number: Number, ty: Type) -> io::Result<Value<'_>> {

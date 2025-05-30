@@ -4,7 +4,7 @@ mod sample;
 use std::io::{self, Write};
 
 use self::{keys::write_keys, sample::write_sample};
-use crate::{variant::record::Samples, Header};
+use crate::{Header, variant::record::Samples};
 
 pub(super) fn write_samples<W, S>(writer: &mut W, header: &Header, samples: S) -> io::Result<()>
 where

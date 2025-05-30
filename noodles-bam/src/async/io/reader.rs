@@ -5,7 +5,7 @@ mod record_buf;
 
 use std::future;
 
-use futures::{stream, Stream, StreamExt};
+use futures::{Stream, StreamExt, stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
@@ -13,7 +13,7 @@ use noodles_sam::{self as sam, alignment::RecordBuf};
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use self::{header::read_header, query::query, record::read_record, record_buf::read_record_buf};
-use crate::{io::reader::resolve_region, Record};
+use crate::{Record, io::reader::resolve_region};
 
 /// An async BAM reader.
 ///
@@ -254,10 +254,10 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn record_bufs<'a>(
-        &'a mut self,
-        _header: &'a sam::Header,
-    ) -> impl Stream<Item = io::Result<RecordBuf>> + 'a {
+    pub fn record_bufs<'r, 'h: 'r>(
+        &'r mut self,
+        _header: &'h sam::Header,
+    ) -> impl Stream<Item = io::Result<RecordBuf>> + use<'r, R> {
         Box::pin(stream::try_unfold(
             (&mut self.inner, &mut self.buf, RecordBuf::default()),
             move |(reader, buf, mut record)| async move {
@@ -298,7 +298,7 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Stream<Item = io::Result<Record>> {
         Box::pin(stream::try_unfold(
             (self, Record::default()),
             |(this, mut record)| async {
@@ -375,12 +375,12 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub fn query<I>(
-        &mut self,
+    pub fn query<'r, I>(
+        &'r mut self,
         header: &sam::Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'_, I, R>>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, I, R>>
     where
         I: BinningIndex,
     {
@@ -417,10 +417,10 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn query_unmapped<I>(
-        &mut self,
+    pub async fn query_unmapped<'r, I>(
+        &'r mut self,
         index: &I,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'_, I, R>>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, I, R>>
     where
         I: BinningIndex,
     {

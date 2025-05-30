@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use super::{CompressionLevel, Writer, MAX_BUF_SIZE};
+use super::{CompressionLevel, MAX_BUF_SIZE, Writer};
 
 /// A BGZF writer builder.
 #[derive(Debug, Default)]

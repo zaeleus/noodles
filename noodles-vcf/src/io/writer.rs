@@ -174,7 +174,7 @@ mod tests {
     use noodles_core::Position;
 
     use super::*;
-    use crate::variant::{io::Write, RecordBuf};
+    use crate::variant::{RecordBuf, io::Write};
 
     #[test]
     fn test_write_variant_record() -> io::Result<()> {
@@ -199,7 +199,7 @@ mod tests {
     fn test_write_record_with_format() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{
             record::samples::keys::key,
-            record_buf::{samples::sample::Value, Samples},
+            record_buf::{Samples, samples::sample::Value},
         };
 
         let header = Header::default();

@@ -25,7 +25,7 @@ use self::{
     sequence::write_sequence,
     template_length::write_template_length,
 };
-use crate::{alignment::Record, Header};
+use crate::{Header, alignment::Record};
 
 const MISSING: u8 = b'*';
 

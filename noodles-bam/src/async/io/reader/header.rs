@@ -8,7 +8,7 @@ use noodles_sam::{self as sam, header::ReferenceSequences};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
-use crate::{io::reader::header::reference_sequences_eq, MAGIC_NUMBER};
+use crate::{MAGIC_NUMBER, io::reader::header::reference_sequences_eq};
 
 /// An async BAM header reader.
 pub struct Reader<R> {
@@ -196,8 +196,8 @@ mod tests {
     use std::num::NonZeroUsize;
 
     use noodles_sam::header::record::value::{
-        map::{self, header::Version},
         Map,
+        map::{self, header::Version},
     };
 
     use super::*;

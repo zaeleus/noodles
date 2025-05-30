@@ -2,7 +2,7 @@ mod field;
 
 use std::{io, iter};
 
-use crate::{variant::record::info::field::Value, Header};
+use crate::{Header, variant::record::info::field::Value};
 
 /// VCF record info.
 #[derive(Debug, Eq, PartialEq)]

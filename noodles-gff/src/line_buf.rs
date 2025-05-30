@@ -2,7 +2,7 @@
 
 use bstr::BString;
 
-use super::{feature::RecordBuf, DirectiveBuf};
+use super::{DirectiveBuf, feature::RecordBuf};
 
 /// A GFF line.
 #[derive(Clone, Debug, PartialEq)]

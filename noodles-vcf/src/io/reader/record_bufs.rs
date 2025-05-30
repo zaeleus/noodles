@@ -1,7 +1,7 @@
 use std::io::{self, BufRead};
 
 use super::Reader;
-use crate::{variant::RecordBuf, Header};
+use crate::{Header, variant::RecordBuf};
 
 /// An iterator over records of a VCF reader.
 ///

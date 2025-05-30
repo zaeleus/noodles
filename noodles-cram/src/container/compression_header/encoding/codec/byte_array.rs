@@ -4,16 +4,16 @@ use crate::{
     container::{
         block,
         compression_header::{
-            encoding::{
-                codec::{Byte, Integer},
-                Decode, Encode,
-            },
             Encoding,
+            encoding::{
+                Decode, Encode,
+                codec::{Byte, Integer},
+            },
         },
     },
     io::{
-        reader::container::slice::records::ExternalDataReaders,
-        writer::container::slice::records::ExternalDataWriters, BitReader, BitWriter,
+        BitReader, BitWriter, reader::container::slice::records::ExternalDataReaders,
+        writer::container::slice::records::ExternalDataWriters,
     },
 };
 

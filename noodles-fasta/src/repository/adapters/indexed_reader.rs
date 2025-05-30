@@ -2,7 +2,7 @@ use std::io::{self, BufRead, Seek};
 
 use noodles_core::Region;
 
-use crate::{repository::Adapter, Record};
+use crate::{Record, repository::Adapter};
 
 /// An indexed reader adapter.
 pub struct IndexedReader<R> {

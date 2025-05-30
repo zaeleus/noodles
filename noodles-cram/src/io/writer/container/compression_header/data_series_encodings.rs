@@ -3,9 +3,9 @@ use std::io::{self, Write};
 use super::{write_byte_array_encoding, write_byte_encoding, write_integer_encoding};
 use crate::{
     container::compression_header::{
+        DataSeriesEncodings, Encoding,
         data_series_encodings::DataSeries,
         encoding::codec::{Byte, ByteArray, Integer},
-        DataSeriesEncodings, Encoding,
     },
     io::writer::{collections::write_array, num::write_itf8},
 };

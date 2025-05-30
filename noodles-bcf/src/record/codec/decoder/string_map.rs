@@ -3,8 +3,8 @@ use std::{error, fmt, num};
 use noodles_vcf::header::string_maps::StringMap;
 
 use crate::record::codec::{
-    value::{Array, Int16, Int32, Int8},
     Value,
+    value::{Array, Int8, Int16, Int32},
 };
 
 use super::value::read_value;

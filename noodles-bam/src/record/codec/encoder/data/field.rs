@@ -7,8 +7,8 @@ mod value;
 use std::io;
 
 use noodles_sam::alignment::record::{
-    data::field::{value::array::Subtype, Tag, Type, Value},
     Cigar,
+    data::field::{Tag, Type, Value, value::array::Subtype},
 };
 
 pub use self::value::write_value;
@@ -48,7 +48,7 @@ mod tests {
     #[test]
     fn test_write_cigar() -> io::Result<()> {
         use noodles_sam::alignment::{
-            record::cigar::{op::Kind, Op},
+            record::cigar::{Op, op::Kind},
             record_buf::Cigar as CigarBuf,
         };
 

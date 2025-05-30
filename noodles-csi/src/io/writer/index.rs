@@ -6,7 +6,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use self::{header::write_aux, reference_sequences::write_reference_sequences};
-use crate::{io::MAGIC_NUMBER, BinningIndex, Index};
+use crate::{BinningIndex, Index, io::MAGIC_NUMBER};
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where

@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::{variant::Record, Header};
+use crate::{Header, variant::Record};
 
 /// A variant format reader.
 pub trait Read<R> {

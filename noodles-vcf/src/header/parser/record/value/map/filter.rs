@@ -1,12 +1,11 @@
 use std::{error, fmt, num};
 
 use crate::header::record::value::{
-    map::{
-        self,
-        filter::{tag, Tag},
-        Filter, OtherFields,
-    },
     Map,
+    map::{
+        self, Filter, OtherFields,
+        filter::{Tag, tag},
+    },
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

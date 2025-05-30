@@ -6,8 +6,8 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_csi::binning_index::{
-    index::{reference_sequence::index::LinearIndex, ReferenceSequence},
     ReferenceSequence as _,
+    index::{ReferenceSequence, reference_sequence::index::LinearIndex},
 };
 
 use self::{bins::write_bins, intervals::write_intervals, metadata::write_metadata};

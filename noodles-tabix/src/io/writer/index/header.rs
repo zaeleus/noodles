@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_csi::binning_index::index::{header::ReferenceSequenceNames, Header};
+use noodles_csi::binning_index::index::{Header, header::ReferenceSequenceNames};
 
 pub(super) fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>
 where

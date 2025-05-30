@@ -6,7 +6,7 @@ use std::{
 
 use noodles_fasta as fasta;
 
-use super::{Options, Writer, RECORDS_PER_CONTAINER};
+use super::{Options, RECORDS_PER_CONTAINER, Writer};
 use crate::{codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version};
 
 /// A CRAM writer builder.

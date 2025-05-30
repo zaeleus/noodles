@@ -9,9 +9,9 @@ pub use self::{builder::Builder, header::Header, reference_sequence::ReferenceSe
 use std::io;
 
 use noodles_bgzf as bgzf;
-use noodles_core::{region::Interval, Position};
+use noodles_core::{Position, region::Interval};
 
-use super::{index::reference_sequence::bin::Chunk, BinningIndex};
+use super::{BinningIndex, index::reference_sequence::bin::Chunk};
 
 /// A binning index.
 #[derive(Clone, Debug, Eq, PartialEq)]

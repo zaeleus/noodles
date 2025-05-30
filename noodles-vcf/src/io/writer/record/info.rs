@@ -4,7 +4,7 @@ use std::io::{self, Write};
 
 use self::field::write_field;
 use super::MISSING;
-use crate::{variant::record::Info, Header};
+use crate::{Header, variant::record::Info};
 
 pub(super) fn write_info<W, I>(writer: &mut W, header: &Header, info: I) -> io::Result<()>
 where
@@ -38,7 +38,7 @@ mod tests {
     fn test_write_info() -> io::Result<()> {
         use crate::variant::{
             record::info::field::key,
-            record_buf::{info::field::Value as ValueBuf, Info as InfoBuf},
+            record_buf::{Info as InfoBuf, info::field::Value as ValueBuf},
         };
 
         fn t(

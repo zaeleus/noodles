@@ -1,11 +1,11 @@
 use bstr::BString;
 
 use super::{
-    record::value::{
-        map::{self, Program, ReadGroup, ReferenceSequence},
-        Map,
-    },
     Header, Programs, ReadGroups, ReferenceSequences,
+    record::value::{
+        Map,
+        map::{self, Program, ReadGroup, ReferenceSequence},
+    },
 };
 
 /// A SAM header builder.

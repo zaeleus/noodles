@@ -33,7 +33,7 @@ where
                     CompressionMethod::Gzip,
                     compression_method,
                 ),
-            ))
+            ));
         }
     };
 

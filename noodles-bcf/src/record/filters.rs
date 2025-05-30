@@ -2,7 +2,7 @@ use std::{io, iter, mem};
 
 use noodles_vcf as vcf;
 
-use super::value::{read_type, Type};
+use super::value::{Type, read_type};
 
 /// BCF record filters.
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -8,8 +8,8 @@ use noodles_sam as sam;
 
 use crate::{
     codecs::Encoder,
-    container::{block::ContentType, Header},
-    io::writer::container::{write_block, write_header, Block},
+    container::{Header, block::ContentType},
+    io::writer::container::{Block, write_block, write_header},
 };
 
 pub(super) fn write_container<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
@@ -85,8 +85,8 @@ mod tests {
         use byteorder::{LittleEndian, WriteBytesExt};
         use flate2::CrcWriter;
         use sam::header::record::value::{
-            map::{self, header::Version},
             Map,
+            map::{self, header::Version},
         };
 
         use crate::{codecs::gzip, io::writer::num::write_itf8};
@@ -149,8 +149,8 @@ mod tests {
         use std::num::NonZeroUsize;
 
         use sam::header::record::value::{
-            map::{reference_sequence::tag, ReferenceSequence},
             Map,
+            map::{ReferenceSequence, reference_sequence::tag},
         };
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {

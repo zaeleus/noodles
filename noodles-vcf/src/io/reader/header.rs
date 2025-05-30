@@ -2,7 +2,7 @@
 
 use std::io::{self, BufRead, Read};
 
-use crate::{header, Header};
+use crate::{Header, header};
 
 /// A VCF header reader.
 ///

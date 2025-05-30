@@ -1,6 +1,6 @@
 use std::vec;
 
-use futures::{stream, Stream};
+use futures::{Stream, stream};
 use noodles_sam as sam;
 use tokio::io::{self, AsyncRead};
 

@@ -109,16 +109,12 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
         key::PHASING_QUALITY => Some((Number::Count(1), Type::Integer, "Phasing quality")),
         key::PHASE_SET => Some((Number::Count(1), Type::Integer, "Phase set")),
         key::PHASE_SET_LIST => Some((Number::Ploidy, Type::String, "Phase set list")),
-        key::PHASE_SET_LIST_ORDINALS => Some((
-            Number::Ploidy,
-            Type::Integer,
-            "Phase set list ordinal",
-        )),
-        key::PHASE_SET_LIST_QUALITIES => Some((
-            Number::Ploidy,
-            Type::Integer,
-            "Phase set list quality",
-        )),
+        key::PHASE_SET_LIST_ORDINALS => {
+            Some((Number::Ploidy, Type::Integer, "Phase set list ordinal"))
+        }
+        key::PHASE_SET_LIST_QUALITIES => {
+            Some((Number::Ploidy, Type::Integer, "Phase set list quality"))
+        }
 
         key::GENOTYPE_COPY_NUMBER => Some((Number::Count(1), Type::Float, "Copy number")),
         key::COPY_NUMBER_CONFIDENCE_INTERVAL => Some((

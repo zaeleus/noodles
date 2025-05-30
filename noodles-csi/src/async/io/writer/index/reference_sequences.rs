@@ -5,8 +5,8 @@ use tokio::io::{self, AsyncWrite};
 
 use self::{bins::write_bins, metadata::write_metadata};
 use crate::binning_index::{
-    index::{reference_sequence::index::BinnedIndex, ReferenceSequence},
     ReferenceSequence as _,
+    index::{ReferenceSequence, reference_sequence::index::BinnedIndex},
 };
 
 pub(super) async fn write_reference_sequences<W>(

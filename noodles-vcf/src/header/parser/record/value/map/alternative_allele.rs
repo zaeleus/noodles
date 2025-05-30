@@ -1,12 +1,11 @@
 use std::{error, fmt};
 
 use crate::header::record::value::{
-    map::{
-        self,
-        alternative_allele::{tag, Tag},
-        AlternativeAllele, OtherFields,
-    },
     Map,
+    map::{
+        self, AlternativeAllele, OtherFields,
+        alternative_allele::{Tag, tag},
+    },
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

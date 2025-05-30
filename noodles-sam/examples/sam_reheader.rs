@@ -9,8 +9,8 @@ use std::{env, io};
 use noodles_sam::{
     self as sam,
     header::record::value::{
-        map::{builder::BuildError, program::tag, Program},
         Map,
+        map::{Program, builder::BuildError, program::tag},
     },
 };
 

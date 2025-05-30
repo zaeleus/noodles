@@ -7,7 +7,7 @@
 use noodles_core::Position;
 use noodles_vcf::{
     self as vcf,
-    header::record::value::{map::Contig, Map},
+    header::record::value::{Map, map::Contig},
 };
 use tokio::io;
 

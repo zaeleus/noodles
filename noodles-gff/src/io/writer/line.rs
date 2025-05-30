@@ -37,9 +37,9 @@ mod tests {
 
     use super::*;
     use crate::{
-        directive_buf::{key, Value},
-        feature::RecordBuf,
         DirectiveBuf,
+        directive_buf::{Value, key},
+        feature::RecordBuf,
     };
 
     #[test]

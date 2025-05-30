@@ -5,9 +5,9 @@ use std::io::{self, Write};
 use self::frequencies::Frequencies;
 use crate::{
     container::compression_header::preservation_map::{
-        substitution_matrix::Base, SubstitutionMatrix,
+        SubstitutionMatrix, substitution_matrix::Base,
     },
-    io::writer::{record::Feature, Record},
+    io::writer::{Record, record::Feature},
 };
 
 pub(super) fn write_substitution_matrix<W>(

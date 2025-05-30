@@ -7,17 +7,16 @@ use std::{
 use noodles_bam as bam;
 use noodles_cram::{self as cram, crai};
 use noodles_csi::{
-    self as csi,
+    self as csi, BinningIndex,
     binning_index::index::reference_sequence::index::{BinnedIndex, LinearIndex},
-    BinningIndex,
 };
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::IndexedReader;
 use crate::alignment::io::{
-    reader::builder::{detect_compression_method, detect_format},
     CompressionMethod, Format,
+    reader::builder::{detect_compression_method, detect_format},
 };
 
 /// An alignment index.

@@ -53,8 +53,8 @@ mod tests {
     #[test]
     fn test_parse() {
         use crate::record::data::field::value::base_modifications::{
-            group::{modification, Strand, UnmodifiedBase},
             Group,
+            group::{Strand, UnmodifiedBase, modification},
         };
 
         let is_reverse_complemented = false;

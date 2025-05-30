@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::{record::fields::Bounds, Record};
+use crate::{Record, record::fields::Bounds};
 
 pub(super) fn read_record_3<R>(reader: &mut R, record: &mut Record<3>) -> io::Result<usize>
 where

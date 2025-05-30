@@ -3,7 +3,7 @@ use std::io::{self, Write};
 use byteorder::WriteBytesExt;
 
 use super::{order_0, state_renormalize, state_step, write_header, write_states};
-use crate::codecs::rans_4x8::{Order, ALPHABET_SIZE, LOWER_BOUND, STATE_COUNT};
+use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, Order, STATE_COUNT};
 
 const CONTEXT_SIZE: usize = 2;
 const NUL: u8 = 0x00;

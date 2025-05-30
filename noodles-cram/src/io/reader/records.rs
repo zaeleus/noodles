@@ -10,21 +10,21 @@ use super::{Container, Reader};
 /// An iterator over records of a CRAM reader.
 ///
 /// This is created by calling [`Reader::records`].
-pub struct Records<'a, R>
+pub struct Records<'r, 'h: 'r, R>
 where
     R: Read,
 {
-    reader: &'a mut Reader<R>,
-    header: &'a sam::Header,
+    reader: &'r mut Reader<R>,
+    header: &'h sam::Header,
     container: Container,
     records: vec::IntoIter<sam::alignment::RecordBuf>,
 }
 
-impl<'a, R> Records<'a, R>
+impl<'r, 'h: 'r, R> Records<'r, 'h, R>
 where
     R: Read,
 {
-    pub(crate) fn new(reader: &'a mut Reader<R>, header: &'a sam::Header) -> Self {
+    pub(crate) fn new(reader: &'r mut Reader<R>, header: &'h sam::Header) -> Self {
         Self {
             reader,
             header,
@@ -78,7 +78,7 @@ where
     }
 }
 
-impl<R> Iterator for Records<'_, R>
+impl<R> Iterator for Records<'_, '_, R>
 where
     R: Read,
 {

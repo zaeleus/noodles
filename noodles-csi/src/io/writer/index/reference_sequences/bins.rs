@@ -9,7 +9,7 @@ use noodles_bgzf as bgzf;
 use self::chunks::write_chunks;
 use super::write_metadata;
 use crate::binning_index::index::reference_sequence::{
-    index::BinnedIndex, parent_id, Bin, Metadata,
+    Bin, Metadata, index::BinnedIndex, parent_id,
 };
 
 pub(super) fn write_bins<W>(

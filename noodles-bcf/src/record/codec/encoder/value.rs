@@ -6,7 +6,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::record::codec::value::{Array, Float, Int16, Int32, Int8, Type, Value};
+use crate::record::codec::value::{Array, Float, Int8, Int16, Int32, Type, Value};
 
 pub fn write_value<W>(writer: &mut W, value: Option<Value<'_>>) -> io::Result<()>
 where
@@ -230,7 +230,9 @@ mod tests {
         )?;
         assert_eq!(
             buf,
-            [0x33, 0x11, 0x25, 0x01, 0x00, 0x31, 0xda, 0x01, 0x00, 0x42, 0xff, 0x02, 0x00]
+            [
+                0x33, 0x11, 0x25, 0x01, 0x00, 0x31, 0xda, 0x01, 0x00, 0x42, 0xff, 0x02, 0x00
+            ]
         );
 
         buf.clear();

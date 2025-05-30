@@ -4,15 +4,14 @@ mod ty;
 use std::{error, fmt, num};
 
 use crate::header::{
-    record::value::{
-        map::{
-            self,
-            format::{tag, Number, Tag, Type},
-            Format, OtherFields,
-        },
-        Map,
-    },
     FileFormat,
+    record::value::{
+        Map,
+        map::{
+            self, Format, OtherFields,
+            format::{Number, Tag, Type, tag},
+        },
+    },
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

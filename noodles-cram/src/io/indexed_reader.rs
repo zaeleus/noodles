@@ -11,10 +11,10 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::{
-    reader::{Container, Query, Records},
     Reader,
+    reader::{Container, Query, Records},
 };
-use crate::{crai, FileDefinition};
+use crate::{FileDefinition, crai};
 
 /// An indexed CRAM reader.
 pub struct IndexedReader<R> {
@@ -75,7 +75,7 @@ where
     }
 
     /// Returns a iterator over records starting from the current stream position.
-    pub fn records<'r>(&'r mut self, header: &'r sam::Header) -> Records<'r, R> {
+    pub fn records<'r, 'h: 'r>(&'r mut self, header: &'h sam::Header) -> Records<'r, 'h, R> {
         self.inner.records(header)
     }
 
@@ -90,11 +90,11 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersects the given region.
-    pub fn query<'a>(
-        &'a mut self,
-        header: &'a sam::Header,
+    pub fn query<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
         region: &Region,
-    ) -> io::Result<Query<'a, R>> {
+    ) -> io::Result<Query<'r, 'h, 'r, R>> {
         self.inner.query(header, &self.index, region)
     }
 }

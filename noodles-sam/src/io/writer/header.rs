@@ -51,8 +51,8 @@ mod tests {
         };
 
         use crate::header::record::value::{
-            map::{self, header::Version, Program, ReadGroup, ReferenceSequence},
             Map,
+            map::{self, Program, ReadGroup, ReferenceSequence, header::Version},
         };
 
         let header = Header::builder()

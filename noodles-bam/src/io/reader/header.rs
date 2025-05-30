@@ -201,8 +201,8 @@ mod tests {
     use noodles_sam::{
         self as sam,
         header::record::value::{
-            map::{self, header::Version},
             Map,
+            map::{self, header::Version},
         },
     };
 

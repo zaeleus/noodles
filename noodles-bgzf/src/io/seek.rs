@@ -1,6 +1,6 @@
 use std::io::{self, SeekFrom};
 
-use crate::{gzi, VirtualPosition};
+use crate::{VirtualPosition, gzi};
 
 /// A seekable BGZF reader.
 pub trait Seek {

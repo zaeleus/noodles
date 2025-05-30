@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use super::{Writer, DEFAULT_DEFINITION_SEPARATOR};
+use super::{DEFAULT_DEFINITION_SEPARATOR, Writer};
 
 /// A FASTQ writer builder.
 pub struct Builder {

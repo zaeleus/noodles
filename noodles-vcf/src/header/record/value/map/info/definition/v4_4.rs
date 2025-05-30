@@ -11,9 +11,11 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
             Type::Integer,
             "Allele count in genotypes, for each ALT allele, in the same order as listed",
         )),
-        key::TOTAL_READ_DEPTHS => {
-            Some((Number::ReferenceAlternateBases, Type::Integer, "Total read depth for each allele"))
-        }
+        key::TOTAL_READ_DEPTHS => Some((
+            Number::ReferenceAlternateBases,
+            Type::Integer,
+            "Total read depth for each allele",
+        )),
         key::FORWARD_STRAND_READ_DEPTHS => Some((
             Number::ReferenceAlternateBases,
             Type::Integer,
@@ -64,9 +66,7 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
             Type::Flag,
             "Validated by follow-up experiment",
         )),
-        key::IS_IN_1000_GENOMES => {
-            Some((Number::Count(0), Type::Flag, "1000 Genomes membership"))
-        }
+        key::IS_IN_1000_GENOMES => Some((Number::Count(0), Type::Flag, "1000 Genomes membership")),
 
         key::IS_IMPRECISE => Some((
             Number::Count(0),
@@ -84,7 +84,11 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
             "End position of the longest variant described in this record",
         )),
         key::SV_TYPE => Some((Number::Count(1), Type::String, "Type of structural variant")),
-        key::SV_LENGTHS => Some((Number::AlternateBases, Type::Integer, "Length of structural variant")),
+        key::SV_LENGTHS => Some((
+            Number::AlternateBases,
+            Type::Integer,
+            "Length of structural variant",
+        )),
         key::POSITION_CONFIDENCE_INTERVALS => Some((
             Number::Unknown,
             Type::Integer,
@@ -125,20 +129,44 @@ pub(super) fn definition(key: &str) -> Option<(Number, Type, &'static str)> {
             Type::String,
             "ID of this element in Database of Genomic Variation",
         )),
-        key::DB_VAR_ID => Some((Number::AlternateBases, Type::String, "ID of this element in DBVAR")),
-        key::DB_RIP_ID => Some((Number::AlternateBases, Type::String, "ID of this element in DBRIP")),
-        key::MATE_BREAKEND_IDS => Some((Number::AlternateBases, Type::String, "ID of mate breakend")),
-        key::PARTNER_BREAKEND_ID => Some((Number::AlternateBases, Type::String, "ID of partner breakend")),
-        key::BREAKEND_EVENT_ID => Some((Number::AlternateBases, Type::String, "ID of associated event")),
-        key::EVENT_TYPE => Some((Number::AlternateBases, Type::String, "Type of associated event")),
+        key::DB_VAR_ID => Some((
+            Number::AlternateBases,
+            Type::String,
+            "ID of this element in DBVAR",
+        )),
+        key::DB_RIP_ID => Some((
+            Number::AlternateBases,
+            Type::String,
+            "ID of this element in DBRIP",
+        )),
+        key::MATE_BREAKEND_IDS => {
+            Some((Number::AlternateBases, Type::String, "ID of mate breakend"))
+        }
+        key::PARTNER_BREAKEND_ID => Some((
+            Number::AlternateBases,
+            Type::String,
+            "ID of partner breakend",
+        )),
+        key::BREAKEND_EVENT_ID => Some((
+            Number::AlternateBases,
+            Type::String,
+            "ID of associated event",
+        )),
+        key::EVENT_TYPE => Some((
+            Number::AlternateBases,
+            Type::String,
+            "Type of associated event",
+        )),
         key::BREAKEND_CONFIDENCE_INTERVALS => Some((
             Number::Unknown,
             Type::Integer,
             "Confidence interval for the SVLEN field",
         )),
-        key::BREAKEND_COPY_NUMBER => {
-            Some((Number::AlternateBases, Type::Float, "Copy number of CNV/breakpoint"))
-        }
+        key::BREAKEND_COPY_NUMBER => Some((
+            Number::AlternateBases,
+            Type::Float,
+            "Copy number of CNV/breakpoint",
+        )),
         key::COPY_NUMBER_CONFIDENCE_INTERVALS => Some((
             Number::Unknown,
             Type::Float,

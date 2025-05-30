@@ -21,7 +21,7 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 use self::header::read_header;
-use crate::{variant::RecordBuf, Header, Record};
+use crate::{Header, Record, variant::RecordBuf};
 
 /// A VCF reader.
 ///
@@ -311,7 +311,7 @@ where
     /// }
     /// # Ok::<_, std::io::Error>(())
     /// ```
-    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> {
         let mut record = Record::default();
 
         iter::from_fn(move || match self.read_record(&mut record) {

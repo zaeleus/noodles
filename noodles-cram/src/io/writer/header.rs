@@ -12,7 +12,7 @@ use self::{
     container::write_container, file_id::write_file_id, format_version::write_format_version,
     magic_number::write_magic_number,
 };
-use crate::{calculate_normalized_sequence_digest, FileDefinition};
+use crate::{FileDefinition, calculate_normalized_sequence_digest};
 
 pub fn write_header<W>(
     writer: &mut W,
@@ -61,7 +61,7 @@ pub(crate) fn add_missing_reference_sequence_checksums(
     reference_sequences: &mut ReferenceSequences,
 ) -> io::Result<()> {
     use indexmap::map::Entry;
-    use noodles_sam::header::record::value::map::reference_sequence::{tag, Md5Checksum};
+    use noodles_sam::header::record::value::map::reference_sequence::{Md5Checksum, tag};
 
     for (name, reference_sequence) in reference_sequences {
         if let Entry::Vacant(entry) = reference_sequence
@@ -94,8 +94,8 @@ mod tests {
 
         use fasta::record::{Definition, Sequence};
         use sam::header::record::value::{
-            map::{reference_sequence::tag, ReferenceSequence},
             Map,
+            map::{ReferenceSequence, reference_sequence::tag},
         };
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {

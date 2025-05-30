@@ -1,7 +1,7 @@
 use std::io;
 
 use super::RecordBuf;
-use crate::{variant::Record, Header};
+use crate::{Header, variant::Record};
 
 impl RecordBuf {
     /// Converts a variant record to a buffer.

@@ -12,7 +12,7 @@ use std::io::{self, BufRead, Seek, SeekFrom};
 use noodles_core::{Position, Region};
 
 use self::definition::read_definition;
-use crate::{fai, Record};
+use crate::{Record, fai};
 
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
 

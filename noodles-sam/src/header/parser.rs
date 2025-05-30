@@ -9,11 +9,11 @@ use indexmap::IndexMap;
 pub(crate) use self::context::Context;
 use self::record::parse_record;
 use super::{
-    record::value::{
-        map::{self, header::Version},
-        Map,
-    },
     Header, Programs, ReadGroups, Record, ReferenceSequences,
+    record::value::{
+        Map,
+        map::{self, header::Version},
+    },
 };
 
 /// An error returned when a raw SAM header fails to parse.
@@ -225,9 +225,9 @@ mod tests {
         use std::num::NonZeroUsize;
 
         use crate::header::record::value::map::{
-            self,
+            self, Map, Program, ReadGroup, ReferenceSequence,
             header::{self, Version},
-            program, Map, Program, ReadGroup, ReferenceSequence,
+            program,
         };
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {

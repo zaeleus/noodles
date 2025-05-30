@@ -1,4 +1,4 @@
-use crate::container::{block, ReferenceSequenceContext};
+use crate::container::{ReferenceSequenceContext, block};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Header {

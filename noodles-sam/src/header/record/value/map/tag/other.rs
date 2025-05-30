@@ -7,7 +7,7 @@ use std::{
 
 use bstr::ByteSlice;
 
-use super::{ParseError, Standard, LENGTH};
+use super::{LENGTH, ParseError, Standard};
 
 /// A nonstandard tag.
 #[derive(Clone, Copy)]

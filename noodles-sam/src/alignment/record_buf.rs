@@ -16,15 +16,15 @@ pub use self::{
     builder::Builder, cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence,
 };
 use super::{
-    record::{Flags, MappingQuality},
     Record,
+    record::{Flags, MappingQuality},
 };
 use crate::{
-    header::{
-        record::value::{map::ReferenceSequence, Map},
-        ReferenceSequences,
-    },
     Header,
+    header::{
+        ReferenceSequences,
+        record::value::{Map, map::ReferenceSequence},
+    },
 };
 
 /// An alignment record buffer.

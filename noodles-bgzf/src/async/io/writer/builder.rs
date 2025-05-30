@@ -7,8 +7,8 @@ use tokio_util::codec::FramedWrite;
 
 use super::{Deflater, Writer};
 use crate::{
-    io::writer::{CompressionLevel, BGZF_EOF, MAX_BUF_SIZE},
     r#async::BlockCodec,
+    io::writer::{BGZF_EOF, CompressionLevel, MAX_BUF_SIZE},
 };
 
 /// An async BGZF writer builder.

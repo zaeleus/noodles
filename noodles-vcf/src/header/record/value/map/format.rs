@@ -7,7 +7,7 @@ pub(crate) mod ty;
 
 pub use self::{number::Number, tag::Tag, ty::Type};
 
-use super::{builder, Described, Indexed, Inner, Map, OtherFields, Typed};
+use super::{Described, Indexed, Inner, Map, OtherFields, Typed, builder};
 use crate::header::FileFormat;
 
 /// An inner VCF header format map value.

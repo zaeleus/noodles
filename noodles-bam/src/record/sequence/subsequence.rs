@@ -1,6 +1,6 @@
 use noodles_sam as sam;
 
-use super::{decode_base, Iter};
+use super::{Iter, decode_base};
 
 /// A BAM record subsequence.
 #[derive(Debug, Eq, PartialEq)]

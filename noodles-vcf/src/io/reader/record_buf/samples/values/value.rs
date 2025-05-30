@@ -2,10 +2,10 @@ use std::{error, fmt, num, str};
 
 use crate::{
     header::record::value::map::format::{Number, Type},
-    io::reader::record_buf::{value, MISSING},
+    io::reader::record_buf::{MISSING, value},
     variant::record_buf::samples::sample::{
-        value::{genotype, Array},
         Value,
+        value::{Array, genotype},
     },
 };
 

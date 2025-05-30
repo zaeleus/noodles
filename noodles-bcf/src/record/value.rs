@@ -4,8 +4,8 @@ pub(crate) mod array;
 mod ty;
 
 use self::array::Values;
-pub(crate) use self::{array::Array, ty::read_type, ty::Type};
-use super::codec::value::{Float, Int16, Int32, Int8};
+pub(crate) use self::{array::Array, ty::Type, ty::read_type};
+use super::codec::value::{Float, Int8, Int16, Int32};
 
 pub(crate) enum Value<'a> {
     Int8(Option<Int8>),

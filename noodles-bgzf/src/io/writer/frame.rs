@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
 
-use crate::{gz, BGZF_HEADER_SIZE};
+use crate::{BGZF_HEADER_SIZE, gz};
 
 pub(crate) fn write_frame<W>(
     writer: &mut W,

@@ -8,12 +8,12 @@ use crate::{
     container::{
         block,
         compression_header::{
+            Encoding, TagEncodings,
             encoding::codec::{Byte, ByteArray, Integer},
             preservation_map::tag_sets::Key,
-            Encoding, TagEncodings,
         },
     },
-    io::writer::{collections::write_array, num::write_itf8, Record},
+    io::writer::{Record, collections::write_array, num::write_itf8},
 };
 
 pub fn write_tag_encodings<W>(writer: &mut W, tag_encodings: &TagEncodings) -> io::Result<()>

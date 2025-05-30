@@ -4,7 +4,7 @@ pub(crate) mod map;
 use std::{error, fmt};
 
 use self::comment::parse_comment;
-use crate::header::{parser::Context, record::Kind, Record};
+use crate::header::{Record, parser::Context, record::Kind};
 
 /// An error returned when a SAM header record value fails to parse.
 #[allow(clippy::enum_variant_names)]

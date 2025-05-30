@@ -4,7 +4,7 @@ mod num;
 use std::io::{self, Write};
 
 use self::line::write_line;
-use crate::{feature::RecordBuf, DirectiveBuf, LineBuf};
+use crate::{DirectiveBuf, LineBuf, feature::RecordBuf};
 
 /// A GFF writer.
 pub struct Writer<W> {

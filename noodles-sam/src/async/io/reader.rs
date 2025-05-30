@@ -3,14 +3,14 @@ mod query;
 mod record;
 mod record_buf;
 
-use futures::{stream, Stream, TryStreamExt};
+use futures::{Stream, TryStreamExt, stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
 use self::{header::read_header, query::query, record::read_record, record_buf::read_record_buf};
-use crate::{alignment::RecordBuf, Header, Record};
+use crate::{Header, Record, alignment::RecordBuf};
 
 /// An async SAM reader.
 pub struct Reader<R> {
@@ -360,7 +360,7 @@ where
         header: &'h Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, I, R>>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, 'h, I, R>>
     where
         I: BinningIndex,
     {
@@ -406,10 +406,10 @@ where
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn query_unmapped<I>(
-        &mut self,
+    pub async fn query_unmapped<'r, I>(
+        &'r mut self,
         index: &I,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'_, I, R>>
+    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, I, R>>
     where
         I: BinningIndex,
     {

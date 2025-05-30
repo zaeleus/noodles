@@ -1,6 +1,6 @@
 use std::{error, fmt, num};
 
-use noodles_core::{position, Position};
+use noodles_core::{Position, position};
 
 /// An error when a raw VCF record position fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

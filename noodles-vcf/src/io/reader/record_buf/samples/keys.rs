@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::{io::reader::record_buf::MISSING, variant::record_buf::samples::Keys, Header};
+use crate::{Header, io::reader::record_buf::MISSING, variant::record_buf::samples::Keys};
 
 /// An error when raw VCF record genotypes keys fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

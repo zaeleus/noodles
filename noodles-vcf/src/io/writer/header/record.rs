@@ -6,14 +6,14 @@ use std::io::{self, Write};
 use self::key::write_key;
 use super::write_newline;
 use crate::header::{
+    FileFormat,
     record::{
         self,
         value::{
-            map::{AlternativeAllele, Contig, Filter, Format, Info},
             Collection, Map,
+            map::{AlternativeAllele, Contig, Filter, Format, Info},
         },
     },
-    FileFormat,
 };
 
 fn write_record<W, K, F>(writer: &mut W, key: K, f: F) -> io::Result<()>

@@ -16,8 +16,8 @@ use std::{hash::Hash, str::FromStr};
 use indexmap::{IndexMap, IndexSet};
 
 use self::record::value::{
-    map::{AlternativeAllele, Contig, Filter, Format, Info},
     Map,
+    map::{AlternativeAllele, Contig, Filter, Format, Info},
 };
 
 /// VCF header info records.

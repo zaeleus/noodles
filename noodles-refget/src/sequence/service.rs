@@ -54,7 +54,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use serde_test::{assert_de_tokens, Token};
+    use serde_test::{Token, assert_de_tokens};
 
     use super::*;
 

@@ -3,7 +3,7 @@ mod value;
 use std::io::{self, Write};
 
 use self::value::write_value;
-use crate::{io::writer::record::MISSING, variant::record::samples::Sample, Header};
+use crate::{Header, io::writer::record::MISSING, variant::record::samples::Sample};
 
 pub(super) fn write_sample<W, S>(writer: &mut W, header: &Header, sample: S) -> io::Result<()>
 where

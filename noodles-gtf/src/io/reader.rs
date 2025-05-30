@@ -199,11 +199,13 @@ where
     pub fn record_bufs(&mut self) -> impl Iterator<Item = io::Result<RecordBuf>> + '_ {
         let mut lines = self.line_bufs();
 
-        iter::from_fn(move || loop {
-            match lines.next()? {
-                Ok(LineBuf::Record(r)) => return Some(Ok(r)),
-                Ok(_) => {}
-                Err(e) => return Some(Err(e)),
+        iter::from_fn(move || {
+            loop {
+                match lines.next()? {
+                    Ok(LineBuf::Record(r)) => return Some(Ok(r)),
+                    Ok(_) => {}
+                    Err(e) => return Some(Err(e)),
+                }
             }
         })
     }

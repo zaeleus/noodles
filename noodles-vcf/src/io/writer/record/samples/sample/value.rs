@@ -10,7 +10,7 @@ use self::{
     array::write_array, character::write_character, genotype::write_genotype,
     integer::write_integer, string::write_string,
 };
-use crate::{variant::record::samples::series::Value, Header};
+use crate::{Header, variant::record::samples::series::Value};
 
 pub(super) fn write_value<W>(writer: &mut W, header: &Header, value: &Value) -> io::Result<()>
 where

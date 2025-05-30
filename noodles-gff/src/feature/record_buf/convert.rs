@@ -1,7 +1,7 @@
 use std::io;
 
-use super::{attributes::field::Value, RecordBuf};
-use crate::feature::{record::attributes::field::Value as ValueRef, Record};
+use super::{RecordBuf, attributes::field::Value};
+use crate::feature::{Record, record::attributes::field::Value as ValueRef};
 
 impl RecordBuf {
     /// Converts a feature record to a record buffer.

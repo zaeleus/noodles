@@ -21,7 +21,7 @@ use self::{
 };
 pub(crate) use self::{flags::parse_flags, template_length::parse_template_length};
 use super::read_line;
-use crate::{alignment::RecordBuf, Header};
+use crate::{Header, alignment::RecordBuf};
 
 pub fn read_record_buf<R>(
     reader: &mut R,
@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn test_parse_mate_reference_sequence_id() {
-        use crate::header::record::value::{map::ReferenceSequence, Map};
+        use crate::header::record::value::{Map, map::ReferenceSequence};
 
         const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
             Some(length) => length,

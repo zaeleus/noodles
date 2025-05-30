@@ -6,17 +6,17 @@ use std::{
 
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
-    header::record::value::{map::Format, Map},
+    header::record::value::{Map, map::Format},
     variant::record::samples::series::{
-        value::Array,
-        value::{genotype::Phasing, Genotype},
         Value,
+        value::Array,
+        value::{Genotype, genotype::Phasing},
     },
 };
 
 use crate::record::codec::{
     encoder::value::write_type,
-    value::{Float, Int16, Int32, Int8, Type},
+    value::{Float, Int8, Int16, Int32, Type},
 };
 
 const DELIMITER: char = ',';
@@ -253,7 +253,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected Array(Array::Integer), got {v:?}"),
-                ))
+                ));
             }
             None => {
                 writer.write_i8(i8::from(Int8::Missing))?;
@@ -302,7 +302,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected Array(Array::Integer), got {v:?}"),
-                ))
+                ));
             }
             None => {
                 writer.write_i16::<LittleEndian>(i16::from(Int16::Missing))?;
@@ -350,7 +350,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected Array(Array::Integer), got {v:?}"),
-                ))
+                ));
             }
             None => {
                 writer.write_i32::<LittleEndian>(i32::from(Int32::Missing))?;
@@ -383,7 +383,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected Float, got {v:?}"),
-                ))
+                ));
             }
             None => writer.write_f32::<LittleEndian>(f32::from(Float::Missing))?,
         }
@@ -422,7 +422,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected Array(Array::Float), got {v:?}"),
-                ))
+                ));
             }
             None => {
                 writer.write_f32::<LittleEndian>(f32::from(Float::Missing))?;
@@ -457,7 +457,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected Character, got {v:?}"),
-                ))
+                ));
             }
         }
     }
@@ -499,7 +499,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected Character, got {v:?}"),
-                ))
+                ));
             }
         }
     }
@@ -547,7 +547,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected String, got {v:?}"),
-                ))
+                ));
             }
         }
     }
@@ -587,7 +587,7 @@ where
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected String, got {v:?}"),
-                ))
+                ));
             }
         }
     }

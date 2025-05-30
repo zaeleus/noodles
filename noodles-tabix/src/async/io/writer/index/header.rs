@@ -1,4 +1,4 @@
-use noodles_csi::binning_index::index::{header::ReferenceSequenceNames, Header};
+use noodles_csi::binning_index::index::{Header, header::ReferenceSequenceNames};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 pub(super) async fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>

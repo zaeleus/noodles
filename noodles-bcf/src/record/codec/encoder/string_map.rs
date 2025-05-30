@@ -2,8 +2,8 @@ use std::io::{self, Write};
 
 use super::value::write_value;
 use crate::record::codec::{
-    value::{Array, Int16, Int32, Int8},
     Value,
+    value::{Array, Int8, Int16, Int32},
 };
 
 pub fn write_string_map_index<W>(writer: &mut W, i: usize) -> io::Result<()>

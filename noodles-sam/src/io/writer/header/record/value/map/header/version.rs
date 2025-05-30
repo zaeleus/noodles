@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::header::record::value::map::header::{tag, Version};
+use crate::header::record::value::map::header::{Version, tag};
 
 pub(super) fn write_version_field<W>(writer: &mut W, version: Version) -> io::Result<()>
 where

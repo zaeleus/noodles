@@ -6,7 +6,7 @@ use bstr::{BStr, BString, ByteSlice};
 use indexmap::IndexMap;
 use noodles_gff as gff;
 
-use self::field::{parse_field, Value};
+use self::field::{Value, parse_field};
 
 /// GTF record attributes.
 pub struct Attributes<'r>(IndexMap<&'r BStr, Value<'r>>);
@@ -131,7 +131,7 @@ fn unescape_string(s: &[u8]) -> io::Result<BString> {
                         return Err(io::Error::new(
                             io::ErrorKind::InvalidData,
                             "invalid escape sequence",
-                        ))
+                        ));
                     }
                 }
 

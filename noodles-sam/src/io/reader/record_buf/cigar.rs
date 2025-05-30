@@ -53,7 +53,7 @@ mod tests {
 
     #[test]
     fn test_parse_cigar() -> Result<(), ParseError> {
-        use crate::alignment::record::cigar::{op::Kind, Op};
+        use crate::alignment::record::cigar::{Op, op::Kind};
 
         let mut cigar = Cigar::default();
 

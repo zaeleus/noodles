@@ -6,9 +6,9 @@ use noodles_vcf::{
 };
 
 use crate::record::codec::{
-    decoder::value,
-    value::{Array, Float, Int16, Int32, Int8},
     Value,
+    decoder::value,
+    value::{Array, Float, Int8, Int16, Int32},
 };
 
 pub(super) fn read_value(

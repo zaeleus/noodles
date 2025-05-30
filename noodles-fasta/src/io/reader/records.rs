@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::{record::Sequence, Record};
+use crate::{Record, record::Sequence};
 
 use super::Reader;
 

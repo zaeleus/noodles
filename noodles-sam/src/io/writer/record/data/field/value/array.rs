@@ -4,7 +4,7 @@ use std::io::{self, Write};
 
 use self::subtype::write_subtype;
 use crate::{
-    alignment::record::data::field::value::{array::Subtype, Array},
+    alignment::record::data::field::value::{Array, array::Subtype},
     io::writer::num,
 };
 

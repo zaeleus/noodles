@@ -293,15 +293,15 @@ mod tests {
 
         use noodles_sam::{
             alignment::{
-                record::{
-                    cigar::{op::Kind, Op},
-                    data::field::Tag,
-                    Flags,
-                },
-                record_buf::{data::field::Value, Cigar, Sequence},
                 RecordBuf,
+                record::{
+                    Flags,
+                    cigar::{Op, op::Kind},
+                    data::field::Tag,
+                },
+                record_buf::{Cigar, Sequence, data::field::Value},
             },
-            header::record::value::{map::ReferenceSequence, Map},
+            header::record::value::{Map, map::ReferenceSequence},
         };
 
         use crate::record::codec::encode;

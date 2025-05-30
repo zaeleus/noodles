@@ -5,7 +5,7 @@ mod int32;
 mod int8;
 mod ty;
 
-pub use self::{array::Array, float::Float, int16::Int16, int32::Int32, int8::Int8, ty::Type};
+pub use self::{array::Array, float::Float, int8::Int8, int16::Int16, int32::Int32, ty::Type};
 
 #[derive(Debug)]
 pub enum Value<'a> {

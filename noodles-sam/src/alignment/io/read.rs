@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::{alignment::Record, Header};
+use crate::{Header, alignment::Record};
 
 /// An alignment reader.
 pub trait Read<R> {

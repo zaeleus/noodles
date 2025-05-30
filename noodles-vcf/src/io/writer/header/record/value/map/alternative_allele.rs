@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::{write_description_field, write_other_fields};
-use crate::header::record::value::{map::AlternativeAllele, Map};
+use crate::header::record::value::{Map, map::AlternativeAllele};
 
 pub(crate) fn write_alternative_allele<W>(
     writer: &mut W,

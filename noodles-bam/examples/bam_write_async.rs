@@ -8,7 +8,7 @@ use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
     alignment::RecordBuf,
-    header::record::value::{map::Program, Map},
+    header::record::value::{Map, map::Program},
 };
 use tokio::io;
 

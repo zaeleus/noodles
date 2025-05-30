@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * sam: Raise minimum supported Rust version (MSRV) to 1.82.0.
+  * sam: Raise minimum supported Rust version (MSRV) to 1.85.0.
 
 ## 0.77.0 - 2025-05-29
 

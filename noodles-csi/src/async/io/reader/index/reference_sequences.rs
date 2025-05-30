@@ -4,7 +4,7 @@ mod metadata;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use self::{bins::read_bins, metadata::read_metadata};
-use crate::binning_index::index::{reference_sequence::index::BinnedIndex, ReferenceSequence};
+use crate::binning_index::index::{ReferenceSequence, reference_sequence::index::BinnedIndex};
 
 pub(super) async fn read_reference_sequences<R>(
     reader: &mut R,

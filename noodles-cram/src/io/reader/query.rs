@@ -12,15 +12,15 @@ use crate::crai;
 /// An iterator over records that intersect a given region.
 ///
 /// This is created by calling [`Reader::query`].
-pub struct Query<'a, R>
+pub struct Query<'r, 'h: 'r, 'i: 'r, R>
 where
     R: Read + Seek,
 {
-    reader: &'a mut Reader<R>,
+    reader: &'r mut Reader<R>,
 
-    header: &'a sam::Header,
+    header: &'h sam::Header,
 
-    index: slice::Iter<'a, crai::Record>,
+    index: slice::Iter<'i, crai::Record>,
 
     reference_sequence_id: usize,
     interval: Interval,
@@ -28,14 +28,14 @@ where
     records: vec::IntoIter<sam::alignment::RecordBuf>,
 }
 
-impl<'a, R> Query<'a, R>
+impl<'r, 'h: 'r, 'i: 'r, R> Query<'r, 'h, 'i, R>
 where
     R: Read + Seek,
 {
     pub(super) fn new(
-        reader: &'a mut Reader<R>,
-        header: &'a sam::Header,
-        index: &'a crai::Index,
+        reader: &'r mut Reader<R>,
+        header: &'h sam::Header,
+        index: &'i crai::Index,
         reference_sequence_id: usize,
         interval: Interval,
     ) -> Self {
@@ -121,7 +121,7 @@ where
     }
 }
 
-impl<R> Iterator for Query<'_, R>
+impl<R> Iterator for Query<'_, '_, '_, R>
 where
     R: Read + Seek,
 {

@@ -16,7 +16,7 @@ use noodles_sam as sam;
 
 pub use self::{builder::Builder, container::Container, query::Query, records::Records};
 use self::{container::read_container, header::read_header};
-use crate::{crai, FileDefinition};
+use crate::{FileDefinition, crai};
 
 /// A CRAM reader.
 ///
@@ -248,7 +248,7 @@ where
     /// }
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records<'r>(&'r mut self, header: &'r sam::Header) -> Records<'r, R> {
+    pub fn records<'r, 'h: 'r>(&'r mut self, header: &'h sam::Header) -> Records<'r, 'h, R> {
         Records::new(self, header)
     }
 }
@@ -312,12 +312,12 @@ where
     /// }
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
-    pub fn query<'a>(
-        &'a mut self,
-        header: &'a sam::Header,
-        index: &'a crai::Index,
+    pub fn query<'r, 'h: 'r, 'i: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &'i crai::Index,
         region: &Region,
-    ) -> io::Result<Query<'a, R>> {
+    ) -> io::Result<Query<'r, 'h, 'i, R>> {
         let reference_sequence_id = header
             .reference_sequences()
             .get_index_of(region.name())

@@ -3,7 +3,7 @@ use std::io;
 use noodles_sam::alignment::record::data::field::{Tag, Type};
 
 use crate::{
-    container::compression_header::preservation_map::{tag_sets::Key, TagSets},
+    container::compression_header::preservation_map::{TagSets, tag_sets::Key},
     io::reader::collections::read_array,
 };
 

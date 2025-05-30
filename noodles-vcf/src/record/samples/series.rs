@@ -5,7 +5,7 @@ pub mod value;
 use std::io;
 
 use super::Samples;
-use crate::{variant::record::samples::series::Value, Header};
+use crate::{Header, variant::record::samples::series::Value};
 
 /// VCF record samples series.
 pub struct Series<'r> {
@@ -52,7 +52,7 @@ impl crate::variant::record::samples::Series for Series<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::record::{samples::keys::key, samples::Series as _};
+    use crate::variant::record::{samples::Series as _, samples::keys::key};
 
     #[test]
     fn test_name() {

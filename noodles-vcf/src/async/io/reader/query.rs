@@ -1,13 +1,13 @@
 use std::vec;
 
-use futures::{stream, Stream};
+use futures::{Stream, stream};
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
 use super::Reader;
-use crate::{io::reader::query::intersects, Header, Record};
+use crate::{Header, Record, io::reader::query::intersects};
 
 enum State {
     Seek,
@@ -15,7 +15,7 @@ enum State {
     Done,
 }
 
-struct Context<'r, R>
+struct Context<'r, 'h: 'r, R>
 where
     R: AsyncRead + AsyncSeek,
 {
@@ -28,15 +28,15 @@ where
 
     state: State,
 
-    header: &'r Header,
+    header: &'h Header,
 }
 
-pub fn query<'r, R>(
+pub fn query<'r, 'h: 'r, R>(
     reader: &'r mut Reader<bgzf::r#async::io::Reader<R>>,
     chunks: Vec<Chunk>,
     reference_sequence_name: Vec<u8>,
     interval: Interval,
-    header: &'r Header,
+    header: &'h Header,
 ) -> impl Stream<Item = io::Result<Record>> + 'r
 where
     R: AsyncRead + AsyncSeek + Unpin,

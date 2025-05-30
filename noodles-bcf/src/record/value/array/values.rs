@@ -2,7 +2,7 @@ use std::{io, marker::PhantomData, mem};
 
 use noodles_vcf as vcf;
 
-use crate::record::codec::value::{Float, Int16, Int32, Int8};
+use crate::record::codec::value::{Float, Int8, Int16, Int32};
 
 pub(crate) struct Values<'a, N> {
     src: &'a [u8],

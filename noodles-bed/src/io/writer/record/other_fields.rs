@@ -22,7 +22,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::feature::record_buf::{other_fields::Value, OtherFields as OtherFieldsBuf};
+    use crate::feature::record_buf::{OtherFields as OtherFieldsBuf, other_fields::Value};
 
     #[test]
     fn test_write_other_fields() -> io::Result<()> {

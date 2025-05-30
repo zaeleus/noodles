@@ -17,7 +17,7 @@ use self::{
     reference_bases::write_reference_bases, reference_sequence_name::write_reference_sequence_name,
     samples::write_samples,
 };
-use crate::{variant::Record, Header};
+use crate::{Header, variant::Record};
 
 const MISSING: &[u8] = b".";
 

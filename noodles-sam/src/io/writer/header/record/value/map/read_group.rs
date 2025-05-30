@@ -2,8 +2,8 @@ use std::io::{self, Write};
 
 use super::{write_field, write_other_fields};
 use crate::header::record::value::{
-    map::{read_group::tag, ReadGroup},
     Map,
+    map::{ReadGroup, read_group::tag},
 };
 
 pub(crate) fn write_read_group<W>(

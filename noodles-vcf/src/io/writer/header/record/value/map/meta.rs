@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::{write_delimiter, write_string_field, write_value_field};
-use crate::header::record::value::{map::Other, Map};
+use crate::header::record::value::{Map, map::Other};
 
 pub(crate) fn write_meta<W>(writer: &mut W, meta: &Map<Other>) -> io::Result<()>
 where

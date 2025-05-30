@@ -409,8 +409,8 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_i64_for_value(
-    ) -> Result<(), crate::io::reader::record_buf::data::field::value::ParseError> {
+    fn test_try_from_i64_for_value()
+    -> Result<(), crate::io::reader::record_buf::data::field::value::ParseError> {
         use crate::io::reader::record_buf::data::field::value::ParseError;
 
         fn t(n: i64, expected: Value) -> Result<(), ParseError> {

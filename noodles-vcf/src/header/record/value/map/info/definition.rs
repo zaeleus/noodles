@@ -5,8 +5,8 @@ mod v4_4;
 mod v4_5;
 
 use crate::header::{
-    record::value::map::info::{Number, Type},
     FileFormat,
+    record::value::map::info::{Number, Type},
 };
 
 pub(crate) fn definition(

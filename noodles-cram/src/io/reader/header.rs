@@ -12,7 +12,7 @@ use noodles_sam as sam;
 use self::{
     file_id::read_file_id, format_version::read_format_version, magic_number::read_magic_number,
 };
-use crate::{file_definition::Version, FileDefinition, MAGIC_NUMBER};
+use crate::{FileDefinition, MAGIC_NUMBER, file_definition::Version};
 
 /// A CRAM header reader.
 pub struct Reader<R> {

@@ -12,7 +12,7 @@ use self::{
     tag_encodings::read_tag_encodings,
 };
 use super::read_block_as;
-use crate::container::{block::ContentType, CompressionHeader};
+use crate::container::{CompressionHeader, block::ContentType};
 
 pub fn read_compression_header(src: &mut &[u8]) -> io::Result<CompressionHeader> {
     let block = read_block_as(src, ContentType::CompressionHeader)?;

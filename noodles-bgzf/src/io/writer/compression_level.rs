@@ -31,11 +31,7 @@ impl CompressionLevel {
     /// assert!(CompressionLevel::new(255).is_none());
     /// ```
     pub const fn new(n: u8) -> Option<Self> {
-        if n <= MAX {
-            Some(Self(n))
-        } else {
-            None
-        }
+        if n <= MAX { Some(Self(n)) } else { None }
     }
 
     /// Returns the inner value.

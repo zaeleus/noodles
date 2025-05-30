@@ -6,12 +6,12 @@ use std::io;
 
 pub use self::genotype::Genotype;
 use crate::{
+    Header,
     io::reader::record_buf::value::percent_decode,
     variant::record::samples::{
         keys::key,
-        series::{value::Array, Value},
+        series::{Value, value::Array},
     },
-    Header,
 };
 
 pub(crate) fn parse_value<'a>(
@@ -19,7 +19,7 @@ pub(crate) fn parse_value<'a>(
     header: &Header,
     key: &str,
 ) -> io::Result<Option<Value<'a>>> {
-    use crate::header::record::value::map::format::{definition::definition, Number, Type};
+    use crate::header::record::value::map::format::{Number, Type, definition::definition};
 
     const MISSING: &str = ".";
 
@@ -41,7 +41,7 @@ pub(crate) fn parse_value<'a>(
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "invalid number for type",
-            ))
+            ));
         }
         (Number::Count(1), Type::Integer) => parse_integer_value(src)?,
         (Number::Count(1), Type::Float) => parse_float_value(src)?,
@@ -115,15 +115,15 @@ mod tests {
     use super::*;
     use crate::{
         header::record::value::{
-            map::{
-                format::{Number, Type},
-                Format,
-            },
             Map,
+            map::{
+                Format,
+                format::{Number, Type},
+            },
         },
         variant::{
             record::samples::series::value::genotype::Phasing,
-            record_buf::samples::sample::{value::genotype::Allele, Value as ValueBuf},
+            record_buf::samples::sample::{Value as ValueBuf, value::genotype::Allele},
         },
     };
 

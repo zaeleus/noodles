@@ -40,7 +40,7 @@ mod tests {
     use bstr::BString;
 
     use super::*;
-    use crate::feature::record_buf::{attributes::field::Value, Attributes as AttributesBuf};
+    use crate::feature::record_buf::{Attributes as AttributesBuf, attributes::field::Value};
 
     #[test]
     fn test_write_attributes() -> io::Result<()> {

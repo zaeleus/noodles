@@ -4,7 +4,7 @@ use std::io;
 
 use noodles_vcf::{
     self as vcf,
-    variant::record::{info::field::Value, Info as _},
+    variant::record::{Info as _, info::field::Value},
 };
 
 use self::field::read_field;

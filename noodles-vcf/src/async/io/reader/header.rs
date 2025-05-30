@@ -2,13 +2,13 @@
 
 use std::{
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
 };
 
 use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, ReadBuf};
 
-use crate::{header, Header};
+use crate::{Header, header};
 
 pin_project! {
     /// An async VCF header reader.

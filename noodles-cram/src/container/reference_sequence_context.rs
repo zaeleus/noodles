@@ -173,8 +173,8 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_i32_i32_i32_for_reference_sequence_context(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_try_from_i32_i32_i32_for_reference_sequence_context()
+    -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
             ReferenceSequenceContext::try_from((0, 5, 8))?,
             ReferenceSequenceContext::some(0, Position::try_from(5)?, Position::try_from(12)?)

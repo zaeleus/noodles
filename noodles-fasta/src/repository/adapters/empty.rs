@@ -1,6 +1,6 @@
 use std::io;
 
-use crate::{repository::Adapter, Record};
+use crate::{Record, repository::Adapter};
 
 /// An empty adapter.
 ///

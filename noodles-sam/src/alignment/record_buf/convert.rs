@@ -1,7 +1,7 @@
 use std::io;
 
 use super::{Data, RecordBuf};
-use crate::{alignment::Record, Header};
+use crate::{Header, alignment::Record};
 
 impl RecordBuf {
     /// Converts an alignment record to a buffer.

@@ -1,9 +1,9 @@
 mod line;
 
-use futures::{stream, Stream, TryStreamExt};
+use futures::{Stream, TryStreamExt, stream};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt};
 
-use crate::{directive_buf::key, feature::RecordBuf, Line, LineBuf};
+use crate::{Line, LineBuf, directive_buf::key, feature::RecordBuf};
 
 /// An async GFF reader.
 pub struct Reader<R> {
@@ -217,7 +217,7 @@ where
                 match lines.try_next().await? {
                     None => return Ok(None),
                     Some(LineBuf::Directive(directive)) if directive.key() == key::FASTA => {
-                        return Ok(None)
+                        return Ok(None);
                     }
                     Some(LineBuf::Record(record)) => return Ok(Some((record, lines))),
                     _ => {}

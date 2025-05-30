@@ -1,6 +1,6 @@
 use std::io;
 
-use super::{other_fields::Value, OtherFields, RecordBuf};
+use super::{OtherFields, RecordBuf, other_fields::Value};
 use crate::feature::Record;
 
 impl RecordBuf<3> {

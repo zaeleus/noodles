@@ -232,7 +232,7 @@ where
     /// }
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> {
         let mut record = Record::default();
 
         iter::from_fn(move || match self.read_record(&mut record) {

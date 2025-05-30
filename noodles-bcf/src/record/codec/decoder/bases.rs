@@ -16,7 +16,7 @@ pub(crate) fn read_ref_alt(src: &mut &[u8], len: usize) -> io::Result<(String, A
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
                     format!("invalid ref_alt: expected string, got {v:?}"),
-                ))
+                ));
             }
         }
     }

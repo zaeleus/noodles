@@ -8,8 +8,8 @@ use std::{env, io};
 
 use noodles_bam as bam;
 use noodles_sam::header::record::value::{
-    map::{builder::BuildError, program::tag, Program},
     Map,
+    map::{Program, builder::BuildError, program::tag},
 };
 
 fn build_self_program() -> Result<Map<Program>, BuildError> {

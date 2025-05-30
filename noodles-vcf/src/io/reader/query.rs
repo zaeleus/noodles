@@ -5,7 +5,7 @@ use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 
 use super::Reader;
-use crate::{variant::Record as _, Header, Record};
+use crate::{Header, Record, variant::Record as _};
 
 /// An iterator over records of a VCF reader that intersects a given region.
 ///

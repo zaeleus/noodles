@@ -11,10 +11,10 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 use super::{
-    reader::{Query, RecordBufs},
     Reader,
+    reader::{Query, RecordBufs},
 };
-use crate::{variant::RecordBuf, Header, Record};
+use crate::{Header, Record, variant::RecordBuf};
 
 /// An indexed VCF reader.
 pub struct IndexedReader<R> {
@@ -68,7 +68,7 @@ where
     }
 
     /// Returns an iterator over records.
-    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> {
         self.inner.records()
     }
 

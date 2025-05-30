@@ -8,7 +8,7 @@ use noodles_fasta as fasta;
 use self::with_positions::WithPositions;
 use crate::{
     container::compression_header::preservation_map::{
-        substitution_matrix::Base, SubstitutionMatrix,
+        SubstitutionMatrix, substitution_matrix::Base,
     },
     record::Feature,
 };

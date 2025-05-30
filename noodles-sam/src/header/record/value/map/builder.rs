@@ -4,7 +4,7 @@ use std::{error, fmt};
 
 use bstr::BString;
 
-use super::{tag, Map, OtherFields};
+use super::{Map, OtherFields, tag};
 
 /// An error returned when a SAM header record map value fails to build.
 #[derive(Clone, Debug, Eq, PartialEq)]

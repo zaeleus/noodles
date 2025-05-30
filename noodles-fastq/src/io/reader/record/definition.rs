@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use super::{read_line, read_u8, CARRIAGE_RETURN, LINE_FEED};
+use super::{CARRIAGE_RETURN, LINE_FEED, read_line, read_u8};
 use crate::record::Definition;
 
 pub(crate) fn read_definition<R>(reader: &mut R, definition: &mut Definition) -> io::Result<usize>

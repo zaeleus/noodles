@@ -7,8 +7,8 @@ use crate::{
     },
     huffman::CanonicalHuffmanDecoder,
     io::{
-        reader::container::slice::records::ExternalDataReaders,
-        writer::container::slice::records::ExternalDataWriters, BitReader, BitWriter,
+        BitReader, BitWriter, reader::container::slice::records::ExternalDataReaders,
+        writer::container::slice::records::ExternalDataWriters,
     },
 };
 

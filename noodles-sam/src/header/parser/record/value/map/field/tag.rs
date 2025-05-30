@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-use crate::header::record::value::map::{tag, Tag};
+use crate::header::record::value::map::{Tag, tag};
 
 /// An error returned when a SAM header record field tag fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]

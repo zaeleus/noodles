@@ -7,7 +7,7 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use self::header::read_header;
-use super::{Order, LOWER_BOUND, STATE_COUNT};
+use super::{LOWER_BOUND, Order, STATE_COUNT};
 
 pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where

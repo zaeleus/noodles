@@ -12,15 +12,15 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 pub use self::{
-    block::{write_block, Block},
+    block::{Block, write_block},
     header::write_header,
 };
 use self::{
     compression_header::{build_compression_header, write_compression_header},
-    slice::{build_slice, Slice},
+    slice::{Slice, build_slice},
 };
-use super::{Options, Record, DEFAULT_RECORDS_PER_SLICE};
-use crate::container::{block::ContentType, Header, ReferenceSequenceContext};
+use super::{DEFAULT_RECORDS_PER_SLICE, Options, Record};
+use crate::container::{Header, ReferenceSequenceContext, block::ContentType};
 
 pub fn write_container<W>(
     writer: &mut W,

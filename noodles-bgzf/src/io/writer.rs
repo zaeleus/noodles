@@ -9,7 +9,7 @@ pub use self::{builder::Builder, compression_level::CompressionLevel};
 use std::io::{self, Write};
 
 pub(crate) use self::frame::write_frame;
-use crate::{gz, VirtualPosition, BGZF_HEADER_SIZE, BGZF_MAX_ISIZE};
+use crate::{BGZF_HEADER_SIZE, BGZF_MAX_ISIZE, VirtualPosition, gz};
 
 // The max DEFLATE overhead for 65536 bytes of data at compression level 0.
 //

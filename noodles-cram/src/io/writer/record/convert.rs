@@ -6,7 +6,7 @@ use noodles_sam::{
     self as sam,
     alignment::{
         record::data::field::{Tag, Value},
-        record_buf::{data::field::Value as ValueBuf, QualityScores, Sequence},
+        record_buf::{QualityScores, Sequence, data::field::Value as ValueBuf},
     },
 };
 
@@ -243,7 +243,7 @@ fn get_filtered_data(
 #[cfg(test)]
 mod tests {
     use noodles_sam::alignment::{
-        record::cigar::{op::Kind, Op},
+        record::cigar::{Op, op::Kind},
         record_buf::Cigar,
     };
 
@@ -455,8 +455,8 @@ mod tests {
     }
 
     #[test]
-    fn test_cigar_to_features_with_quality_scores_stored_as_array(
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    fn test_cigar_to_features_with_quality_scores_stored_as_array()
+    -> Result<(), Box<dyn std::error::Error>> {
         let flags = Flags::QUALITY_SCORES_ARE_STORED_AS_ARRAY;
 
         let cigar: Cigar = [Op::new(Kind::Match, 1)].into_iter().collect();

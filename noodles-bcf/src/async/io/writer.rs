@@ -191,8 +191,8 @@ where
     W: AsyncWrite + Unpin,
 {
     use crate::{
-        io::writer::{MAJOR, MINOR},
         MAGIC_NUMBER,
+        io::writer::{MAJOR, MINOR},
     };
 
     writer.write_all(&MAGIC_NUMBER).await?;

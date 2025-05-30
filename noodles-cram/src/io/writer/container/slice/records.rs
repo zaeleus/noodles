@@ -6,16 +6,15 @@ use noodles_sam as sam;
 
 use crate::{
     container::{
-        block,
+        CompressionHeader, ReferenceSequenceContext, block,
         compression_header::{
             data_series_encodings::DataSeries,
             preservation_map::{substitution_matrix::Base, tag_sets},
         },
-        CompressionHeader, ReferenceSequenceContext,
     },
     io::{
-        writer::{record::Feature, Record},
         BitWriter,
+        writer::{Record, record::Feature},
     },
     record::{Flags, MateFlags},
 };

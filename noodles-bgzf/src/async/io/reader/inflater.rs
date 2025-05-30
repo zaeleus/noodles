@@ -1,7 +1,7 @@
 use std::{
     io,
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
 };
 
 use futures::Stream;
@@ -10,7 +10,7 @@ use tokio::io::{AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 use tokio_util::codec::FramedRead;
 
 use super::inflate::Inflate;
-use crate::{r#async::BlockCodec, VirtualPosition};
+use crate::{VirtualPosition, r#async::BlockCodec};
 
 pin_project! {
     pub struct Inflater<R> {

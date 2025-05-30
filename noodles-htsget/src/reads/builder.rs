@@ -2,8 +2,8 @@ use noodles_core::Region;
 
 use super::Format;
 use crate::{
-    request::{self, Class},
     Response,
+    request::{self, Class},
 };
 
 /// A reads endpoint builder.

@@ -6,7 +6,7 @@ mod values;
 use std::{io, mem};
 
 use byteorder::{LittleEndian, ReadBytesExt};
-use noodles_sam::alignment::record::data::field::value::{array::Subtype, Array};
+use noodles_sam::alignment::record::data::field::value::{Array, array::Subtype};
 
 pub(crate) use self::subtype::decode_subtype;
 pub use self::values::Values;

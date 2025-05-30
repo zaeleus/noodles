@@ -4,9 +4,9 @@ use std::{
 };
 
 use super::{
-    parameter::{self, Parameter},
-    parameters::{self, fqz_decode_params, Parameters},
     Models,
+    parameter::{self, Parameter},
+    parameters::{self, Parameters, fqz_decode_params},
 };
 use crate::{codecs::aac::RangeCoder, io::reader::num::read_uint7};
 

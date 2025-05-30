@@ -4,10 +4,10 @@ use std::{error, fmt};
 
 use self::value::parse_value;
 use crate::{
+    Header,
     header::record::value::map::info::{Number, Type},
     io::reader::record_buf::MISSING,
     variant::record_buf::info::field::Value,
-    Header,
 };
 
 /// An error when a raw VCF record info field fails to parse.

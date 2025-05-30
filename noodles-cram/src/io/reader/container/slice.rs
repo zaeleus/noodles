@@ -13,15 +13,14 @@ use self::{
 };
 use super::read_block_as;
 use crate::{
-    calculate_normalized_sequence_digest,
+    Record, calculate_normalized_sequence_digest,
     container::{
+        CompressionHeader, ReferenceSequenceContext,
         block::{self, ContentType},
         slice::Header,
-        CompressionHeader, ReferenceSequenceContext,
     },
     io::BitReader,
     record::Feature,
-    Record,
 };
 
 /// A container slice.
@@ -409,7 +408,9 @@ fn validate_sequence(sequence: &[u8], expected_checksum: &[u8; 16]) -> io::Resul
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("reference sequence checksum mismatch: expected {expected_checksum:?}, got {actual_checksum:?}"),
+            format!(
+                "reference sequence checksum mismatch: expected {expected_checksum:?}, got {actual_checksum:?}"
+            ),
         ))
     }
 }

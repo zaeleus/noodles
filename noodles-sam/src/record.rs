@@ -14,8 +14,8 @@ use noodles_core::Position;
 pub(crate) use self::fields::Fields;
 pub use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
 use crate::{
-    alignment::record::{Flags, MappingQuality},
     Header,
+    alignment::record::{Flags, MappingQuality},
 };
 
 /// A SAM record.

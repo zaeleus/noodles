@@ -7,8 +7,8 @@ use std::io;
 
 use self::codec::{Decode, Encode};
 use crate::io::{
-    reader::container::slice::records::ExternalDataReaders,
-    writer::container::slice::records::ExternalDataWriters, BitReader, BitWriter,
+    BitReader, BitWriter, reader::container::slice::records::ExternalDataReaders,
+    writer::container::slice::records::ExternalDataWriters,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

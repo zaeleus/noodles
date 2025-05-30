@@ -12,7 +12,7 @@ use self::{
     tag_encodings::{build_tag_encodings, write_tag_encodings},
 };
 use crate::{
-    container::{compression_header::DataSeriesEncodings, CompressionHeader},
+    container::{CompressionHeader, compression_header::DataSeriesEncodings},
     io::writer::{Options, Record},
 };
 

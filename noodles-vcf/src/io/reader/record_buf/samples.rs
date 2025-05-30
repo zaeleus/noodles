@@ -5,7 +5,7 @@ use std::{error, fmt};
 
 use self::{keys::parse_keys, values::parse_values};
 use super::next_field;
-use crate::{variant::record_buf::Samples, Header};
+use crate::{Header, variant::record_buf::Samples};
 
 /// An error when raw VCF record genotypes fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -84,7 +84,7 @@ mod tests {
     fn test_parse_samples() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{
             record::samples::{keys::key, series::value::genotype::Phasing},
-            record_buf::samples::sample::{value::genotype::Allele, Value},
+            record_buf::samples::sample::{Value, value::genotype::Allele},
         };
 
         let mut genotypes = Samples::default();

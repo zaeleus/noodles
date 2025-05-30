@@ -5,7 +5,7 @@ use std::io::{self, Write};
 
 use self::{length::write_length_field, name::write_name_field};
 use super::write_other_fields;
-use crate::header::record::value::{map::ReferenceSequence, Map};
+use crate::header::record::value::{Map, map::ReferenceSequence};
 
 pub(crate) fn write_reference_sequence<W>(
     writer: &mut W,

@@ -3,7 +3,7 @@ use serde::Deserialize;
 use url::Url;
 
 use super::{Class, Kind, Payload};
-use crate::{response::Ticket, Client, Error, Format, Response};
+use crate::{Client, Error, Format, Response, response::Ticket};
 
 /// A request builder.
 pub struct Builder {

@@ -42,8 +42,8 @@ mod tests {
     use bstr::BString;
     use noodles_bgzf as bgzf;
     use noodles_csi::binning_index::index::{
-        reference_sequence::{bin::Chunk, Bin},
         Header, ReferenceSequence,
+        reference_sequence::{Bin, bin::Chunk},
     };
 
     use super::*;

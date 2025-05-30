@@ -2,8 +2,8 @@ use std::io::{self, Write};
 
 use super::{write_field, write_other_fields};
 use crate::header::record::value::{
-    map::{program::tag, Program},
     Map,
+    map::{Program, program::tag},
 };
 
 pub(crate) fn write_program<W>(writer: &mut W, id: &[u8], program: &Map<Program>) -> io::Result<()>

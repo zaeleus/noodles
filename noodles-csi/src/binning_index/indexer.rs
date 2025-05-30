@@ -4,8 +4,8 @@ use indexmap::IndexMap;
 use noodles_core::Position;
 
 use super::index::{
-    reference_sequence::{self, bin::Chunk},
     Header, Index, ReferenceSequence,
+    reference_sequence::{self, bin::Chunk},
 };
 
 /// A binning index indexer.
@@ -177,7 +177,7 @@ mod tests {
     use noodles_bgzf as bgzf;
 
     use super::*;
-    use crate::binning_index::index::reference_sequence::{index::LinearIndex, Bin, Metadata};
+    use crate::binning_index::index::reference_sequence::{Bin, Metadata, index::LinearIndex};
 
     #[test]
     fn test_default() {

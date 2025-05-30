@@ -1,6 +1,6 @@
 //! Tabix index header builder.
 
-use super::{format::CoordinateSystem, Format, Header, ReferenceSequenceNames};
+use super::{Format, Header, ReferenceSequenceNames, format::CoordinateSystem};
 
 /// A tabix index header builder.
 pub struct Builder {

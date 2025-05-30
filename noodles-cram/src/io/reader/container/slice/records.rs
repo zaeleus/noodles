@@ -9,14 +9,13 @@ use noodles_core::Position;
 use noodles_sam as sam;
 
 use crate::{
+    Record,
     container::{
-        block,
+        CompressionHeader, ReferenceSequenceContext, block,
         compression_header::{data_series_encodings::DataSeries, preservation_map::tag_sets},
-        CompressionHeader, ReferenceSequenceContext,
     },
     io::BitReader,
-    record::{feature, Feature, Flags, MateFlags},
-    Record,
+    record::{Feature, Flags, MateFlags, feature},
 };
 
 #[allow(clippy::enum_variant_names)]

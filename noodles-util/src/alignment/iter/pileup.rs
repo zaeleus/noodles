@@ -2,9 +2,8 @@ use std::{collections::VecDeque, io};
 
 use noodles_core::Position;
 use noodles_sam::{
-    self as sam,
-    alignment::{record::Flags, Record},
-    Header,
+    self as sam, Header,
+    alignment::{Record, record::Flags},
 };
 
 type ActiveWindowRange = (Position, Position);
@@ -249,8 +248,8 @@ mod tests {
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
         use sam::{
-            alignment::record::cigar::{op::Kind, Op},
-            header::record::value::{map::ReferenceSequence, Map},
+            alignment::record::cigar::{Op, op::Kind},
+            header::record::value::{Map, map::ReferenceSequence},
         };
 
         // 1 2 3 4 5 6 7 8 9

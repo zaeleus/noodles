@@ -9,8 +9,8 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 pub use self::builder::Builder;
-use super::{reader::RecordBufs, Reader};
-use crate::{alignment::RecordBuf, Header, Record};
+use super::{Reader, reader::RecordBufs};
+use crate::{Header, Record, alignment::RecordBuf};
 
 /// An indexed SAM reader.
 pub struct IndexedReader<R> {
@@ -79,7 +79,7 @@ where
     }
 
     /// Returns an iterator over records.
-    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> {
         self.inner.records()
     }
 
@@ -94,18 +94,18 @@ where
     R: Read + Seek,
 {
     /// Returns an iterator over records that intersect the given region.
-    pub fn query<'a>(
-        &'a mut self,
-        header: &'a Header,
+    pub fn query<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h Header,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'a, R>> {
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, 'h, R>> {
         self.inner.query(header, &self.index, region)
     }
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.
-    pub fn query_unmapped(
-        &mut self,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'_, R>> {
+    pub fn query_unmapped<'r>(
+        &'r mut self,
+    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, R>> {
         self.inner.query_unmapped(&self.index)
     }
 }

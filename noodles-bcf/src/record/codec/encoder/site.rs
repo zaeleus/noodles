@@ -13,7 +13,7 @@ use noodles_core::Position;
 use noodles_vcf::{
     self as vcf,
     header::StringMaps,
-    variant::{record::AlternateBases, Record},
+    variant::{Record, record::AlternateBases},
 };
 
 use self::{

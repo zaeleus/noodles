@@ -8,16 +8,16 @@ use std::{
     cmp, io,
     num::NonZeroUsize,
     pin::Pin,
-    task::{ready, Context, Poll},
+    task::{Context, Poll, ready},
 };
 
-use futures::{stream::TryBuffered, Stream, TryStreamExt};
+use futures::{Stream, TryStreamExt, stream::TryBuffered};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
 pub use self::builder::Builder;
 use self::inflater::Inflater;
-use crate::{gzi, io::Block, VirtualPosition};
+use crate::{VirtualPosition, gzi, io::Block};
 
 pin_project! {
     /// An async BGZF reader.

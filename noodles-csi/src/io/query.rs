@@ -6,7 +6,7 @@ use std::{
 use noodles_bgzf as bgzf;
 
 use super::IndexedRecords;
-use crate::binning_index::index::{reference_sequence::bin::Chunk, Header};
+use crate::binning_index::index::{Header, reference_sequence::bin::Chunk};
 
 enum State {
     Seek,

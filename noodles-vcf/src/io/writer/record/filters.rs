@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::MISSING;
-use crate::{variant::record::Filters, Header};
+use crate::{Header, variant::record::Filters};
 
 pub(super) fn write_filters<W, F>(writer: &mut W, header: &Header, filters: F) -> io::Result<()>
 where

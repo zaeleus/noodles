@@ -5,7 +5,7 @@ use std::io;
 
 use self::subtype::parse_subtype;
 pub use self::values::Values;
-use crate::alignment::record::data::field::value::{array::Subtype, Array};
+use crate::alignment::record::data::field::value::{Array, array::Subtype};
 
 pub(super) fn parse_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
     use super::parse_string;

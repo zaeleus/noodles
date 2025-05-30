@@ -5,7 +5,7 @@ use noodles_bgzf as bgzf;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_tabix as tabix;
 
-use crate::{io::Reader, Record};
+use crate::{Record, io::Reader};
 
 /// Indexes a bgzipped-compressed BED file.
 ///

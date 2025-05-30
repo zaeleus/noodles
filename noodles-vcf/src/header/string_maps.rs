@@ -6,11 +6,11 @@ use std::str::{FromStr, Lines};
 
 pub use self::string_map::StringMap;
 use crate::{
-    header::{
-        parser::{parse_record, Entry},
-        FileFormat, ParseError, Record,
-    },
     Header,
+    header::{
+        FileFormat, ParseError, Record,
+        parser::{Entry, parse_record},
+    },
 };
 
 /// An indexed map of VCF strings (FILTER, FORMAT, and INFO).
@@ -409,8 +409,8 @@ mod tests {
     fn test_try_from_vcf_header_for_string_maps() -> Result<(), Box<dyn std::error::Error>> {
         use crate::{
             header::record::value::{
-                map::{AlternativeAllele, Contig, Filter, Format, Info},
                 Map,
+                map::{AlternativeAllele, Contig, Filter, Format, Info},
             },
             variant::record::{info, samples},
         };
@@ -491,8 +491,8 @@ mod tests {
     {
         use crate::{
             header::record::value::{
-                map::{Filter, Info},
                 Map,
+                map::{Filter, Info},
             },
             variant::record::info,
         };

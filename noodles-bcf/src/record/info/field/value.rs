@@ -3,13 +3,13 @@ use std::{borrow::Cow, io, iter};
 use noodles_vcf::{
     self as vcf,
     header::record::value::map::info::{Number, Type},
-    variant::record::info::field::{value::Array, Value},
+    variant::record::info::field::{Value, value::Array},
 };
 
 use crate::record::{
-    codec::value::{Float, Int16, Int32, Int8},
-    value::{read_value as read_typed_value, Array as TypedArray},
     Value as TypedValue,
+    codec::value::{Float, Int8, Int16, Int32},
+    value::{Array as TypedArray, read_value as read_typed_value},
 };
 
 pub(super) fn read_value<'a>(

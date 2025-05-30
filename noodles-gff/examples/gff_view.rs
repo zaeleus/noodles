@@ -8,7 +8,7 @@ use std::{
     io::{self, BufReader},
 };
 
-use noodles_gff::{self as gff, directive_buf::key, LineBuf};
+use noodles_gff::{self as gff, LineBuf, directive_buf::key};
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");

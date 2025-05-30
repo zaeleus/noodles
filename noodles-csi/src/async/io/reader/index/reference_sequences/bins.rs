@@ -6,7 +6,7 @@ use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use self::chunks::read_chunks;
 use super::read_metadata;
-use crate::binning_index::index::reference_sequence::{index::BinnedIndex, Bin, Metadata};
+use crate::binning_index::index::reference_sequence::{Bin, Metadata, index::BinnedIndex};
 
 pub(super) async fn read_bins<R>(
     reader: &mut R,

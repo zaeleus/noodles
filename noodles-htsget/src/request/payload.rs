@@ -53,7 +53,7 @@ impl From<Kind> for Payload {
 
 #[cfg(test)]
 mod tests {
-    use serde_test::{assert_ser_tokens, Token};
+    use serde_test::{Token, assert_ser_tokens};
 
     use super::*;
 

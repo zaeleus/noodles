@@ -4,7 +4,7 @@ pub mod field;
 
 use std::io;
 
-use noodles_sam::alignment::record::{data::field::Tag, Data};
+use noodles_sam::alignment::record::{Data, data::field::Tag};
 
 use self::field::write_field;
 
@@ -27,7 +27,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use noodles_sam::alignment::record_buf::{data::field::Value, Data as DataBuf};
+    use noodles_sam::alignment::record_buf::{Data as DataBuf, data::field::Value};
 
     use super::*;
 

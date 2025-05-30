@@ -1,4 +1,4 @@
-use futures::{stream, Stream};
+use futures::{Stream, stream};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncReadExt};
 
 use crate::Record;

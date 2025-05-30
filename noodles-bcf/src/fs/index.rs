@@ -3,11 +3,11 @@ use std::{io, path::Path};
 use noodles_bgzf as bgzf;
 use noodles_csi::{
     self as csi,
-    binning_index::{index::reference_sequence::bin::Chunk, Indexer},
+    binning_index::{Indexer, index::reference_sequence::bin::Chunk},
 };
 use noodles_vcf::variant::Record as _;
 
-use crate::{io::Reader, Record};
+use crate::{Record, io::Reader};
 
 /// Indexes a BCF file.
 ///
@@ -64,10 +64,10 @@ where
 #[cfg(test)]
 mod tests {
     use noodles_core::Position;
-    use noodles_csi::{binning_index::ReferenceSequence as _, BinningIndex};
+    use noodles_csi::{BinningIndex, binning_index::ReferenceSequence as _};
     use noodles_vcf::{
         self as vcf,
-        variant::{io::Write, RecordBuf},
+        variant::{RecordBuf, io::Write},
     };
 
     use super::*;

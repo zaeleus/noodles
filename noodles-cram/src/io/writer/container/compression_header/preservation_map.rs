@@ -10,8 +10,8 @@ use self::{
     tag_sets::{build_tag_sets, write_tag_sets},
 };
 use crate::{
-    container::compression_header::{preservation_map::Key, PreservationMap},
-    io::writer::{collections::write_array, num::write_itf8, Options, Record},
+    container::compression_header::{PreservationMap, preservation_map::Key},
+    io::writer::{Options, Record, collections::write_array, num::write_itf8},
 };
 
 pub(super) fn write_preservation_map<W>(

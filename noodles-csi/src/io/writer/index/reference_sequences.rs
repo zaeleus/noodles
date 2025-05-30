@@ -7,8 +7,8 @@ use byteorder::{LittleEndian, WriteBytesExt};
 
 use self::{bins::write_bins, metadata::write_metadata};
 use crate::binning_index::{
-    index::{reference_sequence::index::BinnedIndex, ReferenceSequence},
     ReferenceSequence as _,
+    index::{ReferenceSequence, reference_sequence::index::BinnedIndex},
 };
 
 pub(super) fn write_reference_sequences<W>(

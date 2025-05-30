@@ -1,9 +1,9 @@
 use std::io::{self, Write};
 
 use crate::{
-    header::FileFormat,
-    variant::record::samples::series::value::{genotype::Phasing, Genotype},
     Header,
+    header::FileFormat,
+    variant::record::samples::series::value::{Genotype, genotype::Phasing},
 };
 
 const VCF_4_4: FileFormat = FileFormat::new(4, 4);

@@ -1,7 +1,7 @@
 use std::num::NonZeroUsize;
 
 use bstr::BString;
-use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
+use noodles_sam::header::record::value::{Map, map::ReferenceSequence};
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use crate::io::reader::bytes_with_nul_to_bstring;

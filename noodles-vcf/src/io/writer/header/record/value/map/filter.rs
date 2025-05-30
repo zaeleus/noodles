@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use super::{write_description_field, write_other_fields};
-use crate::header::record::value::{map::Filter, Map};
+use crate::header::record::value::{Map, map::Filter};
 
 pub(crate) fn write_filter<W>(writer: &mut W, filter: &Map<Filter>) -> io::Result<()>
 where

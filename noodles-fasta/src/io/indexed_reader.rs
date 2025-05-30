@@ -9,7 +9,7 @@ use std::io::{self, BufRead, Seek};
 use noodles_core::Region;
 
 use super::Reader;
-use crate::{fai, Record};
+use crate::{Record, fai};
 
 /// An indexed FASTA reader.
 pub struct IndexedReader<R> {

@@ -1,7 +1,7 @@
 use std::io::{self, BufRead};
 
 use super::Reader;
-use crate::{alignment::RecordBuf, Header};
+use crate::{Header, alignment::RecordBuf};
 
 /// An iterator over record buffers of a SAM reader.
 ///

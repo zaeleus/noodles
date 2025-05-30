@@ -10,8 +10,8 @@ use noodles_sam::{
     self as sam,
     alignment::RecordBuf,
     header::record::value::{
-        map::{Program, ReferenceSequence},
         Map,
+        map::{Program, ReferenceSequence},
     },
 };
 use tokio::io;

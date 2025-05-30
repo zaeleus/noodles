@@ -1,7 +1,7 @@
 use std::io;
 
 use crate::container::compression_header::preservation_map::{
-    substitution_matrix::READ_BASES, SubstitutionMatrix,
+    SubstitutionMatrix, substitution_matrix::READ_BASES,
 };
 
 pub(super) fn read_substitution_matrix(src: &mut &[u8]) -> io::Result<SubstitutionMatrix> {

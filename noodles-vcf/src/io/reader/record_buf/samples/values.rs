@@ -4,12 +4,12 @@ use std::{error, fmt};
 
 use self::value::{parse_genotype_value, parse_value};
 use crate::{
+    Header,
     io::reader::record_buf::MISSING,
     variant::{
         record::samples::keys::key,
-        record_buf::samples::{sample::Value, Keys},
+        record_buf::samples::{Keys, sample::Value},
     },
-    Header,
 };
 
 /// An error when raw VCF record genotypes values fail to parse.

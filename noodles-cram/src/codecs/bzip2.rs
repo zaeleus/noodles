@@ -1,6 +1,6 @@
 use std::io::{self, Read, Write};
 
-use bzip2::{read::BzDecoder, write::BzEncoder, Compression};
+use bzip2::{Compression, read::BzDecoder, write::BzEncoder};
 
 pub fn decode(src: &[u8], dst: &mut [u8]) -> io::Result<()> {
     let mut decoder = BzDecoder::new(src);

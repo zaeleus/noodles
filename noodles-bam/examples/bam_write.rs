@@ -9,7 +9,7 @@ use std::io;
 use noodles_bam as bam;
 use noodles_sam::{
     self as sam,
-    header::record::value::{map::Program, Map},
+    header::record::value::{Map, map::Program},
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

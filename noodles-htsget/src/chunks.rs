@@ -1,9 +1,9 @@
 use std::pin::Pin;
 
 use bytes::Bytes;
-use futures::{stream, Stream, TryStreamExt};
+use futures::{Stream, TryStreamExt, stream};
 
-use super::{response::ticket::BlockUrl, Client, Error};
+use super::{Client, Error, response::ticket::BlockUrl};
 
 pub(crate) fn chunks<'a>(
     client: &'a Client,
@@ -27,7 +27,7 @@ async fn resolve_data(
     client: &Client,
     block_url: &BlockUrl,
 ) -> Pin<Box<dyn Stream<Item = crate::Result<Bytes>>>> {
-    use base64::prelude::{Engine as _, BASE64_STANDARD};
+    use base64::prelude::{BASE64_STANDARD, Engine as _};
 
     const DELIMITER: &str = ";base64,";
 

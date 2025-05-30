@@ -12,8 +12,8 @@ use noodles_csi::BinningIndex;
 use noodles_vcf::{self as vcf, variant::RecordBuf};
 
 use super::{
-    reader::{Query, RecordBufs},
     Reader,
+    reader::{Query, RecordBufs},
 };
 use crate::Record;
 
@@ -67,7 +67,7 @@ where
     }
 
     /// Returns an iterator over lazy records starting from the current stream position.
-    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> + '_ {
+    pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> {
         self.inner.records()
     }
 

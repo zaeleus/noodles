@@ -5,7 +5,7 @@ use std::io::{self, BufRead, Read};
 use bstr::ByteSlice;
 
 use super::read_line;
-use crate::{header, Header};
+use crate::{Header, header};
 
 /// A SAM header reader.
 ///
@@ -96,8 +96,8 @@ mod tests {
 
     use super::*;
     use crate::header::record::value::{
-        map::{self, header::Version, ReferenceSequence},
         Map,
+        map::{self, ReferenceSequence, header::Version},
     };
 
     #[test]

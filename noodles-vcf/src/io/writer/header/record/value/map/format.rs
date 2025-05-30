@@ -8,11 +8,11 @@ use super::{
     write_delimiter, write_description_field, write_key, write_other_fields, write_separator,
 };
 use crate::header::record::value::{
-    map::{
-        format::{Number, Type},
-        Format,
-    },
     Map,
+    map::{
+        Format,
+        format::{Number, Type},
+    },
 };
 
 pub(crate) fn write_format<W>(writer: &mut W, format: &Map<Format>) -> io::Result<()>

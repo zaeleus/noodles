@@ -1,4 +1,4 @@
-use noodles_core::{region::Interval, Position};
+use noodles_core::{Position, region::Interval};
 
 /// An indexed record.
 pub trait IndexedRecord {

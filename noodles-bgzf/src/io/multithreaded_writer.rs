@@ -185,7 +185,7 @@ fn spawn_writer<W>(mut writer: W, write_rx: WriteRx) -> JoinHandle<io::Result<W>
 where
     W: Write + Send + 'static,
 {
-    use super::writer::{write_frame, BGZF_EOF};
+    use super::writer::{BGZF_EOF, write_frame};
 
     thread::spawn(move || {
         while let Ok(buffered_rx) = write_rx.recv() {

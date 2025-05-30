@@ -124,7 +124,7 @@ impl Fields {
 }
 
 fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
-    use super::value::{read_type, Type};
+    use super::value::{Type, read_type};
 
     const IDS_START_INDEX: usize = bounds::FORMAT_KEY_COUNT_INDEX + 1;
 
