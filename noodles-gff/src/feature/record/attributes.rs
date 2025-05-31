@@ -13,7 +13,7 @@ pub trait Attributes {
     /// Returns whether there are any attributes.
     fn is_empty(&self) -> bool;
 
-    /// Returns the value fo the given tag.
+    /// Returns the value of the given tag.
     fn get(&self, tag: &[u8]) -> Option<io::Result<Value<'_>>>;
 
     /// Returns an iterator over all tag-value pairs.
