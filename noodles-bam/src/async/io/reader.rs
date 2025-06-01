@@ -21,7 +21,7 @@ use crate::{Record, io::reader::resolve_region};
 ///
 /// ```no_run
 /// # #[tokio::main]
-/// # async fn main() -> std::io::Result<()> {
+/// # async fn main() -> tokio::io::Result<()> {
 /// use futures::TryStreamExt;
 /// use noodles_bam as bam;
 /// use tokio::fs::File;
@@ -130,10 +130,8 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
@@ -164,7 +162,7 @@ where
     ///
     /// ```no_run
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// use noodles_sam::alignment::RecordBuf;
     /// use tokio::fs::File;
@@ -200,10 +198,8 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
     ///
@@ -238,7 +234,7 @@ where
     ///
     /// ```no_run
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
@@ -279,10 +275,8 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
     /// use noodles_bam as bam;
     /// use tokio::fs::File;
