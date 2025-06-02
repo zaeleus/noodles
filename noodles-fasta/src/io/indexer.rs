@@ -25,6 +25,14 @@ where
     R: BufRead,
 {
     /// Creates a FASTA indexer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta as fasta;
+    /// let mut indexer = fasta::io::Indexer::new(io::empty());
+    /// ```
     pub fn new(inner: R) -> Self {
         Self { inner, offset: 0 }
     }
@@ -51,6 +59,30 @@ where
     ///   * the record is missing a sequence;
     ///   * the sequence lines have a different number of bases, excluding the last line;
     ///   * or the sequence lines are not the same length, excluding the last line.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_fasta::{self as fasta, fai};
+    ///
+    /// let src = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
+    /// let mut indexer = fasta::io::Indexer::new(&src[..]);
+    ///
+    /// let mut records = Vec::new();
+    ///
+    /// while let Some(record) = indexer.index_record()? {
+    ///     records.push(record);
+    /// }
+    ///
+    /// let expected = [
+    ///     fai::Record::new("sq0", 4, 5, 4, 5),
+    ///     fai::Record::new("sq1", 10, 15, 4, 5),
+    /// ];
+    ///
+    /// assert_eq!(records, expected);
+    /// # Ok::<_, io::Error>(())
+    /// ```
     pub fn index_record(&mut self) -> Result<Option<Record>, IndexError> {
         let definition = match self.read_definition() {
             Ok(None) => return Ok(None),
@@ -218,22 +250,6 @@ impl From<IndexError> for io::Error {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_index_record() -> Result<(), IndexError> {
-        let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
-        let mut indexer = Indexer::new(&data[..]);
-
-        let record = indexer.index_record()?;
-        assert_eq!(record, Some(Record::new("sq0", 4, 5, 4, 5)));
-
-        let record = indexer.index_record()?;
-        assert_eq!(record, Some(Record::new("sq1", 10, 15, 4, 5)));
-
-        assert!(indexer.index_record()?.is_none());
-
-        Ok(())
-    }
 
     #[test]
     fn test_index_record_with_invalid_line_bases() {
