@@ -728,7 +728,7 @@
   * bam/record: Remove `reference_sequence_id`.
 
     This was deprecated in noodles-bam 0.19.0. Use `-1` instead of
-    `reference_sequence_id::UNAMPPED`.
+    `reference_sequence_id::UNMAPPED`.
 
 ## 0.25.1 - 2022-11-29
 
