@@ -23,8 +23,9 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let writer = bam::r#async::io::Writer::from(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// use tokio::io;
+    /// let writer = bam::r#async::io::Writer::from(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         &self.inner
@@ -36,8 +37,9 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let mut writer = bam::r#async::io::Writer::from(Vec::new());
-    /// assert!(writer.get_mut().is_empty());
+    /// use tokio::io;
+    /// let mut writer = bam::r#async::io::Writer::from(io::sink());
+    /// let _inner = writer.get_mut();
     /// ```
     pub fn get_mut(&mut self) -> &mut W {
         &mut self.inner
@@ -49,8 +51,9 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let writer = bam::r#async::io::Writer::from(Vec::new());
-    /// assert!(writer.into_inner().is_empty());
+    /// use tokio::io;
+    /// let writer = bam::r#async::io::Writer::from(io::sink());
+    /// let _inner = writer.into_inner();
     /// ```
     pub fn into_inner(self) -> W {
         self.inner
@@ -64,7 +67,8 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
-    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
+    /// use tokio::io;
+    /// let mut writer = bam::r#async::io::Writer::new(io::sink());
     /// writer.shutdown().await?;
     /// # Ok(())
     /// # }
@@ -85,8 +89,9 @@ where
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// use noodles_sam as sam;
+    /// use tokio::io;
     ///
-    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
+    /// let mut writer = bam::r#async::io::Writer::new(io::sink());
     ///
     /// let header = sam::Header::default();
     /// writer.write_header(&header).await?;
@@ -106,8 +111,9 @@ where
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// use noodles_sam as sam;
+    /// use tokio::io;
     ///
-    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
+    /// let mut writer = bam::r#async::io::Writer::new(io::sink());
     ///
     /// let header = sam::Header::default();
     /// let record = bam::Record::default();
@@ -128,8 +134,9 @@ where
     /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// use noodles_sam::{self as sam, alignment::RecordBuf};
+    /// use tokio::io;
     ///
-    /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
+    /// let mut writer = bam::r#async::io::Writer::new(io::sink());
     ///
     /// let header = sam::Header::default();
     /// let record = RecordBuf::default();
@@ -169,7 +176,8 @@ where
     ///
     /// ```
     /// use noodles_bam as bam;
-    /// let writer = bam::r#async::io::Writer::new(Vec::new());
+    /// use tokio::io;
+    /// let writer = bam::r#async::io::Writer::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
         Self::from(bgzf::r#async::io::Writer::new(inner))
