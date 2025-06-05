@@ -61,10 +61,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// let mut writer = bam::r#async::io::Writer::new(Vec::new());
     /// writer.shutdown().await?;
@@ -83,10 +81,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// use noodles_sam as sam;
     ///
@@ -106,10 +102,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// use noodles_sam as sam;
     ///
@@ -130,10 +124,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bam as bam;
     /// use noodles_sam::{self as sam, alignment::RecordBuf};
     ///
