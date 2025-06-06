@@ -9,6 +9,7 @@ use std::io::{self, BufRead};
 use noodles_bcf as bcf;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
+use noodles_csi::BinningIndex;
 use noodles_vcf::{self as vcf, variant::Record};
 
 /// An indexed variant reader.
@@ -47,6 +48,14 @@ where
         };
 
         records
+    }
+
+    /// Returns the index.
+    pub fn index(&self) -> &dyn BinningIndex {
+        match self {
+            Self::Vcf(reader) => reader.index(),
+            Self::Bcf(reader) => reader.index(),
+        }
     }
 }
 

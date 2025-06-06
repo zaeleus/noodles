@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+  * util/variant/io/indexed_reader: Add getter for index
+    (`IndexedReader::index`) ([#341]).
+
+[#341]: https://github.com/zaeleus/noodles/issues/341
+
 ### Changed
 
   * util: Raise minimum supported Rust version (MSRV) to 1.85.0.
