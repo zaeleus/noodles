@@ -15,7 +15,7 @@ pub use self::{
     alternate_bases::AlternateBases, filters::Filters, ids::Ids, info::Info,
     reference_bases::ReferenceBases, samples::Samples,
 };
-use crate::Header;
+use crate::{Header, header::FileFormat};
 
 /// A variant record.
 pub trait Record {
@@ -55,10 +55,13 @@ pub trait Record {
         Ok(usize::from(end) - usize::from(start) + 1)
     }
 
-    /// Returns or calculates the variant end position.
+    /// Resolves the variant end position.
     ///
-    /// If available, this returns the value of the `END` INFO field. Otherwise, it is calculated
-    /// using the [variant start position] and the maximum value of one of the following:
+    /// For VCF < 4.5, this returns the value of the `END` INFO field, if available; otherwise, the
+    /// [variant start position] and [number of reference bases].
+    ///
+    /// For VCF >= 4.5, the end position is calculated using the [variant start position] and the
+    /// maximum value of one of the following:
     ///
     ///  1. the [number of reference bases],
     ///  2. the maximum `SVLEN` INFO field value,
@@ -70,12 +73,18 @@ pub trait Record {
     /// [variant start position]: `Self::variant_start`
     /// [number of reference bases]: `ReferenceBases::len`
     fn variant_end(&self, header: &Header) -> io::Result<Position> {
-        if let Some(position) = info_end(header, &self.info()).transpose()? {
-            Ok(position)
-        } else {
-            let start = self.variant_start().transpose()?.unwrap_or(Position::MIN);
+        const VCF_4_5: FileFormat = FileFormat::new(4, 5);
 
-            let mut max_len = reference_bases_len(&self.reference_bases())?;
+        let reference_bases = self.reference_bases();
+
+        let len = if header.file_format() < VCF_4_5 {
+            if let Some(position) = info_end(header, &self.info()).transpose()? {
+                return Ok(position);
+            } else {
+                reference_bases_len(reference_bases.as_ref())?
+            }
+        } else {
+            let mut max_len = reference_bases_len(reference_bases.as_ref())?;
 
             if let Some(Some(len)) = info_max_sv_len(header, &self.info()).transpose()? {
                 max_len = max_len.max(len);
@@ -86,16 +95,20 @@ pub trait Record {
                 max_len = max_len.max(len);
             }
 
-            start
-                .checked_add(max_len - 1)
-                .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "position overflow"))
-        }
+            max_len
+        };
+
+        let start = self.variant_start().transpose()?.unwrap_or(Position::MIN);
+
+        start
+            .checked_add(len - 1)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "position overflow"))
     }
 }
 
 fn reference_bases_len<B>(reference_bases: &B) -> io::Result<usize>
 where
-    B: ReferenceBases,
+    B: ReferenceBases + ?Sized,
 {
     if reference_bases.is_empty() {
         Err(io::Error::new(
@@ -230,13 +243,15 @@ mod tests {
     use super::*;
     use crate::variant::RecordBuf;
 
+    const VCF_4_2: FileFormat = FileFormat::new(4, 2);
+    const VCF_4_5: FileFormat = FileFormat::new(4, 5);
+
     #[test]
     fn test_variant_span() -> io::Result<()> {
         use crate::variant::{record::info::field::key, record_buf::info::field::Value};
 
-        let header = Header::default();
-
         let record = RecordBuf::builder()
+            .set_reference_bases("ACGT")
             .set_info(
                 [(String::from(key::END_POSITION), Some(Value::from(8)))]
                     .into_iter()
@@ -244,10 +259,27 @@ mod tests {
             )
             .build();
 
-        assert_eq!(record.variant_span(&header)?, 8);
+        assert_eq!(
+            record.variant_span(&Header::builder().set_file_format(VCF_4_2).build())?,
+            8
+        );
+
+        assert_eq!(
+            record.variant_span(&Header::builder().set_file_format(VCF_4_5).build())?,
+            4
+        );
 
         let record = RecordBuf::builder().set_reference_bases("ACGT").build();
-        assert_eq!(record.variant_span(&header)?, 4);
+
+        assert_eq!(
+            record.variant_span(&Header::builder().set_file_format(VCF_4_2).build())?,
+            4
+        );
+
+        assert_eq!(
+            record.variant_span(&Header::builder().set_file_format(VCF_4_5).build())?,
+            4
+        );
 
         Ok(())
     }
@@ -256,9 +288,8 @@ mod tests {
     fn test_variant_end() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{record::info::field::key, record_buf::info::field::Value};
 
-        let header = Header::default();
-
         let record = RecordBuf::builder()
+            .set_reference_bases("ACGT")
             .set_info(
                 [(String::from(key::END_POSITION), Some(Value::from(8)))]
                     .into_iter()
@@ -267,13 +298,24 @@ mod tests {
             .build();
 
         assert_eq!(
-            Record::variant_end(&record, &header)?,
+            Record::variant_end(&record, &Header::builder().set_file_format(VCF_4_2).build())?,
             Position::try_from(8)?
         );
 
-        let record = RecordBuf::builder().set_reference_bases("ACGT").build();
         assert_eq!(
-            Record::variant_end(&record, &header)?,
+            Record::variant_end(&record, &Header::builder().set_file_format(VCF_4_5).build())?,
+            Position::try_from(4)?
+        );
+
+        let record = RecordBuf::builder().set_reference_bases("ACGT").build();
+
+        assert_eq!(
+            Record::variant_end(&record, &Header::builder().set_file_format(VCF_4_2).build())?,
+            Position::try_from(4)?
+        );
+
+        assert_eq!(
+            Record::variant_end(&record, &Header::builder().set_file_format(VCF_4_5).build())?,
             Position::try_from(4)?
         );
 
@@ -283,8 +325,6 @@ mod tests {
     #[test]
     fn test_variant_end_with_info_sv_len() -> Result<(), Box<dyn std::error::Error>> {
         use crate::variant::{record::info::field::key, record_buf::info::field::Value};
-
-        let header = Header::default();
 
         let record = RecordBuf::builder()
             .set_reference_bases("ACGT")
@@ -299,7 +339,12 @@ mod tests {
             .build();
 
         assert_eq!(
-            Record::variant_end(&record, &header)?,
+            Record::variant_end(&record, &Header::builder().set_file_format(VCF_4_2).build())?,
+            Position::try_from(4)?
+        );
+
+        assert_eq!(
+            Record::variant_end(&record, &Header::builder().set_file_format(VCF_4_5).build())?,
             Position::try_from(8)?
         );
 
@@ -313,8 +358,6 @@ mod tests {
             record_buf::{Samples, samples::sample::Value},
         };
 
-        let header = Header::default();
-
         let keys = [String::from(key::LENGTH)].into_iter().collect();
         let values = vec![vec![Some(Value::from(8))]];
 
@@ -324,7 +367,12 @@ mod tests {
             .build();
 
         assert_eq!(
-            Record::variant_end(&record, &header)?,
+            Record::variant_end(&record, &Header::builder().set_file_format(VCF_4_2).build())?,
+            Position::try_from(4)?
+        );
+
+        assert_eq!(
+            Record::variant_end(&record, &Header::builder().set_file_format(VCF_4_5).build())?,
             Position::try_from(8)?
         );
 

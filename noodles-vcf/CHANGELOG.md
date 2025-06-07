@@ -6,6 +6,12 @@
 
   * vcf: Raise minimum supported Rust version (MSRV) to 1.85.0.
 
+  * vcf/variant/record: Always calculate variant end for VCF 4.5.
+
+    When resolving the variant end for a VCF >= 4.5 record, the `END` INFO
+    field is no longer used. VCF < 4.5 records now only use the `END` INFO
+    field or number of reference bases.
+
 ## 0.79.0 - 2025-05-29
 
 ### Deprecated
