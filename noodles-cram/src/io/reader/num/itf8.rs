@@ -3,37 +3,29 @@ use std::{
     num,
 };
 
-use byteorder::ReadBytesExt;
-
 pub fn read_itf8<R>(reader: &mut R) -> io::Result<i32>
 where
     R: Read,
 {
-    let b0 = read_u8_as_i32(reader)?;
+    let b0 = read_u8(reader).map(u32::from)?;
 
-    let value = if b0 & 0x80 == 0 {
+    let n = if b0 & 0x80 == 0 {
         b0
     } else if b0 & 0x40 == 0 {
-        let b1 = read_u8_as_i32(reader)?;
-        ((b0 & 0x7f) << 8) | b1
+        let b1 = read_u8(reader).map(u32::from)?;
+        (b0 & 0x7f) << 8 | b1
     } else if b0 & 0x20 == 0 {
-        let b1 = read_u8_as_i32(reader)?;
-        let b2 = read_u8_as_i32(reader)?;
-        ((b0 & 0x3f) << 16) | (b1 << 8) | b2
+        let b1_2 = read_u16_be(reader).map(u32::from)?;
+        (b0 & 0x3f) << 16 | b1_2
     } else if b0 & 0x10 == 0 {
-        let b1 = read_u8_as_i32(reader)?;
-        let b2 = read_u8_as_i32(reader)?;
-        let b3 = read_u8_as_i32(reader)?;
-        ((b0 & 0x1f) << 24) | (b1 << 16) | (b2 << 8) | b3
+        let b1_3 = read_u24_be(reader)?;
+        (b0 & 0x1f) << 24 | b1_3
     } else {
-        let b1 = read_u8_as_i32(reader)?;
-        let b2 = read_u8_as_i32(reader)?;
-        let b3 = read_u8_as_i32(reader)?;
-        let b4 = read_u8_as_i32(reader)?;
-        ((b0 & 0x0f) << 28) | (b1 << 20) | (b2 << 12) | (b3 << 4) | b4 & 0x0f
+        let b1_4 = read_u32_be(reader)?;
+        (b0 & 0x0f) << 28 | (b1_4 & 0xffffff0f) >> 4 | b1_4 & 0x0f
     };
 
-    Ok(value)
+    Ok(n as i32)
 }
 
 pub fn read_itf8_as<R, N>(reader: &mut R) -> io::Result<N>
@@ -47,11 +39,40 @@ where
     })
 }
 
-fn read_u8_as_i32<R>(reader: &mut R) -> io::Result<i32>
+fn read_u8<R>(reader: &mut R) -> io::Result<u8>
 where
     R: Read,
 {
-    reader.read_u8().map(i32::from)
+    let mut buf = [0; 1];
+    reader.read_exact(&mut buf)?;
+    Ok(buf[0])
+}
+
+fn read_u16_be<R>(reader: &mut R) -> io::Result<u16>
+where
+    R: Read,
+{
+    let mut buf = [0; 2];
+    reader.read_exact(&mut buf)?;
+    Ok(u16::from_be_bytes(buf))
+}
+
+fn read_u24_be<R>(reader: &mut R) -> io::Result<u32>
+where
+    R: Read,
+{
+    let mut buf = [0; 3];
+    reader.read_exact(&mut buf)?;
+    Ok(u32::from(buf[0]) << 16 | u32::from(buf[1]) << 8 | u32::from(buf[2]))
+}
+
+fn read_u32_be<R>(reader: &mut R) -> io::Result<u32>
+where
+    R: Read,
+{
+    let mut buf = [0; 4];
+    reader.read_exact(&mut buf)?;
+    Ok(u32::from_be_bytes(buf))
 }
 
 #[cfg(test)]
