@@ -61,9 +61,9 @@ fn read_u24_be<R>(reader: &mut R) -> io::Result<u32>
 where
     R: Read,
 {
-    let mut buf = [0; 3];
-    reader.read_exact(&mut buf)?;
-    Ok(u32::from(buf[0]) << 16 | u32::from(buf[1]) << 8 | u32::from(buf[2]))
+    let mut buf = [0; 4];
+    reader.read_exact(&mut buf[1..])?;
+    Ok(u32::from_be_bytes(buf))
 }
 
 fn read_u32_be<R>(reader: &mut R) -> io::Result<u32>
