@@ -3,6 +3,8 @@ use std::{
     num,
 };
 
+use super::{read_u8, read_u16_be, read_u24_be, read_u32_be};
+
 pub fn read_itf8<R>(reader: &mut R) -> io::Result<i32>
 where
     R: Read,
@@ -37,42 +39,6 @@ where
         n.try_into()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })
-}
-
-fn read_u8<R>(reader: &mut R) -> io::Result<u8>
-where
-    R: Read,
-{
-    let mut buf = [0; 1];
-    reader.read_exact(&mut buf)?;
-    Ok(buf[0])
-}
-
-fn read_u16_be<R>(reader: &mut R) -> io::Result<u16>
-where
-    R: Read,
-{
-    let mut buf = [0; 2];
-    reader.read_exact(&mut buf)?;
-    Ok(u16::from_be_bytes(buf))
-}
-
-fn read_u24_be<R>(reader: &mut R) -> io::Result<u32>
-where
-    R: Read,
-{
-    let mut buf = [0; 4];
-    reader.read_exact(&mut buf[1..])?;
-    Ok(u32::from_be_bytes(buf))
-}
-
-fn read_u32_be<R>(reader: &mut R) -> io::Result<u32>
-where
-    R: Read,
-{
-    let mut buf = [0; 4];
-    reader.read_exact(&mut buf)?;
-    Ok(u32::from_be_bytes(buf))
 }
 
 #[cfg(test)]
