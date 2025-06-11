@@ -1,33 +1,39 @@
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
-pub fn write_itf8<W>(writer: &mut W, value: i32) -> io::Result<()>
+pub fn write_itf8<W>(writer: &mut W, n: i32) -> io::Result<()>
 where
     W: Write,
 {
-    if value >> (8 - 1) == 0 {
-        writer.write_u8(value as u8)?;
-    } else if value >> (16 - 2) == 0 {
-        writer.write_u8(((value >> 8) | 0x80) as u8)?;
-        writer.write_u8(value as u8)?;
-    } else if value >> (24 - 3) == 0 {
-        writer.write_u8(((value >> 16) | 0xc0) as u8)?;
-        writer.write_u8((value >> 8) as u8)?;
-        writer.write_u8(value as u8)?;
-    } else if value >> (32 - 4) == 0 {
-        writer.write_u8(((value >> 24) | 0xe0) as u8)?;
-        writer.write_u8((value >> 16) as u8)?;
-        writer.write_u8((value >> 8) as u8)?;
-        writer.write_u8(value as u8)?;
+    if n >> (8 - 1) == 0 {
+        let buf = [n as u8];
+        writer.write_all(&buf)?;
+    } else if n >> (16 - 2) == 0 {
+        let buf = [((n >> 8) | 0x80) as u8, n as u8];
+        writer.write_all(&buf)?;
+    } else if n >> (24 - 3) == 0 {
+        let buf = [((n >> 16) | 0xc0) as u8, (n >> 8) as u8, n as u8];
+        writer.write_all(&buf)?;
+    } else if n >> (32 - 4) == 0 {
+        let buf = [
+            ((n >> 24) | 0xe0) as u8,
+            (n >> 16) as u8,
+            (n >> 8) as u8,
+            n as u8,
+        ];
+
+        writer.write_all(&buf)?;
     } else {
-        writer.write_u8(((value >> 28) | 0xf0) as u8)?;
-        writer.write_u8((value >> 20) as u8)?;
-        writer.write_u8((value >> 12) as u8)?;
-        writer.write_u8((value >> 4) as u8)?;
-        // § 2.3 Writing bytes to a byte stream: "only [the] 4 lower bits [are] used in the last
-        // byte 5."
-        writer.write_u8((value & 0x0f) as u8)?;
+        let buf = [
+            ((n >> 28) | 0xf0) as u8,
+            (n >> 20) as u8,
+            (n >> 12) as u8,
+            (n >> 4) as u8,
+            // § 2.3.4 "Writing bytes to a byte stream: ITF-8 integer (itf8)" (2024-09-04):
+            // "...only [the] 4 lower bits [are] used in the last byte 5."
+            (n & 0x0f) as u8,
+        ];
+
+        writer.write_all(&buf)?;
     }
 
     Ok(())
