@@ -2,57 +2,77 @@ use std::io::{self, Write};
 
 use byteorder::{BigEndian, WriteBytesExt};
 
-pub fn write_ltf8<W>(writer: &mut W, value: i64) -> io::Result<()>
+pub fn write_ltf8<W>(writer: &mut W, n: i64) -> io::Result<()>
 where
     W: Write,
 {
-    if value >> (8 - 1) == 0 {
-        writer.write_u8(value as u8)?;
-    } else if value >> (16 - 2) == 0 {
-        writer.write_u8(((value >> 8) | 0x80) as u8)?;
-        writer.write_u8(value as u8)?;
-    } else if value >> (24 - 3) == 0 {
-        writer.write_u8(((value >> 16) | 0xc0) as u8)?;
-        writer.write_u8((value >> 8) as u8)?;
-        writer.write_u8(value as u8)?;
-    } else if value >> (32 - 4) == 0 {
-        writer.write_u8(((value >> 24) | 0xe0) as u8)?;
-        writer.write_u8((value >> 16) as u8)?;
-        writer.write_u8((value >> 8) as u8)?;
-        writer.write_u8(value as u8)?;
-    } else if value >> (40 - 5) == 0 {
-        writer.write_u8(((value >> 32) | 0xf0) as u8)?;
-        writer.write_u8((value >> 24) as u8)?;
-        writer.write_u8((value >> 16) as u8)?;
-        writer.write_u8((value >> 8) as u8)?;
-        writer.write_u8(value as u8)?;
-    } else if value >> (48 - 6) == 0 {
-        writer.write_u8(((value >> 40) | 0xf8) as u8)?;
-        writer.write_u8((value >> 32) as u8)?;
-        writer.write_u8((value >> 24) as u8)?;
-        writer.write_u8((value >> 16) as u8)?;
-        writer.write_u8((value >> 8) as u8)?;
-        writer.write_u8(value as u8)?;
-    } else if value >> (56 - 7) == 0 {
-        writer.write_u8(((value >> 48) | 0xfc) as u8)?;
-        writer.write_u8((value >> 40) as u8)?;
-        writer.write_u8((value >> 32) as u8)?;
-        writer.write_u8((value >> 24) as u8)?;
-        writer.write_u8((value >> 16) as u8)?;
-        writer.write_u8((value >> 8) as u8)?;
-        writer.write_u8(value as u8)?;
-    } else if value >> (64 - 8) == 0 {
-        writer.write_u8(((value >> 56) | 0xfe) as u8)?;
-        writer.write_u8((value >> 48) as u8)?;
-        writer.write_u8((value >> 40) as u8)?;
-        writer.write_u8((value >> 32) as u8)?;
-        writer.write_u8((value >> 24) as u8)?;
-        writer.write_u8((value >> 16) as u8)?;
-        writer.write_u8((value >> 8) as u8)?;
-        writer.write_u8(value as u8)?;
+    if n >> (8 - 1) == 0 {
+        let buf = [n as u8];
+        writer.write_all(&buf)?;
+    } else if n >> (16 - 2) == 0 {
+        let buf = [((n >> 8) | 0x80) as u8, n as u8];
+        writer.write_all(&buf)?;
+    } else if n >> (24 - 3) == 0 {
+        let buf = [((n >> 16) | 0xc0) as u8, (n >> 8) as u8, n as u8];
+        writer.write_all(&buf)?;
+    } else if n >> (32 - 4) == 0 {
+        let buf = [
+            ((n >> 24) | 0xe0) as u8,
+            (n >> 16) as u8,
+            (n >> 8) as u8,
+            n as u8,
+        ];
+
+        writer.write_all(&buf)?;
+    } else if n >> (40 - 5) == 0 {
+        let buf = [
+            ((n >> 32) | 0xf0) as u8,
+            (n >> 24) as u8,
+            (n >> 16) as u8,
+            (n >> 8) as u8,
+            n as u8,
+        ];
+
+        writer.write_all(&buf)?;
+    } else if n >> (48 - 6) == 0 {
+        let buf = [
+            ((n >> 40) | 0xf8) as u8,
+            (n >> 32) as u8,
+            (n >> 24) as u8,
+            (n >> 16) as u8,
+            (n >> 8) as u8,
+            n as u8,
+        ];
+
+        writer.write_all(&buf)?;
+    } else if n >> (56 - 7) == 0 {
+        let buf = [
+            ((n >> 48) | 0xfc) as u8,
+            (n >> 40) as u8,
+            (n >> 32) as u8,
+            (n >> 24) as u8,
+            (n >> 16) as u8,
+            (n >> 8) as u8,
+            n as u8,
+        ];
+
+        writer.write_all(&buf)?;
+    } else if n >> (64 - 8) == 0 {
+        let buf = [
+            ((n >> 56) | 0xfe) as u8,
+            (n >> 48) as u8,
+            (n >> 40) as u8,
+            (n >> 32) as u8,
+            (n >> 24) as u8,
+            (n >> 16) as u8,
+            (n >> 8) as u8,
+            n as u8,
+        ];
+
+        writer.write_all(&buf)?;
     } else {
         writer.write_u8(0xff)?;
-        writer.write_i64::<BigEndian>(value)?;
+        writer.write_i64::<BigEndian>(n)?;
     }
 
     Ok(())
