@@ -8,32 +8,26 @@ where
         let buf = [n as u8];
         writer.write_all(&buf)?;
     } else if n >> (16 - 2) == 0 {
-        let buf = [((n >> 8) | 0x80) as u8, n as u8];
+        let m = (n as u16) | (0x80 << 8);
+        let buf = m.to_be_bytes();
         writer.write_all(&buf)?;
     } else if n >> (24 - 3) == 0 {
-        let buf = [((n >> 16) | 0xc0) as u8, (n >> 8) as u8, n as u8];
-        writer.write_all(&buf)?;
+        let m = (n as u32) | (0xc0 << 16);
+        let buf = m.to_be_bytes();
+        writer.write_all(&buf[1..])?;
     } else if n >> (32 - 4) == 0 {
-        let buf = [
-            ((n >> 24) | 0xe0) as u8,
-            (n >> 16) as u8,
-            (n >> 8) as u8,
-            n as u8,
-        ];
-
+        let m = (n as u32) | (0xe0 << 24);
+        let buf = m.to_be_bytes();
         writer.write_all(&buf)?;
     } else {
-        let buf = [
-            ((n >> 28) | 0xf0) as u8,
-            (n >> 20) as u8,
-            (n >> 12) as u8,
-            (n >> 4) as u8,
-            // § 2.3.4 "Writing bytes to a byte stream: ITF-8 integer (itf8)" (2024-09-04):
-            // "...only [the] 4 lower bits [are] used in the last byte 5."
-            (n & 0x0f) as u8,
-        ];
+        let m = n as u32 as u64;
 
-        writer.write_all(&buf)?;
+        // § 2.3.4 "Writing bytes to a byte stream: ITF-8 integer (itf8)" (2024-09-04): "...only
+        // [the] 4 lower bits [are] used in the last byte 5."
+        let m = (0xf0 << 32) | ((m & 0xfffffff0) << 4) | (m & 0x0f);
+
+        let buf = m.to_be_bytes();
+        writer.write_all(&buf[3..])?;
     }
 
     Ok(())
