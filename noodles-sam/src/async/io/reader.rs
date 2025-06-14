@@ -128,10 +128,8 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_sam as sam;
     ///
     /// let data = b"@HD\tVN:1.6
@@ -248,7 +246,7 @@ where
     ///
     /// ```
     /// # #[tokio::main]
-    /// # async fn main() -> std::io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_sam as sam;
     ///
     /// let data = b"@HD\tVN:1.6
@@ -276,12 +274,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use tokio::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
     /// use noodles_sam as sam;
+    /// use tokio::io;
     ///
     /// let mut reader = sam::r#async::io::Reader::new(io::empty());
     /// let header = reader.read_header().await?;
