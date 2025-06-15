@@ -1,7 +1,5 @@
 use std::io::{self, Write};
 
-use byteorder::{BigEndian, WriteBytesExt};
-
 pub fn write_ltf8<W>(writer: &mut W, n: i64) -> io::Result<()>
 where
     W: Write,
@@ -10,72 +8,47 @@ where
         let buf = [n as u8];
         writer.write_all(&buf)?;
     } else if n >> (16 - 2) == 0 {
-        let buf = [((n >> 8) | 0x80) as u8, n as u8];
+        let m = (n as u16) | (0x80 << 8);
+        let buf = m.to_be_bytes();
         writer.write_all(&buf)?;
     } else if n >> (24 - 3) == 0 {
-        let buf = [((n >> 16) | 0xc0) as u8, (n >> 8) as u8, n as u8];
-        writer.write_all(&buf)?;
+        let m = (n as u32) | (0xc0 << 16);
+        let buf = m.to_be_bytes();
+        writer.write_all(&buf[1..])?;
     } else if n >> (32 - 4) == 0 {
-        let buf = [
-            ((n >> 24) | 0xe0) as u8,
-            (n >> 16) as u8,
-            (n >> 8) as u8,
-            n as u8,
-        ];
-
+        let m = (n as u32) | (0xe0 << 24);
+        let buf = m.to_be_bytes();
         writer.write_all(&buf)?;
     } else if n >> (40 - 5) == 0 {
-        let buf = [
-            ((n >> 32) | 0xf0) as u8,
-            (n >> 24) as u8,
-            (n >> 16) as u8,
-            (n >> 8) as u8,
-            n as u8,
-        ];
-
-        writer.write_all(&buf)?;
+        let m = (n as u64) | (0xf0 << 32);
+        let buf = m.to_be_bytes();
+        writer.write_all(&buf[3..])?;
     } else if n >> (48 - 6) == 0 {
-        let buf = [
-            ((n >> 40) | 0xf8) as u8,
-            (n >> 32) as u8,
-            (n >> 24) as u8,
-            (n >> 16) as u8,
-            (n >> 8) as u8,
-            n as u8,
-        ];
-
-        writer.write_all(&buf)?;
+        let m = (n as u64) | (0xf8 << 40);
+        let buf = m.to_be_bytes();
+        writer.write_all(&buf[2..])?;
     } else if n >> (56 - 7) == 0 {
-        let buf = [
-            ((n >> 48) | 0xfc) as u8,
-            (n >> 40) as u8,
-            (n >> 32) as u8,
-            (n >> 24) as u8,
-            (n >> 16) as u8,
-            (n >> 8) as u8,
-            n as u8,
-        ];
-
-        writer.write_all(&buf)?;
+        let m = (n as u64) | (0xfc << 48);
+        let buf = m.to_be_bytes();
+        writer.write_all(&buf[1..])?;
     } else if n >> (64 - 8) == 0 {
-        let buf = [
-            ((n >> 56) | 0xfe) as u8,
-            (n >> 48) as u8,
-            (n >> 40) as u8,
-            (n >> 32) as u8,
-            (n >> 24) as u8,
-            (n >> 16) as u8,
-            (n >> 8) as u8,
-            n as u8,
-        ];
-
+        let m = (n as u64) | (0xfe << 56);
+        let buf = m.to_be_bytes();
         writer.write_all(&buf)?;
     } else {
-        writer.write_u8(0xff)?;
-        writer.write_i64::<BigEndian>(n)?;
+        writer.write_all(&[0xff])?;
+        write_i64_be(writer, n)?;
     }
 
     Ok(())
+}
+
+fn write_i64_be<W>(writer: &mut W, n: i64) -> io::Result<()>
+where
+    W: Write,
+{
+    let buf = n.to_be_bytes();
+    writer.write_all(&buf)
 }
 
 #[cfg(test)]
