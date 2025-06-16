@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * bgzf/async/fs: Add `open` function.
+
 ### Changed
 
   * bgzf: Raise minimum supported Rust version (MSRV) to 1.85.0.
