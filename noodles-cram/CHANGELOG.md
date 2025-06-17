@@ -6,6 +6,8 @@
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.85.0.
 
+  * cram: Update to bzip2 0.6.0.
+
 ## 0.84.0 - 2025-05-29
 
 ### Removed
