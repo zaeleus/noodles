@@ -5,7 +5,7 @@ use noodles_core::Position;
 use super::{AlternateBases, Filters, Ids, Info, RecordBuf, Samples};
 
 /// A VCF record builder.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 pub struct Builder {
     reference_sequence_name: String,
     variant_start: Option<Position>,
@@ -244,22 +244,6 @@ impl Builder {
     }
 }
 
-impl Default for Builder {
-    fn default() -> Self {
-        Self {
-            reference_sequence_name: String::new(),
-            variant_start: Some(Position::MIN),
-            ids: Ids::default(),
-            reference_bases: String::new(),
-            alternate_bases: AlternateBases::default(),
-            quality_score: None,
-            filters: Filters::default(),
-            info: Info::default(),
-            samples: Samples::default(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -270,7 +254,7 @@ mod tests {
         let record = Builder::default();
 
         assert!(record.reference_sequence_name.is_empty());
-        assert_eq!(record.variant_start, Some(Position::MIN));
+        assert!(record.variant_start.is_none());
         assert!(record.ids.as_ref().is_empty());
         assert!(record.reference_bases.is_empty());
         assert!(record.alternate_bases.is_empty());

@@ -12,6 +12,14 @@
     field is no longer used. VCF < 4.5 records now only use the `END` INFO
     field or number of reference bases.
 
+  * vcf/variant/record_buf/builder: Change default variant start to missing
+    ([#344]).
+
+    This previously was set to position 1 and could not be unset during build.
+    Setting no position flags the record as a virtual telomeric breakend.
+
+[#344]: https://github.com/zaeleus/noodles/issues/344
+
 ## 0.79.0 - 2025-05-29
 
 ### Deprecated
