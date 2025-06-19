@@ -6,6 +6,11 @@
 
   * bcf: Raise minimum supported Rust version (MSRV) to 1.85.0.
 
+  * bcf/record/encoder/site: Use variant span for `rlen` field.
+
+    Writing would previously fail for telomeric breakend records (i.e., records
+    with missing positions).
+
 ## 0.76.0 - 2025-05-29
 
 ### Deprecated

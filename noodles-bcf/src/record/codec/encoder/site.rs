@@ -9,7 +9,6 @@ mod reference_sequence_id;
 use std::io::{self, Write};
 
 use byteorder::{LittleEndian, WriteBytesExt};
-use noodles_core::Position;
 use noodles_vcf::{
     self as vcf,
     header::StringMaps,
@@ -40,10 +39,8 @@ where
     let position = record.variant_start().transpose()?;
     write_position(writer, position)?;
 
-    let end = record
-        .variant_end(header)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_rlen(writer, position, end)?;
+    let span = record.variant_span(header)?;
+    write_rlen(writer, span)?;
 
     let quality_score = record.quality_score().transpose()?;
     write_quality_score(writer, quality_score)?;
@@ -69,28 +66,11 @@ where
     Ok(())
 }
 
-pub(crate) fn write_rlen<W>(
-    writer: &mut W,
-    start: Option<Position>,
-    end: Position,
-) -> io::Result<()>
+pub(crate) fn write_rlen<W>(writer: &mut W, span: usize) -> io::Result<()>
 where
     W: Write,
 {
-    let Some(start) = start else {
-        todo!();
-    };
-
-    if start > end {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            format!("record start position ({start}) > end position ({end})"),
-        ));
-    }
-
-    let rlen = i32::try_from(usize::from(end) - usize::from(start) + 1)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
+    let rlen = i32::try_from(span).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32::<LittleEndian>(rlen)
 }
 
@@ -145,33 +125,9 @@ mod tests {
 
     #[test]
     fn test_write_rlen() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(
-            buf: &mut Vec<u8>,
-            start: Option<Position>,
-            end: Position,
-            expected: &[u8],
-        ) -> io::Result<()> {
-            buf.clear();
-            write_rlen(buf, start, end)?;
-            assert_eq!(buf, expected);
-            Ok(())
-        }
-
         let mut buf = Vec::new();
-
-        t(
-            &mut buf,
-            Some(Position::try_from(8)?),
-            Position::try_from(13)?,
-            &[0x06, 0x00, 0x00, 0x00],
-        )?;
-
-        buf.clear();
-        assert!(matches!(
-            write_rlen(&mut buf, Some(Position::try_from(13)?), Position::try_from(8)?),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
-        ));
-
+        write_rlen(&mut buf, 6)?;
+        assert_eq!(buf, &[0x06, 0x00, 0x00, 0x00]);
         Ok(())
     }
 
