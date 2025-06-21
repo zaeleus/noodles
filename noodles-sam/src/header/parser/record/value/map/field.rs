@@ -4,6 +4,7 @@ pub mod value;
 use std::{error, fmt};
 
 pub use self::{tag::parse_tag, value::parse_value};
+use crate::header::parser::record::split_off_first;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -29,29 +30,19 @@ impl fmt::Display for ParseError {
 pub(super) fn consume_delimiter(src: &mut &[u8]) -> Result<(), ParseError> {
     const DELIMITER: u8 = b'\t';
 
-    if let Some((b, rest)) = src.split_first() {
-        if *b == DELIMITER {
-            *src = rest;
-            Ok(())
-        } else {
-            Err(ParseError::InvalidDelimiter)
-        }
-    } else {
-        Err(ParseError::MissingDelimiter)
+    match split_off_first(src) {
+        Some(&DELIMITER) => Ok(()),
+        Some(_) => Err(ParseError::InvalidDelimiter),
+        None => Err(ParseError::MissingDelimiter),
     }
 }
 
 pub(super) fn consume_separator(src: &mut &[u8]) -> Result<(), ParseError> {
     const SEPARATOR: u8 = b':';
 
-    if let Some((b, rest)) = src.split_first() {
-        if *b == SEPARATOR {
-            *src = rest;
-            Ok(())
-        } else {
-            Err(ParseError::InvalidSeparator)
-        }
-    } else {
-        Err(ParseError::MissingSeparator)
+    match split_off_first(src) {
+        Some(&SEPARATOR) => Ok(()),
+        Some(_) => Err(ParseError::InvalidSeparator),
+        None => Err(ParseError::MissingSeparator),
     }
 }

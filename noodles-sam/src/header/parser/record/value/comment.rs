@@ -2,6 +2,8 @@ use std::{error, fmt};
 
 use bstr::BString;
 
+use crate::header::parser::record::split_off_first;
+
 /// An error returned when a SAM header record comment value fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -29,14 +31,11 @@ pub(super) fn parse_comment(src: &mut &[u8]) -> Result<BString, ParseError> {
 fn consume_delimiter(src: &mut &[u8]) -> Result<(), ParseError> {
     const PREFIX: u8 = b'\t';
 
-    if let Some((b, rest)) = src.split_first() {
-        if *b == PREFIX {
-            *src = rest;
-            return Ok(());
-        }
+    if let Some(&PREFIX) = split_off_first(src) {
+        Ok(())
+    } else {
+        Err(ParseError::InvalidDelimiter)
     }
-
-    Err(ParseError::InvalidDelimiter)
 }
 
 #[cfg(test)]
