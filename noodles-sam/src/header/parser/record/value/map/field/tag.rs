@@ -22,17 +22,11 @@ pub fn parse_tag<S>(src: &mut &[u8]) -> Result<Tag<S>, ParseError>
 where
     S: tag::Standard,
 {
-    const TAG_LENGTH: usize = 2;
-
-    if src.len() < TAG_LENGTH {
+    let Some((buf, rest)) = src.split_first_chunk() else {
         return Err(ParseError::UnexpectedEof);
-    }
+    };
 
-    let (raw_tag, rest) = src.split_at(TAG_LENGTH);
-
-    // SAFETY: `raw_tag` is `TAG_LENGTH`.
-    let buf: [u8; TAG_LENGTH] = raw_tag.try_into().unwrap();
-    let tag = Tag::<S>::from(buf);
+    let tag = Tag::<S>::from(*buf);
 
     *src = rest;
 
