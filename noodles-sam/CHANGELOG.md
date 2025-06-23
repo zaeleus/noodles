@@ -10,8 +10,8 @@
 
 ### Added
 
-  * sam/alignment/record_buf/quality_scores: Add
-    `QualityScores::len` and `QualityScores::iter` ([#338]).
+  * sam/alignment/record_buf/quality_scores: Add `QualityScores::len` and
+    `QualityScores::iter` ([#338]).
 
     These implementations are also provided by
     `sam::alignment::record::QualityScores`.
