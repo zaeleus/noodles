@@ -168,6 +168,14 @@ where
     /// Creates an async BCF writer.
     ///
     /// The given stream is wrapped in a BGZF encoder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bcf as bcf;
+    /// use tokio::io;
+    /// let mut writer = bcf::r#async::io::Writer::new(io::sink());
+    /// ```
     pub fn new(inner: W) -> Self {
         Self::from(bgzf::r#async::io::Writer::new(inner))
     }
