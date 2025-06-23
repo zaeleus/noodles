@@ -20,8 +20,8 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
-    /// # use tokio::io;
     /// use noodles_bcf as bcf;
+    /// use tokio::io;
     /// let writer = bcf::r#async::io::Writer::from(io::sink());
     /// let _inner = writer.get_ref();
     /// ```
@@ -34,8 +34,8 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
-    /// # use tokio::io;
     /// use noodles_bcf as bcf;
+    /// use tokio::io;
     /// let mut writer = bcf::r#async::io::Writer::from(io::sink());
     /// let _inner = writer.get_mut();
     /// ```
@@ -48,8 +48,8 @@ impl<W> Writer<W> {
     /// # Examples
     ///
     /// ```
-    /// # use tokio::io;
     /// use noodles_bcf as bcf;
+    /// use tokio::io;
     /// let writer = bcf::r#async::io::Writer::from(io::sink());
     /// let _inner = writer.into_inner();
     /// ```
@@ -67,12 +67,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use tokio::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bcf as bcf;
     /// use noodles_vcf as vcf;
+    /// use tokio::io;
     ///
     /// let mut writer = bcf::r#async::io::Writer::new(io::sink());
     ///
@@ -95,12 +94,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use tokio::io;
-    /// #
     /// # #[tokio::main]
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use noodles_bcf as bcf;
     /// use noodles_vcf::{self as vcf, header::StringMaps};
+    /// use tokio::io;
     ///
     /// let mut writer = bcf::r#async::io::Writer::new(io::sink());
     ///
@@ -125,13 +123,12 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use tokio::io;
-    /// #
     /// # #[tokio::main]
-    /// # async fn main() -> io::Result<()> {
+    /// # async fn main() -> tokio::io::Result<()> {
     /// use noodles_bcf as bcf;
     /// use noodles_core::Position;
     /// use noodles_vcf as vcf;
+    /// use tokio::io;
     ///
     /// let mut writer = bcf::r#async::io::Writer::new(io::sink());
     ///
