@@ -7,10 +7,7 @@ use std::{env, fmt, io};
 use noodles_bam as bam;
 use noodles_sam::alignment::record::MappingQuality;
 
-const MIN_HQ_MAPPING_QUALITY: MappingQuality = match MappingQuality::new(5) {
-    Some(mapping_quality) => mapping_quality,
-    None => unreachable!(),
-};
+const MIN_HQ_MAPPING_QUALITY: MappingQuality = MappingQuality::new(5).unwrap();
 
 #[derive(Debug, Default)]
 struct Counts {
