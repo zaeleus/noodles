@@ -90,7 +90,6 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_gff::{self as gff, LineBuf};
     ///
     /// let data = b"##gff-version 3
@@ -106,7 +105,7 @@ where
     /// assert!(matches!(line, Some(LineBuf::Record(_))));
     ///
     /// assert!(lines.next().is_none());
-    /// # Ok::<_, io::Error>(())
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn line_bufs(&mut self) -> LineBufs<'_, R> {
         LineBufs::new(self)
@@ -117,7 +116,6 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_gff as gff;
     ///
     /// let data = b"##gff-version 3\n";
@@ -129,7 +127,7 @@ where
     /// assert_eq!(line.kind(), gff::line::Kind::Directive);
     ///
     /// assert_eq!(reader.read_line(&mut line)?, 0);
-    /// # Ok::<_, io::Error>(())
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_line(&mut self, line: &mut Line) -> io::Result<usize> {
         line::read_line(&mut self.inner, line)
@@ -171,7 +169,6 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io;
     /// use noodles_gff as gff;
     ///
     /// let data = b"##gff-version 3
@@ -182,7 +179,7 @@ where
     ///
     /// assert!(records.next().transpose()?.is_some());
     /// assert!(records.next().is_none());
-    /// # Ok::<_, io::Error>(())
+    /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn record_bufs(&mut self) -> RecordBufs<'_, R> {
         RecordBufs::new(self.line_bufs())
@@ -198,7 +195,7 @@ where
     /// # Examples
     ///
     /// ```no_run
-    /// # use std::{fs::File, io};
+    /// # use std::fs::File;
     /// use noodles_bgzf as bgzf;
     /// use noodles_csi as csi;
     /// use noodles_gff as gff;
