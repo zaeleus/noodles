@@ -1,4 +1,4 @@
-use std::{borrow::Cow, io, iter, mem};
+use std::{borrow::Cow, io, iter};
 
 use bstr::BStr;
 use noodles_gff as gff;
@@ -22,7 +22,7 @@ impl<'r> Value<'r> {
         match self {
             Self::String(t) => {
                 let values = vec![t.clone(), s];
-                mem::swap(self, &mut Self::Array(values));
+                *self = Self::Array(values);
             }
             Self::Array(array) => array.push(s),
         }

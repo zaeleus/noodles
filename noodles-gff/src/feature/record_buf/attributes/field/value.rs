@@ -1,6 +1,6 @@
 //! GFF record attributes field value.
 
-use std::{borrow::Cow, io, iter, mem};
+use std::{borrow::Cow, io, iter};
 
 use bstr::{BStr, BString};
 
@@ -90,7 +90,7 @@ impl Extend<BString> for Value {
             Self::String(value) => {
                 let mut values = vec![value.clone()];
                 values.extend(iter);
-                mem::swap(self, &mut Self::Array(values));
+                *self = Self::Array(values);
             }
             Self::Array(values) => values.extend(iter),
         }
