@@ -119,10 +119,7 @@ fn validate_content_type(actual: ContentType, expected: ContentType) -> io::Resu
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            format!(
-                "invalid block content type: expected {:?}, got {:?}",
-                expected, actual
-            ),
+            format!("invalid block content type: expected {expected:?}, got {actual:?}"),
         ))
     }
 }

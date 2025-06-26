@@ -81,7 +81,7 @@ fn main() -> io::Result<()> {
             let writer = writers.get_mut(read_group).ok_or_else(|| {
                 io::Error::new(
                     io::ErrorKind::InvalidData,
-                    format!("invalid read group: {:?}", read_group),
+                    format!("invalid read group: {read_group:?}"),
                 )
             })?;
 

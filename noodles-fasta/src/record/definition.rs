@@ -75,7 +75,7 @@ impl fmt::Display for Definition {
         write!(f, "{PREFIX}{}", self.name)?;
 
         if let Some(description) = self.description() {
-            write!(f, " {}", description)?;
+            write!(f, " {description}")?;
         }
 
         Ok(())

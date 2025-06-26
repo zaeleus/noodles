@@ -45,8 +45,7 @@ impl fmt::Display for ParseError {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidType { actual } => write!(
                 f,
-                "invalid type: expected {{Character, Int32, Float, String, Hex, Array}}, got {:?}",
-                actual
+                "invalid type: expected {{Character, Int32, Float, String, Hex, Array}}, got {actual:?}"
             ),
             Self::InvalidCharacter => write!(f, "invalid character"),
             Self::InvalidInteger(_) => write!(f, "invalid integer"),

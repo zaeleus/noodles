@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut start_position = writer.virtual_position();
 
     for (reference_sequence_name, start, end) in records {
-        writeln!(writer, "{}\t{}\t{}", reference_sequence_name, start, end)?;
+        writeln!(writer, "{reference_sequence_name}\t{start}\t{end}")?;
 
         let end_position = writer.virtual_position();
         let chunk = Chunk::new(start_position, end_position);
