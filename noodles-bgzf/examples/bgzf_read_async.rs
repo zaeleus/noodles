@@ -1,6 +1,6 @@
 //! Decompresses a BGZF file using an asynchronous reader.
 //!
-//! The result matches the ouptput of `bgzip --decompress --stdout <src>`.
+//! The result matches the output of `bgzip --decompress --stdout <src>`.
 
 use std::env;
 
