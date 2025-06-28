@@ -1,7 +1,5 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
-
 use crate::{BGZF_HEADER_SIZE, gz};
 
 pub(crate) fn write_frame<W>(
@@ -36,20 +34,20 @@ where
     const BGZF_SLEN: u16 = 2;
 
     writer.write_all(&gz::MAGIC_NUMBER)?;
-    writer.write_u8(gz::CompressionMethod::Deflate as u8)?;
-    writer.write_u8(BGZF_FLG)?;
-    writer.write_u32::<LittleEndian>(gz::MTIME_NONE)?;
-    writer.write_u8(BGZF_XFL)?;
-    writer.write_u8(gz::OperatingSystem::Unknown as u8)?;
-    writer.write_u16::<LittleEndian>(BGZF_XLEN)?;
+    write_u8(writer, gz::CompressionMethod::Deflate as u8)?;
+    write_u8(writer, BGZF_FLG)?;
+    write_u32_le(writer, gz::MTIME_NONE)?;
+    write_u8(writer, BGZF_XFL)?;
+    write_u8(writer, gz::OperatingSystem::Unknown as u8)?;
+    write_u16_le(writer, BGZF_XLEN)?;
 
-    writer.write_u8(BGZF_SI1)?;
-    writer.write_u8(BGZF_SI2)?;
-    writer.write_u16::<LittleEndian>(BGZF_SLEN)?;
+    write_u8(writer, BGZF_SI1)?;
+    write_u8(writer, BGZF_SI2)?;
+    write_u16_le(writer, BGZF_SLEN)?;
 
     let bsize = u16::try_from(block_size - 1)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u16::<LittleEndian>(bsize)?;
+    write_u16_le(writer, bsize)?;
 
     Ok(())
 }
@@ -58,13 +56,36 @@ fn write_trailer<W>(writer: &mut W, checksum: u32, uncompressed_size: usize) -> 
 where
     W: Write,
 {
-    writer.write_u32::<LittleEndian>(checksum)?;
+    write_u32_le(writer, checksum)?;
 
     let isize = u32::try_from(uncompressed_size)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(isize)?;
+    write_u32_le(writer, isize)?;
 
     Ok(())
+}
+
+fn write_u8<W>(writer: &mut W, n: u8) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_all(&[n])
+}
+
+fn write_u16_le<W>(writer: &mut W, n: u16) -> io::Result<()>
+where
+    W: Write,
+{
+    let buf = n.to_le_bytes();
+    writer.write_all(&buf)
+}
+
+fn write_u32_le<W>(writer: &mut W, n: u32) -> io::Result<()>
+where
+    W: Write,
+{
+    let buf = n.to_le_bytes();
+    writer.write_all(&buf)
 }
 
 #[cfg(test)]
