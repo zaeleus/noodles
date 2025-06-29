@@ -93,15 +93,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_header() {
-        let mut writer = io::sink();
+    fn test_write_header() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_header(&mut buf, 8)?;
 
-        assert!(write_header(&mut writer, 8).is_ok());
+        let expected = [
+            0x1f, 0x8b, // magic number
+            0x08, // compression method = DEFLATE
+            0x04, // flags = FEXTRA
+            0x00, 0x00, 0x00, 0x00, // modification time = 0
+            0x00, // extra flags = none
+            0xff, // operating system = unknown
+            0x06, 0x00, // extra subfields size = 6
+            b'B', b'C', // subfields[0].id = b"BC"
+            0x02, 0x00, // subfields[0].size = 2
+            0x07, 0x00, // subfields[0].block_size = 7
+        ];
+
+        assert_eq!(buf, expected);
 
         assert!(matches!(
-            write_header(&mut writer, (1 << 16) + 1),
+            write_header(&mut io::sink(), (1 << 16) + 1),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
+
+        Ok(())
     }
 
     #[test]
