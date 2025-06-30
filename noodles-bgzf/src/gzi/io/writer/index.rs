@@ -1,7 +1,5 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
-
 use crate::gzi::Index;
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
@@ -13,14 +11,22 @@ where
     let len =
         u64::try_from(index.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    writer.write_u64::<LittleEndian>(len)?;
+    write_u64_le(writer, len)?;
 
     for &(compressed_pos, uncompressed_pos) in index {
-        writer.write_u64::<LittleEndian>(compressed_pos)?;
-        writer.write_u64::<LittleEndian>(uncompressed_pos)?;
+        write_u64_le(writer, compressed_pos)?;
+        write_u64_le(writer, uncompressed_pos)?;
     }
 
     Ok(())
+}
+
+fn write_u64_le<W>(writer: &mut W, n: u64) -> io::Result<()>
+where
+    W: Write,
+{
+    let buf = n.to_le_bytes();
+    writer.write_all(&buf)
 }
 
 #[cfg(test)]

@@ -16,7 +16,6 @@ async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "dep:tokio-util"]
 libdeflate = ["dep:libdeflater"]
 
 [dependencies]
-byteorder.workspace = true
 bytes.workspace = true
 crossbeam-channel = "0.5.6"
 flate2.workspace = true
