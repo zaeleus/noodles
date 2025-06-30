@@ -13,13 +13,9 @@ where
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut offsets = Vec::with_capacity(len);
-
-    for _ in 0..len {
-        let compressed = read_u64_le(reader)?;
-        let uncompressed = read_u64_le(reader)?;
-        offsets.push((compressed, uncompressed));
-    }
+    let offsets: Vec<_> = (0..len)
+        .map(|_| Ok((read_u64_le(reader)?, read_u64_le(reader)?)))
+        .collect::<io::Result<_>>()?;
 
     match read_u8(reader) {
         Ok(_) => Err(io::Error::new(
