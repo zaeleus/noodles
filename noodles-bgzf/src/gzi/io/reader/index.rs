@@ -1,6 +1,7 @@
-use std::io::{self, Read};
-
-use byteorder::{LittleEndian, ReadBytesExt};
+use std::{
+    io::{self, Read},
+    mem,
+};
 
 use crate::gzi::Index;
 
@@ -8,19 +9,19 @@ pub(super) fn read_index<R>(reader: &mut R) -> io::Result<Index>
 where
     R: Read,
 {
-    let len = reader.read_u64::<LittleEndian>().and_then(|n| {
+    let len = read_u64_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
     let mut offsets = Vec::with_capacity(len);
 
     for _ in 0..len {
-        let compressed = reader.read_u64::<LittleEndian>()?;
-        let uncompressed = reader.read_u64::<LittleEndian>()?;
+        let compressed = read_u64_le(reader)?;
+        let uncompressed = read_u64_le(reader)?;
         offsets.push((compressed, uncompressed));
     }
 
-    match reader.read_u8() {
+    match read_u8(reader) {
         Ok(_) => Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "unexpected trailing data",
@@ -28,6 +29,24 @@ where
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(Index::from(offsets)),
         Err(e) => Err(e),
     }
+}
+
+fn read_u8<R>(reader: &mut R) -> io::Result<u8>
+where
+    R: Read,
+{
+    let mut buf = [0; mem::size_of::<u8>()];
+    reader.read_exact(&mut buf)?;
+    Ok(buf[0])
+}
+
+fn read_u64_le<R>(reader: &mut R) -> io::Result<u64>
+where
+    R: Read,
+{
+    let mut buf = [0; mem::size_of::<u64>()];
+    reader.read_exact(&mut buf)?;
+    Ok(u64::from_le_bytes(buf))
 }
 
 #[cfg(test)]
