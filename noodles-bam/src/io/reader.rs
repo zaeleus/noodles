@@ -51,8 +51,8 @@ use crate::Record;
 /// ## Use a custom BGZF decoder
 ///
 /// [`Reader::new`] wraps the input stream with a default BGZF decoder. This can be swapped for a
-/// custom decoder, e.g., [`flate2::read::MultiGzDecoder`], [`noodles_bgzf::MultithreadedReader`],
-/// etc., using [`Reader::from`].
+/// custom decoder, e.g., [`flate2::read::MultiGzDecoder`],
+/// [`noodles_bgzf::io::MultithreadedReader`], etc., using [`Reader::from`].
 ///
 /// [`flate2::read::MultiGzDecoder`]: https://docs.rs/flate2/latest/flate2/read/struct.MultiGzDecoder.html
 ///
