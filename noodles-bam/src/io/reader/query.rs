@@ -5,16 +5,46 @@ use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_sam::alignment::Record as _;
 
-use super::Reader;
 use crate::Record;
+
+struct Reader<'r, R> {
+    inner: super::Reader<csi::io::Query<'r, R>>,
+    reference_sequence_id: usize,
+    interval: Interval,
+}
+
+impl<'r, R> Reader<'r, R>
+where
+    R: bgzf::io::BufRead + bgzf::io::Seek,
+{
+    fn new(
+        reader: &'r mut R,
+        chunks: Vec<Chunk>,
+        reference_sequence_id: usize,
+        interval: Interval,
+    ) -> Self {
+        Self {
+            inner: super::Reader::from(csi::io::Query::new(reader, chunks)),
+            reference_sequence_id,
+            interval,
+        }
+    }
+
+    fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        next_record(
+            &mut self.inner,
+            record,
+            self.reference_sequence_id,
+            self.interval,
+        )
+    }
+}
 
 /// An iterator over records of a BAM reader that intersects a given region.
 ///
 /// This is created by calling [`Reader::query`].
 pub struct Query<'r, R> {
-    reader: Reader<csi::io::Query<'r, R>>,
-    reference_sequence_id: usize,
-    interval: Interval,
+    reader: Reader<'r, R>,
     record: Record,
 }
 
@@ -29,9 +59,7 @@ where
         interval: Interval,
     ) -> Self {
         Self {
-            reader: Reader::from(csi::io::Query::new(reader, chunks)),
-            reference_sequence_id,
-            interval,
+            reader: Reader::new(reader, chunks, reference_sequence_id, interval),
             record: Record::default(),
         }
     }
@@ -44,12 +72,7 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match next_record(
-            &mut self.reader,
-            &mut self.record,
-            self.reference_sequence_id,
-            self.interval,
-        ) {
+        match self.reader.read_record(&mut self.record) {
             Ok(0) => None,
             Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),
@@ -91,7 +114,7 @@ fn interval_is_unbounded(interval: Interval) -> bool {
 }
 
 fn next_record<R>(
-    reader: &mut Reader<csi::io::Query<'_, R>>,
+    reader: &mut super::Reader<csi::io::Query<'_, R>>,
     record: &mut Record,
     reference_sequence_id: usize,
     interval: Interval,
@@ -131,10 +154,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::{
-        bai,
-        io::{Reader, Writer},
-    };
+    use crate::{bai, io::Writer};
 
     fn write(header: &sam::Header, records: &[RecordBuf]) -> io::Result<Vec<u8>> {
         let mut writer = Writer::new(Vec::new());
@@ -148,7 +168,7 @@ mod tests {
     }
 
     fn index(src: &[u8]) -> io::Result<bai::Index> {
-        let mut reader = Reader::new(src);
+        let mut reader = crate::io::Reader::new(src);
         let header = reader.read_header()?;
 
         let mut indexer = Indexer::default();
@@ -217,7 +237,7 @@ mod tests {
         let src = write(&header, &records)?;
         let index = index(&src)?;
 
-        let mut reader = Reader::new(Cursor::new(src));
+        let mut reader = crate::io::Reader::new(Cursor::new(src));
 
         let region = "sq1:2-5".parse()?;
         let query = reader.query(&header, &index, &region)?;
