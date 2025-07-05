@@ -51,5 +51,3 @@ pub mod io;
 pub mod record;
 
 pub use self::record::Record;
-
-const MAGIC_NUMBER: [u8; 4] = *b"BAM\x01";

@@ -16,7 +16,7 @@ async fn write_raw_header<W>(writer: &mut W, header: &sam::Header) -> io::Result
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::MAGIC_NUMBER;
+    use crate::io::MAGIC_NUMBER;
 
     writer.write_all(&MAGIC_NUMBER).await?;
 

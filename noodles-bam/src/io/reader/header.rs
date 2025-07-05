@@ -10,7 +10,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
-use crate::MAGIC_NUMBER;
+use crate::io::MAGIC_NUMBER;
 
 /// A BAM header reader.
 pub struct Reader<R> {
