@@ -202,10 +202,7 @@ mod tests {
 
     use super::*;
 
-    const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-        Some(length) => length,
-        None => unreachable!(),
-    };
+    const SQ0_LN: NonZeroUsize = NonZeroUsize::new(8).unwrap();
 
     fn put_u32_le(buf: &mut Vec<u8>, n: u32) {
         buf.extend(n.to_le_bytes());
