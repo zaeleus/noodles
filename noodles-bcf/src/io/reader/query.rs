@@ -82,14 +82,26 @@ fn intersects(
             )
         })?;
 
-    let Some(start) = record.variant_start().transpose()? else {
+    if reference_sequence_id != id {
         return Ok(false);
-    };
+    }
 
-    let end = record.variant_end(header)?;
-    let record_interval = Interval::from(start..=end);
+    if interval_is_unbounded(region_interval) {
+        Ok(true)
+    } else {
+        let Some(start) = record.variant_start().transpose()? else {
+            return Ok(false);
+        };
 
-    Ok(id == reference_sequence_id && record_interval.intersects(region_interval))
+        let end = record.variant_end(header)?;
+        let record_interval = Interval::from(start..=end);
+
+        Ok(record_interval.intersects(region_interval))
+    }
+}
+
+fn interval_is_unbounded(interval: Interval) -> bool {
+    interval.start().is_none() && interval.end().is_none()
 }
 
 fn next_record<R>(
