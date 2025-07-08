@@ -4,16 +4,47 @@ use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 
-use super::Reader;
 use crate::{Header, Record, variant::Record as _};
+
+struct Reader<'r, R> {
+    inner: super::Reader<csi::io::Query<'r, R>>,
+    reference_sequence_name: Vec<u8>,
+    interval: Interval,
+}
+
+impl<'r, R> Reader<'r, R>
+where
+    R: bgzf::io::BufRead + bgzf::io::Seek,
+{
+    fn new(
+        reader: &'r mut R,
+        chunks: Vec<Chunk>,
+        reference_sequence_name: Vec<u8>,
+        interval: Interval,
+    ) -> Self {
+        Self {
+            inner: super::Reader::new(csi::io::Query::new(reader, chunks)),
+            reference_sequence_name,
+            interval,
+        }
+    }
+
+    fn read_record(&mut self, header: &Header, record: &mut Record) -> io::Result<usize> {
+        next_record(
+            &mut self.inner,
+            record,
+            header,
+            &self.reference_sequence_name,
+            self.interval,
+        )
+    }
+}
 
 /// An iterator over records of a VCF reader that intersects a given region.
 ///
-/// This is created by calling [`Reader::query`].
+/// This is created by calling [`super::Reader::query`].
 pub struct Query<'r, 'h, R> {
-    reader: Reader<csi::io::Query<'r, R>>,
-    reference_sequence_name: Vec<u8>,
-    interval: Interval,
+    reader: Reader<'r, R>,
     header: &'h Header,
     record: Record,
 }
@@ -30,9 +61,7 @@ where
         header: &'h Header,
     ) -> Self {
         Self {
-            reader: Reader::new(csi::io::Query::new(reader, chunks)),
-            reference_sequence_name,
-            interval,
+            reader: Reader::new(reader, chunks, reference_sequence_name, interval),
             header,
             record: Record::default(),
         }
@@ -46,13 +75,7 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match next_record(
-            &mut self.reader,
-            &mut self.record,
-            self.header,
-            &self.reference_sequence_name,
-            self.interval,
-        ) {
+        match self.reader.read_record(self.header, &mut self.record) {
             Ok(0) => None,
             Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),
@@ -89,7 +112,7 @@ fn interval_is_unbounded(interval: Interval) -> bool {
 }
 
 fn next_record<R>(
-    reader: &mut Reader<csi::io::Query<'_, R>>,
+    reader: &mut super::Reader<csi::io::Query<'_, R>>,
     record: &mut Record,
     header: &Header,
     reference_sequence_name: &[u8],
