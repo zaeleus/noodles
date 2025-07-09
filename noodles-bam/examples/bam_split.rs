@@ -34,7 +34,7 @@ fn write_headers(writers: &mut Writers<'_>, header: &sam::Header) -> io::Result<
         let writer = writers.get_mut(id.as_bstr()).ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("invalid read group: {}", String::from_utf8_lossy(id)),
+                format!("invalid read group: {id}"),
             )
         })?;
 
