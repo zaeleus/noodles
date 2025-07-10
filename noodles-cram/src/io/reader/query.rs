@@ -130,13 +130,9 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.records.next() {
-                Some(r) => {
-                    if let (Some(start), Some(end)) = (r.alignment_start(), r.alignment_end()) {
-                        let alignment_interval = (start..=end).into();
-
-                        if self.interval.intersects(alignment_interval) {
-                            return Some(Ok(r));
-                        }
+                Some(record) => {
+                    if intersects(&record, self.interval) {
+                        return Some(Ok(record));
                     }
                 }
                 None => match self.read_next_container() {
@@ -146,5 +142,15 @@ where
                 },
             }
         }
+    }
+}
+
+fn intersects(record: &sam::alignment::RecordBuf, region_interval: Interval) -> bool {
+    match (record.alignment_start(), record.alignment_end()) {
+        (Some(start), Some(end)) => {
+            let alignment_interval = (start..=end).into();
+            region_interval.intersects(alignment_interval)
+        }
+        _ => false,
     }
 }
