@@ -10,7 +10,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{self as vcf, header::StringMaps};
 
 use self::{format_version::read_format_version, magic_number::read_magic_number};
-use crate::MAGIC_NUMBER;
+use crate::io::MAGIC_NUMBER;
 
 /// A BCF header reader.
 pub struct Reader<R> {

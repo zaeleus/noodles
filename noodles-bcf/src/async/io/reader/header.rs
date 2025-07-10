@@ -8,7 +8,7 @@ use noodles_vcf::{self as vcf, header::StringMaps};
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncReadExt};
 
 use self::{format_version::read_format_version, magic_number::read_magic_number};
-use crate::MAGIC_NUMBER;
+use crate::io::MAGIC_NUMBER;
 
 /// An async BCF header reader.
 pub struct Reader<R> {

@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-use crate::MAGIC_NUMBER;
+use crate::io::MAGIC_NUMBER;
 
 type Buf = [u8; MAGIC_NUMBER.len()];
 
