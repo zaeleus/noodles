@@ -12,7 +12,7 @@ pub(super) fn read_compression_method(src: &mut &[u8]) -> io::Result<Compression
     decode(*n)
 }
 
-fn decode(n: u8) -> io::Result<CompressionMethod> {
+pub(crate) fn decode(n: u8) -> io::Result<CompressionMethod> {
     match n {
         0 => Ok(CompressionMethod::None),
         1 => Ok(CompressionMethod::Gzip),

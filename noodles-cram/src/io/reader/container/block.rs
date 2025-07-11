@@ -1,4 +1,4 @@
-mod compression_method;
+pub(crate) mod compression_method;
 mod content_type;
 
 use std::io;

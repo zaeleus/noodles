@@ -45,21 +45,9 @@ pub fn read_compression_method<R>(reader: &mut R) -> io::Result<CompressionMetho
 where
     R: Read,
 {
-    match read_u8(reader)? {
-        0 => Ok(CompressionMethod::None),
-        1 => Ok(CompressionMethod::Gzip),
-        2 => Ok(CompressionMethod::Bzip2),
-        3 => Ok(CompressionMethod::Lzma),
-        4 => Ok(CompressionMethod::Rans4x8),
-        5 => Ok(CompressionMethod::RansNx16),
-        6 => Ok(CompressionMethod::AdaptiveArithmeticCoding),
-        7 => Ok(CompressionMethod::Fqzcomp),
-        8 => Ok(CompressionMethod::NameTokenizer),
-        _ => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid compression method",
-        )),
-    }
+    use crate::io::reader::container::block::compression_method;
+
+    read_u8(reader).and_then(compression_method::decode)
 }
 
 pub fn read_content_type<R>(reader: &mut R) -> io::Result<ContentType>

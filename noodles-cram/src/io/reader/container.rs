@@ -1,4 +1,4 @@
-mod block;
+pub(crate) mod block;
 pub mod compression_header;
 pub mod header;
 pub mod slice;
