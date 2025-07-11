@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-use byteorder::ReadBytesExt;
+use super::read_u8;
 
 pub fn read_uint7<R>(reader: &mut R) -> io::Result<u32>
 where
@@ -9,7 +9,7 @@ where
     let mut n = 0;
 
     loop {
-        let b = reader.read_u8().map(u32::from)?;
+        let b = read_u8(reader).map(u32::from)?;
 
         n <<= 7;
         n |= b & 0x7f;
