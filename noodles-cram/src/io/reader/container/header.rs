@@ -1,11 +1,10 @@
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::CrcReader;
 
 use crate::{
     container::{Header, ReferenceSequenceContext},
-    io::reader::num::{read_i32_le, read_itf8, read_itf8_as, read_ltf8_as},
+    io::reader::num::{read_i32_le, read_itf8, read_itf8_as, read_ltf8_as, read_u32_le},
 };
 
 // § 9 "End of file container" (2022-04-12)
@@ -49,7 +48,7 @@ where
     read_landmarks(reader, &mut header.landmarks)?;
 
     let actual_crc32 = reader.crc().sum();
-    let expected_crc32 = reader.get_mut().read_u32::<LittleEndian>()?;
+    let expected_crc32 = read_u32_le(reader.get_mut())?;
 
     if actual_crc32 != expected_crc32 {
         return Err(io::Error::new(

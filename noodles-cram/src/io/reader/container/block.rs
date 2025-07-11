@@ -3,13 +3,12 @@ mod content_type;
 
 use std::io;
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::Crc;
 
 use self::{compression_method::read_compression_method, content_type::read_content_type};
 use crate::{
     container::block::{CompressionMethod, ContentId, ContentType},
-    io::reader::num::{read_itf8, read_itf8_as},
+    io::reader::num::{read_itf8, read_itf8_as, read_u32_le},
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -75,7 +74,7 @@ fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     let end = original_src.len() - src.len();
     let actual_crc32 = crc32(&original_src[..end]);
 
-    let expected_crc32 = src.read_u32::<LittleEndian>()?;
+    let expected_crc32 = read_u32_le(src)?;
 
     if actual_crc32 != expected_crc32 {
         return Err(io::Error::new(

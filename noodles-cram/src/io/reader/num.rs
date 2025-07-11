@@ -54,3 +54,12 @@ where
     reader.read_exact(&mut buf)?;
     Ok(u32::from_be_bytes(buf))
 }
+
+pub(crate) fn read_u32_le<R>(reader: &mut R) -> io::Result<u32>
+where
+    R: Read,
+{
+    let mut buf = [0; 4];
+    reader.read_exact(&mut buf)?;
+    Ok(u32::from_le_bytes(buf))
+}

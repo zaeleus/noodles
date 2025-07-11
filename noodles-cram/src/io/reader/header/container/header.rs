@@ -1,9 +1,8 @@
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::CrcReader;
 
-use crate::io::reader::num::{read_i32_le, read_itf8, read_itf8_as, read_ltf8};
+use crate::io::reader::num::{read_i32_le, read_itf8, read_itf8_as, read_ltf8, read_u32_le};
 
 pub(crate) fn read_header<R>(reader: &mut R) -> io::Result<u64>
 where
@@ -31,7 +30,7 @@ where
     read_landmarks(reader)?;
 
     let actual_crc32 = reader.crc().sum();
-    let expected_crc32 = reader.get_mut().read_u32::<LittleEndian>()?;
+    let expected_crc32 = read_u32_le(reader.get_mut())?;
 
     if actual_crc32 != expected_crc32 {
         return Err(io::Error::new(
