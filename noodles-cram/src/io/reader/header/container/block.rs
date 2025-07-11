@@ -54,18 +54,9 @@ pub fn read_content_type<R>(reader: &mut R) -> io::Result<ContentType>
 where
     R: Read,
 {
-    match read_u8(reader)? {
-        0 => Ok(ContentType::FileHeader),
-        1 => Ok(ContentType::CompressionHeader),
-        2 => Ok(ContentType::SliceHeader),
-        3 => Ok(ContentType::Reserved),
-        4 => Ok(ContentType::ExternalData),
-        5 => Ok(ContentType::CoreData),
-        _ => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid content type",
-        )),
-    }
+    use crate::io::reader::container::block::content_type;
+
+    read_u8(reader).and_then(content_type::decode)
 }
 
 fn validate_content_type(actual: ContentType) -> io::Result<()> {

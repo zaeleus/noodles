@@ -12,7 +12,7 @@ pub(super) fn read_content_type(src: &mut &[u8]) -> io::Result<ContentType> {
     decode(*n)
 }
 
-fn decode(n: u8) -> io::Result<ContentType> {
+pub(crate) fn decode(n: u8) -> io::Result<ContentType> {
     match n {
         0 => Ok(ContentType::FileHeader),
         1 => Ok(ContentType::CompressionHeader),

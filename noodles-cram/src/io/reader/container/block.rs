@@ -1,5 +1,5 @@
 pub(crate) mod compression_method;
-mod content_type;
+pub(crate) mod content_type;
 
 use std::io;
 
