@@ -10,7 +10,7 @@ pub use self::{
     vlq::read_uint7,
 };
 
-fn read_u8<R>(reader: &mut R) -> io::Result<u8>
+pub(crate) fn read_u8<R>(reader: &mut R) -> io::Result<u8>
 where
     R: Read,
 {

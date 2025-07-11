@@ -1,11 +1,10 @@
 use std::io::{self, Read};
 
-use byteorder::ReadBytesExt;
 use flate2::read::GzDecoder;
 
 use crate::{
     container::block::{CompressionMethod, ContentType},
-    io::reader::num::{read_itf8, read_itf8_as},
+    io::reader::num::{read_itf8, read_itf8_as, read_u8},
 };
 
 pub(super) fn read_block<R>(reader: &mut R) -> io::Result<Box<dyn Read + '_>>
@@ -46,7 +45,7 @@ pub fn read_compression_method<R>(reader: &mut R) -> io::Result<CompressionMetho
 where
     R: Read,
 {
-    match reader.read_u8()? {
+    match read_u8(reader)? {
         0 => Ok(CompressionMethod::None),
         1 => Ok(CompressionMethod::Gzip),
         2 => Ok(CompressionMethod::Bzip2),
@@ -67,7 +66,7 @@ pub fn read_content_type<R>(reader: &mut R) -> io::Result<ContentType>
 where
     R: Read,
 {
-    match reader.read_u8()? {
+    match read_u8(reader)? {
         0 => Ok(ContentType::FileHeader),
         1 => Ok(ContentType::CompressionHeader),
         2 => Ok(ContentType::SliceHeader),
