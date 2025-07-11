@@ -5,7 +5,7 @@ use flate2::CrcReader;
 
 use crate::{
     container::{Header, ReferenceSequenceContext},
-    io::reader::num::{read_itf8, read_itf8_as, read_ltf8_as},
+    io::reader::num::{read_i32_le, read_itf8, read_itf8_as, read_ltf8_as},
 };
 
 // § 9 "End of file container" (2022-04-12)
@@ -27,7 +27,7 @@ pub fn read_header_inner<R>(reader: &mut CrcReader<R>, header: &mut Header) -> i
 where
     R: Read,
 {
-    let len = reader.read_i32::<LittleEndian>().and_then(|n| {
+    let len = read_i32_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 

@@ -37,6 +37,15 @@ where
     Ok(u32::from_be_bytes(buf))
 }
 
+pub(crate) fn read_i32_le<R>(reader: &mut R) -> io::Result<i32>
+where
+    R: Read,
+{
+    let mut buf = [0; 4];
+    reader.read_exact(&mut buf)?;
+    Ok(i32::from_le_bytes(buf))
+}
+
 fn read_u32_be<R>(reader: &mut R) -> io::Result<u32>
 where
     R: Read,

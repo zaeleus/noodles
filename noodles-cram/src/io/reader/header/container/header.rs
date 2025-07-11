@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::CrcReader;
 
-use crate::io::reader::num::{read_itf8, read_itf8_as, read_ltf8};
+use crate::io::reader::num::{read_i32_le, read_itf8, read_itf8_as, read_ltf8};
 
 pub(crate) fn read_header<R>(reader: &mut R) -> io::Result<u64>
 where
@@ -17,7 +17,7 @@ fn read_header_inner<R>(reader: &mut CrcReader<R>) -> io::Result<u64>
 where
     R: Read,
 {
-    let length = reader.read_i32::<LittleEndian>().and_then(|n| {
+    let length = read_i32_le(reader).and_then(|n| {
         u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
