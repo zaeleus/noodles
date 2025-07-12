@@ -1,6 +1,6 @@
 [package]
 name = "noodles-htsget"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -15,7 +15,7 @@ categories = ["api-bindings", "science::bioinformatics"]
 base64 = "0.22.0"
 bytes.workspace = true
 futures = { workspace = true, features = ["std"] }
-noodles-core = { path = "../noodles-core", version = "0.17.0" }
+noodles-core = { path = "../noodles-core", version = "0.18.0" }
 reqwest.workspace = true
 serde.workspace = true
 url = { workspace = true, features = ["serde"] }
