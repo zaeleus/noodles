@@ -213,6 +213,12 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_parse_name() {
+        assert!(parse_name(b".").is_none());
+        assert_eq!(parse_name(b"ndls"), Some(BStr::new("ndls")));
+    }
+
+    #[test]
     fn test_parse_strand() -> io::Result<()> {
         assert!(parse_strand(b".")?.is_none());
         assert_eq!(parse_strand(b"+")?, Some(Strand::Forward));
