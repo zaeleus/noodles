@@ -10,14 +10,14 @@ use noodles_vcf::{self as vcf, variant::io::Read};
 pub use self::builder::Builder;
 use crate::variant::Record;
 
-enum Inner<R> {
+pub(crate) enum Inner<R> {
     Vcf(vcf::io::Reader<R>),
     Bcf(bcf::io::Reader<R>),
 }
 
 /// A variant reader.
 pub struct Reader<R> {
-    inner: Inner<R>,
+    pub(crate) inner: Inner<R>,
 }
 
 impl<R> Reader<R>
