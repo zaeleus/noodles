@@ -213,6 +213,24 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_parse_feature_end() -> io::Result<()> {
+        assert!(parse_feature_end(b"0").is_none());
+        assert_eq!(parse_feature_end(b"1").transpose()?, Some(Position::MIN));
+
+        assert_eq!(
+            parse_feature_end(Position::MAX.to_string().as_bytes()).transpose()?,
+            Some(Position::MAX)
+        );
+
+        assert!(matches!(
+            parse_feature_end(b"-1").transpose(),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+
+    #[test]
     fn test_parse_name() {
         assert!(parse_name(b".").is_none());
         assert_eq!(parse_name(b"ndls"), Some(BStr::new("ndls")));
