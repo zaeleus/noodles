@@ -4,8 +4,8 @@
 
 ### Changed
 
-  * bed/io/writer/record/feature_start: Constrain position to a 64-bit
-    unsigned integer.
+  * bed/io/writer/record: Constrain feature positions to 64-bit unsigned
+    integers.
 
 ## 0.27.0 - 2025-07-12
 

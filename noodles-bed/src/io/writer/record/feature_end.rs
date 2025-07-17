@@ -10,8 +10,12 @@ where
     const MISSING: &[u8] = b"0";
 
     if let Some(position) = position {
-        let n = usize::from(position);
-        let mut dst = [0; usize::FORMATTED_SIZE_DECIMAL];
+        // § 1.6.3 "Coordinates: `chromEnd`" (2022-01-05): "...`chromEnd` must be less than or
+        // equal to 2^64 - 1..."
+        let n = u64::try_from(usize::from(position))
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let mut dst = [0; u64::FORMATTED_SIZE_DECIMAL];
         let buf = lexical_core::write(n, &mut dst);
         writer.write_all(buf)
     } else {
