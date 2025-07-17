@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bed/io/writer/record/feature_start: Constrain position to a 64-bit
+    unsigned integer.
+
 ## 0.27.0 - 2025-07-12
 
 ### Changed
