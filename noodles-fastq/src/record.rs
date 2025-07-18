@@ -4,7 +4,7 @@ mod definition;
 
 use std::fmt;
 
-use bstr::{BStr, BString};
+use bstr::{BStr, BString, ByteSlice};
 
 pub use self::definition::Definition;
 
@@ -173,18 +173,11 @@ impl Record {
 
 impl fmt::Debug for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use std::str;
-
-        let name = str::from_utf8(self.name());
-        let description = str::from_utf8(self.description());
-        let sequence = str::from_utf8(self.sequence());
-        let quality_scores = str::from_utf8(self.quality_scores());
-
         f.debug_struct("Record")
-            .field("name", &name)
-            .field("description", &description)
-            .field("sequence", &sequence)
-            .field("quality_scores", &quality_scores)
+            .field("name", &self.name())
+            .field("description", &self.description())
+            .field("sequence", &self.sequence().as_bstr())
+            .field("quality_scores", &self.quality_scores().as_bstr())
             .finish()
     }
 }
