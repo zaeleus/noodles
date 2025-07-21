@@ -5,7 +5,7 @@ use flate2::CrcWriter;
 
 use crate::{
     container::{Header, ReferenceSequenceContext},
-    io::writer::num::{write_itf8, write_ltf8},
+    io::writer::num::{write_i32_le, write_itf8, write_ltf8},
 };
 
 pub fn write_header<W>(writer: &mut W, header: &Header, len: usize) -> io::Result<()>
@@ -21,7 +21,7 @@ where
     W: Write,
 {
     let length = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32::<LittleEndian>(length)?;
+    write_i32_le(writer, length)?;
 
     write_reference_sequence_context(writer, header.reference_sequence_context())?;
     write_record_count(writer, header.record_count())?;

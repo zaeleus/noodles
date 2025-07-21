@@ -78,11 +78,12 @@ fn build_header() -> Header {
 
 #[cfg(test)]
 mod tests {
+    use crate::io::writer::num::write_i32_le;
+
     use super::*;
 
     #[test]
     fn test_write_container() -> Result<(), Box<dyn std::error::Error>> {
-        use byteorder::{LittleEndian, WriteBytesExt};
         use flate2::CrcWriter;
         use sam::header::record::value::{
             Map,
@@ -120,7 +121,7 @@ mod tests {
         expected_block.extend(crc32.to_le_bytes());
 
         let mut header_writer = CrcWriter::new(Vec::new());
-        header_writer.write_i32::<LittleEndian>(i32::try_from(expected_block.len())?)?; // length
+        write_i32_le(&mut header_writer, i32::try_from(expected_block.len())?)?; // length
         write_itf8(&mut header_writer, -1)?; // reference sequence ID = -1 (None)
         header_writer.write_all(&[
             0x00, // alignment start = 0
