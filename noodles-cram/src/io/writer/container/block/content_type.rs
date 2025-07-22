@@ -1,15 +1,13 @@
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
-use crate::container::block::ContentType;
+use crate::{container::block::ContentType, io::writer::num::write_u8};
 
 pub(super) fn write_content_type<W>(writer: &mut W, content_type: ContentType) -> io::Result<()>
 where
     W: Write,
 {
     let n = encode(content_type);
-    writer.write_u8(n)
+    write_u8(writer, n)
 }
 
 fn encode(content_type: ContentType) -> u8 {

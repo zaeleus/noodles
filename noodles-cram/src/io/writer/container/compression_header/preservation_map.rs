@@ -3,15 +3,17 @@ mod tag_sets;
 
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
 use self::{
     substitution_matrix::{build_substitution_matrix, write_substitution_matrix},
     tag_sets::{build_tag_sets, write_tag_sets},
 };
 use crate::{
     container::compression_header::{PreservationMap, preservation_map::Key},
-    io::writer::{Options, Record, collections::write_array, num::write_itf8},
+    io::writer::{
+        Options, Record,
+        collections::write_array,
+        num::{write_itf8, write_u8},
+    },
 };
 
 pub(super) fn write_preservation_map<W>(
@@ -76,9 +78,9 @@ where
     const TRUE: u8 = 0x01;
 
     if value {
-        writer.write_u8(TRUE)
+        write_u8(writer, TRUE)
     } else {
-        writer.write_u8(FALSE)
+        write_u8(writer, FALSE)
     }
 }
 

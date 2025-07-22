@@ -1,7 +1,5 @@
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
 use crate::{
     container::{
         block,
@@ -13,7 +11,7 @@ use crate::{
             },
         },
     },
-    io::writer::num::write_itf8,
+    io::writer::num::{write_itf8, write_u8},
 };
 
 pub fn write_byte_encoding<W>(writer: &mut W, encoding: &Encoding<Byte>) -> io::Result<()>
@@ -175,7 +173,7 @@ where
     W: Write,
 {
     let mut args = Vec::new();
-    args.write_u8(stop_byte)?;
+    write_u8(&mut args, stop_byte)?;
 
     write_itf8(&mut args, block_content_id)?;
 

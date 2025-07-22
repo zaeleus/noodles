@@ -6,6 +6,13 @@ use std::io::{self, Write};
 
 pub use self::{itf8::write_itf8, ltf8::write_ltf8, vlq::write_uint7};
 
+pub(crate) fn write_u8<W>(writer: &mut W, n: u8) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_all(&[n])
+}
+
 pub(crate) fn write_i32_le<W>(writer: &mut W, n: i32) -> io::Result<()>
 where
     W: Write,

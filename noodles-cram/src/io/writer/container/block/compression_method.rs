@@ -1,8 +1,6 @@
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
-use crate::container::block::CompressionMethod;
+use crate::{container::block::CompressionMethod, io::writer::num::write_u8};
 
 pub(super) fn write_compression_method<W>(
     writer: &mut W,
@@ -12,7 +10,7 @@ where
     W: Write,
 {
     let n = encode(compression_method);
-    writer.write_u8(n)
+    write_u8(writer, n)
 }
 
 fn encode(compression_method: CompressionMethod) -> u8 {
