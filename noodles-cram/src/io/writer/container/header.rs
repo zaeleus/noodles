@@ -1,11 +1,10 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
 
 use crate::{
     container::{Header, ReferenceSequenceContext},
-    io::writer::num::{write_i32_le, write_itf8, write_ltf8},
+    io::writer::num::{write_i32_le, write_itf8, write_ltf8, write_u32_le},
 };
 
 pub fn write_header<W>(writer: &mut W, header: &Header, len: usize) -> io::Result<()>
@@ -31,7 +30,7 @@ where
     write_landmarks(writer, header.landmarks())?;
 
     let crc32 = writer.crc().sum();
-    writer.get_mut().write_u32::<LittleEndian>(crc32)?;
+    write_u32_le(writer.get_mut(), crc32)?;
 
     Ok(())
 }

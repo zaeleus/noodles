@@ -6,14 +6,13 @@ use std::{
     mem,
 };
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use flate2::CrcWriter;
 
 use self::{compression_method::write_compression_method, content_type::write_content_type};
 use crate::{
     codecs::Encoder,
     container::block::{CompressionMethod, ContentId, ContentType},
-    io::writer::num::write_itf8,
+    io::writer::num::{write_itf8, write_u32_le},
 };
 
 pub struct Block {
@@ -115,7 +114,7 @@ where
     writer.write_all(&block.src)?;
 
     let crc32 = writer.crc().sum();
-    writer.get_mut().write_u32::<LittleEndian>(crc32)?;
+    write_u32_le(writer.get_mut(), crc32)?;
 
     Ok(())
 }
