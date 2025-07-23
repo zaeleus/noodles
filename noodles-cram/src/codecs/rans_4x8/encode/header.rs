@@ -1,8 +1,9 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
-
-use crate::codecs::rans_4x8::Order;
+use crate::{
+    codecs::rans_4x8::Order,
+    io::writer::num::{write_u8, write_u32_le},
+};
 
 pub fn write_header<W>(
     writer: &mut W,
@@ -28,7 +29,7 @@ where
         Order::One => 1,
     };
 
-    writer.write_u8(n)
+    write_u8(writer, n)
 }
 
 fn write_size<W>(writer: &mut W, size: usize) -> io::Result<()>
@@ -36,7 +37,7 @@ where
     W: Write,
 {
     let n = u32::try_from(size).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(n)
+    write_u32_le(writer, n)
 }
 
 #[cfg(test)]

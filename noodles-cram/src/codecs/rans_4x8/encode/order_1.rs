@@ -1,9 +1,10 @@
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
 use super::{order_0, state_renormalize, state_step, write_header, write_states};
-use crate::codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, Order, STATE_COUNT};
+use crate::{
+    codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, Order, STATE_COUNT},
+    io::writer::num::write_u8,
+};
 
 const CONTEXT_SIZE: usize = 2;
 const NUL: u8 = 0x00;
@@ -93,14 +94,14 @@ where
         }
 
         // SAFETY: `sym <= ALPHABET_SIZE`.
-        writer.write_u8(sym as u8)?;
+        write_u8(writer, sym as u8)?;
 
         if sym > 0 && sym - 1 == prev_sym {
             let i = sym + 1;
             let len = statuses[i..].iter().position(|s| *s).unwrap_or(0);
 
             // SAFETY: `len < ALPHABET_SIZE`.
-            writer.write_u8(len as u8)?;
+            write_u8(writer, len as u8)?;
 
             order_0::write_frequencies(writer, f)?;
 
@@ -117,7 +118,7 @@ where
         prev_sym = sym;
     }
 
-    writer.write_u8(NUL)?;
+    write_u8(writer, NUL)?;
 
     Ok(())
 }

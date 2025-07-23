@@ -4,7 +4,7 @@ mod order_1;
 
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use crate::io::writer::num::{write_u8, write_u32_le};
 
 use self::header::write_header;
 use super::{LOWER_BOUND, Order, STATE_COUNT};
@@ -21,7 +21,7 @@ where
     W: Write,
 {
     for state in states {
-        writer.write_u32::<LittleEndian>(*state)?;
+        write_u32_le(writer, *state)?;
     }
 
     Ok(())
@@ -33,7 +33,7 @@ where
 {
     while s >= (LOWER_BOUND >> 4) * u32::from(f) {
         let b = (s & 0xff) as u8;
-        writer.write_u8(b)?;
+        write_u8(writer, b)?;
         s >>= 8;
     }
 

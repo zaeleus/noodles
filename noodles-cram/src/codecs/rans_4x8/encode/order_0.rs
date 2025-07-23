@@ -1,11 +1,9 @@
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
 use super::{state_renormalize, state_step, write_header, write_states};
 use crate::{
     codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, Order, STATE_COUNT},
-    io::writer::num::write_itf8,
+    io::writer::num::{write_itf8, write_u8},
 };
 
 type RawFrequencies = [u32; ALPHABET_SIZE];
@@ -57,14 +55,14 @@ where
         }
 
         // SAFETY: `sym <= ALPHABET_SIZE`.
-        writer.write_u8(sym as u8)?;
+        write_u8(writer, sym as u8)?;
 
         if sym > 0 && sym - 1 == prev_sym {
             let i = sym + 1;
             let len = frequencies[i..].iter().position(|&g| g == 0).unwrap_or(0);
 
             // SAFETY: `len < ALPHABET_SIZE`.
-            writer.write_u8(len as u8)?;
+            write_u8(writer, len as u8)?;
 
             write_itf8(writer, i32::from(f))?;
 
@@ -81,7 +79,7 @@ where
         prev_sym = sym;
     }
 
-    writer.write_u8(NUL)?;
+    write_u8(writer, NUL)?;
 
     Ok(())
 }
