@@ -4,7 +4,7 @@ mod order_1;
 
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use crate::io::reader::num::{read_u8, read_u32_le};
 
 use self::header::read_header;
 use super::{LOWER_BOUND, Order, STATE_COUNT};
@@ -29,9 +29,13 @@ fn read_states<R>(reader: &mut R) -> io::Result<[u32; 4]>
 where
     R: Read,
 {
-    let mut buf = [0; STATE_COUNT];
-    reader.read_u32_into::<LittleEndian>(&mut buf)?;
-    Ok(buf)
+    let mut states = [0; STATE_COUNT];
+
+    for state in &mut states {
+        *state = read_u32_le(reader)?;
+    }
+
+    Ok(states)
 }
 
 pub fn state_cumulative_frequency(s: u32) -> u16 {
@@ -47,7 +51,7 @@ where
     R: Read,
 {
     while s < LOWER_BOUND {
-        let b = reader.read_u8().map(u32::from)?;
+        let b = read_u8(reader).map(u32::from)?;
         s = (s << 8) | b;
     }
 

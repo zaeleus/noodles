@@ -1,9 +1,10 @@
 use std::io::{self, Read};
 
-use byteorder::ReadBytesExt;
-
 use super::{read_states, state_cumulative_frequency, state_renormalize, state_step};
-use crate::{codecs::rans_4x8::ALPHABET_SIZE, io::reader::num::read_itf8_as};
+use crate::{
+    codecs::rans_4x8::ALPHABET_SIZE,
+    io::reader::num::{read_itf8_as, read_u8},
+};
 
 type Frequencies = [u16; ALPHABET_SIZE]; // F
 type CumulativeFrequencies = Frequencies; // C
@@ -45,21 +46,21 @@ where
 
     let mut frequencies = [0; ALPHABET_SIZE];
 
-    let mut sym = reader.read_u8()?;
+    let mut sym = read_u8(reader)?;
     let mut prev_sym = sym;
 
     loop {
         let f = read_itf8_as(reader)?;
         frequencies[usize::from(sym)] = f;
 
-        sym = reader.read_u8()?;
+        sym = read_u8(reader)?;
 
         if sym == NUL {
             break;
         }
 
         if sym - 1 == prev_sym {
-            let len = reader.read_u8()?;
+            let len = read_u8(reader)?;
 
             for _ in 0..len {
                 let f = read_itf8_as(reader)?;

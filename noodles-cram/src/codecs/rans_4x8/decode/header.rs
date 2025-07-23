@@ -1,8 +1,9 @@
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
-use crate::codecs::rans_4x8::Order;
+use crate::{
+    codecs::rans_4x8::Order,
+    io::reader::num::{read_u8, read_u32_le},
+};
 
 pub(super) fn read_header<R>(reader: &mut R) -> io::Result<(Order, usize, usize)>
 where
@@ -18,7 +19,7 @@ fn read_order<R>(reader: &mut R) -> io::Result<Order>
 where
     R: Read,
 {
-    match reader.read_u8()? {
+    match read_u8(reader)? {
         0 => Ok(Order::Zero),
         1 => Ok(Order::One),
         _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid order")),
@@ -29,8 +30,7 @@ fn read_size<R>(reader: &mut R) -> io::Result<usize>
 where
     R: Read,
 {
-    reader
-        .read_u32::<LittleEndian>()
+    read_u32_le(reader)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
