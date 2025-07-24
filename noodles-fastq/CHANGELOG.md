@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fastq/record: Use definition in debug format.
+
 ## 0.20.0 - 2025-07-12
 
 ### Changed

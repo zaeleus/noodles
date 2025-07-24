@@ -174,8 +174,7 @@ impl Record {
 impl fmt::Debug for Record {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Record")
-            .field("name", &self.name())
-            .field("description", &self.description())
+            .field("definition", &self.definition())
             .field("sequence", &self.sequence().as_bstr())
             .field("quality_scores", &self.quality_scores().as_bstr())
             .finish()
