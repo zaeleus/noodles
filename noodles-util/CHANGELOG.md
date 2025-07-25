@@ -6,6 +6,8 @@
 
   * util/variant/fs: Add `open` function.
 
+  * util/variant/record: Implement `Debug`.
+
 ## 0.69.0 - 2025-07-12
 
 ### Added

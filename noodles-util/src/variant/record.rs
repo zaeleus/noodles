@@ -5,7 +5,7 @@ use noodles_core::Position;
 use noodles_vcf as vcf;
 
 /// A variant record.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Record {
     /// A VCF record.
     Vcf(vcf::Record),
