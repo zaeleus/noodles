@@ -1,8 +1,6 @@
 use std::io::{self, Read};
 
-use byteorder::ReadBytesExt;
-
-use crate::io::reader::num::read_uint7;
+use crate::io::reader::num::{read_u8, read_uint7};
 
 pub fn decode<R>(
     mut src: &[u8],
@@ -17,7 +15,7 @@ where
     let mut j = 0;
 
     while j < dst.len() {
-        let sym = src.read_u8()?;
+        let sym = read_u8(&mut src)?;
 
         if l[usize::from(sym)] {
             let run = read_uint7(rle_meta).and_then(|n| {

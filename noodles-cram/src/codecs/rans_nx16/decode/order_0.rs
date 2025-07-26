@@ -1,8 +1,6 @@
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
-use crate::io::reader::num::read_uint7;
+use crate::io::reader::num::{read_u32_le, read_uint7};
 
 pub fn decode<R>(reader: &mut R, output: &mut [u8], n: u32) -> io::Result<()>
 where
@@ -21,7 +19,7 @@ where
     let mut state = vec![0; n as usize];
 
     for s in &mut state {
-        *s = reader.read_u32::<LittleEndian>()?;
+        *s = read_u32_le(reader)?;
     }
 
     for (i, b) in output.iter_mut().enumerate() {

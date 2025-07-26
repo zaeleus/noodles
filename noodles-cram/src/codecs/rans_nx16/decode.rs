@@ -5,19 +5,18 @@ mod rle;
 
 use std::{
     io::{self, Cursor, Read},
+    mem,
     num::NonZeroUsize,
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
 use super::Flags;
-use crate::io::reader::num::read_uint7;
+use crate::io::reader::num::{read_u8, read_uint7};
 
 pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let flags = reader.read_u8().map(Flags::from)?;
+    let flags = read_u8(reader).map(Flags::from)?;
 
     if !flags.contains(Flags::NO_SIZE) {
         len = read_uint7(reader).and_then(|n| {
@@ -84,7 +83,7 @@ where
 {
     let mut alphabet = [false; 256];
 
-    let mut sym = reader.read_u8()?;
+    let mut sym = read_u8(reader)?;
     let mut last_sym = sym;
     let mut rle = 0;
 
@@ -95,10 +94,10 @@ where
             rle -= 1;
             sym += 1;
         } else {
-            sym = reader.read_u8()?;
+            sym = read_u8(reader)?;
 
             if last_sym < 255 && sym == last_sym + 1 {
-                rle = reader.read_u8()?;
+                rle = read_u8(reader)?;
             }
         }
 
@@ -135,7 +134,7 @@ where
     R: Read,
 {
     if r < (1 << 15) {
-        r = (r << 16) + reader.read_u16::<LittleEndian>().map(u32::from)?;
+        r = (r << 16) + read_u16_le(reader).map(u32::from)?;
     }
 
     Ok(r)
@@ -145,7 +144,7 @@ fn rans_decode_stripe<R>(reader: &mut R, len: usize, n: u32) -> io::Result<Vec<u
 where
     R: Read,
 {
-    let x = reader.read_u8().map(usize::from)?;
+    let x = read_u8(reader).map(usize::from)?;
     let mut clens = Vec::with_capacity(x);
 
     for _ in 0..x {
@@ -216,7 +215,7 @@ where
 
     let mut rle_meta_reader = Cursor::new(rle_meta);
 
-    let mut m = rle_meta_reader.read_u8().map(u16::from)?;
+    let mut m = read_u8(&mut rle_meta_reader).map(u16::from)?;
 
     if m == 0 {
         m = 256;
@@ -225,7 +224,7 @@ where
     let mut l = [false; 256];
 
     for _ in 0..m {
-        let s = rle_meta_reader.read_u8()?;
+        let s = read_u8(&mut rle_meta_reader)?;
         l[usize::from(s)] = true;
     }
 
@@ -237,7 +236,7 @@ where
     R: Read,
 {
     // n_sym
-    let symbol_count = reader.read_u8().and_then(|n| {
+    let symbol_count = read_u8(reader).and_then(|n| {
         NonZeroUsize::try_from(usize::from(n))
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -250,6 +249,15 @@ where
     })?;
 
     Ok((p, symbol_count, len))
+}
+
+fn read_u16_le<R>(reader: &mut R) -> io::Result<u16>
+where
+    R: Read,
+{
+    let mut buf = [0; mem::size_of::<u16>()];
+    reader.read_exact(&mut buf)?;
+    Ok(u16::from_le_bytes(buf))
 }
 
 #[cfg(test)]
