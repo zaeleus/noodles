@@ -5,16 +5,14 @@ mod rle;
 
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
 use super::Flags;
-use crate::io::writer::num::write_uint7;
+use crate::io::writer::num::{write_u8, write_uint7};
 
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut src = src.to_vec();
     let mut dst = Vec::new();
 
-    dst.write_u8(u8::from(flags))?;
+    write_u8(&mut dst, u8::from(flags))?;
 
     if !flags.contains(Flags::NO_SIZE) {
         let n =
@@ -77,7 +75,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     } else if flags.contains(Flags::ORDER) {
         let (normalized_contexts, compressed_data) = order_1::encode(&src, n)?;
         // bits = 12, no compression (0)
-        dst.write_u8(12 << 4)?;
+        write_u8(&mut dst, 12 << 4)?;
         order_1::write_contexts(&mut dst, &normalized_contexts)?;
         dst.write_all(&compressed_data)?;
     } else {
@@ -177,7 +175,7 @@ where
         if rle > 0 {
             rle -= 1;
         } else {
-            writer.write_u8(sym as u8)?;
+            write_u8(writer, sym as u8)?;
 
             if sym > 0 && frequencies[sym - 1] > 0 {
                 rle = frequencies[sym + 1..]
@@ -185,12 +183,12 @@ where
                     .position(|&f| f == 0)
                     .unwrap_or(0);
 
-                writer.write_u8(rle as u8)?;
+                write_u8(writer, rle as u8)?;
             }
         }
     }
 
-    writer.write_u8(0x00)?;
+    write_u8(writer, 0x00)?;
 
     Ok(())
 }
@@ -200,8 +198,8 @@ where
     W: Write,
 {
     while r >= ((1 << (31 - bits)) * freq_i) {
-        writer.write_u8(((r >> 8) & 0xff) as u8)?;
-        writer.write_u8((r & 0xff) as u8)?;
+        write_u8(writer, ((r >> 8) & 0xff) as u8)?;
+        write_u8(writer, (r & 0xff) as u8)?;
         r >>= 16;
     }
 
@@ -247,7 +245,7 @@ fn rans_encode_stripe(src: &[u8], n: usize) -> io::Result<Vec<u8>> {
 
     let mut dst = Vec::new();
 
-    dst.write_u8(n as u8)?;
+    write_u8(&mut dst, n as u8)?;
 
     for chunk in &chunks {
         let clen = chunk.len() as u32;

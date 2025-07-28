@@ -1,8 +1,6 @@
 use std::io;
 
-use byteorder::WriteBytesExt;
-
-use crate::io::writer::num::write_uint7;
+use crate::io::writer::num::{write_u8, write_uint7};
 
 pub fn encode(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
     let mut frequencies = [0; 256];
@@ -71,12 +69,12 @@ pub fn encode(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
     };
 
     let mut header = Vec::new();
-    header.write_u8(n)?;
+    write_u8(&mut header, n)?;
 
     for (sym, &f) in frequencies.iter().enumerate() {
         if f > 0 {
             let b = sym as u8;
-            header.write_u8(b)?;
+            write_u8(&mut header, b)?;
         }
     }
 

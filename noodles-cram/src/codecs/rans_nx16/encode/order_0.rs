@@ -3,9 +3,7 @@ use std::{
     mem,
 };
 
-use byteorder::{LittleEndian, WriteBytesExt};
-
-use crate::io::writer::num::write_uint7;
+use crate::io::writer::num::{write_u32_le, write_uint7};
 
 pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<u32>, Vec<u8>)> {
     use super::{
@@ -36,7 +34,7 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<u32>, Vec<u8>)> {
     let mut dst = Vec::with_capacity(states.len() * mem::size_of::<u32>() + buf.len());
 
     for &state in &states {
-        dst.write_u32::<LittleEndian>(state)?;
+        write_u32_le(&mut dst, state)?;
     }
 
     dst.extend(buf.iter().rev());
