@@ -6,6 +6,10 @@
 
   * util/variant/fs: Add `open` function.
 
+  * util/variant/io/reader: Add constructor (`Reader::new`).
+
+    This is similar to calling `Builder::build_from_reader` with defaults.
+
   * util/variant/record: Implement `Debug`.
 
 ### Changed

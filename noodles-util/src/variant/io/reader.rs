@@ -126,3 +126,22 @@ where
         }
     }
 }
+
+impl<'a> Reader<Box<dyn BufRead + 'a>> {
+    /// Creates a variant reader.
+    ///
+    /// This attempts to autodetect the compression method and format of the input.
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_util::variant;
+    /// let mut reader = variant::io::Reader::new(io::empty())?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn new<R>(reader: R) -> io::Result<Self>
+    where
+        R: BufRead + 'a,
+    {
+        Builder::default().build_from_reader(reader)
+    }
+}

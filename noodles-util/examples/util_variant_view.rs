@@ -4,7 +4,8 @@
 
 use std::{
     env,
-    io::{self, BufWriter},
+    fs::File,
+    io::{self, BufReader, BufWriter},
 };
 
 use noodles_util::variant;
@@ -13,13 +14,12 @@ use noodles_vcf::{self as vcf, variant::io::Write};
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let builder = variant::io::reader::Builder::default();
-
     let mut reader = if src == "-" {
-        let stdin = io::stdin().lock();
-        builder.build_from_reader(stdin)?
+        variant::io::Reader::new(io::stdin().lock())?
     } else {
-        builder.build_from_path(src)?
+        File::open(src)
+            .map(BufReader::new)
+            .and_then(variant::io::Reader::new)?
     };
 
     let header = reader.read_header()?;
