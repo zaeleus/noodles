@@ -84,9 +84,9 @@ impl Builder {
     /// let reader = Builder::default().build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<Box<dyn BufRead>>>
+    pub fn build_from_reader<'a, R>(self, reader: R) -> io::Result<Reader<Box<dyn BufRead + 'a>>>
     where
-        R: Read + 'static,
+        R: Read + 'a,
     {
         use super::Inner;
 

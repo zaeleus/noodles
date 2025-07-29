@@ -8,6 +8,11 @@
 
   * util/variant/record: Implement `Debug`.
 
+### Changed
+
+  * util/variant/io/reader/builder: Relax reader lifetime for
+    `Builder::build_from_reader`.
+
 ## 0.69.0 - 2025-07-12
 
 ### Added
