@@ -1,9 +1,7 @@
 use std::io::{self, Read};
 
-use byteorder::ReadBytesExt;
-
 use super::{Flags, Model, RangeCoder};
-use crate::io::reader::num::read_uint7;
+use crate::io::reader::num::{read_u8, read_uint7};
 
 pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
@@ -11,7 +9,7 @@ where
 {
     use crate::codecs::rans_nx16::decode::{decode_pack_meta, pack};
 
-    let flags = reader.read_u8().map(Flags::from)?;
+    let flags = read_u8(reader).map(Flags::from)?;
 
     if !flags.contains(Flags::NO_SIZE) {
         len = read_uint7(reader).and_then(|n| {
@@ -65,7 +63,7 @@ fn decode_stripe<R>(reader: &mut R, len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let n = reader.read_u8().map(usize::from)?;
+    let n = read_u8(reader).map(usize::from)?;
     let mut clens = Vec::with_capacity(n);
 
     for _ in 0..n {
@@ -117,9 +115,7 @@ fn decode_rle_0<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader
-        .read_u8()
-        .map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+    let max_sym = read_u8(reader).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
 
     let mut model_lit = Model::new(max_sym);
     let mut model_run = vec![Model::new(3); 258];
@@ -157,9 +153,7 @@ fn decode_rle_1<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader
-        .read_u8()
-        .map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+    let max_sym = read_u8(reader).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
 
     let mut model_lit = vec![Model::new(max_sym); usize::from(max_sym) + 1];
     let mut model_run = vec![Model::new(3); 258];
@@ -199,7 +193,7 @@ fn decode_order_0<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader.read_u8().map(|n| n.overflowing_sub(1).0)?;
+    let max_sym = read_u8(reader).map(|n| n.overflowing_sub(1).0)?;
 
     let mut model = Model::new(max_sym);
 
@@ -217,7 +211,7 @@ fn decode_order_1<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
 where
     R: Read,
 {
-    let max_sym = reader.read_u8().map(|n| n.overflowing_sub(1).0)?;
+    let max_sym = read_u8(reader).map(|n| n.overflowing_sub(1).0)?;
 
     let mut models = vec![Model::new(max_sym); usize::from(max_sym) + 1];
 

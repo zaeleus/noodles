@@ -1,6 +1,8 @@
 use std::io::{self, Read, Write};
 
-use byteorder::{ReadBytesExt, WriteBytesExt};
+use byteorder::WriteBytesExt;
+
+use crate::io::reader::num::read_u8;
 
 #[derive(Debug)]
 pub struct RangeCoder {
@@ -19,7 +21,7 @@ impl RangeCoder {
         R: Read,
     {
         for _ in 0..=4 {
-            let b = reader.read_u8().map(u32::from)?;
+            let b = read_u8(reader).map(u32::from)?;
             self.code = (self.code << 8) | b;
         }
 
@@ -42,7 +44,7 @@ impl RangeCoder {
 
         while self.range < (1 << 24) {
             self.range <<= 8;
-            let b = reader.read_u8().map(u32::from)?;
+            let b = read_u8(reader).map(u32::from)?;
             self.code = (self.code << 8) | b;
         }
 
