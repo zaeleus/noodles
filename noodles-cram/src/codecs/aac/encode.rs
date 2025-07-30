@@ -1,9 +1,7 @@
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
 use super::{Flags, Model, RangeCoder};
-use crate::io::writer::num::write_uint7;
+use crate::io::writer::num::{write_u8, write_uint7};
 
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     use crate::codecs::rans_nx16::encode::pack;
@@ -11,7 +9,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut src = src.to_vec();
     let mut dst = Vec::new();
 
-    dst.write_u8(u8::from(flags))?;
+    write_u8(&mut dst, u8::from(flags))?;
 
     if !flags.contains(Flags::NO_SIZE) {
         let ulen =
@@ -105,7 +103,7 @@ fn encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut dst = Vec::new();
 
-    dst.write_u8(N as u8)?;
+    write_u8(&mut dst, N as u8)?;
 
     for chunk in &chunks {
         let clen = chunk.len() as u32;
@@ -131,7 +129,7 @@ fn encode_ext(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
 
 fn encode_rle_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
-    dst.write_u8(max_sym.overflowing_add(1).0)?;
+    write_u8(dst, max_sym.overflowing_add(1).0)?;
 
     let mut model_lit = Model::new(max_sym);
     let mut model_run = vec![Model::new(3); 258];
@@ -169,7 +167,7 @@ fn encode_rle_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
 
 fn encode_rle_1(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
-    dst.write_u8(max_sym.overflowing_add(1).0)?;
+    write_u8(dst, max_sym.overflowing_add(1).0)?;
 
     let model_lit_count = usize::from(max_sym) + 1;
     let mut model_lit = vec![Model::new(max_sym); model_lit_count];
@@ -210,7 +208,7 @@ fn encode_rle_1(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
 
 fn encode_order_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
-    dst.write_u8(max_sym.overflowing_add(1).0)?;
+    write_u8(dst, max_sym.overflowing_add(1).0)?;
 
     let mut model = Model::new(max_sym);
     let mut range_coder = RangeCoder::default();
@@ -226,7 +224,7 @@ fn encode_order_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
 
 fn encode_order_1(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
-    dst.write_u8(max_sym.overflowing_add(1).0)?;
+    write_u8(dst, max_sym.overflowing_add(1).0)?;
 
     let model_count = usize::from(max_sym) + 1;
     let mut models = vec![Model::new(max_sym); model_count];

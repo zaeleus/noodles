@@ -1,8 +1,6 @@
 use std::io::{self, Read, Write};
 
-use byteorder::WriteBytesExt;
-
-use crate::io::reader::num::read_u8;
+use crate::io::{reader::num::read_u8, writer::num::write_u8};
 
 #[derive(Debug)]
 pub struct RangeCoder {
@@ -86,18 +84,18 @@ impl RangeCoder {
         if self.low < 0xff000000 || self.carry != 0 {
             if self.carry == 0 {
                 let b = (self.cache & 0xff) as u8;
-                writer.write_u8(b)?;
+                write_u8(writer, b)?;
 
                 while self.ff_num > 0 {
-                    writer.write_u8(0xff)?;
+                    write_u8(writer, 0xff)?;
                     self.ff_num -= 1;
                 }
             } else {
                 let b = ((self.cache + 1) & 0xff) as u8;
-                writer.write_u8(b)?;
+                write_u8(writer, b)?;
 
                 while self.ff_num > 0 {
-                    writer.write_u8(0x00)?;
+                    write_u8(writer, 0x00)?;
                     self.ff_num -= 1;
                 }
             }
