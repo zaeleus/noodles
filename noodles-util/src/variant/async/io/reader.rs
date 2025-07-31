@@ -91,3 +91,25 @@ where
         records
     }
 }
+
+impl<'a> Reader<Box<dyn AsyncBufRead + Unpin + 'a>> {
+    /// Creates a variant reader.
+    ///
+    /// This attempts to autodetect the compression method and format of the input.
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_util::variant;
+    /// use tokio::io;
+    /// let reader = variant::r#async::io::Reader::new(io::empty()).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn new<R>(reader: R) -> io::Result<Self>
+    where
+        R: AsyncBufRead + Unpin + 'a,
+    {
+        Builder::default().build_from_reader(reader).await
+    }
+}
