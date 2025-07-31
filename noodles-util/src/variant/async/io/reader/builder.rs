@@ -92,12 +92,12 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn build_from_reader<R>(
+    pub async fn build_from_reader<'a, R>(
         self,
         reader: R,
-    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin>>>
+    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin + 'a>>>
     where
-        R: AsyncRead + Unpin + 'static,
+        R: AsyncRead + Unpin + 'a,
     {
         use crate::variant::io::reader::builder::{detect_compression_method, detect_format};
 
