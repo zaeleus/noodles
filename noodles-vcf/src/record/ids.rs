@@ -1,7 +1,9 @@
-use std::iter;
+use std::{fmt, iter};
+
+use crate::variant::record::Ids as _;
 
 /// VCF record IDs.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct Ids<'a>(&'a str);
 
 impl<'a> Ids<'a> {
@@ -13,6 +15,12 @@ impl<'a> Ids<'a> {
 impl AsRef<str> for Ids<'_> {
     fn as_ref(&self) -> &str {
         self.0
+    }
+}
+
+impl fmt::Debug for Ids<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
     }
 }
 
@@ -39,7 +47,6 @@ impl crate::variant::record::Ids for Ids<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::record::Ids as _;
 
     #[test]
     fn test_is_empty() {
