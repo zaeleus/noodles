@@ -1,3 +1,5 @@
+#![expect(dead_code)]
+
 use noodles_bgzf as bgzf;
 
 use crate::variant::io::{CompressionMethod, reader::builder::detect_compression_method};
