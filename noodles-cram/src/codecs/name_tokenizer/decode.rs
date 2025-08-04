@@ -1,11 +1,12 @@
 use std::io::{self, BufRead, Cursor, Read, Write};
 
-use byteorder::WriteBytesExt;
-
 use super::Type;
 use crate::{
     codecs::{aac, rans_nx16},
-    io::reader::num::{read_u8, read_u32_le, read_uint7},
+    io::{
+        reader::num::{read_u8, read_u32_le, read_uint7},
+        writer::num::write_u8,
+    },
 };
 
 pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
@@ -26,7 +27,7 @@ where
     for i in 0..n_names {
         let name = decode_single_name(&mut b, &mut names, &mut tokens, i)?;
         dst.write_all(name.as_bytes())?;
-        dst.write_u8(NUL)?;
+        write_u8(&mut dst, NUL)?;
     }
 
     Ok(dst)

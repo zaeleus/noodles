@@ -4,10 +4,8 @@ use std::{
     str,
 };
 
-use byteorder::{LittleEndian, WriteBytesExt};
-
 use super::Type;
-use crate::io::writer::num::write_uint7;
+use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
 
 const NUL: u8 = 0x00;
 
@@ -81,14 +79,14 @@ where
 {
     let ulen =
         u32::try_from(src_len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(ulen)?;
+    write_u32_le(writer, ulen)?;
 
     let n_names =
         u32::try_from(names_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(n_names)?;
+    write_u32_le(writer, n_names)?;
 
     // TODO: use_arith
-    writer.write_u8(0)?;
+    write_u8(writer, 0)?;
 
     Ok(())
 }
@@ -337,34 +335,34 @@ impl TokenWriter {
                 self.string_writer.write_all(s.as_bytes())?;
                 self.string_writer.write_all(&[NUL])?;
             }
-            Token::Char(b) => self.char_writer.write_u8(*b)?,
+            Token::Char(b) => write_u8(&mut self.char_writer, *b)?,
             Token::PaddedDigits(n, width) => {
                 // d
-                self.digits0_writer.write_u32::<LittleEndian>(*n)?;
+                write_u32_le(&mut self.digits0_writer, *n)?;
 
                 let l = u8::try_from(*width)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-                self.dz_len_writer.write_u8(l)?;
+                write_u8(&mut self.dz_len_writer, l)?;
             }
             // ...
             Token::Dup(delta) => {
                 let n = u32::try_from(*delta)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-                self.dup_writer.write_u32::<LittleEndian>(n)?;
+                write_u32_le(&mut self.dup_writer, n)?;
             }
             Token::Diff(delta) => {
                 let n = u32::try_from(*delta)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-                self.diff_writer.write_u32::<LittleEndian>(n)?;
+                write_u32_le(&mut self.diff_writer, n)?;
             }
             Token::Digits(n) => {
-                self.digits_writer.write_u32::<LittleEndian>(*n)?;
+                write_u32_le(&mut self.digits_writer, *n)?;
             }
             Token::Delta(_, delta) => {
-                self.delta_writer.write_u8(*delta)?;
+                write_u8(&mut self.delta_writer, *delta)?;
             }
             Token::Delta0(_, delta) => {
-                self.delta0_writer.write_u8(*delta)?;
+                write_u8(&mut self.delta0_writer, *delta)?;
             }
             Token::Match => {}
             // ...
@@ -395,7 +393,7 @@ where
         Type::End => 12,
     };
 
-    writer.write_u8(n)
+    write_u8(writer, n)
 }
 
 fn encode_token_byte_streams<W>(writer: &mut W, token_writer: &TokenWriter) -> io::Result<()>
@@ -427,7 +425,7 @@ where
     }
 
     if ty == Type::Type {
-        writer.write_u8(0x80)?;
+        write_u8(writer, 0x80)?;
     } else {
         write_type(writer, ty)?;
     }
