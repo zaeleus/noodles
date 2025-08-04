@@ -1,11 +1,11 @@
 use std::io::{self, BufRead, Cursor, Read, Write};
 
-use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::WriteBytesExt;
 
 use super::Type;
 use crate::{
     codecs::{aac, rans_nx16},
-    io::reader::num::read_uint7,
+    io::reader::num::{read_u8, read_u32_le, read_uint7},
 };
 
 pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
@@ -36,15 +36,15 @@ fn read_header<R>(reader: &mut R) -> io::Result<(usize, usize, bool)>
 where
     R: Read,
 {
-    let ulen = reader.read_u32::<LittleEndian>().and_then(|n| {
+    let ulen = read_u32_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let n_names = reader.read_u32::<LittleEndian>().and_then(|n| {
+    let n_names = read_u32_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let use_arith = reader.read_u8()? == 1;
+    let use_arith = read_u8(reader)? == 1;
 
     Ok((ulen, n_names, use_arith))
 }
@@ -121,7 +121,7 @@ impl TokenReader {
     }
 
     fn read_type(&mut self) -> io::Result<Type> {
-        self.type_reader.read_u8().and_then(|n| {
+        read_u8(&mut self.type_reader).and_then(|n| {
             Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
     }
@@ -129,7 +129,7 @@ impl TokenReader {
     fn read_distance(&mut self, ty: Type) -> io::Result<usize> {
         assert!(matches!(ty, Type::Dup | Type::Diff));
 
-        self.get_mut(ty).read_u32::<LittleEndian>().and_then(|n| {
+        read_u32_le(self.get_mut(ty)).and_then(|n| {
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
     }
@@ -137,7 +137,7 @@ impl TokenReader {
     fn read_token(&mut self, prev_token: Option<&Token>) -> io::Result<Option<Token>> {
         match self.read_type()? {
             Type::Char => {
-                let c = self.char_reader.read_u8().map(char::from)?;
+                let c = read_u8(&mut self.char_reader).map(char::from)?;
                 Ok(Some(Token::Char(c)))
             }
             Type::String => {
@@ -151,16 +151,16 @@ impl TokenReader {
                 Ok(Some(Token::String(s)))
             }
             Type::Digits => {
-                let d = self.digits_reader.read_u32::<LittleEndian>()?;
+                let d = read_u32_le(&mut self.digits_reader)?;
                 Ok(Some(Token::Digits(d)))
             }
             Type::Digits0 => {
-                let d = self.digits0_reader.read_u32::<LittleEndian>()?;
-                let l = self.dz_len_reader.read_u8()?;
+                let d = read_u32_le(&mut self.digits0_reader)?;
+                let l = read_u8(&mut self.dz_len_reader)?;
                 Ok(Some(Token::PaddedDigits(d, l)))
             }
             Type::Delta => {
-                let delta = self.delta_reader.read_u8().map(u32::from)?;
+                let delta = read_u8(&mut self.delta_reader).map(u32::from)?;
 
                 match prev_token {
                     Some(Token::Digits(n)) => Ok(Some(Token::Digits(n + delta))),
@@ -171,7 +171,7 @@ impl TokenReader {
                 }
             }
             Type::Delta0 => {
-                let delta = self.delta0_reader.read_u8().map(u32::from)?;
+                let delta = read_u8(&mut self.delta0_reader).map(u32::from)?;
 
                 match prev_token {
                     Some(Token::PaddedDigits(n, width)) => {
@@ -202,7 +202,7 @@ where
     let mut t = -1;
 
     loop {
-        let ttype = match reader.read_u8() {
+        let ttype = match read_u8(reader) {
             Ok(n) => n,
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => break,
             Err(e) => return Err(e),
@@ -227,9 +227,9 @@ where
         }
 
         if tok_dup {
-            let dup_pos = reader.read_u8().map(usize::from)?;
+            let dup_pos = read_u8(reader).map(usize::from)?;
 
-            let dup_type = reader.read_u8().and_then(|n| {
+            let dup_type = read_u8(reader).and_then(|n| {
                 Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })?;
 
