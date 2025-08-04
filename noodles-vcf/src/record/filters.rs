@@ -1,9 +1,9 @@
-use std::{io, iter};
+use std::{fmt, io};
 
 use crate::Header;
 
 /// VCF record filters.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct Filters<'r>(&'r str);
 
 impl<'r> Filters<'r> {
@@ -32,13 +32,23 @@ impl crate::variant::record::Filters for Filters<'_> {
         &'a self,
         _: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<&'a str>> + 'a> {
-        const DELIMITER: char = ';';
+        iter(self.0)
+    }
+}
 
-        if self.is_empty() {
-            Box::new(iter::empty())
-        } else {
-            Box::new(self.0.split(DELIMITER).map(Ok))
-        }
+impl fmt::Debug for Filters<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_list().entries(iter(self.0)).finish()
+    }
+}
+
+fn iter(s: &str) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
+    const DELIMITER: char = ';';
+
+    if s.is_empty() {
+        Box::new(std::iter::empty())
+    } else {
+        Box::new(s.split(DELIMITER).map(Ok))
     }
 }
 
