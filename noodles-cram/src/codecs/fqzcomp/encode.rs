@@ -1,9 +1,10 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
-
 use super::{Models, parameter, parameters};
-use crate::{codecs::aac::RangeCoder, io::writer::num::write_uint7};
+use crate::{
+    codecs::aac::RangeCoder,
+    io::writer::num::{write_u8, write_u16_le, write_uint7},
+};
 
 pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = Vec::new();
@@ -187,19 +188,19 @@ where
 {
     const VERSION: u8 = 5;
 
-    writer.write_u8(VERSION)?;
+    write_u8(writer, VERSION)?;
 
     let gflags = u8::from(parameters.gflags);
-    writer.write_u8(gflags)?;
+    write_u8(writer, gflags)?;
 
     if parameters.gflags.contains(parameters::Flags::MULTI_PARAM) {
         let n_param = u8::try_from(parameters.params.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        writer.write_u8(n_param)?;
+        write_u8(writer, n_param)?;
     }
 
     if parameters.gflags.contains(parameters::Flags::HAVE_S_TAB) {
-        writer.write_u8(parameters.max_sel)?;
+        write_u8(writer, parameters.max_sel)?;
         write_array(writer, &parameters.s_tab)?;
     }
 
@@ -215,17 +216,17 @@ where
     W: Write,
 {
     let context = parameter.context;
-    writer.write_u16::<LittleEndian>(context)?;
+    write_u16_le(writer, context)?;
 
     let pflags = u8::from(parameter.flags);
-    writer.write_u8(pflags)?;
+    write_u8(writer, pflags)?;
 
     let max_sym = parameter.max_sym;
-    writer.write_u8(max_sym)?;
+    write_u8(writer, max_sym)?;
 
-    writer.write_u8((parameter.q_bits << 4) | parameter.q_shift)?;
-    writer.write_u8((parameter.q_loc << 4) | parameter.s_loc)?;
-    writer.write_u8((parameter.p_loc << 4) | parameter.d_loc)?;
+    write_u8(writer, (parameter.q_bits << 4) | parameter.q_shift)?;
+    write_u8(writer, (parameter.q_loc << 4) | parameter.s_loc)?;
+    write_u8(writer, (parameter.p_loc << 4) | parameter.d_loc)?;
 
     if parameter.flags.contains(parameter::Flags::HAVE_QMAP) {
         todo!("have_qmap");
