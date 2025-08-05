@@ -31,6 +31,15 @@ where
     Ok(u16::from_be_bytes(buf))
 }
 
+pub(crate) fn read_u16_le<R>(reader: &mut R) -> io::Result<u16>
+where
+    R: Read,
+{
+    let mut buf = [0; mem::size_of::<u16>()];
+    reader.read_exact(&mut buf)?;
+    Ok(u16::from_le_bytes(buf))
+}
+
 fn read_u24_be<R>(reader: &mut R) -> io::Result<u32>
 where
     R: Read,

@@ -4,9 +4,8 @@ pub use self::flags::Flags;
 
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
 use super::parameters::read_array;
+use crate::io::reader::num::{read_u8, read_u16_le};
 
 pub struct Parameter {
     pub context: u16,
@@ -28,17 +27,17 @@ pub fn fqz_decode_single_param<R>(reader: &mut R) -> io::Result<Parameter>
 where
     R: Read,
 {
-    let context = reader.read_u16::<LittleEndian>()?;
-    let flags = reader.read_u8().map(Flags::from)?;
-    let max_sym = reader.read_u8()?;
+    let context = read_u16_le(reader)?;
+    let flags = read_u8(reader).map(Flags::from)?;
+    let max_sym = read_u8(reader)?;
 
-    let n = reader.read_u8()?;
+    let n = read_u8(reader)?;
     let (q_bits, q_shift) = (n >> 4, n & 0x0f);
 
-    let n = reader.read_u8()?;
+    let n = read_u8(reader)?;
     let (q_loc, s_loc) = (n >> 4, n & 0x0f);
 
-    let n = reader.read_u8()?;
+    let n = read_u8(reader)?;
     let (p_loc, d_loc) = (n >> 4, n & 0x0f);
 
     let q_map = if flags.contains(Flags::HAVE_QMAP) {

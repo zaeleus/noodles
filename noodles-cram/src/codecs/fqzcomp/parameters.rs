@@ -4,9 +4,8 @@ pub use self::flags::Flags;
 
 use std::io::{self, Read};
 
-use byteorder::ReadBytesExt;
-
 use super::parameter::{Parameter, fqz_decode_single_param};
+use crate::io::reader::num::read_u8;
 
 const VERSION: u8 = 5;
 
@@ -22,7 +21,7 @@ pub fn fqz_decode_params<R>(reader: &mut R) -> io::Result<Parameters>
 where
     R: Read,
 {
-    let vers = reader.read_u8()?;
+    let vers = read_u8(reader)?;
 
     if vers != VERSION {
         return Err(io::Error::new(
@@ -31,17 +30,17 @@ where
         ));
     }
 
-    let gflags = reader.read_u8().map(Flags::from)?;
+    let gflags = read_u8(reader).map(Flags::from)?;
 
     let (n_param, mut max_sel) = if gflags.contains(Flags::MULTI_PARAM) {
-        let n = reader.read_u8()?;
+        let n = read_u8(reader)?;
         (usize::from(n), n)
     } else {
         (1, 0)
     };
 
     let s_tab = if gflags.contains(Flags::HAVE_S_TAB) {
-        max_sel = reader.read_u8()?;
+        max_sel = read_u8(reader)?;
         read_array(reader, 256)?
     } else {
         Vec::new()
@@ -79,14 +78,14 @@ where
     let mut runs = vec![0; n];
 
     while z < n {
-        let run = reader.read_u8()?;
+        let run = read_u8(reader)?;
 
         runs[j] = run;
         j += 1;
         z += usize::from(run);
 
         if run == last {
-            let copy = reader.read_u8()?;
+            let copy = read_u8(reader)?;
 
             for _ in 0..copy {
                 runs[j] = run;
