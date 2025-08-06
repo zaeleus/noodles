@@ -4,10 +4,12 @@ use std::{
     num,
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use crate::{binning_index::index::reference_sequence::bin::Chunk, io::reader::num::read_i32_le};
+use crate::{
+    binning_index::index::reference_sequence::bin::Chunk,
+    io::reader::num::{read_i32_le, read_u64_le},
+};
 
 /// An error returned when CSI reference sequence bin chunks fail to be read.
 #[derive(Debug)]
@@ -57,14 +59,8 @@ fn read_chunk<R>(reader: &mut R) -> Result<Chunk, ReadError>
 where
     R: Read,
 {
-    let chunk_beg = reader
-        .read_u64::<LittleEndian>()
-        .map(bgzf::VirtualPosition::from)?;
-
-    let chunk_end = reader
-        .read_u64::<LittleEndian>()
-        .map(bgzf::VirtualPosition::from)?;
-
+    let chunk_beg = read_u64_le(reader).map(bgzf::VirtualPosition::from)?;
+    let chunk_end = read_u64_le(reader).map(bgzf::VirtualPosition::from)?;
     Ok(Chunk::new(chunk_beg, chunk_end))
 }
 

@@ -9,11 +9,12 @@ use std::{
     num,
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
 pub use self::header::read_header;
 use self::{header::read_aux, reference_sequences::read_reference_sequences};
-use super::{Index, num::read_i32_le};
+use super::{
+    Index,
+    num::{read_i32_le, read_u64_le},
+};
 
 /// An error returned when a coordinate-sorted index fails to be read.
 #[derive(Debug)]
@@ -121,7 +122,7 @@ fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> Result<Option<u64>,
 where
     R: Read,
 {
-    match reader.read_u64::<LittleEndian>() {
+    match read_u64_le(reader) {
         Ok(n) => Ok(Some(n)),
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(None),
         Err(e) => Err(ReadError::Io(e)),

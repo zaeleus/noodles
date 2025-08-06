@@ -14,7 +14,7 @@ pub use self::chunks::read_chunks;
 use super::read_metadata;
 use crate::{
     binning_index::index::reference_sequence::{Bin, Metadata, index::BinnedIndex},
-    io::reader::num::read_i32_le,
+    io::reader::num::{read_i32_le, read_u64_le},
 };
 
 /// An error returned when CSI reference sequence bins fail to be read.
@@ -90,9 +90,7 @@ where
             .map_err(ReadError::Io)
             .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidBinId))?;
 
-        let loffset = reader
-            .read_u64::<LittleEndian>()
-            .map(bgzf::VirtualPosition::from)?;
+        let loffset = read_u64_le(reader).map(bgzf::VirtualPosition::from)?;
 
         if id == metadata_id {
             let m = read_metadata(reader).map_err(ReadError::InvalidMetadata)?;

@@ -6,7 +6,10 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use crate::binning_index::index::reference_sequence::{Metadata, bin::METADATA_CHUNK_COUNT};
+use crate::{
+    binning_index::index::reference_sequence::{Metadata, bin::METADATA_CHUNK_COUNT},
+    io::reader::num::read_u64_le,
+};
 
 /// An error returned when CSI reference sequence metadata fail to be read.
 #[derive(Debug)]
@@ -54,16 +57,11 @@ where
         return Err(ReadError::InvalidChunkCount(n_chunk));
     }
 
-    let ref_beg = reader
-        .read_u64::<LittleEndian>()
-        .map(bgzf::VirtualPosition::from)?;
+    let ref_beg = read_u64_le(reader).map(bgzf::VirtualPosition::from)?;
+    let ref_end = read_u64_le(reader).map(bgzf::VirtualPosition::from)?;
 
-    let ref_end = reader
-        .read_u64::<LittleEndian>()
-        .map(bgzf::VirtualPosition::from)?;
-
-    let n_mapped = reader.read_u64::<LittleEndian>()?;
-    let n_unmapped = reader.read_u64::<LittleEndian>()?;
+    let n_mapped = read_u64_le(reader)?;
+    let n_unmapped = read_u64_le(reader)?;
 
     Ok(Metadata::new(ref_beg, ref_end, n_mapped, n_unmapped))
 }
