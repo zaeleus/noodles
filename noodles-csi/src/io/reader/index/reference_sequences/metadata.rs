@@ -3,12 +3,11 @@ use std::{
     io::{self, Read},
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
 use crate::{
     binning_index::index::reference_sequence::{Metadata, bin::METADATA_CHUNK_COUNT},
-    io::reader::num::read_u64_le,
+    io::reader::num::{read_u32_le, read_u64_le},
 };
 
 /// An error returned when CSI reference sequence metadata fail to be read.
@@ -51,7 +50,7 @@ pub fn read_metadata<R>(reader: &mut R) -> Result<Metadata, ReadError>
 where
     R: Read,
 {
-    let n_chunk = reader.read_u32::<LittleEndian>()?;
+    let n_chunk = read_u32_le(reader)?;
 
     if n_chunk != METADATA_CHUNK_COUNT {
         return Err(ReadError::InvalidChunkCount(n_chunk));

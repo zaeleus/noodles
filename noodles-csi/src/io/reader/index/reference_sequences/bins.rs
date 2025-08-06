@@ -6,7 +6,6 @@ use std::{
     num,
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 
@@ -14,7 +13,7 @@ pub use self::chunks::read_chunks;
 use super::read_metadata;
 use crate::{
     binning_index::index::reference_sequence::{Bin, Metadata, index::BinnedIndex},
-    io::reader::num::{read_i32_le, read_u64_le},
+    io::reader::num::{read_i32_le, read_u32_le, read_u64_le},
 };
 
 /// An error returned when CSI reference sequence bins fail to be read.
@@ -85,8 +84,7 @@ where
     let mut metadata = None;
 
     for _ in 0..n_bin {
-        let id = reader
-            .read_u32::<LittleEndian>()
+        let id = read_u32_le(reader)
             .map_err(ReadError::Io)
             .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidBinId))?;
 
