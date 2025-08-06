@@ -9,11 +9,12 @@ use std::{
     num,
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
 use self::bins::read_bins;
 pub use self::metadata::read_metadata;
-use crate::binning_index::index::{ReferenceSequence, reference_sequence::index::BinnedIndex};
+use crate::{
+    binning_index::index::{ReferenceSequence, reference_sequence::index::BinnedIndex},
+    io::reader::num::read_i32_le,
+};
 
 /// An error returned when CSI reference sequences fail to be read.
 #[derive(Debug)]
@@ -53,8 +54,7 @@ pub(super) fn read_reference_sequences<R>(
 where
     R: Read,
 {
-    let n_ref = reader
-        .read_i32::<LittleEndian>()
+    let n_ref = read_i32_le(reader)
         .map_err(ReadError::Io)
         .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidReferenceSequenceCount))?;
 

@@ -13,7 +13,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 pub use self::header::read_header;
 use self::{header::read_aux, reference_sequences::read_reference_sequences};
-use super::Index;
+use super::{Index, num::read_i32_le};
 
 /// An error returned when a coordinate-sorted index fails to be read.
 #[derive(Debug)]
@@ -70,13 +70,11 @@ where
 {
     read_magic(reader)?;
 
-    let min_shift = reader
-        .read_i32::<LittleEndian>()
+    let min_shift = read_i32_le(reader)
         .map_err(ReadError::Io)
         .and_then(|n| u8::try_from(n).map_err(ReadError::InvalidMinShift))?;
 
-    let depth = reader
-        .read_i32::<LittleEndian>()
+    let depth = read_i32_le(reader)
         .map_err(ReadError::Io)
         .and_then(|n| u8::try_from(n).map_err(ReadError::InvalidDepth))?;
 

@@ -6,8 +6,6 @@ use std::{
     num,
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
 use self::reference_sequence_names::read_reference_sequence_names;
 use crate::binning_index::index::{Header, header::format};
 
@@ -87,10 +85,8 @@ pub(super) fn read_aux<R>(reader: &mut R) -> Result<Option<Header>, ReadError>
 where
     R: Read,
 {
-    let l_aux = reader
-        .read_i32::<LittleEndian>()
-        .map_err(ReadError::Io)
-        .and_then(|n| u64::try_from(n).map_err(ReadError::InvalidAuxLength))?;
+    let l_aux =
+        read_i32_le(reader).and_then(|n| u64::try_from(n).map_err(ReadError::InvalidAuxLength))?;
 
     if l_aux > 0 {
         let mut aux_reader = reader.take(l_aux);
@@ -138,7 +134,7 @@ fn read_i32_le<R>(reader: &mut R) -> Result<i32, ReadError>
 where
     R: Read,
 {
-    reader.read_i32::<LittleEndian>().map_err(ReadError::Io)
+    crate::io::reader::num::read_i32_le(reader).map_err(ReadError::Io)
 }
 
 fn read_reference_sequence_name_index<R>(reader: &mut R) -> Result<usize, ReadError>

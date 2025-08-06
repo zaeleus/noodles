@@ -1,6 +1,7 @@
 //! CSI reader.
 
 pub mod index;
+mod num;
 
 use std::io::{self, Read};
 

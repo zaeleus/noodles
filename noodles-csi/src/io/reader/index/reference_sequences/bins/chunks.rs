@@ -7,7 +7,7 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_bgzf as bgzf;
 
-use crate::binning_index::index::reference_sequence::bin::Chunk;
+use crate::{binning_index::index::reference_sequence::bin::Chunk, io::reader::num::read_i32_le};
 
 /// An error returned when CSI reference sequence bin chunks fail to be read.
 #[derive(Debug)]
@@ -46,8 +46,7 @@ pub fn read_chunks<R>(reader: &mut R) -> Result<Vec<Chunk>, ReadError>
 where
     R: Read,
 {
-    let n_chunk = reader
-        .read_i32::<LittleEndian>()
+    let n_chunk = read_i32_le(reader)
         .map_err(ReadError::Io)
         .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidChunkCount))?;
 

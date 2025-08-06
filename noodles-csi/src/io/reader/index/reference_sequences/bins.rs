@@ -12,7 +12,10 @@ use noodles_bgzf as bgzf;
 
 pub use self::chunks::read_chunks;
 use super::read_metadata;
-use crate::binning_index::index::reference_sequence::{Bin, Metadata, index::BinnedIndex};
+use crate::{
+    binning_index::index::reference_sequence::{Bin, Metadata, index::BinnedIndex},
+    io::reader::num::read_i32_le,
+};
 
 /// An error returned when CSI reference sequence bins fail to be read.
 #[derive(Debug)]
@@ -71,8 +74,7 @@ pub(super) fn read_bins<R>(
 where
     R: Read,
 {
-    let n_bin = reader
-        .read_i32::<LittleEndian>()
+    let n_bin = read_i32_le(reader)
         .map_err(ReadError::Io)
         .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidBinCount))?;
 

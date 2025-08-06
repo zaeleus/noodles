@@ -5,9 +5,8 @@ use std::{
 };
 
 use bstr::BString;
-use byteorder::{LittleEndian, ReadBytesExt};
 
-use crate::binning_index::index::header::ReferenceSequenceNames;
+use crate::{binning_index::index::header::ReferenceSequenceNames, io::reader::num::read_i32_le};
 
 /// An error returned when CSI header reference sequence names fail to be read.
 #[derive(Debug)]
@@ -55,8 +54,7 @@ pub(super) fn read_reference_sequence_names<R>(
 where
     R: Read,
 {
-    let l_nm = reader
-        .read_i32::<LittleEndian>()
+    let l_nm = read_i32_le(reader)
         .map_err(ReadError::Io)
         .and_then(|n| u64::try_from(n).map_err(ReadError::InvalidLength))?;
 
