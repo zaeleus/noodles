@@ -6,6 +6,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use self::{header::write_aux, reference_sequences::write_reference_sequences};
+use super::num::write_i32_le;
 use crate::{BinningIndex, Index, io::MAGIC_NUMBER};
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
@@ -15,10 +16,10 @@ where
     write_magic(writer)?;
 
     let min_shift = i32::from(index.min_shift());
-    writer.write_i32::<LittleEndian>(min_shift)?;
+    write_i32_le(writer, min_shift)?;
 
     let depth = i32::from(index.depth());
-    writer.write_i32::<LittleEndian>(depth)?;
+    write_i32_le(writer, depth)?;
 
     write_aux(writer, index.header())?;
     write_reference_sequences(writer, index.depth(), index.reference_sequences())?;

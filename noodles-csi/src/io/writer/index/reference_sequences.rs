@@ -3,12 +3,13 @@ mod metadata;
 
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
-
 use self::{bins::write_bins, metadata::write_metadata};
-use crate::binning_index::{
-    ReferenceSequence as _,
-    index::{ReferenceSequence, reference_sequence::index::BinnedIndex},
+use crate::{
+    binning_index::{
+        ReferenceSequence as _,
+        index::{ReferenceSequence, reference_sequence::index::BinnedIndex},
+    },
+    io::writer::num::write_i32_le,
 };
 
 pub(super) fn write_reference_sequences<W>(
@@ -21,7 +22,7 @@ where
 {
     let n_ref = i32::try_from(reference_sequences.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32::<LittleEndian>(n_ref)?;
+    write_i32_le(writer, n_ref)?;
 
     for reference_sequence in reference_sequences {
         write_bins(

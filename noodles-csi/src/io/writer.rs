@@ -1,4 +1,5 @@
 pub(crate) mod index;
+mod num;
 
 use std::io::{self, Write};
 

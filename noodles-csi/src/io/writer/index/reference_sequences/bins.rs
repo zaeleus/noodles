@@ -8,8 +8,9 @@ use noodles_bgzf as bgzf;
 
 use self::chunks::write_chunks;
 use super::write_metadata;
-use crate::binning_index::index::reference_sequence::{
-    Bin, Metadata, index::BinnedIndex, parent_id,
+use crate::{
+    binning_index::index::reference_sequence::{Bin, Metadata, index::BinnedIndex, parent_id},
+    io::writer::num::write_i32_le,
 };
 
 pub(super) fn write_bins<W>(
@@ -29,7 +30,7 @@ where
         n_bin += 1;
     }
 
-    writer.write_i32::<LittleEndian>(n_bin)?;
+    write_i32_le(writer, n_bin)?;
 
     for (&id, bin) in bins {
         let first_record_start_position = first_record_start_position(index, id);

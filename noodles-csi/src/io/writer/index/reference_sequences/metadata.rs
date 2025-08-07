@@ -3,7 +3,10 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 
-use crate::binning_index::index::reference_sequence::{Bin, Metadata};
+use crate::{
+    binning_index::index::reference_sequence::{Bin, Metadata},
+    io::writer::num::write_i32_le,
+};
 
 pub(super) fn write_metadata<W>(writer: &mut W, depth: u8, metadata: &Metadata) -> io::Result<()>
 where
@@ -18,7 +21,7 @@ where
     let loffset = u64::from(bgzf::VirtualPosition::default());
     writer.write_u64::<LittleEndian>(loffset)?;
 
-    writer.write_i32::<LittleEndian>(N_CHUNK)?;
+    write_i32_le(writer, N_CHUNK)?;
 
     let ref_beg = u64::from(metadata.start_position());
     writer.write_u64::<LittleEndian>(ref_beg)?;

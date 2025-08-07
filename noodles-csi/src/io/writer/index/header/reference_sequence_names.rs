@@ -1,8 +1,8 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use byteorder::WriteBytesExt;
 
-use crate::binning_index::index::header::ReferenceSequenceNames;
+use crate::{binning_index::index::header::ReferenceSequenceNames, io::writer::num::write_i32_le};
 
 pub(super) fn write_reference_sequence_names<W>(
     writer: &mut W,
@@ -19,7 +19,7 @@ where
         .map(|n| n.len() + 1)
         .sum::<usize>();
     let l_nm = i32::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32::<LittleEndian>(l_nm)?;
+    write_i32_le(writer, l_nm)?;
 
     for reference_sequence_name in reference_sequence_names {
         writer.write_all(reference_sequence_name)?;
