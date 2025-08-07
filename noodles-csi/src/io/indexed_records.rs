@@ -38,7 +38,7 @@ where
     }
 
     /// Creates an iterator that filters indexed records that intersect the given region.
-    pub fn filter_by_region(self, region: &Region) -> FilterByRegion<Self, Record> {
+    pub fn filter_by_region(self, region: &Region) -> FilterByRegion<'_, Self, Record> {
         FilterByRegion::new(self, region)
     }
 }

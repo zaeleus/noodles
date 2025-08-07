@@ -98,7 +98,7 @@ impl<'c> Slice<'c> {
         compression_header: &'ch CompressionHeader,
         core_data_src: &'c [u8],
         external_data_srcs: &'c [(block::ContentId, Vec<u8>)],
-    ) -> io::Result<Vec<Record>> {
+    ) -> io::Result<Vec<Record<'c>>> {
         let core_data_reader = BitReader::new(core_data_src);
 
         let mut external_data_readers = ExternalDataReaders::new();

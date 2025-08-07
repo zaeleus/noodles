@@ -26,7 +26,7 @@ impl<'r> Value<'r> {
     }
 
     /// Returns the value as an array, if the value is an array.
-    pub fn as_array(&self) -> Option<&'r dyn Array> {
+    pub fn as_array(&self) -> Option<&'r dyn Array<'_>> {
         match self {
             Self::String(_) => None,
             Self::Array(array) => Some(array.as_ref()),
