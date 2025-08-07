@@ -3,10 +3,8 @@ mod reference_sequences;
 
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
-
 use self::{header::write_aux, reference_sequences::write_reference_sequences};
-use super::num::write_i32_le;
+use super::num::{write_i32_le, write_u64_le};
 use crate::{BinningIndex, Index, io::MAGIC_NUMBER};
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
@@ -25,7 +23,7 @@ where
     write_reference_sequences(writer, index.depth(), index.reference_sequences())?;
 
     if let Some(n_no_coor) = index.unplaced_unmapped_record_count() {
-        writer.write_u64::<LittleEndian>(n_no_coor)?;
+        write_u64_le(writer, n_no_coor)?;
     }
 
     Ok(())

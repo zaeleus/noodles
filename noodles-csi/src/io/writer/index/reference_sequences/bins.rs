@@ -2,7 +2,6 @@ mod chunks;
 
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use indexmap::IndexMap;
 use noodles_bgzf as bgzf;
 
@@ -10,7 +9,7 @@ use self::chunks::write_chunks;
 use super::write_metadata;
 use crate::{
     binning_index::index::reference_sequence::{Bin, Metadata, index::BinnedIndex, parent_id},
-    io::writer::num::{write_i32_le, write_u32_le},
+    io::writer::num::{write_i32_le, write_u32_le, write_u64_le},
 };
 
 pub(super) fn write_bins<W>(
@@ -57,7 +56,7 @@ where
     write_u32_le(writer, id)?;
 
     let loffset = u64::from(first_record_start_position);
-    writer.write_u64::<LittleEndian>(loffset)?;
+    write_u64_le(writer, loffset)?;
 
     write_chunks(writer, bin.chunks())?;
 
