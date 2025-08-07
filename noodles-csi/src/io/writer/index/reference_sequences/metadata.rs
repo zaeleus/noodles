@@ -5,7 +5,7 @@ use noodles_bgzf as bgzf;
 
 use crate::{
     binning_index::index::reference_sequence::{Bin, Metadata},
-    io::writer::num::write_i32_le,
+    io::writer::num::{write_i32_le, write_u32_le},
 };
 
 pub(super) fn write_metadata<W>(writer: &mut W, depth: u8, metadata: &Metadata) -> io::Result<()>
@@ -16,7 +16,7 @@ where
 
     let bin_id = u32::try_from(Bin::metadata_id(depth))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(bin_id)?;
+    write_u32_le(writer, bin_id)?;
 
     let loffset = u64::from(bgzf::VirtualPosition::default());
     writer.write_u64::<LittleEndian>(loffset)?;

@@ -10,7 +10,7 @@ use self::chunks::write_chunks;
 use super::write_metadata;
 use crate::{
     binning_index::index::reference_sequence::{Bin, Metadata, index::BinnedIndex, parent_id},
-    io::writer::num::write_i32_le,
+    io::writer::num::{write_i32_le, write_u32_le},
 };
 
 pub(super) fn write_bins<W>(
@@ -54,7 +54,7 @@ where
     W: Write,
 {
     let id = u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(id)?;
+    write_u32_le(writer, id)?;
 
     let loffset = u64::from(first_record_start_position);
     writer.write_u64::<LittleEndian>(loffset)?;
