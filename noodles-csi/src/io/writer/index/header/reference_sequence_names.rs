@@ -1,8 +1,11 @@
 use std::io::{self, Write};
 
+use bstr::{BStr, ByteSlice};
 use byteorder::WriteBytesExt;
 
 use crate::{binning_index::index::header::ReferenceSequenceNames, io::writer::num::write_i32_le};
+
+const NUL: u8 = 0x00;
 
 pub(super) fn write_reference_sequence_names<W>(
     writer: &mut W,
@@ -11,8 +14,6 @@ pub(super) fn write_reference_sequence_names<W>(
 where
     W: Write,
 {
-    const NUL: u8 = 0x00;
-
     // Add 1 for each trailing NUL.
     let len = reference_sequence_names
         .iter()
@@ -22,11 +23,22 @@ where
     write_i32_le(writer, l_nm)?;
 
     for reference_sequence_name in reference_sequence_names {
+        if !is_valid(reference_sequence_name.as_ref()) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid reference sequence name",
+            ));
+        }
+
         writer.write_all(reference_sequence_name)?;
         writer.write_u8(NUL)?;
     }
 
     Ok(())
+}
+
+fn is_valid(s: &BStr) -> bool {
+    s.find_byte(NUL).is_none()
 }
 
 #[cfg(test)]
@@ -68,6 +80,13 @@ mod tests {
                 b's', b'q', b'1', 0x00, // names[1] = "sq1"
             ]
         );
+
+        let reference_sequence_names = [BString::from("sq\x000")].into_iter().collect();
+        buf.clear();
+        assert!(matches!(
+            write_reference_sequence_names(&mut buf, &reference_sequence_names),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
