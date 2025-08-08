@@ -4,10 +4,9 @@ use std::{
     num::NonZeroUsize,
 };
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
-use crate::io::writer::num::write_u32_le;
+use crate::io::writer::num::{write_i32_le, write_u32_le};
 
 pub(super) fn write_header<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
 where
@@ -29,7 +28,7 @@ where
     let text = serialize_header(header)?;
     let l_text =
         i32::try_from(text.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32::<LittleEndian>(l_text)?;
+    write_i32_le(writer, l_text)?;
 
     writer.write_all(&text)?;
 
@@ -51,7 +50,7 @@ where
 {
     let n_ref = i32::try_from(reference_sequences.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32::<LittleEndian>(n_ref)?;
+    write_i32_le(writer, n_ref)?;
 
     for (name, reference_sequence) in reference_sequences {
         write_reference_sequence(writer, name, reference_sequence.length())?;
@@ -79,7 +78,7 @@ where
 
     let l_ref = i32::try_from(usize::from(length))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32::<LittleEndian>(l_ref)?;
+    write_i32_le(writer, l_ref)?;
 
     Ok(())
 }

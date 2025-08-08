@@ -16,7 +16,6 @@ async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "noodles-bgzf/async
 
 [dependencies]
 bstr.workspace = true
-byteorder.workspace = true
 futures = { workspace = true, optional = true, features = ["std"] }
 indexmap.workspace = true
 memchr.workspace = true
