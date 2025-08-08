@@ -1,9 +1,8 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 
-use crate::io::writer::num::write_u32_le;
+use crate::io::writer::num::{write_u32_le, write_u64_le};
 
 pub(super) fn write_chunks<W>(writer: &mut W, chunks: &[Chunk]) -> io::Result<()>
 where
@@ -25,10 +24,10 @@ where
     W: Write,
 {
     let chunk_beg = u64::from(chunk.start());
-    writer.write_u64::<LittleEndian>(chunk_beg)?;
+    write_u64_le(writer, chunk_beg)?;
 
     let chunk_end = u64::from(chunk.end());
-    writer.write_u64::<LittleEndian>(chunk_end)?;
+    write_u64_le(writer, chunk_end)?;
 
     Ok(())
 }

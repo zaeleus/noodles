@@ -1,9 +1,8 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_csi::binning_index::index::reference_sequence::{Bin, Metadata};
 
-use crate::io::writer::num::write_u32_le;
+use crate::io::writer::num::{write_u32_le, write_u64_le};
 
 pub(super) fn write_metadata<W>(writer: &mut W, metadata: &Metadata) -> io::Result<()>
 where
@@ -23,16 +22,16 @@ where
     write_u32_le(writer, n_chunk)?;
 
     let ref_beg = u64::from(metadata.start_position());
-    writer.write_u64::<LittleEndian>(ref_beg)?;
+    write_u64_le(writer, ref_beg)?;
 
     let ref_end = u64::from(metadata.end_position());
-    writer.write_u64::<LittleEndian>(ref_end)?;
+    write_u64_le(writer, ref_end)?;
 
     let n_mapped = metadata.mapped_record_count();
-    writer.write_u64::<LittleEndian>(n_mapped)?;
+    write_u64_le(writer, n_mapped)?;
 
     let n_unmapped = metadata.unmapped_record_count();
-    writer.write_u64::<LittleEndian>(n_unmapped)?;
+    write_u64_le(writer, n_unmapped)?;
 
     Ok(())
 }

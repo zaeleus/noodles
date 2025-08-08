@@ -3,11 +3,10 @@ mod reference_sequences;
 
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_csi::BinningIndex;
 
 use self::{magic_number::write_magic_number, reference_sequences::write_reference_sequences};
-use crate::bai::Index;
+use crate::{bai::Index, io::writer::num::write_u64_le};
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
@@ -30,7 +29,7 @@ fn write_unplaced_unmapped_record_count<W>(
 where
     W: Write,
 {
-    writer.write_u64::<LittleEndian>(unplaced_unmapped_record_count)
+    write_u64_le(writer, unplaced_unmapped_record_count)
 }
 
 #[cfg(test)]
@@ -66,10 +65,10 @@ mod tests {
         write_u32_le(&mut expected, 1)?; // n_bin
         write_u32_le(&mut expected, 16385)?; // bin
         write_u32_le(&mut expected, 1)?; // n_chunk
-        expected.write_u64::<LittleEndian>(509268599425)?; // chunk_beg
-        expected.write_u64::<LittleEndian>(509268599570)?; // chunk_end
+        write_u64_le(&mut expected, 509268599425)?; // chunk_beg
+        write_u64_le(&mut expected, 509268599570)?; // chunk_end
         write_u32_le(&mut expected, 1)?; // n_intv
-        expected.write_u64::<LittleEndian>(337)?; // ioffset
+        write_u64_le(&mut expected, 337)?; // ioffset
 
         assert_eq!(buf, expected);
 
