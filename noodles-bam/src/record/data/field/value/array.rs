@@ -5,11 +5,11 @@ mod values;
 
 use std::{io, mem};
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::alignment::record::data::field::value::{Array, array::Subtype};
 
 pub(crate) use self::subtype::decode_subtype;
 pub use self::values::Values;
+use crate::io::reader::num::read_u32_le;
 
 pub(super) fn decode_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
     let subtype = decode_subtype(src)?;
@@ -27,7 +27,7 @@ pub(super) fn decode_array<'a>(src: &mut &'a [u8]) -> io::Result<Array<'a>> {
 }
 
 fn decode_length(src: &mut &[u8]) -> io::Result<usize> {
-    src.read_u32::<LittleEndian>()
+    read_u32_le(src)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 

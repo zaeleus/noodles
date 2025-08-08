@@ -6,10 +6,10 @@ pub mod sam_header;
 
 use std::io::{self, BufRead, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
+use super::num::read_u32_le;
 use crate::io::MAGIC_NUMBER;
 
 /// A BAM header reader.
@@ -73,7 +73,7 @@ where
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<&mut R>> {
-        let len = self.inner.read_u32::<LittleEndian>().map(u64::from)?;
+        let len = read_u32_le(&mut self.inner).map(u64::from)?;
         Ok(sam_header::Reader::new(&mut self.inner, len))
     }
 

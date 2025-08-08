@@ -2,6 +2,7 @@
 
 mod builder;
 pub mod header;
+pub(crate) mod num;
 pub(crate) mod query;
 mod record;
 mod record_buf;

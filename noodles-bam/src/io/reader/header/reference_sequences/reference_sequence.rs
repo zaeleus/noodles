@@ -4,10 +4,9 @@ use std::{
 };
 
 use bstr::BString;
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_sam::header::record::value::{Map, map::ReferenceSequence};
 
-use crate::io::reader::bytes_with_nul_to_bstring;
+use crate::io::reader::{bytes_with_nul_to_bstring, num::read_u32_le};
 
 pub(super) fn read_reference_sequence<R>(
     reader: &mut R,
@@ -27,7 +26,7 @@ fn read_name<R>(reader: &mut R) -> io::Result<BString>
 where
     R: Read,
 {
-    let l_name = reader.read_u32::<LittleEndian>().and_then(|n| {
+    let l_name = read_u32_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
@@ -41,7 +40,7 @@ fn read_length<R>(reader: &mut R) -> io::Result<NonZeroUsize>
 where
     R: Read,
 {
-    reader.read_u32::<LittleEndian>().and_then(|len| {
+    read_u32_le(reader).and_then(|len| {
         usize::try_from(len)
             .and_then(NonZeroUsize::try_from)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

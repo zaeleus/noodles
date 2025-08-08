@@ -3,12 +3,12 @@ mod intervals;
 
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_csi::binning_index::index::{
     ReferenceSequence, reference_sequence::index::LinearIndex,
 };
 
 use self::{bins::read_bins, intervals::read_intervals};
+use crate::io::reader::num::read_u32_le;
 
 pub(super) fn read_reference_sequences<R>(
     reader: &mut R,
@@ -16,7 +16,7 @@ pub(super) fn read_reference_sequences<R>(
 where
     R: Read,
 {
-    let n_ref = reader.read_u32::<LittleEndian>().and_then(|n| {
+    let n_ref = read_u32_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
