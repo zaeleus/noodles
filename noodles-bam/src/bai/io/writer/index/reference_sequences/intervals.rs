@@ -1,8 +1,9 @@
 use std::io::{self, Write};
 
+use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use crate::io::writer::num::write_u32_le;
 
 pub(super) fn write_intervals<W>(
     writer: &mut W,
@@ -13,7 +14,7 @@ where
 {
     let n_intv = u32::try_from(intervals.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(n_intv)?;
+    write_u32_le(writer, n_intv)?;
 
     for interval in intervals {
         let ioffset = u64::from(*interval);

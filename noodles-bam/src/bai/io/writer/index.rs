@@ -42,7 +42,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::bai::MAGIC_NUMBER;
+    use crate::{bai::MAGIC_NUMBER, io::writer::num::write_u32_le};
 
     #[test]
     fn test_write_index() -> io::Result<()> {
@@ -62,13 +62,13 @@ mod tests {
 
         let mut expected = Vec::new();
         expected.write_all(&MAGIC_NUMBER)?; // magic
-        expected.write_u32::<LittleEndian>(1)?; // n_ref
-        expected.write_u32::<LittleEndian>(1)?; // n_bin
-        expected.write_u32::<LittleEndian>(16385)?; // bin
-        expected.write_u32::<LittleEndian>(1)?; // n_chunk
+        write_u32_le(&mut expected, 1)?; // n_ref
+        write_u32_le(&mut expected, 1)?; // n_bin
+        write_u32_le(&mut expected, 16385)?; // bin
+        write_u32_le(&mut expected, 1)?; // n_chunk
         expected.write_u64::<LittleEndian>(509268599425)?; // chunk_beg
         expected.write_u64::<LittleEndian>(509268599570)?; // chunk_end
-        expected.write_u32::<LittleEndian>(1)?; // n_intv
+        write_u32_le(&mut expected, 1)?; // n_intv
         expected.write_u64::<LittleEndian>(337)?; // ioffset
 
         assert_eq!(buf, expected);

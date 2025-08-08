@@ -2,14 +2,15 @@
 
 mod builder;
 mod header;
+pub(crate) mod num;
 
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_bgzf as bgzf;
 use noodles_sam::{self as sam, alignment::io::Write as _};
 
 pub use self::builder::Builder;
+use self::num::write_u32_le;
 use crate::Record;
 
 /// A BAM writer.
@@ -191,7 +192,7 @@ where
 
         let block_size = u32::try_from(self.buf.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        self.inner.write_u32::<LittleEndian>(block_size)?;
+        write_u32_le(&mut self.inner, block_size)?;
 
         self.inner.write_all(&self.buf)?;
 

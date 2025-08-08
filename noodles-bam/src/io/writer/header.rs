@@ -7,6 +7,8 @@ use std::{
 use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_sam::{self as sam, header::ReferenceSequences};
 
+use crate::io::writer::num::write_u32_le;
+
 pub(super) fn write_header<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
 where
     W: Write,
@@ -72,7 +74,7 @@ where
 
     let l_name =
         u32::try_from(name.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(l_name)?;
+    write_u32_le(writer, l_name)?;
     writer.write_all(name)?;
 
     let l_ref = i32::try_from(usize::from(length))

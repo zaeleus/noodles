@@ -4,13 +4,13 @@ mod metadata;
 
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_csi::binning_index::{
     ReferenceSequence as _,
     index::{ReferenceSequence, reference_sequence::index::LinearIndex},
 };
 
 use self::{bins::write_bins, intervals::write_intervals, metadata::write_metadata};
+use crate::io::writer::num::write_u32_le;
 
 pub(super) fn write_reference_sequences<W>(
     writer: &mut W,
@@ -21,7 +21,7 @@ where
 {
     let n_ref = u32::try_from(reference_sequences.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(n_ref)?;
+    write_u32_le(writer, n_ref)?;
 
     for reference_sequence in reference_sequences {
         write_reference_sequence(writer, reference_sequence)?;
