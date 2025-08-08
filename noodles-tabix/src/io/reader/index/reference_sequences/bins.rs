@@ -4,6 +4,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use noodles_csi::binning_index::index::reference_sequence::{Bin, Metadata};
 
+use crate::io::reader::num::read_i32_le;
+
 pub(super) fn read_bins<R>(reader: &mut R) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)>
 where
     R: Read,
@@ -14,7 +16,7 @@ where
 
     const METADATA_ID: usize = Bin::metadata_id(DEPTH);
 
-    let n_bin = reader.read_i32::<LittleEndian>().and_then(|n| {
+    let n_bin = read_i32_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 

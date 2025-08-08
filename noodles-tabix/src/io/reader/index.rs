@@ -6,6 +6,7 @@ use std::io::{self, Read};
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
+use super::num::read_i32_le;
 use crate::Index;
 
 pub(super) fn read_index<R>(reader: &mut R) -> io::Result<Index>
@@ -16,7 +17,7 @@ where
 
     read_magic_number(reader)?;
 
-    let reference_sequence_count = reader.read_i32::<LittleEndian>().and_then(|n| {
+    let reference_sequence_count = read_i32_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 

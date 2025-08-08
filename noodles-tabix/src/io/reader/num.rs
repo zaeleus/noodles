@@ -1,0 +1,13 @@
+use std::{
+    io::{self, Read},
+    mem,
+};
+
+pub(crate) fn read_i32_le<R>(reader: &mut R) -> io::Result<i32>
+where
+    R: Read,
+{
+    let mut buf = [0; mem::size_of::<i32>()];
+    reader.read_exact(&mut buf)?;
+    Ok(i32::from_le_bytes(buf))
+}
