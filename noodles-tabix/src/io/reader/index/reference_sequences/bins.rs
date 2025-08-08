@@ -1,10 +1,9 @@
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use indexmap::IndexMap;
 use noodles_csi::binning_index::index::reference_sequence::{Bin, Metadata};
 
-use crate::io::reader::num::read_i32_le;
+use crate::io::reader::num::{read_i32_le, read_u32_le};
 
 pub(super) fn read_bins<R>(reader: &mut R) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)>
 where
@@ -24,7 +23,7 @@ where
     let mut metadata = None;
 
     for _ in 0..n_bin {
-        let id = reader.read_u32::<LittleEndian>().and_then(|n| {
+        let id = read_u32_le(reader).and_then(|n| {
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
 
