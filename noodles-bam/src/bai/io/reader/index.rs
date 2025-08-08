@@ -3,10 +3,8 @@ mod reference_sequences;
 
 use std::io::{self, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
-use crate::bai::Index;
+use crate::{bai::Index, io::reader::num::read_u64_le};
 
 pub(super) fn read_index<R>(reader: &mut R) -> io::Result<Index>
 where
@@ -30,7 +28,7 @@ fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> io::Result<Option<u
 where
     R: Read,
 {
-    match reader.read_u64::<LittleEndian>() {
+    match read_u64_le(reader) {
         Ok(n) => Ok(Some(n)),
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(None),
         Err(e) => Err(e),
