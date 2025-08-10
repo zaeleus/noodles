@@ -6,6 +6,8 @@ use byteorder::{LittleEndian, WriteBytesExt};
 use indexmap::IndexMap;
 use noodles_csi::binning_index::index::reference_sequence::{Bin, Metadata};
 
+use crate::io::writer::num::write_i32_le;
+
 use self::chunks::write_chunks;
 use super::write_metadata;
 
@@ -26,7 +28,7 @@ where
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "n_bin overflow"))?;
     }
 
-    writer.write_i32::<LittleEndian>(n_bin)?;
+    write_i32_le(writer, n_bin)?;
 
     for (&id, bin) in bins {
         write_bin(writer, id, bin)?;

@@ -11,6 +11,7 @@ use self::{
     header::write_header, magic_number::write_magic_number,
     reference_sequences::write_reference_sequences,
 };
+use super::num::write_i32_le;
 use crate::Index;
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
@@ -21,7 +22,7 @@ where
 
     let reference_sequence_count = i32::try_from(index.reference_sequences().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32::<LittleEndian>(reference_sequence_count)?;
+    write_i32_le(writer, reference_sequence_count)?;
 
     let header = index
         .header()
@@ -77,14 +78,14 @@ mod tests {
 
         let mut expected = Vec::new();
         expected.write_all(&MAGIC_NUMBER)?; // magic
-        expected.write_i32::<LittleEndian>(1)?; // n_ref
-        expected.write_i32::<LittleEndian>(0)?; // format
-        expected.write_i32::<LittleEndian>(1)?; // col_seq
-        expected.write_i32::<LittleEndian>(4)?; // col_beg
-        expected.write_i32::<LittleEndian>(5)?; // col_end
-        expected.write_i32::<LittleEndian>(i32::from(b'#'))?; // meta
-        expected.write_i32::<LittleEndian>(0)?; // skip
-        expected.write_i32::<LittleEndian>(8)?; // l_nm
+        write_i32_le(&mut expected, 1)?; // n_ref
+        write_i32_le(&mut expected, 0)?; // format
+        write_i32_le(&mut expected, 1)?; // col_seq
+        write_i32_le(&mut expected, 4)?; // col_beg
+        write_i32_le(&mut expected, 5)?; // col_end
+        write_i32_le(&mut expected, i32::from(b'#'))?; // meta
+        write_i32_le(&mut expected, 0)?; // skip
+        write_i32_le(&mut expected, 8)?; // l_nm
         expected.write_all(b"sq0\x00sq1\x00")?; // names
         expected.write_u32::<LittleEndian>(1)?; // n_bin
         expected.write_u32::<LittleEndian>(16385)?; // bin
