@@ -2,11 +2,10 @@ mod chunks;
 
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use indexmap::IndexMap;
 use noodles_csi::binning_index::index::reference_sequence::{Bin, Metadata};
 
-use crate::io::writer::num::write_i32_le;
+use crate::io::writer::num::{write_i32_le, write_u32_le};
 
 use self::chunks::write_chunks;
 use super::write_metadata;
@@ -46,7 +45,7 @@ where
     W: Write,
 {
     let id = u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u32::<LittleEndian>(id)?;
+    write_u32_le(writer, id)?;
     write_chunks(writer, bin.chunks())?;
     Ok(())
 }
