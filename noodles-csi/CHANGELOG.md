@@ -4,7 +4,8 @@
 
 ### Changed
 
-  * csi/writer/index/header/reference_sequence_names: Disallow `NUL` in names.
+  * csi/io/writer/index/header/reference_sequence_names: Disallow `NUL` in
+    names.
 
 ## 0.50.0 - 2025-07-12
 
