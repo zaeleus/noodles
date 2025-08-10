@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * tabix/io/writer/index/header/reference_sequence_names: Disallow `NUL` in
+    names.
+
 ## 0.56.0 - 2025-07-12
 
 ### Changed
