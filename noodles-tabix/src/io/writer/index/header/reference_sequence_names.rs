@@ -1,7 +1,6 @@
 use std::io::{self, Write};
 
 use bstr::{BStr, ByteSlice};
-use byteorder::WriteBytesExt;
 use noodles_csi::binning_index::index::header::ReferenceSequenceNames;
 
 use crate::io::writer::num::write_i32_le;
@@ -32,7 +31,7 @@ where
         }
 
         writer.write_all(reference_sequence_name)?;
-        writer.write_u8(NUL)?;
+        writer.write_all(&[NUL])?;
     }
 
     Ok(())
