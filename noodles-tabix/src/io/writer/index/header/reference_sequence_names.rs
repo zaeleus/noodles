@@ -29,3 +29,47 @@ where
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use bstr::BString;
+
+    use super::*;
+
+    #[test]
+    fn test_write_reference_sequence_names() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        let reference_sequence_names = ReferenceSequenceNames::default();
+        buf.clear();
+        write_reference_sequence_names(&mut buf, &reference_sequence_names)?;
+        assert_eq!(buf, [0x00, 0x00, 0x00, 0x00]); // l_nm = 0
+
+        let reference_sequence_names = [BString::from("sq0")].into_iter().collect();
+        buf.clear();
+        write_reference_sequence_names(&mut buf, &reference_sequence_names)?;
+        assert_eq!(
+            buf,
+            [
+                0x04, 0x00, 0x00, 0x00, // l_nm = 4
+                b's', b'q', b'0', 0x00, // names[0] = "sq0"
+            ]
+        );
+
+        let reference_sequence_names = [BString::from("sq0"), BString::from("sq1")]
+            .into_iter()
+            .collect();
+        buf.clear();
+        write_reference_sequence_names(&mut buf, &reference_sequence_names)?;
+        assert_eq!(
+            buf,
+            [
+                0x08, 0x00, 0x00, 0x00, // l_nm = 8
+                b's', b'q', b'0', 0x00, // names[0] = "sq0"
+                b's', b'q', b'1', 0x00, // names[1] = "sq1"
+            ]
+        );
+
+        Ok(())
+    }
+}
