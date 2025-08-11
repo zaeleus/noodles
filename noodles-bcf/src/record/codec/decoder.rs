@@ -12,7 +12,6 @@ mod value;
 
 use std::io;
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf as vcf;
 
 use self::info::read_info;
@@ -21,7 +20,7 @@ pub(crate) use self::{
     position::read_pos, quality_score::read_qual, string_map::read_string_map_entry,
 };
 pub use self::{samples::read_samples, value::read_value};
-use crate::io::reader::num::{read_i32_le, read_u32_le};
+use crate::io::reader::num::{read_i32_le, read_u16_le, read_u32_le};
 
 pub fn read_site(
     src: &mut &[u8],
@@ -44,8 +43,8 @@ pub fn read_site(
 
     *record.quality_score_mut() = read_qual(src)?;
 
-    let n_info = src.read_u16::<LittleEndian>().map(usize::from)?;
-    let n_allele = src.read_u16::<LittleEndian>().map(usize::from)?;
+    let n_info = read_u16_le(src).map(usize::from)?;
+    let n_allele = read_u16_le(src).map(usize::from)?;
 
     let n_fmt_sample = read_u32_le(src)?;
     let n_fmt = usize::from((n_fmt_sample >> 24) as u8);
