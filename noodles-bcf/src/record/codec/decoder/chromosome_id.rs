@@ -1,9 +1,9 @@
 use std::io;
 
-use byteorder::{LittleEndian, ReadBytesExt};
+use crate::io::reader::num::read_i32_le;
 
 pub(crate) fn read_chrom(src: &mut &[u8]) -> io::Result<usize> {
-    src.read_i32::<LittleEndian>()
+    read_i32_le(src)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 

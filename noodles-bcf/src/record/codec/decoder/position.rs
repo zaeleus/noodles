@@ -1,12 +1,13 @@
 use std::io;
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_core::Position;
+
+use crate::io::reader::num::read_i32_le;
 
 pub fn read_pos(src: &mut &[u8]) -> io::Result<Option<Position>> {
     const TELOMERE_START: i32 = -1;
 
-    match src.read_i32::<LittleEndian>()? {
+    match read_i32_le(src)? {
         TELOMERE_START => Ok(None),
         n => usize::try_from(n)
             .map(|m| m + 1)

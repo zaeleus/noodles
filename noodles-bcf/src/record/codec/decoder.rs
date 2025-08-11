@@ -21,6 +21,7 @@ pub(crate) use self::{
     position::read_pos, quality_score::read_qual, string_map::read_string_map_entry,
 };
 pub use self::{samples::read_samples, value::read_value};
+use crate::io::reader::num::read_i32_le;
 
 pub fn read_site(
     src: &mut &[u8],
@@ -83,6 +84,6 @@ pub fn read_site(
 }
 
 pub fn read_rlen(src: &mut &[u8]) -> io::Result<usize> {
-    src.read_i32::<LittleEndian>()
+    read_i32_le(src)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
