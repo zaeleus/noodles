@@ -3,8 +3,7 @@ use std::{
     mem,
 };
 
-use byteorder::{LittleEndian, ReadBytesExt};
-
+use super::num::read_u32_le;
 use crate::Record;
 
 pub fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
@@ -73,8 +72,7 @@ fn read_samples_length<R>(reader: &mut R) -> io::Result<usize>
 where
     R: Read,
 {
-    reader
-        .read_u32::<LittleEndian>()
+    read_u32_le(reader)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 

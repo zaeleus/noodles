@@ -6,10 +6,10 @@ pub mod vcf_header;
 
 use std::io::{self, BufRead, Read};
 
-use byteorder::{LittleEndian, ReadBytesExt};
 use noodles_vcf::{self as vcf, header::StringMaps};
 
 use self::{format_version::read_format_version, magic_number::read_magic_number};
+use super::num::read_u32_le;
 use crate::io::MAGIC_NUMBER;
 
 /// A BCF header reader.
@@ -99,7 +99,7 @@ where
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn raw_vcf_header_reader(&mut self) -> io::Result<vcf_header::Reader<&mut R>> {
-        let len = self.inner.read_u32::<LittleEndian>().map(u64::from)?;
+        let len = read_u32_le(&mut self.inner).map(u64::from)?;
         Ok(vcf_header::Reader::new(&mut self.inner, len))
     }
 }
