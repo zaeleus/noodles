@@ -1,7 +1,8 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_core::Position;
+
+use crate::io::writer::num::write_i32_le;
 
 pub(super) fn write_position<W>(writer: &mut W, position: Option<Position>) -> io::Result<()>
 where
@@ -16,7 +17,7 @@ where
         None => TELOMERE_START,
     };
 
-    writer.write_i32::<LittleEndian>(pos)
+    write_i32_le(writer, pos)
 }
 
 #[cfg(test)]

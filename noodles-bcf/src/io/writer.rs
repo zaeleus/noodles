@@ -2,6 +2,7 @@
 
 mod builder;
 pub(crate) mod header;
+pub(crate) mod num;
 mod record;
 
 use std::io::{self, Write};

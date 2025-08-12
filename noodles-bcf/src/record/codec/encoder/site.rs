@@ -20,6 +20,7 @@ use self::{
     position::write_position, quality_score::write_quality_score,
     reference_sequence_id::write_reference_sequence_id,
 };
+use crate::io::writer::num::write_i32_le;
 
 const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
 
@@ -71,7 +72,7 @@ where
     W: Write,
 {
     let rlen = i32::try_from(span).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32::<LittleEndian>(rlen)
+    write_i32_le(writer, rlen)
 }
 
 pub(crate) fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>

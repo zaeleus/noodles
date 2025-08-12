@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use noodles_vcf::header::string_maps::ContigStringMap;
 
-use byteorder::{LittleEndian, WriteBytesExt};
+use crate::io::writer::num::write_i32_le;
 
 pub(super) fn write_reference_sequence_id<W>(
     writer: &mut W,
@@ -24,7 +24,7 @@ where
             i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
         })?;
 
-    writer.write_i32::<LittleEndian>(chrom)
+    write_i32_le(writer, chrom)
 }
 
 #[cfg(test)]
