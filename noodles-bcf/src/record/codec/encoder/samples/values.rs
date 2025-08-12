@@ -15,7 +15,7 @@ use noodles_vcf::{
 };
 
 use crate::{
-    io::writer::num::{write_i8, write_i32_le},
+    io::writer::num::{write_i8, write_i16_le, write_i32_le},
     record::codec::{
         encoder::value::write_type,
         value::{Float, Int8, Int16, Int32, Type},
@@ -133,7 +133,7 @@ where
             Some(Value::Integer(n)) => {
                 let m = i16::try_from(*n)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-                writer.write_i16::<LittleEndian>(m)?;
+                write_i16_le(writer, m)?;
             }
             Some(v) => {
                 return Err(io::Error::new(
@@ -141,7 +141,7 @@ where
                     format!("type mismatch: expected Integer, got {v:?}"),
                 ));
             }
-            None => writer.write_i16::<LittleEndian>(i16::from(Int16::Missing))?,
+            None => write_i16_le(writer, i16::from(Int16::Missing))?,
         }
     }
 
@@ -294,7 +294,7 @@ where
                         None => i16::from(Int16::Missing),
                     };
 
-                    writer.write_i16::<LittleEndian>(n)?;
+                    write_i16_le(writer, n)?;
                 }
 
                 vs.len()
@@ -306,14 +306,14 @@ where
                 ));
             }
             None => {
-                writer.write_i16::<LittleEndian>(i16::from(Int16::Missing))?;
+                write_i16_le(writer, i16::from(Int16::Missing))?;
                 1
             }
         };
 
         if len < max_len {
             for _ in 0..(max_len - len) {
-                writer.write_i16::<LittleEndian>(i16::from(Int16::EndOfVector))?;
+                write_i16_le(writer, i16::from(Int16::EndOfVector))?;
             }
         }
     }
