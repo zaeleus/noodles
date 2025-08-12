@@ -4,7 +4,14 @@ pub(crate) fn write_i8<W>(writer: &mut W, n: i8) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write_all(&[n as u8])
+    write_u8(writer, n as u8)
+}
+
+pub(crate) fn write_u8<W>(writer: &mut W, n: u8) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write_all(&[n])
 }
 
 pub(crate) fn write_i32_le<W>(writer: &mut W, n: i32) -> io::Result<()>

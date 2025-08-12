@@ -1,9 +1,10 @@
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
-
 use super::write_value;
-use crate::record::codec::value::{Int8, Int16, Int32, Type, Value};
+use crate::{
+    io::writer::num::write_u8,
+    record::codec::value::{Int8, Int16, Int32, Type, Value},
+};
 
 // § 6.3.3 Type encoding (2021-01-13)
 const MAX_TYPE_LEN: usize = 0x0f;
@@ -24,7 +25,7 @@ where
     let len = ty_len.clamp(0, MAX_TYPE_LEN) as u8;
     let encoding = (len << 4) | raw_ty;
 
-    writer.write_u8(encoding)?;
+    write_u8(writer, encoding)?;
 
     if ty_len >= MAX_TYPE_LEN {
         let len_value = if let Ok(n) = i8::try_from(ty_len) {
