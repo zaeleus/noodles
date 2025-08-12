@@ -3,8 +3,9 @@ use std::{
     io::{self, Write},
 };
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf as vcf;
+
+use super::num::write_u32_le;
 
 pub(super) fn write_header<W>(writer: &mut W, header: &vcf::Header) -> io::Result<()>
 where
@@ -18,7 +19,7 @@ where
     let l_text =
         u32::try_from(text.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    writer.write_u32::<LittleEndian>(l_text)?;
+    write_u32_le(writer, l_text)?;
     writer.write_all(text)?;
 
     Ok(())

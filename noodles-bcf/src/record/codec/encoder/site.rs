@@ -20,7 +20,7 @@ use self::{
     position::write_position, quality_score::write_quality_score,
     reference_sequence_id::write_reference_sequence_id,
 };
-use crate::io::writer::num::write_i32_le;
+use crate::io::writer::num::{write_i32_le, write_u32_le};
 
 const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
 
@@ -115,7 +115,7 @@ where
         u8::try_from(format_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let n_fmt_sample = (u32::from(n_fmt) << 24) | n_sample;
-    writer.write_u32::<LittleEndian>(n_fmt_sample)?;
+    write_u32_le(writer, n_fmt_sample)?;
 
     Ok(())
 }

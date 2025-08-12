@@ -1,7 +1,8 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{self as vcf, header::StringMaps, variant::Record};
+
+use super::num::write_u32_le;
 
 pub fn write_record<W, R>(
     writer: &mut W,
@@ -31,8 +32,8 @@ where
     let l_indiv = u32::try_from(samples_buf.len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    writer.write_u32::<LittleEndian>(l_shared)?;
-    writer.write_u32::<LittleEndian>(l_indiv)?;
+    write_u32_le(writer, l_shared)?;
+    write_u32_le(writer, l_indiv)?;
     writer.write_all(&site_buf)?;
     writer.write_all(&samples_buf)?;
 
