@@ -201,8 +201,7 @@ where
     };
 
     writer.write_all(&MAGIC_NUMBER).await?;
-    writer.write_u8(MAJOR).await?;
-    writer.write_u8(MINOR).await?;
+    writer.write_all(&[MAJOR, MINOR]).await?;
 
     Ok(())
 }

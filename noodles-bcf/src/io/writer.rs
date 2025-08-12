@@ -6,7 +6,6 @@ mod record;
 
 use std::io::{self, Write};
 
-use byteorder::WriteBytesExt;
 use noodles_bgzf as bgzf;
 use noodles_vcf::{self as vcf, header::StringMaps};
 
@@ -201,8 +200,7 @@ where
     use crate::io::MAGIC_NUMBER;
 
     writer.write_all(&MAGIC_NUMBER)?;
-    writer.write_u8(MAJOR)?;
-    writer.write_u8(MINOR)?;
+    writer.write_all(&[MAJOR, MINOR])?;
 
     Ok(())
 }
