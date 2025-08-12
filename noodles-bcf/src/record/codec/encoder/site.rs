@@ -8,7 +8,6 @@ mod reference_sequence_id;
 
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     self as vcf,
     header::StringMaps,
@@ -20,7 +19,7 @@ use self::{
     position::write_position, quality_score::write_quality_score,
     reference_sequence_id::write_reference_sequence_id,
 };
-use crate::io::writer::num::{write_i32_le, write_u32_le};
+use crate::io::writer::num::{write_i32_le, write_u16_le, write_u32_le};
 
 const MAX_SAMPLE_NAME_COUNT: u32 = (1 << 24) - 1;
 
@@ -48,7 +47,7 @@ where
 
     let n_info = u16::try_from(record.info().as_ref().len())
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_u16::<LittleEndian>(n_info)?;
+    write_u16_le(writer, n_info)?;
 
     write_n_allele(writer, record.alternate_bases().len())?;
 
@@ -88,7 +87,7 @@ where
             u16::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
         })?;
 
-    writer.write_u16::<LittleEndian>(n_allele)?;
+    write_u16_le(writer, n_allele)?;
 
     Ok(())
 }
