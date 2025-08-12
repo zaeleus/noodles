@@ -22,7 +22,6 @@ async = [
 ]
 
 [dependencies]
-byteorder.workspace = true
 indexmap.workspace = true
 memchr.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.42.0" }

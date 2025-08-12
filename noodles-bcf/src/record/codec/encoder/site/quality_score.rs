@@ -1,15 +1,13 @@
 use std::io::{self, Write};
 
-use byteorder::{LittleEndian, WriteBytesExt};
-
-use crate::record::codec::value::Float;
+use crate::{io::writer::num::write_f32_le, record::codec::value::Float};
 
 pub(super) fn write_quality_score<W>(writer: &mut W, quality_score: Option<f32>) -> io::Result<()>
 where
     W: Write,
 {
     let float = quality_score.map(Float::from).unwrap_or(Float::Missing);
-    writer.write_f32::<LittleEndian>(f32::from(float))
+    write_f32_le(writer, f32::from(float))
 }
 
 #[cfg(test)]

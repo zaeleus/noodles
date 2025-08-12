@@ -45,3 +45,11 @@ where
     let buf = n.to_le_bytes();
     writer.write_all(&buf)
 }
+
+pub(crate) fn write_f32_le<W>(writer: &mut W, n: f32) -> io::Result<()>
+where
+    W: Write,
+{
+    let buf = n.to_le_bytes();
+    writer.write_all(&buf)
+}

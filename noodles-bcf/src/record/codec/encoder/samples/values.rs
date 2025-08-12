@@ -4,7 +4,6 @@ use std::{
     io::{self, Write},
 };
 
-use byteorder::{LittleEndian, WriteBytesExt};
 use noodles_vcf::{
     header::record::value::{Map, map::Format},
     variant::record::samples::series::{
@@ -15,7 +14,7 @@ use noodles_vcf::{
 };
 
 use crate::{
-    io::writer::num::{write_i8, write_i16_le, write_i32_le},
+    io::writer::num::{write_f32_le, write_i8, write_i16_le, write_i32_le},
     record::codec::{
         encoder::value::write_type,
         value::{Float, Int8, Int16, Int32, Type},
@@ -378,7 +377,7 @@ where
     for value in values {
         match value {
             Some(Value::Float(n)) => {
-                writer.write_f32::<LittleEndian>(*n)?;
+                write_f32_le(writer, *n)?;
             }
             Some(v) => {
                 return Err(io::Error::new(
@@ -386,7 +385,7 @@ where
                     format!("type mismatch: expected Float, got {v:?}"),
                 ));
             }
-            None => writer.write_f32::<LittleEndian>(f32::from(Float::Missing))?,
+            None => write_f32_le(writer, f32::from(Float::Missing))?,
         }
     }
 
@@ -414,7 +413,7 @@ where
                 for result in vs.iter() {
                     let v = result?;
                     let raw_value = v.unwrap_or(f32::from(Float::Missing));
-                    writer.write_f32::<LittleEndian>(raw_value)?;
+                    write_f32_le(writer, raw_value)?;
                 }
 
                 vs.len()
@@ -426,14 +425,14 @@ where
                 ));
             }
             None => {
-                writer.write_f32::<LittleEndian>(f32::from(Float::Missing))?;
+                write_f32_le(writer, f32::from(Float::Missing))?;
                 1
             }
         };
 
         if len < max_len {
             for _ in 0..(max_len - len) {
-                writer.write_f32::<LittleEndian>(f32::from(Float::EndOfVector))?;
+                write_f32_le(writer, f32::from(Float::EndOfVector))?;
             }
         }
     }
