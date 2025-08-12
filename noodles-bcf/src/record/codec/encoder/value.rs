@@ -7,7 +7,7 @@ use std::io::{self, Write};
 use byteorder::{LittleEndian, WriteBytesExt};
 
 use crate::{
-    io::writer::num::write_i32_le,
+    io::writer::num::{write_i8, write_i32_le},
     record::codec::value::{Array, Float, Int8, Int16, Int32, Type, Value},
 };
 
@@ -43,7 +43,7 @@ where
         }
         Some(v) => {
             write_type(writer, Some(Type::Int8(1)))?;
-            writer.write_i8(i8::from(v))?;
+            write_i8(writer, i8::from(v))?;
         }
     }
 
@@ -128,7 +128,7 @@ where
 
             for result in values.iter() {
                 let n = result?;
-                writer.write_i8(n)?;
+                write_i8(writer, n)?;
             }
         }
         Array::Int16(values) => {

@@ -15,7 +15,7 @@ use noodles_vcf::{
 };
 
 use crate::{
-    io::writer::num::write_i32_le,
+    io::writer::num::{write_i8, write_i32_le},
     record::codec::{
         encoder::value::write_type,
         value::{Float, Int8, Int16, Int32, Type},
@@ -107,7 +107,7 @@ where
             Some(Value::Integer(n)) => {
                 let m =
                     i8::try_from(*n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-                writer.write_i8(m)?;
+                write_i8(writer, m)?;
             }
             Some(v) => {
                 return Err(io::Error::new(
@@ -115,7 +115,7 @@ where
                     format!("type mismatch: expected Integer, got {v:?}"),
                 ));
             }
-            None => writer.write_i8(i8::from(Int8::Missing))?,
+            None => write_i8(writer, i8::from(Int8::Missing))?,
         }
     }
 
@@ -245,7 +245,7 @@ where
                         None => i8::from(Int8::Missing),
                     };
 
-                    writer.write_i8(n)?;
+                    write_i8(writer, n)?;
                 }
 
                 vs.len()
@@ -257,14 +257,14 @@ where
                 ));
             }
             None => {
-                writer.write_i8(i8::from(Int8::Missing))?;
+                write_i8(writer, i8::from(Int8::Missing))?;
                 1
             }
         };
 
         if len < max_len {
             for _ in 0..(max_len - len) {
-                writer.write_i8(i8::from(Int8::EndOfVector))?;
+                write_i8(writer, i8::from(Int8::EndOfVector))?;
             }
         }
     }
