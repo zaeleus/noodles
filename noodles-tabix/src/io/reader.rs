@@ -10,7 +10,7 @@ use crate::Index;
 
 /// A tabix reader.
 ///
-/// Consider using [`crate::read`] to read the entire index at once.
+/// Consider using [`crate::fs::read`] to read the entire index at once.
 pub struct Reader<R> {
     inner: bgzf::io::Reader<R>,
 }
