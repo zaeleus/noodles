@@ -53,19 +53,28 @@ mod tests {
 
     #[test]
     fn test_read_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
-        let data = [
+        let src = [
             0x04, 0x00, 0x00, 0x00, // l_name = 4
             0x73, 0x71, 0x30, 0x00, // name = "sq0\x00"
             0x08, 0x00, 0x00, 0x00, // l_ref = 8
         ];
 
-        let mut reader = &data[..];
-        let actual = read_reference_sequence(&mut reader)?;
+        let actual = read_reference_sequence(&mut &src[..])?;
         let expected = (
             BString::from("sq0"),
             Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
         );
         assert_eq!(actual, expected);
+
+        let src = [
+            0x04, 0x00, 0x00, 0x00, // l_name = 4
+            0x73, 0x71, 0x30, 0x00, // name = "sq0\x00"
+            0x00, 0x00, 0x00, 0x00, // l_ref = 0
+        ];
+        assert!(matches!(
+            read_reference_sequence(&mut &src[..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
