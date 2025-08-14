@@ -310,23 +310,23 @@ fn calculate_template_length_chunk(
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) enum ReferenceSequence {
+pub(crate) enum ReferenceSequence<'c> {
     Embedded {
         reference_start: Position,
-        sequence: fasta::record::Sequence,
+        sequence: &'c [u8],
     },
     External {
         sequence: fasta::record::Sequence,
     },
 }
 
-fn get_slice_reference_sequence(
+fn get_slice_reference_sequence<'c>(
     reference_sequence_repository: &fasta::Repository,
     header: &sam::Header,
     compression_header: &CompressionHeader,
     slice_header: &Header,
-    external_data_srcs: &[(block::ContentId, Vec<u8>)],
-) -> io::Result<Option<ReferenceSequence>> {
+    external_data_srcs: &'c [(block::ContentId, Vec<u8>)],
+) -> io::Result<Option<ReferenceSequence<'c>>> {
     let reference_sequence_context = slice_header.reference_sequence_context();
 
     let ReferenceSequenceContext::Some(context) = reference_sequence_context else {
@@ -362,7 +362,7 @@ fn get_slice_reference_sequence(
 
         Ok(Some(ReferenceSequence::External { sequence }))
     } else if let Some(block_content_id) = embedded_reference_bases_block_content_id {
-        let src = external_data_srcs
+        let sequence = external_data_srcs
             .iter()
             .find(|(id, _)| *id == block_content_id)
             .map(|(_, src)| src)
@@ -370,18 +370,18 @@ fn get_slice_reference_sequence(
 
         Ok(Some(ReferenceSequence::Embedded {
             reference_start: context.alignment_start(),
-            sequence: fasta::record::Sequence::from(src.clone()),
+            sequence,
         }))
     } else {
         Ok(None)
     }
 }
 
-fn get_record_reference_sequence(
+fn get_record_reference_sequence<'c>(
     reference_sequence_repository: &fasta::Repository,
     header: &sam::Header,
-    record: &Record<'_>,
-) -> io::Result<Option<ReferenceSequence>> {
+    record: &Record<'c>,
+) -> io::Result<Option<ReferenceSequence<'c>>> {
     if record.bam_flags.is_unmapped() {
         return Ok(None);
     }

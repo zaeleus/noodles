@@ -35,7 +35,7 @@ use crate::{
 pub struct Record<'c> {
     pub(crate) id: u64,
     pub(crate) header: Option<&'c sam::Header>,
-    pub(crate) reference_sequence: Option<ReferenceSequence>,
+    pub(crate) reference_sequence: Option<ReferenceSequence<'c>>,
     pub(crate) substitution_matrix: SubstitutionMatrix,
     pub(crate) bam_flags: sam::alignment::record::Flags,
     pub(crate) cram_flags: Flags,
@@ -157,7 +157,11 @@ impl sam::alignment::Record for Record<'_> {
                     let offset = usize::from(*reference_start);
                     let offset_alignment_start =
                         Position::new(alignment_start - offset + 1).unwrap();
-                    (sequence.clone(), offset_alignment_start)
+
+                    (
+                        fasta::record::Sequence::from(sequence.to_vec()),
+                        offset_alignment_start,
+                    )
                 }
                 Some(ReferenceSequence::External { sequence, .. }) => {
                     (sequence.clone(), self.alignment_start.unwrap())
