@@ -1,9 +1,8 @@
 mod with_positions;
 
-use std::{iter::FusedIterator, slice};
+use std::{iter::FusedIterator, ops::Range, slice};
 
 use noodles_core::Position;
-use noodles_fasta as fasta;
 
 use self::with_positions::WithPositions;
 use crate::{
@@ -13,8 +12,27 @@ use crate::{
     record::Feature,
 };
 
+struct ReferenceSequence<'c>(&'c [u8]);
+
+impl<'c> ReferenceSequence<'c> {
+    fn new(src: &'c [u8]) -> Self {
+        Self(src)
+    }
+
+    fn at(&self, position: Position) -> u8 {
+        let i = usize::from(position) - 1;
+        self.0[i]
+    }
+
+    fn slice(&self, range: Range<Position>) -> &'c [u8] {
+        let start = usize::from(range.start) - 1;
+        let end = usize::from(range.end) - 1;
+        &self.0[start..end]
+    }
+}
+
 pub(super) struct Iter<'r, 'c: 'r> {
-    reference_sequence: Option<&'c fasta::record::Sequence>,
+    reference_sequence: Option<ReferenceSequence<'c>>,
     substitution_matrix: SubstitutionMatrix,
     features: WithPositions<'r, 'c>,
     read_length: usize,
@@ -25,7 +43,7 @@ pub(super) struct Iter<'r, 'c: 'r> {
 
 impl<'r, 'c: 'r> Iter<'r, 'c> {
     pub(super) fn new(
-        reference_sequence: Option<&'c fasta::record::Sequence>,
+        reference_sequence: Option<&'c [u8]>,
         substitution_matrix: SubstitutionMatrix,
         features: &'r [Feature<'c>],
         alignment_start: Position,
@@ -35,7 +53,7 @@ impl<'r, 'c: 'r> Iter<'r, 'c> {
         let (last_reference_position, last_read_position) = features.positions();
 
         Self {
-            reference_sequence,
+            reference_sequence: reference_sequence.map(ReferenceSequence::new),
             substitution_matrix,
             features,
             read_length,
@@ -65,16 +83,18 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
                     self.state = if let Some(((reference_position, read_position), feature)) =
                         self.features.next()
                     {
-                        let bases = if let Some(reference_sequence) = self.reference_sequence {
-                            &reference_sequence[self.last_reference_position..reference_position]
-                        } else if read_position != self.last_read_position {
-                            panic!("next: missing reference sequence");
-                        } else {
-                            &[]
-                        };
+                        let bases =
+                            if let Some(reference_sequence) = self.reference_sequence.as_ref() {
+                                reference_sequence
+                                    .slice(self.last_reference_position..reference_position)
+                            } else if read_position != self.last_read_position {
+                                panic!("next: missing reference sequence");
+                            } else {
+                                &[]
+                            };
 
                         State::Prepare(bases.iter(), reference_position, feature)
-                    } else if let Some(reference_sequence) = self.reference_sequence {
+                    } else if let Some(reference_sequence) = self.reference_sequence.as_ref() {
                         let last_read_position = usize::from(self.last_read_position);
 
                         if last_read_position > self.read_length {
@@ -87,7 +107,7 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
                                 .checked_add(len)
                                 .expect("attempt to add with overflow");
 
-                            let bases = &reference_sequence[self.last_reference_position..end];
+                            let bases = reference_sequence.slice(self.last_reference_position..end);
 
                             State::Finish(bases.iter())
                         }
@@ -115,8 +135,8 @@ impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
                         Feature::Scores { .. } => State::Next,
                         Feature::ReadBase { base, .. } => State::Base(*base),
                         Feature::Substitution { code, .. } => {
-                            if let Some(reference_sequence) = self.reference_sequence {
-                                let raw_reference_base = reference_sequence[reference_position];
+                            if let Some(reference_sequence) = self.reference_sequence.as_ref() {
+                                let raw_reference_base = reference_sequence.at(reference_position);
 
                                 let reference_base = Base::try_from(raw_reference_base)
                                     .expect("invalid reference base");
@@ -194,7 +214,7 @@ mod tests {
 
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
-        let reference_sequence = fasta::record::Sequence::from(b"CGTCCGTAACACTAGG".to_vec());
+        let reference_sequence = b"CGTCCGTAACACTAGG";
 
         let features = [
             Feature::Bases {
@@ -249,7 +269,7 @@ mod tests {
         ];
 
         let iter = Iter::new(
-            Some(&reference_sequence),
+            Some(reference_sequence),
             SubstitutionMatrix::default(),
             &features,
             Position::MIN,

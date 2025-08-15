@@ -12,7 +12,6 @@ use std::{borrow::Cow, io};
 
 use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
-use noodles_fasta as fasta;
 use noodles_sam::{
     self as sam,
     alignment::record::{MappingQuality, data::field::Tag},
@@ -157,14 +156,10 @@ impl sam::alignment::Record for Record<'_> {
                     let offset = usize::from(*reference_start);
                     let offset_alignment_start =
                         Position::new(alignment_start - offset + 1).unwrap();
-
-                    (
-                        Some(fasta::record::Sequence::from(sequence.to_vec())),
-                        offset_alignment_start,
-                    )
+                    (Some(*sequence), offset_alignment_start)
                 }
                 Some(ReferenceSequence::External { sequence, .. }) => {
-                    (Some(sequence.clone()), self.alignment_start.unwrap())
+                    (Some(sequence.as_ref()), self.alignment_start.unwrap())
                 }
                 None => (None, Position::MIN),
             };
