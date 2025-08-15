@@ -42,7 +42,7 @@ where
 
 /// An iterator over records of a BAM reader that intersects a given region.
 ///
-/// This is created by calling [`Reader::query`].
+/// This is created by calling [`super::Reader::query`].
 pub struct Query<'r, R> {
     reader: Reader<'r, R>,
     record: Record,
