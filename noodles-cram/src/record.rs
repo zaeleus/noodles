@@ -159,18 +159,18 @@ impl sam::alignment::Record for Record<'_> {
                         Position::new(alignment_start - offset + 1).unwrap();
 
                     (
-                        fasta::record::Sequence::from(sequence.to_vec()),
+                        Some(fasta::record::Sequence::from(sequence.to_vec())),
                         offset_alignment_start,
                     )
                 }
                 Some(ReferenceSequence::External { sequence, .. }) => {
-                    (sequence.clone(), self.alignment_start.unwrap())
+                    (Some(sequence.clone()), self.alignment_start.unwrap())
                 }
-                None => (fasta::record::Sequence::default(), Position::MIN),
+                None => (None, Position::MIN),
             };
 
             Box::new(Sequence::new(
-                Some(reference_sequence),
+                reference_sequence,
                 self.substitution_matrix.clone(),
                 &self.features,
                 alignment_start,
