@@ -38,7 +38,7 @@ pub(super) struct Iter<'r, 'c: 'r> {
     read_length: usize,
     last_reference_position: Position,
     last_read_position: Position,
-    state: State<'c>,
+    state: State<'r, 'c>,
 }
 
 impl<'r, 'c: 'r> Iter<'r, 'c> {
@@ -64,16 +64,16 @@ impl<'r, 'c: 'r> Iter<'r, 'c> {
     }
 }
 
-enum State<'c> {
+enum State<'r, 'c: 'r> {
     Next,
-    Prepare(slice::Iter<'c, u8>, Position, &'c Feature<'c>),
+    Prepare(slice::Iter<'c, u8>, Position, &'r Feature<'c>),
     Base(u8),
     Bases(slice::Iter<'c, u8>),
     Finish(slice::Iter<'c, u8>),
     Done,
 }
 
-impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
+impl<'r, 'c: 'r> Iterator for Iter<'r, 'c> {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
