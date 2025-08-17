@@ -73,7 +73,7 @@ where
         Self { inner }
     }
 
-    /// Writes a [`Line`].
+    /// Writes a line.
     ///
     /// # Examples
     ///
