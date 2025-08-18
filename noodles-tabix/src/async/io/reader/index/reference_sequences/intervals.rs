@@ -22,3 +22,35 @@ where
 
     Ok(intervals)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_read_intervals() -> io::Result<()> {
+        let src = [
+            0x00, 0x00, 0x00, 0x00, // n_intv = 0
+        ];
+        assert!(read_intervals(&mut &src[..]).await?.is_empty());
+
+        let src = [
+            0x01, 0x00, 0x00, 0x00, // n_intv = 1
+            0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ioffset[0] = 8
+        ];
+        assert_eq!(
+            read_intervals(&mut &src[..]).await?,
+            vec![bgzf::VirtualPosition::from(8)]
+        );
+
+        let src = [
+            0xff, 0xff, 0xff, 0xff, // n_intv = -1
+        ];
+        assert!(matches!(
+            read_intervals(&mut &src[..]).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+}
