@@ -29,23 +29,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_intervals() -> io::Result<()> {
-        let data = [
-            0x03, 0x00, 0x00, 0x00, // n_intv = 3
+        let src = [
+            0x00, 0x00, 0x00, 0x00, // n_intv = 0
+        ];
+        assert!(read_intervals(&mut &src[..]).await?.is_empty());
+
+        let src = [
+            0x01, 0x00, 0x00, 0x00, // n_intv = 1
             0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ioffset[0] = 8
-            0x0d, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ioffset[1] = 13
-            0x15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ioffset[2] = 21
         ];
-
-        let mut reader = &data[..];
-        let actual = read_intervals(&mut reader).await?;
-
-        let expected = vec![
-            bgzf::VirtualPosition::from(8),
-            bgzf::VirtualPosition::from(13),
-            bgzf::VirtualPosition::from(21),
-        ];
-
-        assert_eq!(actual, expected);
+        assert_eq!(
+            read_intervals(&mut &src[..]).await?,
+            vec![bgzf::VirtualPosition::from(8)]
+        );
 
         Ok(())
     }

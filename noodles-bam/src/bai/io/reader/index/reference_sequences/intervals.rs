@@ -21,3 +21,27 @@ where
 
     Ok(intervals)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_intervals() -> io::Result<()> {
+        let src = [
+            0x00, 0x00, 0x00, 0x00, // n_intv = 0
+        ];
+        assert!(read_intervals(&mut &src[..])?.is_empty());
+
+        let src = [
+            0x01, 0x00, 0x00, 0x00, // n_intv = 1
+            0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // ioffset[0] = 8
+        ];
+        assert_eq!(
+            read_intervals(&mut &src[..])?,
+            vec![bgzf::VirtualPosition::from(8)]
+        );
+
+        Ok(())
+    }
+}
