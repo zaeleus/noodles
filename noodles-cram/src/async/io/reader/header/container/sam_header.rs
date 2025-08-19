@@ -1,3 +1,5 @@
+//! Async CRAM header container SAM header reader.
+
 use bstr::ByteSlice;
 use pin_project_lite::pin_project;
 use std::{

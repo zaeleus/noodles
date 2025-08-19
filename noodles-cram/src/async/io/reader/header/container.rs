@@ -2,7 +2,7 @@
 
 mod block;
 mod header;
-mod sam_header;
+pub mod sam_header;
 
 use tokio::io::{self, AsyncRead, AsyncReadExt, Take};
 

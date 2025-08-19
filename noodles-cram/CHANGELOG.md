@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/async/io/reader/header/container: Increase visibility of `sam_header`
+    module.
+
+    This allows access to `sam_header::Reader`.
+
 ## 0.85.0 - 2025-07-12
 
 ### Changed
