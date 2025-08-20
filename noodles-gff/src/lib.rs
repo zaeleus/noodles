@@ -6,7 +6,7 @@
 //!
 //! # Examples
 //!
-//! ## Read all records in a GFF3 file
+//! ## Read all records
 //!
 //! ```no_run
 //! # use std::{fs::File, io::{self, BufReader}};
@@ -18,13 +18,7 @@
 //!
 //! for result in reader.record_bufs() {
 //!     let record = result?;
-//!
-//!     println!(
-//!         "{}\t{}\t{}",
-//!         record.reference_sequence_name(),
-//!         record.start(),
-//!         record.end(),
-//!     );
+//!     // ...
 //! }
 //! # Ok::<(), io::Error>(())
 //! ```
