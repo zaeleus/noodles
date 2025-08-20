@@ -223,7 +223,7 @@ fn parse_mate_reference_sequence_id(
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use super::*;
 
@@ -256,19 +256,15 @@ mod tests {
     fn test_parse_mate_reference_sequence_id() {
         use crate::header::record::value::{Map, map::ReferenceSequence};
 
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let header = Header::builder()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
-            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(SQ1_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
+            .add_reference_sequence(
+                "sq1",
+                Map::<ReferenceSequence>::new(const { NonZero::new(13).unwrap() }),
+            )
             .build();
 
         let reference_sequence_id = Some(0);

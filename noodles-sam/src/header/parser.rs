@@ -222,22 +222,12 @@ mod tests {
 
     #[test]
     fn test_parse() -> Result<(), Box<dyn std::error::Error>> {
-        use std::num::NonZeroUsize;
+        use std::num::NonZero;
 
         use crate::header::record::value::map::{
             self, Map, Program, ReadGroup, ReferenceSequence,
             header::{self, Version},
             program,
-        };
-
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
-            Some(length) => length,
-            None => unreachable!(),
         };
 
         let s = "\
@@ -258,8 +248,14 @@ mod tests {
                     .insert(header::tag::SORT_ORDER, "coordinate")
                     .build()?,
             )
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
-            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(SQ1_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
+            .add_reference_sequence(
+                "sq1",
+                Map::<ReferenceSequence>::new(const { NonZero::new(13).unwrap() }),
+            )
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_program(
                 "pg0",

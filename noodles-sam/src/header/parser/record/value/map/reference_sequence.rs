@@ -133,22 +133,20 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use super::*;
 
     #[test]
     fn test_parse_header() {
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let mut src = &b"\tSN:sq0\tLN:8"[..];
         let ctx = Context::default();
         let actual = parse_reference_sequence(&mut src, &ctx);
 
-        let expected = (BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN));
+        let expected = (
+            BString::from("sq0"),
+            Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+        );
 
         assert_eq!(actual, Ok(expected));
     }

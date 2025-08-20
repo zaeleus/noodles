@@ -92,7 +92,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use super::*;
     use crate::header::record::value::{
@@ -128,11 +128,6 @@ mod tests {
     fn test_read_header_with_multiple_buffer_fills() -> io::Result<()> {
         use std::io::BufReader;
 
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let data = "@HD\tVN:1.6\n@SQ\tSN:sq0\tLN:8\n";
         let mut reader = BufReader::with_capacity(16, data.as_bytes());
 
@@ -140,7 +135,10 @@ mod tests {
 
         let expected = crate::Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
             .build();
 
         assert_eq!(actual, expected);

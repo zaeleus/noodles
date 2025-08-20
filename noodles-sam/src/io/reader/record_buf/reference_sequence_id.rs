@@ -35,26 +35,22 @@ pub(super) fn parse_reference_sequence_id(
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use super::*;
     use crate::header::record::value::{Map, map::ReferenceSequence};
 
     #[test]
     fn test_parse_reference_sequence_id() {
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let header = Header::builder()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
-            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(SQ1_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
+            .add_reference_sequence(
+                "sq1",
+                Map::<ReferenceSequence>::new(const { NonZero::new(13).unwrap() }),
+            )
             .build();
 
         assert_eq!(parse_reference_sequence_id(&header, b"sq0"), Ok(0));

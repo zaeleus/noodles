@@ -1,11 +1,11 @@
 use std::{
     io::{self, Write},
-    num::NonZeroUsize,
+    num::NonZero,
 };
 
 use crate::header::record::value::map::reference_sequence::tag;
 
-pub(super) fn write_length_field<W>(writer: &mut W, length: NonZeroUsize) -> io::Result<()>
+pub(super) fn write_length_field<W>(writer: &mut W, length: NonZero<usize>) -> io::Result<()>
 where
     W: Write,
 {
@@ -32,13 +32,8 @@ mod tests {
 
     #[test]
     fn test_write_length_field() -> io::Result<()> {
-        const LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let mut buf = Vec::new();
-        write_length_field(&mut buf, LN)?;
+        write_length_field(&mut buf, const { NonZero::new(8).unwrap() })?;
         assert_eq!(buf, b"\tLN:8");
         Ok(())
     }

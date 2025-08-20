@@ -38,17 +38,7 @@ mod tests {
 
     #[test]
     fn test_write_header() -> io::Result<()> {
-        use std::num::NonZeroUsize;
-
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
+        use std::num::NonZero;
 
         use crate::header::record::value::{
             Map,
@@ -57,8 +47,14 @@ mod tests {
 
         let header = Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
-            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(SQ1_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
+            .add_reference_sequence(
+                "sq1",
+                Map::<ReferenceSequence>::new(const { NonZero::new(13).unwrap() }),
+            )
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())
