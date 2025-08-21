@@ -1,5 +1,6 @@
 mod array;
 mod character;
+mod float;
 mod genotype;
 mod integer;
 mod string;
@@ -7,7 +8,7 @@ mod string;
 use std::io::{self, Write};
 
 use self::{
-    array::write_array, character::write_character, genotype::write_genotype,
+    array::write_array, character::write_character, float::write_float, genotype::write_genotype,
     integer::write_integer, string::write_string,
 };
 use crate::{Header, variant::record::samples::series::Value};
@@ -18,7 +19,7 @@ where
 {
     match value {
         Value::Integer(n) => write_integer(writer, *n),
-        Value::Float(n) => write!(writer, "{n}"),
+        Value::Float(n) => write_float(writer, *n),
         Value::Character(c) => write_character(writer, *c),
         Value::String(s) => write_string(writer, s),
         Value::Genotype(genotype) => write_genotype(writer, header, genotype.as_ref()),
