@@ -4,10 +4,11 @@
 
 ### Changed
 
-  * vcf/io/writer/record/info/field/value/array: Constrain integer values.
+  * vcf/io/writer/record: Constrain array integer values.
 
-    Array integer values are now constrained to be > -2**31 + 7, as per § 1.3
-    "Data types" (2024-10-09).
+    Like scalar integer values, array integer values must now be > -2^31 + 7.
+    See _The Variant Call Format Specification: VCFv4.5 and BCFv2.2_
+    (2024-10-09) § 1.3 "Data types".
 
 ## 0.80.0 - 2025-07-12
 
