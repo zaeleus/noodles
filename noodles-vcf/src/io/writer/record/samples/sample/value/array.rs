@@ -7,13 +7,11 @@ pub(super) fn write_array<W>(writer: &mut W, array: &Array) -> io::Result<()>
 where
     W: Write,
 {
-    const DELIMITER: &[u8] = b",";
-
     match array {
         Array::Integer(values) => {
             for (i, result) in values.iter().enumerate() {
                 if i > 0 {
-                    writer.write_all(DELIMITER)?;
+                    write_separator(writer)?;
                 }
 
                 if let Some(n) = result? {
@@ -26,7 +24,7 @@ where
         Array::Float(values) => {
             for (i, result) in values.iter().enumerate() {
                 if i > 0 {
-                    writer.write_all(DELIMITER)?;
+                    write_separator(writer)?;
                 }
 
                 if let Some(n) = result? {
@@ -39,7 +37,7 @@ where
         Array::Character(values) => {
             for (i, result) in values.iter().enumerate() {
                 if i > 0 {
-                    writer.write_all(DELIMITER)?;
+                    write_separator(writer)?;
                 }
 
                 if let Some(c) = result? {
@@ -52,7 +50,7 @@ where
         Array::String(values) => {
             for (i, result) in values.iter().enumerate() {
                 if i > 0 {
-                    writer.write_all(DELIMITER)?;
+                    write_separator(writer)?;
                 }
 
                 if let Some(s) = result? {
@@ -65,6 +63,14 @@ where
     }
 
     Ok(())
+}
+
+fn write_separator<W>(writer: &mut W) -> io::Result<()>
+where
+    W: Write,
+{
+    const SEPARATOR: &[u8] = b",";
+    writer.write_all(SEPARATOR)
 }
 
 #[cfg(test)]
