@@ -1,12 +1,14 @@
 mod array;
 mod character;
+mod float;
 mod integer;
 mod string;
 
 use std::io::{self, Write};
 
 use self::{
-    array::write_array, character::write_character, integer::write_integer, string::write_string,
+    array::write_array, character::write_character, float::write_float, integer::write_integer,
+    string::write_string,
 };
 use crate::variant::record::info::field::Value;
 
@@ -16,7 +18,7 @@ where
 {
     match value {
         Value::Integer(n) => write_integer(writer, *n),
-        Value::Float(n) => write!(writer, "{n}"),
+        Value::Float(n) => write_float(writer, *n),
         Value::Flag => Ok(()),
         Value::Character(c) => write_character(writer, *c),
         Value::String(s) => write_string(writer, s),

@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{write_character, write_string};
+use super::{write_character, write_float, write_string};
 use crate::{io::writer::record::MISSING, variant::record::info::field::value::Array};
 
 pub(super) fn write_array<W>(writer: &mut W, array: &Array) -> io::Result<()>
@@ -30,7 +30,7 @@ where
                 }
 
                 if let Some(n) = result? {
-                    write!(writer, "{n}")?;
+                    write_float(writer, n)?;
                 } else {
                     writer.write_all(MISSING)?;
                 }
