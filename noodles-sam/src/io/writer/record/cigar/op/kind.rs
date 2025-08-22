@@ -6,7 +6,12 @@ pub(super) fn write_kind<W>(writer: &mut W, kind: Kind) -> io::Result<()>
 where
     W: Write,
 {
-    let c = match kind {
+    let c = encode(kind);
+    writer.write_all(&[c])
+}
+
+fn encode(kind: Kind) -> u8 {
+    match kind {
         Kind::Match => b'M',
         Kind::Insertion => b'I',
         Kind::Deletion => b'D',
@@ -16,9 +21,7 @@ where
         Kind::Pad => b'P',
         Kind::SequenceMatch => b'=',
         Kind::SequenceMismatch => b'X',
-    };
-
-    writer.write_all(&[c])
+    }
 }
 
 #[cfg(test)]
@@ -27,25 +30,22 @@ mod tests {
 
     #[test]
     fn test_write_kind() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, kind: Kind, expected: &[u8]) -> io::Result<()> {
-            buf.clear();
-            write_kind(buf, kind)?;
-            assert_eq!(buf, expected);
-            Ok(())
-        }
-
         let mut buf = Vec::new();
-
-        t(&mut buf, Kind::Match, b"M")?;
-        t(&mut buf, Kind::Insertion, b"I")?;
-        t(&mut buf, Kind::Deletion, b"D")?;
-        t(&mut buf, Kind::Skip, b"N")?;
-        t(&mut buf, Kind::SoftClip, b"S")?;
-        t(&mut buf, Kind::HardClip, b"H")?;
-        t(&mut buf, Kind::Pad, b"P")?;
-        t(&mut buf, Kind::SequenceMatch, b"=")?;
-        t(&mut buf, Kind::SequenceMismatch, b"X")?;
-
+        write_kind(&mut buf, Kind::Match)?;
+        assert_eq!(buf, b"M");
         Ok(())
+    }
+
+    #[test]
+    fn test_encode() {
+        assert_eq!(encode(Kind::Match), b'M');
+        assert_eq!(encode(Kind::Insertion), b'I');
+        assert_eq!(encode(Kind::Deletion), b'D');
+        assert_eq!(encode(Kind::Skip), b'N');
+        assert_eq!(encode(Kind::SoftClip), b'S');
+        assert_eq!(encode(Kind::HardClip), b'H');
+        assert_eq!(encode(Kind::Pad), b'P');
+        assert_eq!(encode(Kind::SequenceMatch), b'=');
+        assert_eq!(encode(Kind::SequenceMismatch), b'X');
     }
 }
