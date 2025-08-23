@@ -13,6 +13,10 @@ use super::io::Reader;
 /// let _reader = bgzf::fs::open("in.gz")?;
 /// # Ok::<_, std::io::Error>(())
 /// ```
+#[deprecated(
+    since = "0.43.0",
+    note = "Use `File::open(src).map(bgzf::io::Reader::new)` instead."
+)]
 pub fn open<P>(src: P) -> io::Result<Reader<File>>
 where
     P: AsRef<Path>,

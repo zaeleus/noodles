@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Deprecated
+
+  * bgzf/fs: Deprecate `open` function.
+
+    Use `File::open(src).map(bgzf::io::Reader::new)` instead.
+
 ## 0.42.0 - 2025-07-12
 
 ### Added

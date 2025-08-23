@@ -5,13 +5,13 @@
 use std::env;
 
 use noodles_bgzf as bgzf;
-use tokio::io;
+use tokio::{fs::File, io};
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bgzf::r#async::fs::open(src).await?;
+    let mut reader = File::open(src).await.map(bgzf::r#async::io::Reader::new)?;
     let mut writer = io::BufWriter::new(io::stdout());
     io::copy_buf(&mut reader, &mut writer).await?;
 
