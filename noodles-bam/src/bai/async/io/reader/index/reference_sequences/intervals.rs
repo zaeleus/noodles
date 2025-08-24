@@ -5,19 +5,21 @@ pub(super) async fn read_intervals<R>(reader: &mut R) -> io::Result<Vec<bgzf::Vi
 where
     R: AsyncRead + Unpin,
 {
-    let n_intv = reader.read_u32_le().await.and_then(|n| {
+    // n_intv
+    let interval_count = reader.read_u32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut intervals = Vec::with_capacity(n_intv);
+    let mut intervals = Vec::with_capacity(interval_count);
 
-    for _ in 0..n_intv {
-        let ioffset = reader
+    for _ in 0..interval_count {
+        // ioffset
+        let offset = reader
             .read_u64_le()
             .await
             .map(bgzf::VirtualPosition::from)?;
 
-        intervals.push(ioffset);
+        intervals.push(offset);
     }
 
     Ok(intervals)
