@@ -8,18 +8,17 @@ pub(super) fn read_intervals<R>(reader: &mut R) -> io::Result<Vec<bgzf::VirtualP
 where
     R: Read,
 {
-    let n_intv = read_i32_le(reader).and_then(|n| {
+    // n_intv
+    let interval_count = read_i32_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut intervals = Vec::with_capacity(n_intv);
-
-    for _ in 0..n_intv {
-        let ioff = read_u64_le(reader).map(bgzf::VirtualPosition::from)?;
-        intervals.push(ioff);
-    }
-
-    Ok(intervals)
+    (0..interval_count)
+        .map(|_| {
+            // ioff
+            read_u64_le(reader).map(bgzf::VirtualPosition::from)
+        })
+        .collect()
 }
 
 #[cfg(test)]
