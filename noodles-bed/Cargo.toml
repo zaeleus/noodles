@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bed"
-version = "0.27.0"
+version = "0.28.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -15,10 +15,10 @@ categories = ["parser-implementations", "science::bioinformatics"]
 bstr.workspace = true
 lexical-core.workspace = true
 memchr.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.42.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.43.0" }
 noodles-core = { path = "../noodles-core", version = "0.18.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.50.0" }
-noodles-tabix = { path = "../noodles-tabix", version = "0.56.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.51.0" }
+noodles-tabix = { path = "../noodles-tabix", version = "0.57.0" }
 
 [lints]
 workspace = true
