@@ -2,7 +2,7 @@
 //!
 //! That is, there is a single alignment hit count (SAM record data tag `NM` = 1).
 
-use std::{env, io};
+use std::{env, fs::File, io};
 
 use noodles_bam as bam;
 
@@ -24,7 +24,7 @@ fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
     let src = args.next().expect("missing src");
 
-    let mut reader = bam::io::reader::Builder.build_from_path(src)?;
+    let mut reader = File::open(src).map(bam::io::Reader::new)?;
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();

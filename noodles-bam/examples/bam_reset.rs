@@ -5,6 +5,7 @@
 
 use std::{
     env,
+    fs::File,
     io::{self, BufWriter},
 };
 
@@ -17,7 +18,7 @@ use noodles_sam::{
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bam::io::reader::Builder.build_from_path(src)?;
+    let mut reader = File::open(src).map(bam::io::Reader::new)?;
     let header = reader.read_header()?;
 
     let stdout = BufWriter::new(io::stdout().lock());

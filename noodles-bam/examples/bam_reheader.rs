@@ -4,7 +4,7 @@
 //!
 //! Verify the output by piping to `samtools view --no-PG --with-header`.
 
-use std::{env, io};
+use std::{env, fs::File, io};
 
 use noodles_bam as bam;
 use noodles_sam::header::record::value::{
@@ -25,7 +25,7 @@ fn build_self_program() -> Result<Map<Program>, BuildError> {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bam::io::reader::Builder.build_from_path(src)?;
+    let mut reader = File::open(src).map(bam::io::Reader::new)?;
     let mut header = reader.read_header()?;
 
     let pg = build_self_program()?;

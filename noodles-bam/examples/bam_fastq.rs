@@ -6,6 +6,7 @@
 
 use std::{
     env,
+    fs::File,
     io::{self, BufWriter, Write},
 };
 
@@ -17,7 +18,7 @@ const FILTERS: Flags = Flags::SECONDARY.union(Flags::SUPPLEMENTARY);
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bam::io::reader::Builder.build_from_path(src)?;
+    let mut reader = File::open(src).map(bam::io::Reader::new)?;
     reader.read_header()?;
 
     let stdout = io::stdout().lock();
