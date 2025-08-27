@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/record/sequence: Change buffer to a `Vec<u8>`.
+
+    Wrap `Sequence` in another shareable type, if necessary, e.g.,
+    `std::rc::Rc`, `std::sync::Arc`, etc.
+
+### Removed
+
+  * fasta/record/sequence: Remove `From<Bytes>` implementation.
+
+    `Sequence` is no longer backed by a `Bytes` buffer.
+
 ## 0.56.0 - 2025-08-25
 
 ### Changed

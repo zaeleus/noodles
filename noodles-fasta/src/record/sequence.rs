@@ -6,12 +6,11 @@ pub use self::complement::Complement;
 
 use std::ops::Index;
 
-use bytes::Bytes;
 use noodles_core::{position::SequenceIndex, region::Interval};
 
 /// A FASTA record sequence.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct Sequence(Bytes);
+pub struct Sequence(Vec<u8>);
 
 impl Sequence {
     /// Returns the length of the sequence.
@@ -70,6 +69,11 @@ impl Sequence {
     ///
     /// Unlike [`Self::get`], this returns the slice as a [`Sequence`].
     ///
+    /// # Panics
+    ///
+    /// This panics if the given interval is empty (`start > end`) or out of bounds (`end >
+    /// self.len()`).
+    ///
     /// # Examples
     ///
     /// ```
@@ -101,8 +105,8 @@ impl Sequence {
         let end = interval.end().map(usize::from).unwrap_or(self.len());
 
         if start <= end && end <= self.len() {
-            let buf = self.0.slice(start..end);
-            Some(Self::from(buf))
+            let buf = &self.0[start..end];
+            Some(Self::from(buf.to_vec()))
         } else {
             None
         }
@@ -145,14 +149,8 @@ impl AsRef<[u8]> for Sequence {
 }
 
 impl From<Vec<u8>> for Sequence {
-    fn from(data: Vec<u8>) -> Self {
-        Self(Bytes::from(data))
-    }
-}
-
-impl From<Bytes> for Sequence {
-    fn from(data: Bytes) -> Self {
-        Self(data)
+    fn from(buf: Vec<u8>) -> Self {
+        Self(buf)
     }
 }
 
