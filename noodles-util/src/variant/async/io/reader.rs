@@ -7,7 +7,7 @@ use std::pin::Pin;
 use futures::{Stream, StreamExt};
 use noodles_bcf as bcf;
 use noodles_vcf as vcf;
-use tokio::io::{self, AsyncBufRead};
+use tokio::io::{self, AsyncBufRead, AsyncRead};
 
 pub use self::builder::Builder;
 
@@ -92,7 +92,7 @@ where
     }
 }
 
-impl<'a> Reader<Box<dyn AsyncBufRead + Unpin + 'a>> {
+impl<'a> Reader<Box<dyn AsyncBufRead + Send + Unpin + 'a>> {
     /// Creates a variant reader.
     ///
     /// This attempts to autodetect the compression method and format of the input.
@@ -108,7 +108,7 @@ impl<'a> Reader<Box<dyn AsyncBufRead + Unpin + 'a>> {
     /// ```
     pub async fn new<R>(reader: R) -> io::Result<Self>
     where
-        R: AsyncBufRead + Unpin + 'a,
+        R: AsyncRead + Send + Unpin + 'a,
     {
         Builder::default().build_from_reader(reader).await
     }

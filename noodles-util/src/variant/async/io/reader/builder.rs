@@ -68,7 +68,7 @@ impl Builder {
     pub async fn build_from_path<P>(
         self,
         src: P,
-    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin>>>
+    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Send + Unpin>>>
     where
         P: AsRef<Path>,
     {
@@ -95,9 +95,9 @@ impl Builder {
     pub async fn build_from_reader<'a, R>(
         self,
         reader: R,
-    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin + 'a>>>
+    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Send + Unpin + 'a>>>
     where
-        R: AsyncRead + Unpin + 'a,
+        R: AsyncRead + Send + Unpin + 'a,
     {
         use crate::variant::io::reader::builder::{detect_compression_method, detect_format};
 
@@ -121,20 +121,20 @@ impl Builder {
 
         let reader = match (format, compression_method) {
             (Format::Vcf, None) => {
-                let inner: Box<dyn AsyncBufRead + Unpin> = Box::new(reader);
+                let inner: Box<dyn AsyncBufRead + Send + Unpin> = Box::new(reader);
                 Reader::Vcf(vcf::r#async::io::Reader::new(inner))
             }
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                let decoder: Box<dyn AsyncBufRead + Unpin> =
+                let decoder: Box<dyn AsyncBufRead + Send + Unpin> =
                     Box::new(bgzf::r#async::io::Reader::new(reader));
                 Reader::Vcf(vcf::r#async::io::Reader::new(decoder))
             }
             (Format::Bcf, None) => {
-                let inner: Box<dyn AsyncBufRead + Unpin> = Box::new(reader);
+                let inner: Box<dyn AsyncBufRead + Send + Unpin> = Box::new(reader);
                 Reader::Bcf(bcf::r#async::io::Reader::from(inner))
             }
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
-                let decoder: Box<dyn AsyncBufRead + Unpin> =
+                let decoder: Box<dyn AsyncBufRead + Send + Unpin> =
                     Box::new(bgzf::r#async::io::Reader::new(reader));
                 Reader::Bcf(bcf::r#async::io::Reader::from(decoder))
             }

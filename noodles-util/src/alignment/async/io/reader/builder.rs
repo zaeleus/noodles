@@ -89,7 +89,7 @@ impl Builder {
     pub async fn build_from_path<P>(
         self,
         src: P,
-    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin>>>
+    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Send + Unpin>>>
     where
         P: AsRef<Path>,
     {
@@ -116,9 +116,9 @@ impl Builder {
     pub async fn build_from_reader<R>(
         self,
         reader: R,
-    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin>>>
+    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Send + Unpin>>>
     where
-        R: AsyncRead + Unpin + 'static,
+        R: AsyncRead + Send + Unpin + 'static,
     {
         use crate::alignment::io::reader::builder::{detect_compression_method, detect_format};
 
@@ -140,7 +140,7 @@ impl Builder {
             }
         };
 
-        let reader: Box<dyn AsyncBufRead + Unpin> = match (format, compression_method) {
+        let reader: Box<dyn AsyncBufRead + Send + Unpin> = match (format, compression_method) {
             (Format::Sam, None) => Box::new(reader),
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
                 Box::new(bgzf::r#async::io::Reader::new(reader))
@@ -150,7 +150,7 @@ impl Builder {
                 Box::new(bgzf::r#async::io::Reader::new(reader))
             }
             (Format::Cram, None) => {
-                let inner: Box<dyn AsyncBufRead + Unpin> = Box::new(reader);
+                let inner: Box<dyn AsyncBufRead + Send + Unpin> = Box::new(reader);
                 let inner = cram::r#async::io::reader::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
                     .build_from_reader(inner);
@@ -164,7 +164,7 @@ impl Builder {
             }
         };
 
-        let reader: Reader<Box<dyn AsyncBufRead + Unpin>> = match format {
+        let reader: Reader<Box<dyn AsyncBufRead + Send + Unpin>> = match format {
             Format::Sam => Reader::Sam(sam::r#async::io::Reader::new(reader)),
             Format::Bam => Reader::Bam(bam::r#async::io::Reader::from(reader)),
             Format::Cram => unreachable!(), // Handled above
