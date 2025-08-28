@@ -2,14 +2,14 @@
 //!
 //! The result matches the output of `bcftools view --no-header <src> | wc -l`.
 
-use std::{env, io};
+use std::{env, fs::File, io};
 
 use noodles_bcf as bcf;
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bcf::io::reader::Builder::default().build_from_path(src)?;
+    let mut reader = File::open(src).map(bcf::io::Reader::new)?;
     reader.read_header()?;
 
     let mut n = 0;

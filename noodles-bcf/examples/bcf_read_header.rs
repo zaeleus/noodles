@@ -2,7 +2,7 @@
 //!
 //! The result matches the output of `bcftools head <src>`.
 
-use std::{env, io};
+use std::{env, fs::File, io};
 
 use noodles_bcf as bcf;
 use noodles_vcf as vcf;
@@ -10,7 +10,7 @@ use noodles_vcf as vcf;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bcf::io::reader::Builder::default().build_from_path(src)?;
+    let mut reader = File::open(src).map(bcf::io::Reader::new)?;
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
