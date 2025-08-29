@@ -115,7 +115,7 @@ impl Builder {
     ///     .build_from_path("out.sam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_path<P>(mut self, src: P) -> io::Result<Writer>
+    pub fn build_from_path<P>(mut self, src: P) -> io::Result<Writer<File>>
     where
         P: AsRef<Path>,
     {
@@ -129,9 +129,7 @@ impl Builder {
             self.format = detect_format_from_path_extension(src);
         }
 
-        File::create(src)
-            .map(BufWriter::new)
-            .and_then(|writer| self.build_from_writer(writer))
+        File::create(src).and_then(|writer| self.build_from_writer(writer))
     }
 
     /// Builds an alignment writer from a writer.
@@ -147,10 +145,12 @@ impl Builder {
     /// let writer = alignment::io::writer::Builder::default()
     ///     .build_from_writer(io::sink());
     /// ```
-    pub fn build_from_writer<W>(self, writer: W) -> io::Result<Writer>
+    pub fn build_from_writer<W>(self, writer: W) -> io::Result<Writer<W>>
     where
         W: Write + 'static,
     {
+        use super::Inner;
+
         let format = self.format.unwrap_or(Format::Sam);
 
         let compression_method = match self.compression_method {
@@ -161,14 +161,16 @@ impl Builder {
             },
         };
 
-        let inner: Box<dyn sam::alignment::io::Write> = match (format, compression_method) {
-            (Format::Sam, None) => Box::new(sam::io::Writer::new(writer)),
+        let inner = match (format, compression_method) {
+            (Format::Sam, None) => Inner::Sam(sam::io::Writer::new(BufWriter::new(writer))),
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                Box::new(sam::io::Writer::new(bgzf::io::Writer::new(writer)))
+                Inner::SamGz(sam::io::Writer::new(bgzf::io::Writer::new(writer)))
             }
-            (Format::Bam, None) => Box::new(bam::io::Writer::from(writer)),
-            (Format::Bam, Some(CompressionMethod::Bgzf)) => Box::new(bam::io::Writer::new(writer)),
-            (Format::Cram, None) => Box::new(
+            (Format::Bam, None) => Inner::BamRaw(bam::io::Writer::from(BufWriter::new(writer))),
+            (Format::Bam, Some(CompressionMethod::Bgzf)) => {
+                Inner::Bam(bam::io::Writer::new(writer))
+            }
+            (Format::Cram, None) => Inner::Cram(
                 cram::io::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
                     .set_block_content_encoder_map(self.block_content_encoder_map)
@@ -182,7 +184,7 @@ impl Builder {
             }
         };
 
-        Ok(Writer { inner })
+        Ok(Writer(inner))
     }
 }
 

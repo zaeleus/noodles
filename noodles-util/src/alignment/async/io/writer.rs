@@ -1,23 +1,18 @@
 //! Async alignment writer.
 
 mod builder;
+mod inner;
 
-use noodles_bam as bam;
-use noodles_cram as cram;
 use noodles_sam as sam;
-use tokio::io::{self, AsyncWrite, AsyncWriteExt};
+use tokio::io::{self, AsyncWrite};
 
 pub use self::builder::Builder;
+use self::inner::Inner;
 
 /// An async alignment writer.
-pub enum Writer<W: AsyncWrite> {
-    /// SAM.
-    Sam(sam::r#async::io::Writer<W>),
-    /// BAM.
-    Bam(bam::r#async::io::Writer<W>),
-    /// CRAM.
-    Cram(cram::r#async::io::Writer<W>),
-}
+pub struct Writer<W>(Inner<W>)
+where
+    W: AsyncWrite;
 
 impl<W> Writer<W>
 where
@@ -42,11 +37,7 @@ where
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        match self {
-            Self::Sam(writer) => writer.write_header(header).await,
-            Self::Bam(writer) => writer.write_header(header).await,
-            Self::Cram(writer) => writer.write_header(header).await,
-        }
+        self.0.write_header(header).await
     }
 
     /// Writes an alignment record.
@@ -73,11 +64,7 @@ where
         header: &sam::Header,
         record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        match self {
-            Self::Sam(writer) => writer.write_alignment_record(header, record).await,
-            Self::Bam(writer) => writer.write_alignment_record(header, record).await,
-            Self::Cram(writer) => writer.write_alignment_record(header, record).await,
-        }
+        self.0.write_record(header, record).await
     }
 
     /// Shuts down the alignment format writer.
@@ -101,10 +88,6 @@ where
     /// # }
     /// ```
     pub async fn shutdown(&mut self, header: &sam::Header) -> io::Result<()> {
-        match self {
-            Self::Sam(writer) => writer.get_mut().shutdown().await,
-            Self::Bam(writer) => writer.shutdown().await,
-            Self::Cram(writer) => writer.shutdown(header).await,
-        }
+        self.0.shutdown(header).await
     }
 }

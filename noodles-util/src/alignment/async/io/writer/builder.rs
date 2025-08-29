@@ -7,7 +7,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::{
     fs::File,
-    io::{self, AsyncWrite},
+    io::{self, AsyncWrite, BufWriter},
 };
 
 use super::Writer;
@@ -86,10 +86,7 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn build_from_path<P>(
-        mut self,
-        src: P,
-    ) -> io::Result<Writer<Box<dyn AsyncWrite + Unpin>>>
+    pub async fn build_from_path<P>(mut self, src: P) -> io::Result<Writer<File>>
     where
         P: AsRef<Path>,
     {
@@ -130,15 +127,11 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn build_from_writer<W>(
-        self,
-        writer: W,
-    ) -> io::Result<Writer<Box<dyn AsyncWrite + Unpin>>>
+    pub async fn build_from_writer<W>(self, writer: W) -> io::Result<Writer<W>>
     where
         W: AsyncWrite + Unpin + 'static,
     {
-        use bam::r#async::io::Writer as AsyncBamWriter;
-        use sam::r#async::io::Writer as AsyncSamWriter;
+        use super::Inner;
 
         let format = self.format.unwrap_or(Format::Sam);
 
@@ -150,34 +143,24 @@ impl Builder {
             },
         };
 
-        let writer = match (format, compression_method) {
+        let inner = match (format, compression_method) {
             (Format::Sam, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
-                Writer::Sam(AsyncSamWriter::new(inner))
+                Inner::Sam(sam::r#async::io::Writer::new(BufWriter::new(writer)))
             }
-            (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> =
-                    Box::new(bgzf::r#async::io::Writer::new(writer));
-
-                Writer::Sam(AsyncSamWriter::new(encoder))
-            }
+            (Format::Sam, Some(CompressionMethod::Bgzf)) => Inner::SamGz(
+                sam::r#async::io::Writer::new(bgzf::r#async::io::Writer::new(writer)),
+            ),
             (Format::Bam, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
-                Writer::Bam(AsyncBamWriter::from(inner))
+                Inner::BamRaw(bam::r#async::io::Writer::from(BufWriter::new(writer)))
             }
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> =
-                    Box::new(bgzf::r#async::io::Writer::new(writer));
-
-                Writer::Bam(AsyncBamWriter::from(encoder))
+                Inner::Bam(bam::r#async::io::Writer::new(writer))
             }
-            (Format::Cram, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
-                let inner = cram::r#async::io::writer::Builder::default()
+            (Format::Cram, None) => Inner::Cram(
+                cram::r#async::io::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
-                    .build_from_writer(inner);
-                Writer::Cram(inner)
-            }
+                    .build_from_writer(writer),
+            ),
             (Format::Cram, Some(CompressionMethod::Bgzf)) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -186,6 +169,6 @@ impl Builder {
             }
         };
 
-        Ok(writer)
+        Ok(Writer(inner))
     }
 }

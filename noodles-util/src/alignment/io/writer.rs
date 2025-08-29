@@ -1,19 +1,24 @@
 //! Alignment writer.
 
 pub mod builder;
+mod inner;
 
-pub use self::builder::Builder;
-
-use std::io;
+use std::io::{self, Write};
 
 use noodles_sam::{self as sam, alignment::Record};
 
-/// An alignment writer.
-pub struct Writer {
-    inner: Box<dyn sam::alignment::io::Write>,
-}
+pub use self::builder::Builder;
+use self::inner::Inner;
 
-impl Writer {
+/// An alignment writer.
+pub struct Writer<W>(Inner<W>)
+where
+    W: Write;
+
+impl<W> Writer<W>
+where
+    W: Write,
+{
     /// Writes a SAM header.
     ///
     /// # Examples
@@ -32,7 +37,7 @@ impl Writer {
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        self.inner.write_alignment_header(header)
+        self.0.write_header(header)
     }
 
     /// Writes an alignment record.
@@ -59,7 +64,7 @@ impl Writer {
     where
         R: Record,
     {
-        self.inner.write_alignment_record(header, record)
+        self.0.write_record(header, record)
     }
 
     /// Shuts down the alignment format writer.
@@ -80,6 +85,6 @@ impl Writer {
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn finish(&mut self, header: &sam::Header) -> io::Result<()> {
-        self.inner.finish(header)
+        self.0.finish(header)
     }
 }
