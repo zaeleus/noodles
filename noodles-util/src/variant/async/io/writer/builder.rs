@@ -62,7 +62,7 @@ impl Builder {
     pub async fn build_from_path<P>(
         mut self,
         src: P,
-    ) -> io::Result<Writer<Box<dyn AsyncWrite + Unpin>>>
+    ) -> io::Result<Writer<Box<dyn AsyncWrite + Send + Unpin>>>
     where
         P: AsRef<Path>,
     {
@@ -101,9 +101,9 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn build_from_writer<W>(self, writer: W) -> Writer<Box<dyn AsyncWrite + Unpin>>
+    pub fn build_from_writer<W>(self, writer: W) -> Writer<Box<dyn AsyncWrite + Send + Unpin>>
     where
-        W: AsyncWrite + Unpin + 'static,
+        W: AsyncWrite + Send + Unpin + 'static,
     {
         let format = self.format.unwrap_or(Format::Vcf);
 
@@ -117,20 +117,20 @@ impl Builder {
 
         match (format, compression_method) {
             (Format::Vcf, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
+                let inner: Box<dyn AsyncWrite + Send + Unpin> = Box::new(writer);
                 Writer::Vcf(vcf::r#async::io::Writer::new(inner))
             }
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> =
+                let encoder: Box<dyn AsyncWrite + Send + Unpin> =
                     Box::new(bgzf::r#async::io::Writer::new(writer));
                 Writer::Vcf(vcf::r#async::io::Writer::new(encoder))
             }
             (Format::Bcf, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
+                let inner: Box<dyn AsyncWrite + Send + Unpin> = Box::new(writer);
                 Writer::Bcf(bcf::r#async::io::Writer::from(inner))
             }
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> =
+                let encoder: Box<dyn AsyncWrite + Send + Unpin> =
                     Box::new(bgzf::r#async::io::Writer::new(writer));
                 Writer::Bcf(bcf::r#async::io::Writer::from(encoder))
             }

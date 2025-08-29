@@ -89,7 +89,7 @@ impl Builder {
     pub async fn build_from_path<P>(
         mut self,
         src: P,
-    ) -> io::Result<Writer<Box<dyn AsyncWrite + Unpin>>>
+    ) -> io::Result<Writer<Box<dyn AsyncWrite + Send + Unpin>>>
     where
         P: AsRef<Path>,
     {
@@ -133,9 +133,9 @@ impl Builder {
     pub async fn build_from_writer<W>(
         self,
         writer: W,
-    ) -> io::Result<Writer<Box<dyn AsyncWrite + Unpin>>>
+    ) -> io::Result<Writer<Box<dyn AsyncWrite + Send + Unpin>>>
     where
-        W: AsyncWrite + Unpin + 'static,
+        W: AsyncWrite + Send + Unpin + 'static,
     {
         use bam::r#async::io::Writer as AsyncBamWriter;
         use sam::r#async::io::Writer as AsyncSamWriter;
@@ -152,27 +152,27 @@ impl Builder {
 
         let writer = match (format, compression_method) {
             (Format::Sam, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
+                let inner: Box<dyn AsyncWrite + Send + Unpin> = Box::new(writer);
                 Writer::Sam(AsyncSamWriter::new(inner))
             }
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> =
+                let encoder: Box<dyn AsyncWrite + Send + Unpin> =
                     Box::new(bgzf::r#async::io::Writer::new(writer));
 
                 Writer::Sam(AsyncSamWriter::new(encoder))
             }
             (Format::Bam, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
+                let inner: Box<dyn AsyncWrite + Send + Unpin> = Box::new(writer);
                 Writer::Bam(AsyncBamWriter::from(inner))
             }
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> =
+                let encoder: Box<dyn AsyncWrite + Send + Unpin> =
                     Box::new(bgzf::r#async::io::Writer::new(writer));
 
                 Writer::Bam(AsyncBamWriter::from(encoder))
             }
             (Format::Cram, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
+                let inner: Box<dyn AsyncWrite + Send + Unpin> = Box::new(writer);
                 let inner = cram::r#async::io::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
                     .build_from_writer(inner);
