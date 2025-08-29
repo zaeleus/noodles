@@ -11,7 +11,10 @@ use futures::TryStreamExt;
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_sam as sam;
 use noodles_util::alignment;
-use tokio::io::{self, AsyncWriteExt};
+use tokio::{
+    fs::File,
+    io::{self, AsyncRead, AsyncWriteExt},
+};
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -31,12 +34,13 @@ async fn main() -> io::Result<()> {
         builder = builder.set_reference_sequence_repository(repository);
     }
 
-    let mut reader = if src == "-" {
-        builder.build_from_reader(io::stdin()).await?
+    let source: Box<dyn AsyncRead + Unpin> = if src == "-" {
+        Box::new(io::stdin())
     } else {
-        builder.build_from_path(src).await?
+        File::open(src).await.map(Box::new)?
     };
 
+    let mut reader = builder.build_from_reader(source).await?;
     let header = reader.read_header().await?;
 
     let mut writer = sam::r#async::io::Writer::new(io::stdout());

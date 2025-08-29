@@ -90,7 +90,7 @@ impl Builder {
     ///     .build_from_path("sample.bam")?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<Box<dyn BufRead>>>
+    pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<File>>
     where
         P: AsRef<Path>,
     {
@@ -112,10 +112,12 @@ impl Builder {
     ///     .build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<Box<dyn BufRead>>>
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<R>>
     where
         R: Read + 'static,
     {
+        use super::Inner;
+
         let mut reader = BufReader::new(reader);
 
         let compression_method = match self.compression_method {
@@ -128,32 +130,20 @@ impl Builder {
             None => detect_format(&mut reader, compression_method)?,
         };
 
-        let inner: Box<dyn sam::alignment::io::Read<_>> = match (format, compression_method) {
-            (Format::Sam, None) => {
-                let inner: Box<dyn BufRead> = Box::new(reader);
-                Box::new(sam::io::Reader::from(inner))
-            }
+        let inner = match (format, compression_method) {
+            (Format::Sam, None) => Inner::Sam(sam::io::Reader::new(reader)),
             (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
-                Box::new(sam::io::Reader::from(inner))
+                Inner::SamGz(sam::io::Reader::new(bgzf::io::Reader::new(reader)))
             }
-            (Format::Bam, None) => {
-                let inner: Box<dyn BufRead> = Box::new(reader);
-                Box::new(bam::io::Reader::from(inner))
-            }
+            (Format::Bam, None) => Inner::BamRaw(bam::io::Reader::from(reader)),
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
-                let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
-                Box::new(bam::io::Reader::from(inner))
+                Inner::Bam(bam::io::Reader::new(reader))
             }
-            (Format::Cram, None) => {
-                let inner: Box<dyn BufRead> = Box::new(reader);
-
-                Box::new(
-                    cram::io::reader::Builder::default()
-                        .set_reference_sequence_repository(self.reference_sequence_repository)
-                        .build_from_reader(inner),
-                )
-            }
+            (Format::Cram, None) => Inner::Cram(
+                cram::io::reader::Builder::default()
+                    .set_reference_sequence_repository(self.reference_sequence_repository)
+                    .build_from_reader(reader),
+            ),
             (Format::Cram, Some(CompressionMethod::Bgzf)) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -162,7 +152,7 @@ impl Builder {
             }
         };
 
-        Ok(Reader { inner })
+        Ok(Reader(inner))
     }
 }
 

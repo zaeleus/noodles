@@ -7,7 +7,8 @@
 
 use std::{
     env,
-    io::{self, BufWriter},
+    fs::File,
+    io::{self, BufWriter, Read},
 };
 
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
@@ -31,13 +32,13 @@ fn main() -> io::Result<()> {
         builder = builder.set_reference_sequence_repository(repository);
     }
 
-    let mut reader = if src == "-" {
-        let stdin = io::stdin().lock();
-        builder.build_from_reader(stdin)?
+    let source: Box<dyn Read> = if src == "-" {
+        Box::new(io::stdin().lock())
     } else {
-        builder.build_from_path(src)?
+        File::open(src).map(Box::new)?
     };
 
+    let mut reader = builder.build_from_reader(source)?;
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();

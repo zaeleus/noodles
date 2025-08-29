@@ -1,17 +1,17 @@
 //! Alignment reader.
 
 pub(crate) mod builder;
-
-pub use self::builder::Builder;
+mod inner;
 
 use std::io::{self, Read};
 
 use noodles_sam as sam;
 
+pub use self::builder::Builder;
+use self::inner::Inner;
+
 /// An alignment reader.
-pub struct Reader<R> {
-    inner: Box<dyn sam::alignment::io::Read<R>>,
-}
+pub struct Reader<R>(Inner<R>);
 
 impl<R> Reader<R>
 where
@@ -44,7 +44,7 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
-        self.inner.read_alignment_header()
+        self.0.read_header()
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -73,6 +73,6 @@ where
         &'a mut self,
         header: &'a sam::Header,
     ) -> impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'a {
-        self.inner.alignment_records(header)
+        self.0.records(header)
     }
 }

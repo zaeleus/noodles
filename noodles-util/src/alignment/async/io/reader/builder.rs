@@ -7,7 +7,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::{
     fs::File,
-    io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, BufReader},
+    io::{self, AsyncBufReadExt, AsyncRead, BufReader},
 };
 
 use super::Reader;
@@ -86,10 +86,7 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn build_from_path<P>(
-        self,
-        src: P,
-    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin>>>
+    pub async fn build_from_path<P>(self, src: P) -> io::Result<Reader<File>>
     where
         P: AsRef<Path>,
     {
@@ -113,13 +110,11 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn build_from_reader<R>(
-        self,
-        reader: R,
-    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin>>>
+    pub async fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<R>>
     where
         R: AsyncRead + Unpin + 'static,
     {
+        use super::Inner;
         use crate::alignment::io::reader::builder::{detect_compression_method, detect_format};
 
         let mut reader = BufReader::new(reader);
@@ -140,22 +135,20 @@ impl Builder {
             }
         };
 
-        let reader: Box<dyn AsyncBufRead + Unpin> = match (format, compression_method) {
-            (Format::Sam, None) => Box::new(reader),
-            (Format::Sam, Some(CompressionMethod::Bgzf)) => {
-                Box::new(bgzf::r#async::io::Reader::new(reader))
-            }
-            (Format::Bam, None) => Box::new(reader),
+        let inner = match (format, compression_method) {
+            (Format::Sam, None) => Inner::Sam(sam::r#async::io::Reader::new(reader)),
+            (Format::Sam, Some(CompressionMethod::Bgzf)) => Inner::SamGz(
+                sam::r#async::io::Reader::new(bgzf::r#async::io::Reader::new(reader)),
+            ),
+            (Format::Bam, None) => Inner::BamRaw(bam::r#async::io::Reader::from(reader)),
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
-                Box::new(bgzf::r#async::io::Reader::new(reader))
+                Inner::Bam(bam::r#async::io::Reader::new(reader))
             }
-            (Format::Cram, None) => {
-                let inner: Box<dyn AsyncBufRead + Unpin> = Box::new(reader);
-                let inner = cram::r#async::io::reader::Builder::default()
+            (Format::Cram, None) => Inner::Cram(
+                cram::r#async::io::reader::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
-                    .build_from_reader(inner);
-                return Ok(Reader::Cram(inner));
-            }
+                    .build_from_reader(reader),
+            ),
             (Format::Cram, Some(CompressionMethod::Bgzf)) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,
@@ -164,12 +157,6 @@ impl Builder {
             }
         };
 
-        let reader: Reader<Box<dyn AsyncBufRead + Unpin>> = match format {
-            Format::Sam => Reader::Sam(sam::r#async::io::Reader::new(reader)),
-            Format::Bam => Reader::Bam(bam::r#async::io::Reader::from(reader)),
-            Format::Cram => unreachable!(), // Handled above
-        };
-
-        Ok(reader)
+        Ok(Reader(inner))
     }
 }
