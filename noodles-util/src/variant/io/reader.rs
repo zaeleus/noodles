@@ -3,7 +3,7 @@
 pub(crate) mod builder;
 mod inner;
 
-use std::io::{self, BufRead};
+use std::io::{self, Read};
 
 use noodles_vcf as vcf;
 
@@ -16,7 +16,7 @@ pub struct Reader<R>(Inner<R>);
 
 impl<R> Reader<R>
 where
-    R: BufRead,
+    R: Read,
 {
     /// Reads and parses a variant header.
     ///
@@ -92,7 +92,10 @@ where
     }
 }
 
-impl<'a> Reader<Box<dyn BufRead + 'a>> {
+impl<R> Reader<R>
+where
+    R: Read,
+{
     /// Creates a variant reader.
     ///
     /// This attempts to autodetect the compression method and format of the input.
@@ -103,10 +106,7 @@ impl<'a> Reader<Box<dyn BufRead + 'a>> {
     /// let mut reader = variant::io::Reader::new(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn new<R>(reader: R) -> io::Result<Self>
-    where
-        R: BufRead + 'a,
-    {
+    pub fn new(reader: R) -> io::Result<Self> {
         Builder::default().build_from_reader(reader)
     }
 }

@@ -63,7 +63,7 @@ impl Builder {
     /// let reader = Builder::default().build_from_path("sample.vcf")?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<Box<dyn BufRead>>>
+    pub fn build_from_path<P>(self, path: P) -> io::Result<Reader<File>>
     where
         P: AsRef<Path>,
     {
@@ -84,9 +84,9 @@ impl Builder {
     /// let reader = Builder::default().build_from_reader(io::empty())?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_reader<'a, R>(self, reader: R) -> io::Result<Reader<Box<dyn BufRead + 'a>>>
+    pub fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<R>>
     where
-        R: Read + 'a,
+        R: Read,
     {
         use super::Inner;
 
@@ -103,21 +103,13 @@ impl Builder {
         };
 
         let inner = match (format, compression_method) {
-            (Format::Vcf, None) => {
-                let inner: Box<dyn BufRead> = Box::new(reader);
-                Inner::Vcf(vcf::io::Reader::new(inner))
-            }
+            (Format::Vcf, None) => Inner::Vcf(vcf::io::Reader::new(reader)),
             (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
-                Inner::Vcf(vcf::io::Reader::new(inner))
+                Inner::VcfGz(vcf::io::Reader::new(bgzf::io::Reader::new(reader)))
             }
-            (Format::Bcf, None) => {
-                let inner: Box<dyn BufRead> = Box::new(reader);
-                Inner::Bcf(bcf::io::Reader::from(inner))
-            }
+            (Format::Bcf, None) => Inner::BcfRaw(bcf::io::Reader::from(reader)),
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
-                let inner: Box<dyn BufRead> = Box::new(bgzf::io::Reader::new(reader));
-                Inner::Bcf(bcf::io::Reader::from(inner))
+                Inner::Bcf(bcf::io::Reader::new(reader))
             }
         };
 

@@ -5,17 +5,19 @@ mod inner;
 
 use futures::Stream;
 use noodles_vcf as vcf;
-use tokio::io::{self, AsyncBufRead};
+use tokio::io::{self, AsyncRead};
 
 pub use self::builder::Builder;
 use self::inner::Inner;
 
 /// An async variant reader.
-pub struct Reader<R>(Inner<R>);
+pub struct Reader<R>(Inner<R>)
+where
+    R: AsyncRead;
 
 impl<R> Reader<R>
 where
-    R: AsyncBufRead + Unpin,
+    R: AsyncRead + Unpin,
 {
     /// Reads the VCF header.
     ///
@@ -71,7 +73,10 @@ where
     }
 }
 
-impl<'a> Reader<Box<dyn AsyncBufRead + Unpin + 'a>> {
+impl<R> Reader<R>
+where
+    R: AsyncRead + Unpin,
+{
     /// Creates a variant reader.
     ///
     /// This attempts to autodetect the compression method and format of the input.
@@ -85,10 +90,7 @@ impl<'a> Reader<Box<dyn AsyncBufRead + Unpin + 'a>> {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn new<R>(reader: R) -> io::Result<Self>
-    where
-        R: AsyncBufRead + Unpin + 'a,
-    {
+    pub async fn new(reader: R) -> io::Result<Self> {
         Builder::default().build_from_reader(reader).await
     }
 }

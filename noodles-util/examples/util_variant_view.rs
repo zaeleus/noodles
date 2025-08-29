@@ -5,7 +5,7 @@
 use std::{
     env,
     fs::File,
-    io::{self, BufReader, BufWriter},
+    io::{self, BufWriter, Read},
 };
 
 use noodles_util::variant;
@@ -14,14 +14,13 @@ use noodles_vcf::{self as vcf, variant::io::Write};
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = if src == "-" {
-        variant::io::Reader::new(io::stdin().lock())?
+    let source: Box<dyn Read> = if src == "-" {
+        Box::new(io::stdin().lock())
     } else {
-        File::open(src)
-            .map(BufReader::new)
-            .and_then(variant::io::Reader::new)?
+        File::open(src).map(Box::new)?
     };
 
+    let mut reader = variant::io::Reader::new(source)?;
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();

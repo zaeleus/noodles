@@ -5,7 +5,7 @@ use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 use tokio::{
     fs::File,
-    io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, BufReader},
+    io::{self, AsyncBufReadExt, AsyncRead, BufReader},
 };
 
 use super::Reader;
@@ -65,10 +65,7 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn build_from_path<P>(
-        self,
-        src: P,
-    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin>>>
+    pub async fn build_from_path<P>(self, src: P) -> io::Result<Reader<File>>
     where
         P: AsRef<Path>,
     {
@@ -92,12 +89,9 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn build_from_reader<'a, R>(
-        self,
-        reader: R,
-    ) -> io::Result<Reader<Box<dyn AsyncBufRead + Unpin + 'a>>>
+    pub async fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<R>>
     where
-        R: AsyncRead + Unpin + 'a,
+        R: AsyncRead + Unpin,
     {
         use super::Inner;
         use crate::variant::io::reader::builder::{detect_compression_method, detect_format};
@@ -121,23 +115,13 @@ impl Builder {
         };
 
         let inner = match (format, compression_method) {
-            (Format::Vcf, None) => {
-                let inner: Box<dyn AsyncBufRead + Unpin> = Box::new(reader);
-                Inner::Vcf(vcf::r#async::io::Reader::new(inner))
-            }
-            (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                let decoder: Box<dyn AsyncBufRead + Unpin> =
-                    Box::new(bgzf::r#async::io::Reader::new(reader));
-                Inner::Vcf(vcf::r#async::io::Reader::new(decoder))
-            }
-            (Format::Bcf, None) => {
-                let inner: Box<dyn AsyncBufRead + Unpin> = Box::new(reader);
-                Inner::Bcf(bcf::r#async::io::Reader::from(inner))
-            }
+            (Format::Vcf, None) => Inner::Vcf(vcf::r#async::io::Reader::new(reader)),
+            (Format::Vcf, Some(CompressionMethod::Bgzf)) => Inner::VcfGz(
+                vcf::r#async::io::Reader::new(bgzf::r#async::io::Reader::new(reader)),
+            ),
+            (Format::Bcf, None) => Inner::BcfRaw(bcf::r#async::io::Reader::from(reader)),
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
-                let decoder: Box<dyn AsyncBufRead + Unpin> =
-                    Box::new(bgzf::r#async::io::Reader::new(reader));
-                Inner::Bcf(bcf::r#async::io::Reader::from(decoder))
+                Inner::Bcf(bcf::r#async::io::Reader::new(reader))
             }
         };
 
