@@ -1,24 +1,18 @@
 //! Variant reader.
 
 pub(crate) mod builder;
+mod inner;
 
 use std::io::{self, BufRead};
 
-use noodles_bcf as bcf;
-use noodles_vcf::{self as vcf, variant::io::Read};
+use noodles_vcf as vcf;
 
 pub use self::builder::Builder;
+use self::inner::Inner;
 use crate::variant::Record;
 
-pub(crate) enum Inner<R> {
-    Vcf(vcf::io::Reader<R>),
-    Bcf(bcf::io::Reader<R>),
-}
-
 /// A variant reader.
-pub struct Reader<R> {
-    pub(crate) inner: Inner<R>,
-}
+pub struct Reader<R>(Inner<R>);
 
 impl<R> Reader<R>
 where
@@ -40,10 +34,7 @@ where
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<vcf::Header> {
-        match &mut self.inner {
-            Inner::Vcf(reader) => reader.read_variant_header(),
-            Inner::Bcf(reader) => reader.read_variant_header(),
-        }
+        self.0.read_header()
     }
 
     /// Reads a variant record.
@@ -68,30 +59,7 @@ where
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        match &mut self.inner {
-            Inner::Vcf(reader) => {
-                if !matches!(record, Record::Vcf(_)) {
-                    *record = Record::Vcf(vcf::Record::default());
-                }
-
-                if let Record::Vcf(r) = record {
-                    reader.read_record(r)
-                } else {
-                    unreachable!();
-                }
-            }
-            Inner::Bcf(reader) => {
-                if !matches!(record, Record::Bcf(_)) {
-                    *record = Record::Bcf(bcf::Record::default());
-                }
-
-                if let Record::Bcf(r) = record {
-                    reader.read_record(r)
-                } else {
-                    unreachable!();
-                }
-            }
-        }
+        self.0.read_record(record)
     }
 
     /// Returns an iterator over records starting from the current stream position.
@@ -120,10 +88,7 @@ where
         &'a mut self,
         header: &'a vcf::Header,
     ) -> impl Iterator<Item = io::Result<Box<dyn vcf::variant::Record>>> + 'a {
-        match &mut self.inner {
-            Inner::Vcf(reader) => reader.variant_records(header),
-            Inner::Bcf(reader) => reader.variant_records(header),
-        }
+        self.0.records(header)
     }
 }
 

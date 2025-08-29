@@ -121,7 +121,7 @@ impl Builder {
             }
         };
 
-        Ok(Reader { inner })
+        Ok(Reader(inner))
     }
 }
 
