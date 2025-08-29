@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/io/writer: Remove `Write` constraint from struct definition.
+
 ## 0.79.0 - 2025-08-25
 
 ### Changed

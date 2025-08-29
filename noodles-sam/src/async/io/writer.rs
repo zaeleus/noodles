@@ -6,10 +6,7 @@ use self::header::write_header;
 use crate::{Header, Record};
 
 /// An async SAM writer.
-pub struct Writer<W>
-where
-    W: AsyncWrite,
-{
+pub struct Writer<W> {
     inner: W,
 }
 

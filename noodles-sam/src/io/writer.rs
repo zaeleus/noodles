@@ -42,10 +42,7 @@ use crate::{Header, Record};
 /// assert_eq!(&writer.get_ref()[..], &expected[..]);
 /// # Ok::<(), io::Error>(())
 /// ```
-pub struct Writer<W>
-where
-    W: Write,
-{
+pub struct Writer<W> {
     inner: W,
 }
 
