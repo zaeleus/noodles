@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * util: Wrap inner readers and writers ([#348]).
+
+    `alignment::io::Reader`, `alignment::io::Writer`, `variant::io::Reader`,
+    and `variant::io::Writer` no longer use trait objects for the inner I/O
+    object. It is now the responsibility of the caller to convert the inner I/O
+    to a generic source or sink.
+
+[#348]: https://github.com/zaeleus/noodles/pull/348
+
 ## 0.70.0 - 2025-08-25
 
 ### Added

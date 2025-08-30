@@ -57,7 +57,7 @@ impl Builder {
     /// let writer = Builder::default().build_from_path("out.vcf.gz")?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn build_from_path<P>(mut self, src: P) -> io::Result<Writer>
+    pub fn build_from_path<P>(mut self, src: P) -> io::Result<Writer<File>>
     where
         P: AsRef<Path>,
     {
@@ -71,7 +71,7 @@ impl Builder {
             self.format = detect_format_from_path_extension(src);
         }
 
-        let file = File::create(src).map(BufWriter::new)?;
+        let file = File::create(src)?;
         Ok(self.build_from_writer(file))
     }
 
@@ -87,10 +87,12 @@ impl Builder {
     /// use noodles_util::variant::io::writer::Builder;
     /// let writer = Builder::default().build_from_writer(io::sink());
     /// ```
-    pub fn build_from_writer<W>(self, writer: W) -> Writer
+    pub fn build_from_writer<W>(self, writer: W) -> Writer<W>
     where
-        W: Write + 'static,
+        W: Write,
     {
+        use super::Inner;
+
         let format = self.format.unwrap_or(Format::Vcf);
 
         let compression_method = match self.compression_method {
@@ -101,16 +103,18 @@ impl Builder {
             },
         };
 
-        let inner: Box<dyn vcf::variant::io::Write> = match (format, compression_method) {
-            (Format::Vcf, None) => Box::new(vcf::io::Writer::new(writer)),
-            (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                Box::new(vcf::io::Writer::new(bgzf::io::Writer::new(writer)))
+        let inner = match (format, compression_method) {
+            (Format::Bcf, None) => Inner::Bcf(bcf::io::Writer::new(writer)),
+            (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
+                Inner::BcfRaw(bcf::io::Writer::from(BufWriter::new(writer)))
             }
-            (Format::Bcf, None) => Box::new(bcf::io::Writer::from(writer)),
-            (Format::Bcf, Some(CompressionMethod::Bgzf)) => Box::new(bcf::io::Writer::new(writer)),
+            (Format::Vcf, None) => Inner::Vcf(vcf::io::Writer::new(BufWriter::new(writer))),
+            (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
+                Inner::VcfGz(vcf::io::Writer::new(bgzf::io::Writer::new(writer)))
+            }
         };
 
-        Writer { inner }
+        Writer(inner)
     }
 }
 

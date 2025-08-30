@@ -5,7 +5,7 @@ use noodles_bgzf as bgzf;
 use noodles_vcf as vcf;
 use tokio::{
     fs::File,
-    io::{self, AsyncWrite},
+    io::{self, AsyncWrite, BufWriter},
 };
 
 use super::Writer;
@@ -59,10 +59,7 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn build_from_path<P>(
-        mut self,
-        src: P,
-    ) -> io::Result<Writer<Box<dyn AsyncWrite + Unpin>>>
+    pub async fn build_from_path<P>(mut self, src: P) -> io::Result<Writer<File>>
     where
         P: AsRef<Path>,
     {
@@ -101,10 +98,12 @@ impl Builder {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn build_from_writer<W>(self, writer: W) -> Writer<Box<dyn AsyncWrite + Unpin>>
+    pub fn build_from_writer<W>(self, writer: W) -> Writer<W>
     where
-        W: AsyncWrite + Unpin + 'static,
+        W: AsyncWrite + Unpin,
     {
+        use super::Inner;
+
         let format = self.format.unwrap_or(Format::Vcf);
 
         let compression_method = match self.compression_method {
@@ -115,25 +114,21 @@ impl Builder {
             },
         };
 
-        match (format, compression_method) {
-            (Format::Vcf, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
-                Writer::Vcf(vcf::r#async::io::Writer::new(inner))
-            }
-            (Format::Vcf, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> =
-                    Box::new(bgzf::r#async::io::Writer::new(writer));
-                Writer::Vcf(vcf::r#async::io::Writer::new(encoder))
-            }
+        let inner = match (format, compression_method) {
             (Format::Bcf, None) => {
-                let inner: Box<dyn AsyncWrite + Unpin> = Box::new(writer);
-                Writer::Bcf(bcf::r#async::io::Writer::from(inner))
+                Inner::BcfRaw(bcf::r#async::io::Writer::from(BufWriter::new(writer)))
             }
             (Format::Bcf, Some(CompressionMethod::Bgzf)) => {
-                let encoder: Box<dyn AsyncWrite + Unpin> =
-                    Box::new(bgzf::r#async::io::Writer::new(writer));
-                Writer::Bcf(bcf::r#async::io::Writer::from(encoder))
+                Inner::Bcf(bcf::r#async::io::Writer::new(writer))
             }
-        }
+            (Format::Vcf, None) => {
+                Inner::Vcf(vcf::r#async::io::Writer::new(BufWriter::new(writer)))
+            }
+            (Format::Vcf, Some(CompressionMethod::Bgzf)) => Inner::VcfGz(
+                vcf::r#async::io::Writer::new(bgzf::r#async::io::Writer::new(writer)),
+            ),
+        };
+
+        Writer(inner)
     }
 }

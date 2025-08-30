@@ -1,20 +1,18 @@
 //! Async variant writer.
 
 mod builder;
+mod inner;
 
-use noodles_bcf as bcf;
 use noodles_vcf as vcf;
 use tokio::io::{self, AsyncWrite};
 
 pub use self::builder::Builder;
+use self::inner::Inner;
 
 /// An async variant writer.
-pub enum Writer<W> {
-    /// BCF.
-    Bcf(bcf::r#async::io::Writer<W>),
-    /// VCF.
-    Vcf(vcf::r#async::io::Writer<W>),
-}
+pub struct Writer<W>(Inner<W>)
+where
+    W: AsyncWrite;
 
 impl<W> Writer<W>
 where
@@ -39,10 +37,7 @@ where
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &vcf::Header) -> io::Result<()> {
-        match self {
-            Self::Bcf(writer) => writer.write_header(header).await,
-            Self::Vcf(writer) => writer.write_header(header).await,
-        }
+        self.0.write_header(header).await
     }
 
     /// Writes a variant record.
@@ -71,9 +66,6 @@ where
         header: &vcf::Header,
         record: &dyn vcf::variant::Record,
     ) -> io::Result<()> {
-        match self {
-            Self::Bcf(writer) => writer.write_variant_record(header, record).await,
-            Self::Vcf(writer) => writer.write_variant_record(header, record).await,
-        }
+        self.0.write_record(header, record).await
     }
 }

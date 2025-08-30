@@ -1,19 +1,24 @@
 //! Variant writer.
 
 pub(crate) mod builder;
+mod inner;
 
-pub use self::builder::Builder;
-
-use std::io;
+use std::io::{self, Write};
 
 use noodles_vcf as vcf;
 
-/// A variant writer.
-pub struct Writer {
-    inner: Box<dyn vcf::variant::io::Write>,
-}
+pub use self::builder::Builder;
+use self::inner::Inner;
 
-impl Writer {
+/// A variant writer.
+pub struct Writer<W>(Inner<W>)
+where
+    W: Write;
+
+impl<W> Writer<W>
+where
+    W: Write,
+{
     /// Writes a VCF header.
     ///
     /// # Examples
@@ -33,7 +38,7 @@ impl Writer {
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &vcf::Header) -> io::Result<()> {
-        self.inner.write_variant_header(header)
+        self.0.write_header(header)
     }
 
     /// Writes a variant record.
@@ -62,6 +67,6 @@ impl Writer {
         header: &vcf::Header,
         record: &dyn vcf::variant::Record,
     ) -> io::Result<()> {
-        self.inner.write_variant_record(header, record)
+        self.0.write_record(header, record)
     }
 }
