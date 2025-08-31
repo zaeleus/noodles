@@ -114,7 +114,7 @@ impl Builder {
     /// ```
     pub fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<R>>
     where
-        R: Read + 'static,
+        R: Read,
     {
         use super::Inner;
 
