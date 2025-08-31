@@ -147,7 +147,7 @@ impl Builder {
     /// ```
     pub fn build_from_writer<W>(self, writer: W) -> io::Result<Writer<W>>
     where
-        W: Write + 'static,
+        W: Write,
     {
         use super::Inner;
 
