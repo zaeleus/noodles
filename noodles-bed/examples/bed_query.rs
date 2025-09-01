@@ -2,7 +2,7 @@
 //!
 //! The input bgzipped BED file must have an associated tabix index (TBI) in the same directory.
 
-use std::{env, io};
+use std::{env, fs::File, io};
 
 use noodles_bed as bed;
 use noodles_bgzf as bgzf;
@@ -25,7 +25,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_index_of(region.name())
         .expect("invalid reference sequence name");
 
-    let mut decoder = bgzf::io::reader::Builder.build_from_path(src)?;
+    let mut decoder = File::open(src).map(bgzf::io::Reader::new)?;
     let chunks = index.query(reference_sequence_id, region.interval())?;
     let query = csi::io::Query::new(&mut decoder, chunks);
 

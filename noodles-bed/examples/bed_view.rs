@@ -1,13 +1,19 @@
 //! Prints BED records as BED3+ records.
 
-use std::{env, io};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufReader},
+};
 
 use noodles_bed as bed;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = bed::io::reader::Builder::<3>.build_from_path(src)?;
+    let mut reader = File::open(src)
+        .map(BufReader::new)
+        .map(bed::io::Reader::<3, _>::new)?;
 
     let stdout = io::stdout().lock();
     let mut writer = bed::io::Writer::<3, _>::new(stdout);
