@@ -7,6 +7,8 @@ use futures::Stream;
 use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead};
 
+use crate::variant::Record;
+
 pub use self::builder::Builder;
 use self::inner::Inner;
 
@@ -39,6 +41,31 @@ where
     /// ```
     pub async fn read_header(&mut self) -> io::Result<vcf::Header> {
         self.0.read_header().await
+    }
+
+    /// Reads a variant record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_util::variant::{self, async::io::reader::Builder};
+    ///
+    /// let data = b"##fileformat=VCFv4.5
+    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+    /// ";
+    ///
+    /// let mut reader = Builder::default().build_from_reader(&data[..]).await?;
+    /// let header = reader.read_header().await?;
+    ///
+    /// let mut record = variant::Record::default();
+    ///
+    /// while reader.read_record(&mut record).await? != 0 {
+    ///     // ...
+    /// }
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        self.0.read_record(record).await
     }
 
     /// Returns an iterator over records starting from the current stream position.
