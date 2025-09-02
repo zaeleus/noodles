@@ -6,7 +6,7 @@ mod rle;
 use std::{
     io::{self, Cursor, Read},
     mem,
-    num::NonZeroUsize,
+    num::NonZero,
 };
 
 use super::Flags;
@@ -231,14 +231,13 @@ where
     Ok((l, rle_meta_reader, len))
 }
 
-pub fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, NonZeroUsize, usize)>
+pub fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, NonZero<usize>, usize)>
 where
     R: Read,
 {
     // n_sym
     let symbol_count = read_u8(reader).and_then(|n| {
-        NonZeroUsize::try_from(usize::from(n))
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        NonZero::try_from(usize::from(n)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
     let mut p = vec![0; symbol_count.get()];

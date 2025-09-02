@@ -147,17 +147,14 @@ mod tests {
 
     #[test]
     fn test_validate_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        use std::num::NonZeroUsize;
+        use std::num::NonZero;
 
         use sam::header::record::value::{
             Map,
             map::{ReferenceSequence, reference_sequence::tag},
         };
 
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
+        const SQ0_LN: NonZero<usize> = NonZero::new(8).unwrap();
 
         let header = sam::Header::builder()
             .add_reference_sequence(

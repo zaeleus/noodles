@@ -1,6 +1,6 @@
-use std::{io, num::NonZeroUsize};
+use std::{io, num::NonZero};
 
-pub fn decode(src: &[u8], p: &[u8], n_sym: NonZeroUsize, len: usize) -> io::Result<Vec<u8>> {
+pub fn decode(src: &[u8], p: &[u8], n_sym: NonZero<usize>, len: usize) -> io::Result<Vec<u8>> {
     let mut dst = vec![0; len];
     let mut j = 0;
 

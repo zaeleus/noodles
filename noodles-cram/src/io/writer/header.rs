@@ -90,22 +90,12 @@ mod tests {
 
     #[test]
     fn test_add_missing_reference_sequence_checksums() -> Result<(), Box<dyn std::error::Error>> {
-        use std::num::NonZeroUsize;
+        use std::num::NonZero;
 
         use fasta::record::{Definition, Sequence};
         use sam::header::record::value::{
             Map,
             map::{ReferenceSequence, reference_sequence::tag},
-        };
-
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
-            Some(length) => length,
-            None => unreachable!(),
         };
 
         let reference_sequences = vec![
@@ -125,11 +115,14 @@ mod tests {
         let repository = fasta::Repository::new(reference_sequences);
 
         let mut header = sam::Header::builder()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
             .add_reference_sequence(
                 "sq1",
                 Map::<ReferenceSequence>::builder()
-                    .set_length(SQ1_LN)
+                    .set_length(const { NonZero::new(13).unwrap() })
                     .insert(tag::MD5_CHECKSUM, sq1_md5_checksum.clone())
                     .build()?,
             )

@@ -1,4 +1,4 @@
-use std::{cmp, io, num::NonZeroUsize};
+use std::{cmp, io, num::NonZero};
 
 use noodles_core::Position;
 
@@ -109,7 +109,7 @@ impl TryFrom<(i32, i32, i32)> for ReferenceSequenceContext {
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
                 let alignment_span = usize::try_from(raw_alignment_span)
-                    .and_then(NonZeroUsize::try_from)
+                    .and_then(NonZero::try_from)
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
                 let alignment_end = alignment_start
