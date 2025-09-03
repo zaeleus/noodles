@@ -4,7 +4,11 @@
 //!
 //! Verify the output by piping to `samtools view --no-PG --with-header`.
 
-use std::{env, io};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufReader},
+};
 
 use noodles_sam::{
     self as sam,
@@ -27,7 +31,10 @@ fn build_self_program() -> Result<Map<Program>, BuildError> {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = sam::io::reader::Builder::default().build_from_path(src)?;
+    let mut reader = File::open(src)
+        .map(BufReader::new)
+        .map(sam::io::Reader::new)?;
+
     let mut header = reader.read_header()?;
 
     let pg = build_self_program()?;

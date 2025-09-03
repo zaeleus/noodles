@@ -2,7 +2,11 @@
 //!
 //! That is, there is a single alignment hit count (SAM record data tag `NM` = 1).
 
-use std::{env, io};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufReader},
+};
 
 use noodles_sam::{self as sam, alignment::record::data::field::Tag};
 
@@ -22,7 +26,10 @@ fn main() -> io::Result<()> {
     let mut args = env::args().skip(1);
     let src = args.next().expect("missing src");
 
-    let mut reader = sam::io::reader::Builder::default().build_from_path(src)?;
+    let mut reader = File::open(src)
+        .map(BufReader::new)
+        .map(sam::io::Reader::new)?;
+
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
