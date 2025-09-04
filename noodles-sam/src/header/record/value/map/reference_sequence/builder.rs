@@ -1,6 +1,6 @@
 //! SAM header reference sequence builder.
 
-use std::num::NonZeroUsize;
+use std::num::NonZero;
 
 use super::ReferenceSequence;
 use crate::header::record::value::map::{self, builder::BuildError};
@@ -8,7 +8,7 @@ use crate::header::record::value::map::{self, builder::BuildError};
 /// A SAM header reference sequence builder.
 #[derive(Debug, Default)]
 pub struct Builder {
-    length: Option<NonZeroUsize>,
+    length: Option<NonZero<usize>>,
 }
 
 impl map::Builder<ReferenceSequence> {
@@ -17,11 +17,11 @@ impl map::Builder<ReferenceSequence> {
     /// # Examples
     ///
     /// ```
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     ///
     /// use noodles_sam::header::record::value::{map::ReferenceSequence, Map};
     ///
-    /// let length = NonZeroUsize::try_from(13)?;
+    /// let length = NonZero::try_from(13)?;
     ///
     /// let reference_sequence = Map::<ReferenceSequence>::builder()
     ///     .set_length(length)
@@ -30,7 +30,7 @@ impl map::Builder<ReferenceSequence> {
     /// assert_eq!(reference_sequence.length(), length);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_length(mut self, length: NonZeroUsize) -> Self {
+    pub fn set_length(mut self, length: NonZero<usize>) -> Self {
         self.inner.length = Some(length);
         self
     }

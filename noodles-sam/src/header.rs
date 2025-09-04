@@ -43,7 +43,7 @@
 //! ## Create a SAM header
 //!
 //! ```
-//! use std::num::NonZeroUsize;
+//! use std::num::NonZero;
 //!
 //! use noodles_sam::{
 //!     self as sam,
@@ -54,11 +54,11 @@
 //!     .set_header(Default::default())
 //!     .add_reference_sequence(
 //!         "sq0",
-//!         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+//!         Map::<ReferenceSequence>::new(NonZero::try_from(8)?),
 //!     )
 //!     .add_reference_sequence(
 //!         "sq1",
-//!         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+//!         Map::<ReferenceSequence>::new(NonZero::try_from(13)?),
 //!     )
 //!     .build();
 //!
@@ -172,7 +172,7 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     ///
     /// use noodles_sam::{
     ///     self as sam,
@@ -182,7 +182,7 @@ impl Header {
     /// let header = sam::Header::builder()
     ///     .add_reference_sequence(
     ///         "sq0",
-    ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?)
+    ///         Map::<ReferenceSequence>::new(NonZero::try_from(13)?)
     ///     )
     ///     .build();
     ///
@@ -202,7 +202,7 @@ impl Header {
     /// # Examples
     ///
     /// ```
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     ///
     /// use noodles_sam::{
     ///     self as sam,
@@ -213,7 +213,7 @@ impl Header {
     ///
     /// header.reference_sequences_mut().insert(
     ///     String::from("sq0").into(),
-    ///     Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+    ///     Map::<ReferenceSequence>::new(NonZero::try_from(13)?),
     /// );
     ///
     /// let reference_sequences = header.reference_sequences();

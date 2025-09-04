@@ -42,7 +42,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     ///
     /// use bstr::BString;
     /// use noodles_sam::{
@@ -52,7 +52,7 @@ impl Builder {
     ///
     /// let reference_sequences = [(
     ///     BString::from("sq0"),
-    ///     Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+    ///     Map::<ReferenceSequence>::new(NonZero::try_from(13)?),
     /// )]
     /// .into_iter()
     /// .collect();
@@ -76,7 +76,7 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     ///
     /// use noodles_sam::{
     ///     self as sam,
@@ -86,7 +86,7 @@ impl Builder {
     /// let header = sam::Header::builder()
     ///     .add_reference_sequence(
     ///         "sq0",
-    ///         Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+    ///         Map::<ReferenceSequence>::new(NonZero::try_from(13)?),
     ///     )
     ///     .build();
     ///
@@ -214,21 +214,12 @@ mod tests {
 
     #[test]
     fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        use std::num::NonZeroUsize;
+        use std::num::NonZero;
 
         let header = Builder::default()
-            .add_reference_sequence(
-                "sq0",
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
-            )
-            .add_reference_sequence(
-                "sq1",
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
-            )
-            .add_reference_sequence(
-                "sq2",
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(21)?),
-            )
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(NonZero::try_from(8)?))
+            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(NonZero::try_from(13)?))
+            .add_reference_sequence("sq2", Map::<ReferenceSequence>::new(NonZero::try_from(21)?))
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())
