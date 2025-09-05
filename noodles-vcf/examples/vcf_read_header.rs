@@ -5,14 +5,21 @@
 //! The result is similar to or matches the output of `bcftools head <src>`. bcftools may add a
 //! PASS FILTER to the meta if it is missing.
 
-use std::{env, io};
+use std::{
+    env,
+    fs::File,
+    io::{self, BufReader},
+};
 
 use noodles_vcf as vcf;
 
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = vcf::io::reader::Builder::default().build_from_path(src)?;
+    let mut reader = File::open(src)
+        .map(BufReader::new)
+        .map(vcf::io::Reader::new)?;
+
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();

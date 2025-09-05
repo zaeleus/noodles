@@ -4,7 +4,8 @@
 
 use std::{
     env,
-    io::{self, BufWriter, Write},
+    fs::File,
+    io::{self, BufReader, BufWriter, Write},
 };
 
 use noodles_vcf::{
@@ -20,7 +21,10 @@ const MISSING: &str = ".";
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let mut reader = vcf::io::reader::Builder::default().build_from_path(src)?;
+    let mut reader = File::open(src)
+        .map(BufReader::new)
+        .map(vcf::io::Reader::new)?;
+
     let header = reader.read_header()?;
 
     let stdout = io::stdout().lock();
