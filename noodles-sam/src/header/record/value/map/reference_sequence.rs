@@ -7,10 +7,9 @@ pub mod tag;
 
 use std::num::NonZero;
 
+use self::builder::Builder;
 pub use self::md5_checksum::Md5Checksum;
 pub(crate) use self::tag::Tag;
-
-use self::builder::Builder;
 use super::{Inner, Map, OtherFields};
 
 /// A SAM header record reference sequence map value.
