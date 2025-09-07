@@ -1,4 +1,4 @@
-use std::num::NonZeroUsize;
+use std::num::NonZero;
 
 use bstr::BString;
 use noodles_sam::header::record::value::{Map, map::ReferenceSequence};
@@ -34,13 +34,13 @@ where
     bytes_with_nul_to_bstring(&c_name)
 }
 
-async fn read_length<R>(reader: &mut R) -> io::Result<NonZeroUsize>
+async fn read_length<R>(reader: &mut R) -> io::Result<NonZero<usize>>
 where
     R: AsyncRead + Unpin,
 {
     reader.read_u32_le().await.and_then(|len| {
         usize::try_from(len)
-            .and_then(NonZeroUsize::try_from)
+            .and_then(NonZero::try_from)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })
 }
@@ -51,11 +51,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_read_reference_sequence() -> io::Result<()> {
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let data = [
             0x04, 0x00, 0x00, 0x00, // l_name = 4
             0x73, 0x71, 0x30, 0x00, // name = "sq0\x00"
@@ -64,7 +59,10 @@ mod tests {
 
         let mut reader = &data[..];
         let actual = read_reference_sequence(&mut reader).await?;
-        let expected = (BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN));
+        let expected = (
+            BString::from("sq0"),
+            Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+        );
         assert_eq!(actual, expected);
 
         Ok(())

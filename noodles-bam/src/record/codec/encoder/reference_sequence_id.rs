@@ -57,18 +57,13 @@ pub(super) fn write_reference_sequence_id(
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use super::*;
 
     #[test]
     fn test_write_reference_sequence_id() -> Result<(), EncodeError> {
         use sam::header::record::value::{Map, map::ReferenceSequence};
-
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
 
         fn t(
             buf: &mut Vec<u8>,
@@ -94,7 +89,10 @@ mod tests {
         )?;
 
         let header = sam::Header::builder()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
             .build();
         let reference_sequence_id = Some(0);
         t(

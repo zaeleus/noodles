@@ -289,7 +289,7 @@ mod tests {
 
     #[test]
     fn test_cigar_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
-        use std::num::NonZeroUsize;
+        use std::num::NonZero;
 
         use noodles_sam::{
             alignment::{
@@ -308,15 +308,13 @@ mod tests {
 
         const BASE_COUNT: usize = 65536;
 
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(131072) {
-            Some(n) => n,
-            None => unreachable!(),
-        };
-
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(131072).unwrap() }),
+            )
             .build();
 
         let cigar = Cigar::from(vec![Op::new(Kind::Match, 1); BASE_COUNT]);

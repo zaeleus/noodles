@@ -97,7 +97,7 @@ fn alignment_context(
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use bstr::BString;
     use noodles_csi::{BinningIndex, binning_index::ReferenceSequence as _};
@@ -124,7 +124,7 @@ mod tests {
             .set_reference_sequences(
                 [(
                     BString::from("sq0"),
-                    Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+                    Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
                 )]
                 .into_iter()
                 .collect(),

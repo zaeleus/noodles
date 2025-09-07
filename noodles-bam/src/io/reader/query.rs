@@ -136,7 +136,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::{io::Cursor, num::NonZeroUsize};
+    use std::{io::Cursor, num::NonZero};
 
     use noodles_core::Position;
     use noodles_csi::binning_index::Indexer;
@@ -205,11 +205,11 @@ mod tests {
         let header = sam::Header::builder()
             .add_reference_sequence(
                 "sq0",
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(8)?),
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
             )
             .add_reference_sequence(
                 "sq1",
-                Map::<ReferenceSequence>::new(NonZeroUsize::try_from(13)?),
+                Map::<ReferenceSequence>::new(const { NonZero::new(13).unwrap() }),
             )
             .build();
 

@@ -143,7 +143,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use noodles_core::Position;
     use noodles_sam::{
@@ -191,21 +191,17 @@ mod tests {
             record_buf::{QualityScores, Sequence, data::field::Value},
         };
 
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
-        const SQ1_LN: NonZeroUsize = match NonZeroUsize::new(13) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
-            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(SQ1_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
+            .add_reference_sequence(
+                "sq1",
+                Map::<ReferenceSequence>::new(const { NonZero::new(13).unwrap() }),
+            )
             .build();
 
         let record = RecordBuf::builder()
@@ -271,15 +267,13 @@ mod tests {
 
         const BASE_COUNT: usize = 65536;
 
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(131072) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let mut buf = Vec::new();
 
         let header = sam::Header::builder()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(131072).unwrap() }),
+            )
             .build();
 
         let cigar = Cigar::from(vec![Op::new(Kind::Match, 1); BASE_COUNT]);

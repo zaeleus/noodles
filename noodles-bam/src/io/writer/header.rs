@@ -1,7 +1,7 @@
 use std::{
     ffi::CString,
     io::{self, Write},
-    num::NonZeroUsize,
+    num::NonZero,
 };
 
 use noodles_sam::{self as sam, header::ReferenceSequences};
@@ -62,7 +62,7 @@ where
 fn write_reference_sequence<W>(
     writer: &mut W,
     reference_sequence_name: &[u8],
-    length: NonZeroUsize,
+    length: NonZero<usize>,
 ) -> io::Result<()>
 where
     W: Write,
@@ -88,11 +88,6 @@ mod tests {
     use bstr::BString;
 
     use super::*;
-
-    const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-        Some(length) => length,
-        None => unreachable!(),
-    };
 
     #[test]
     fn test_write_raw_header() -> Result<(), Box<dyn std::error::Error>> {
@@ -123,9 +118,12 @@ mod tests {
     fn test_write_reference_sequences() -> io::Result<()> {
         use sam::header::record::value::{Map, map::ReferenceSequence};
 
-        let reference_sequences = [(BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
-            .into_iter()
-            .collect();
+        let reference_sequences = [(
+            BString::from("sq0"),
+            Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+        )]
+        .into_iter()
+        .collect();
 
         let mut buf = Vec::new();
         write_reference_sequences(&mut buf, &reference_sequences)?;
@@ -145,7 +143,7 @@ mod tests {
     #[test]
     fn test_write_reference_sequence() -> io::Result<()> {
         let mut buf = Vec::new();
-        write_reference_sequence(&mut buf, b"sq0", SQ0_LN)?;
+        write_reference_sequence(&mut buf, b"sq0", const { NonZero::new(8).unwrap() })?;
 
         let expected = [
             0x04, 0x00, 0x00, 0x00, // l_name = 4

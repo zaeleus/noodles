@@ -1,6 +1,6 @@
 use std::{
     error, fmt,
-    num::{self, NonZeroUsize},
+    num::{self, NonZero},
 };
 
 use bstr::BString;
@@ -40,17 +40,17 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(super) fn read_length(src: &mut &[u8]) -> Result<NonZeroUsize, DecodeError> {
+pub(super) fn read_length(src: &mut &[u8]) -> Result<NonZero<usize>, DecodeError> {
     let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
     let len = usize::from(*n);
     *src = rest;
-    NonZeroUsize::try_from(len).map_err(DecodeError::InvalidLength)
+    NonZero::try_from(len).map_err(DecodeError::InvalidLength)
 }
 
 pub(super) fn read_name(
     src: &mut &[u8],
     name: &mut Option<BString>,
-    len: NonZeroUsize,
+    len: NonZero<usize>,
 ) -> Result<(), DecodeError> {
     const MISSING: [u8; 2] = [b'*', NUL];
 
@@ -88,9 +88,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_length() -> Result<(), num::TryFromIntError> {
+    fn test_read_length() {
         let mut src = &8i32.to_le_bytes()[..];
-        assert_eq!(read_length(&mut src), Ok(NonZeroUsize::try_from(8)?));
+        assert_eq!(
+            read_length(&mut src),
+            Ok(const { NonZero::new(8).unwrap() })
+        );
 
         let mut src = &[][..];
         assert_eq!(read_length(&mut src), Err(DecodeError::UnexpectedEof));
@@ -100,15 +103,13 @@ mod tests {
             read_length(&mut src),
             Err(DecodeError::InvalidLength(_))
         ));
-
-        Ok(())
     }
 
     #[test]
     fn test_read_name() -> Result<(), Box<dyn std::error::Error>> {
         fn t(mut src: &[u8], expected: Option<BString>) -> Result<(), DecodeError> {
             let mut actual = None;
-            let l_read_name = NonZeroUsize::try_from(src.len()).unwrap();
+            let l_read_name = NonZero::try_from(src.len()).unwrap();
             read_name(&mut src, &mut actual, l_read_name)?;
             assert_eq!(actual, expected);
             Ok(())
@@ -122,7 +123,7 @@ mod tests {
 
         let data = [b'*'];
         let mut src = &data[..];
-        let l_read_name = NonZeroUsize::try_from(data.len()).unwrap();
+        let l_read_name = NonZero::try_from(data.len()).unwrap();
         assert_eq!(
             read_name(&mut src, &mut None, l_read_name),
             Err(DecodeError::MissingNulTerminator { actual: b'*' })

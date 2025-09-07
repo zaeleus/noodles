@@ -27,7 +27,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use bstr::BString;
     use noodles_sam::header::record::value::{Map, map::ReferenceSequence};
@@ -36,11 +36,6 @@ mod tests {
 
     #[test]
     fn test_read_reference_sequences() -> Result<(), Box<dyn std::error::Error>> {
-        const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-            Some(length) => length,
-            None => unreachable!(),
-        };
-
         let data = [
             0x01, 0x00, 0x00, 0x00, // n_ref = 1
             0x04, 0x00, 0x00, 0x00, // ref[0].l_name = 4
@@ -51,10 +46,12 @@ mod tests {
         let mut reader = &data[..];
         let actual = read_reference_sequences(&mut reader)?;
 
-        let expected: ReferenceSequences =
-            [(BString::from("sq0"), Map::<ReferenceSequence>::new(SQ0_LN))]
-                .into_iter()
-                .collect();
+        let expected: ReferenceSequences = [(
+            BString::from("sq0"),
+            Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+        )]
+        .into_iter()
+        .collect();
 
         assert_eq!(actual, expected);
 

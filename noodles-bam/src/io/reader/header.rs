@@ -196,7 +196,7 @@ pub(crate) fn reference_sequences_eq(
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use noodles_sam::{
         self as sam,
@@ -207,11 +207,6 @@ mod tests {
     };
 
     use super::*;
-
-    const SQ0_LN: NonZeroUsize = match NonZeroUsize::new(8) {
-        Some(length) => length,
-        None => unreachable!(),
-    };
 
     fn put_u32_le(dst: &mut Vec<u8>, n: u32) {
         dst.extend(n.to_le_bytes());
@@ -233,7 +228,10 @@ mod tests {
 
         let expected = sam::Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence("sq0", Map::<map::ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<map::ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
             .build();
 
         assert_eq!(actual, expected);
@@ -257,7 +255,10 @@ mod tests {
 
         let expected = sam::Header::builder()
             .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-            .add_reference_sequence("sq0", Map::<map::ReferenceSequence>::new(SQ0_LN))
+            .add_reference_sequence(
+                "sq0",
+                Map::<map::ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
             .build();
 
         assert_eq!(actual, expected);
