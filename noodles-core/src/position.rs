@@ -6,20 +6,20 @@ pub use self::sequence_index::SequenceIndex;
 
 use std::{
     fmt,
-    num::{self, NonZeroUsize},
+    num::{self, NonZero},
     str::FromStr,
 };
 
 /// A 1-based position.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Position(NonZeroUsize);
+pub struct Position(NonZero<usize>);
 
 impl Position {
     /// The minimum value of a position.
-    pub const MIN: Self = Self(NonZeroUsize::MIN);
+    pub const MIN: Self = Self(NonZero::<usize>::MIN);
 
     /// The maximum value of a position.
-    pub const MAX: Self = Self(NonZeroUsize::MAX);
+    pub const MAX: Self = Self(NonZero::<usize>::MAX);
 
     /// Creates a position if the given value is not zero.
     ///
@@ -31,7 +31,7 @@ impl Position {
     /// assert!(Position::new(0).is_none());
     /// ```
     pub const fn new(n: usize) -> Option<Self> {
-        if let Some(m) = NonZeroUsize::new(n) {
+        if let Some(m) = NonZero::new(n) {
             Some(Self(m))
         } else {
             None
@@ -95,7 +95,7 @@ impl TryFrom<usize> for Position {
     type Error = TryFromIntError;
 
     fn try_from(n: usize) -> Result<Self, Self::Error> {
-        NonZeroUsize::try_from(n).map(Position)
+        NonZero::try_from(n).map(Position)
     }
 }
 
