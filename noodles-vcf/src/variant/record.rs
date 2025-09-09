@@ -65,7 +65,7 @@ pub trait Record {
     ///
     ///  1. the [number of reference bases],
     ///  2. the maximum `SVLEN` INFO field value,
-    ///  3. the maximum `LENGTH` samples field value, or
+    ///  3. the maximum `LEN` samples field value, or
     ///  4. position 1.
     ///
     /// This position is 1-based, inclusive.
