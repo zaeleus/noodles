@@ -6,7 +6,7 @@ use std::{
     env,
     fs::File,
     io::{self, BufReader, BufWriter},
-    num::NonZeroUsize,
+    num::NonZero,
     thread,
 };
 
@@ -19,7 +19,7 @@ fn main() -> io::Result<()> {
     let worker_count = args
         .next()
         .map(|s| s.parse().expect("invalid worker_count"))
-        .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZeroUsize::MIN));
+        .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZero::<usize>::MIN));
 
     let mut reader = File::open(src)
         .map(BufReader::new)

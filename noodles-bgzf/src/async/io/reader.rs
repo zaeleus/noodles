@@ -6,7 +6,7 @@ mod inflater;
 
 use std::{
     cmp, io,
-    num::NonZeroUsize,
+    num::NonZero,
     pin::Pin,
     task::{Context, Poll, ready},
 };
@@ -29,7 +29,7 @@ pin_project! {
         stream: Option<TryBuffered<Inflater<R>>>,
         block: Block,
         position: u64,
-        worker_count: NonZeroUsize,
+        worker_count: NonZero<usize>,
     }
 }
 

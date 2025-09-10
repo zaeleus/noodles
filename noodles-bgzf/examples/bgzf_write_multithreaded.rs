@@ -2,7 +2,7 @@
 //!
 //! The result is similar to the output of `bgzip --threads $(nproc) --stdout <src>`.
 
-use std::{env, fs::File, io, num::NonZeroUsize, thread};
+use std::{env, fs::File, io, num::NonZero, thread};
 
 use noodles_bgzf as bgzf;
 
@@ -13,7 +13,7 @@ fn main() -> io::Result<()> {
     let worker_count = args
         .next()
         .map(|s| s.parse().expect("invalid worker_count"))
-        .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZeroUsize::MIN));
+        .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZero::<usize>::MIN));
 
     let mut reader = File::open(src)?;
 

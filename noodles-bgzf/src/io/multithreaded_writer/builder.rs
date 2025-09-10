@@ -1,4 +1,4 @@
-use std::{io::Write, num::NonZeroUsize};
+use std::{io::Write, num::NonZero};
 
 use bytes::BytesMut;
 
@@ -8,7 +8,7 @@ use crate::io::writer::CompressionLevel;
 /// A multithreaded BGZF writer builder.
 pub struct Builder {
     compression_level: CompressionLevel,
-    worker_count: NonZeroUsize,
+    worker_count: NonZero<usize>,
 }
 
 impl Builder {
@@ -32,13 +32,13 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     /// use noodles_bgzf as bgzf;;
     ///
     /// let builder = bgzf::io::multithreaded_writer::Builder::default()
-    ///     .set_worker_count(NonZeroUsize::MIN);
+    ///     .set_worker_count(NonZero::<usize>::MIN);
     /// ```
-    pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
+    pub fn set_worker_count(mut self, worker_count: NonZero<usize>) -> Self {
         self.worker_count = worker_count;
         self
     }
@@ -85,7 +85,7 @@ impl Default for Builder {
     fn default() -> Self {
         Self {
             compression_level: CompressionLevel::default(),
-            worker_count: NonZeroUsize::MIN,
+            worker_count: NonZero::<usize>::MIN,
         }
     }
 }

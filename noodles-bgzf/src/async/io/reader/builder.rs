@@ -1,4 +1,4 @@
-use std::{num::NonZeroUsize, thread};
+use std::{num::NonZero, thread};
 
 use futures::TryStreamExt;
 use tokio::io::AsyncRead;
@@ -9,7 +9,7 @@ use crate::io::Block;
 /// An async BGZF reader builder.
 #[derive(Default)]
 pub struct Builder {
-    worker_count: Option<NonZeroUsize>,
+    worker_count: Option<NonZero<usize>>,
 }
 
 impl Builder {
@@ -20,12 +20,12 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     /// use noodles_bgzf as bgzf;
     /// let builder = bgzf::r#async::io::reader::Builder::default()
-    ///     .set_worker_count(NonZeroUsize::MIN);
+    ///     .set_worker_count(NonZero::<usize>::MIN);
     /// ```
-    pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
+    pub fn set_worker_count(mut self, worker_count: NonZero<usize>) -> Self {
         self.worker_count = Some(worker_count);
         self
     }
@@ -46,7 +46,7 @@ impl Builder {
     {
         let worker_count = self
             .worker_count
-            .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZeroUsize::MIN));
+            .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZero::<usize>::MIN));
 
         Reader {
             stream: Some(Inflater::new(reader).try_buffered(worker_count.get())),

@@ -1,7 +1,7 @@
 use std::{
     io::{self, BufRead, Read, Seek, SeekFrom},
     mem,
-    num::NonZeroUsize,
+    num::NonZero,
     thread::{self, JoinHandle},
 };
 
@@ -42,7 +42,7 @@ struct Buffer {
 /// the inner reader on its own thread to read raw frames asynchronously.
 pub struct MultithreadedReader<R> {
     state: State<R>,
-    worker_count: NonZeroUsize,
+    worker_count: NonZero<usize>,
     position: u64,
     buffer: Buffer,
 }
@@ -125,7 +125,7 @@ where
     /// let reader = bgzf::io::MultithreadedReader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
-        Self::with_worker_count(NonZeroUsize::MIN, inner)
+        Self::with_worker_count(NonZero::<usize>::MIN, inner)
     }
 
     /// Creates a multithreaded BGZF reader with a worker count.
@@ -134,11 +134,14 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     /// use noodles_bgzf as bgzf;
-    /// let reader = bgzf::io::MultithreadedReader::with_worker_count(NonZeroUsize::MIN, io::empty());
+    /// let reader = bgzf::io::MultithreadedReader::with_worker_count(
+    ///     NonZero::<usize>::MIN,
+    ///     io::empty(),
+    /// );
     /// ```
-    pub fn with_worker_count(worker_count: NonZeroUsize, inner: R) -> Self {
+    pub fn with_worker_count(worker_count: NonZero<usize>, inner: R) -> Self {
         Self {
             state: State::Paused(inner),
             worker_count,
@@ -387,7 +390,7 @@ where
     })
 }
 
-fn spawn_inflaters(worker_count: NonZeroUsize, inflate_rx: InflateRx) -> Vec<JoinHandle<()>> {
+fn spawn_inflaters(worker_count: NonZero<usize>, inflate_rx: InflateRx) -> Vec<JoinHandle<()>> {
     use super::reader::frame::parse_block;
 
     (0..worker_count.get())
@@ -435,8 +438,7 @@ mod tests {
             None => unreachable!(),
         };
 
-        let mut reader =
-            MultithreadedReader::with_worker_count(NonZeroUsize::MIN, Cursor::new(DATA));
+        let mut reader = MultithreadedReader::new(Cursor::new(DATA));
 
         let mut buf = Vec::new();
         reader.read_to_end(&mut buf)?;

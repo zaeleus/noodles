@@ -1,4 +1,4 @@
-use std::{num::NonZeroUsize, thread};
+use std::{num::NonZero, thread};
 
 use bytes::{Bytes, BytesMut};
 use futures::SinkExt;
@@ -15,7 +15,7 @@ use crate::{
 #[derive(Debug, Default)]
 pub struct Builder {
     compression_level: Option<CompressionLevel>,
-    worker_count: Option<NonZeroUsize>,
+    worker_count: Option<NonZero<usize>>,
 }
 
 impl Builder {
@@ -43,12 +43,12 @@ impl Builder {
     /// # Examples
     ///
     /// ```
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     /// use noodles_bgzf as bgzf;
     /// let builder = bgzf::r#async::io::writer::Builder::default()
-    ///     .set_worker_count(NonZeroUsize::MIN);
+    ///     .set_worker_count(NonZero::<usize>::MIN);
     /// ```
-    pub fn set_worker_count(mut self, worker_count: NonZeroUsize) -> Self {
+    pub fn set_worker_count(mut self, worker_count: NonZero<usize>) -> Self {
         self.worker_count = Some(worker_count);
         self
     }
@@ -71,7 +71,7 @@ impl Builder {
 
         let worker_count = self
             .worker_count
-            .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZeroUsize::MIN));
+            .unwrap_or_else(|| thread::available_parallelism().unwrap_or(NonZero::<usize>::MIN));
 
         Writer {
             sink: Deflater::new(FramedWrite::new(writer, BlockCodec)).buffer(worker_count.get()),

@@ -5,7 +5,7 @@ mod builder;
 use std::{
     io::{self, Write},
     mem,
-    num::NonZeroUsize,
+    num::NonZero,
     thread::{self, JoinHandle},
 };
 
@@ -67,11 +67,14 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use std::num::NonZeroUsize;
+    /// use std::num::NonZero;
     /// use noodles_bgzf as bgzf;
-    /// let writer = bgzf::io::MultithreadedWriter::with_worker_count(NonZeroUsize::MIN, io::sink());
+    /// let writer = bgzf::io::MultithreadedWriter::with_worker_count(
+    ///     NonZero::<usize>::MIN,
+    ///     io::sink(),
+    /// );
     /// ```
-    pub fn with_worker_count(worker_count: NonZeroUsize, inner: W) -> Self {
+    pub fn with_worker_count(worker_count: NonZero<usize>, inner: W) -> Self {
         Builder::default()
             .set_worker_count(worker_count)
             .build_from_writer(inner)
@@ -203,7 +206,7 @@ where
 
 fn spawn_deflaters<L>(
     compression_level: L,
-    worker_count: NonZeroUsize,
+    worker_count: NonZero<usize>,
     deflate_rx: DeflateRx,
 ) -> Vec<JoinHandle<()>>
 where
