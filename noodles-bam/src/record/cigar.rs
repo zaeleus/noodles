@@ -78,6 +78,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_len() {
+        let src = &[][..];
+        let cigar = Cigar::new(src);
+        assert_eq!(cigar.len(), 0);
+
+        let src = &[0x40, 0x00, 0x00, 0x00][..];
+        let cigar = Cigar::new(src);
+        assert_eq!(cigar.len(), 1);
+
+        let src = &[0x40, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00][..];
+        let cigar = Cigar::new(src);
+        assert_eq!(cigar.len(), 2);
+    }
+
+    #[test]
     fn test_iter() -> io::Result<()> {
         use sam::alignment::record::cigar::op::Kind;
 
