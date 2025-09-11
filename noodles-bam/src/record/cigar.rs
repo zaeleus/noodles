@@ -78,6 +78,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_is_empty() {
+        let src = &[][..];
+        let cigar = Cigar::new(src);
+        assert!(cigar.is_empty());
+
+        let src = &[0x40, 0x00, 0x00, 0x00][..];
+        let cigar = Cigar::new(src);
+        assert!(!cigar.is_empty());
+
+        let src = &[0x40, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00][..];
+        let cigar = Cigar::new(src);
+        assert!(!cigar.is_empty());
+    }
+
+    #[test]
     fn test_len() {
         let src = &[][..];
         let cigar = Cigar::new(src);
