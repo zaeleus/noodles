@@ -127,6 +127,14 @@ mod tests {
         let expected = [Op::new(Kind::Match, 4), Op::new(Kind::HardClip, 2)];
         assert_eq!(actual, expected);
 
+        let src = &[0x40, 0x00, 0x00][..];
+        let cigar = Cigar::new(src);
+        let mut iter = cigar.iter();
+        assert!(matches!(
+            iter.next(),
+            Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
         Ok(())
     }
 }
