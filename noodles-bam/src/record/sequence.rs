@@ -165,6 +165,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_len() {
+        let sequence = Sequence::new(&[], 0);
+        assert_eq!(sequence.len(), 0);
+
+        let sequence = Sequence::new(&[0x12, 0x40], 3);
+        assert_eq!(sequence.len(), 3);
+    }
+
+    #[test]
     fn test_get() {
         let sequence = Sequence::new(&[0x12, 0x40], 3);
         assert_eq!(sequence.get(0), Some(b'A'));
