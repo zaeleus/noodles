@@ -165,6 +165,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_is_empty() {
+        let sequence = Sequence::new(&[], 0);
+        assert!(sequence.is_empty());
+
+        let sequence = Sequence::new(&[0x12, 0x40], 3);
+        assert!(!sequence.is_empty());
+    }
+
+    #[test]
     fn test_len() {
         let sequence = Sequence::new(&[], 0);
         assert_eq!(sequence.len(), 0);
