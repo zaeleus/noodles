@@ -18,16 +18,16 @@ where
 {
     let flags = read_u8(reader).map(Flags::from)?;
 
+    let state_count = if flags.contains(Flags::N32) { 32 } else { 4 };
+
     if !flags.contains(Flags::NO_SIZE) {
         len = read_uint7(reader).and_then(|n| {
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
     }
 
-    let n = if flags.contains(Flags::N32) { 32 } else { 4 };
-
     if flags.contains(Flags::STRIPE) {
-        return rans_decode_stripe(reader, len, n);
+        return rans_decode_stripe(reader, len, state_count);
     }
 
     let mut p = None;
@@ -46,7 +46,7 @@ where
     let rle_len = len;
 
     if flags.contains(Flags::RLE) {
-        let (m, meta, new_len) = decode_rle_meta(reader, n)?;
+        let (m, meta, new_len) = decode_rle_meta(reader, state_count)?;
         l = Some(m);
         rle_meta = Some(meta);
         len = new_len;
@@ -57,9 +57,9 @@ where
     if flags.contains(Flags::CAT) {
         reader.read_exact(&mut data)?;
     } else if flags.contains(Flags::ORDER) {
-        order_1::decode(reader, &mut data, n)?;
+        order_1::decode(reader, &mut data, state_count)?;
     } else {
-        order_0::decode(reader, &mut data, n)?;
+        order_0::decode(reader, &mut data, state_count)?;
     };
 
     if flags.contains(Flags::RLE) {
@@ -140,7 +140,7 @@ where
     Ok(r)
 }
 
-fn rans_decode_stripe<R>(reader: &mut R, len: usize, n: u32) -> io::Result<Vec<u8>>
+fn rans_decode_stripe<R>(reader: &mut R, len: usize, state_count: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
@@ -161,7 +161,7 @@ where
     for j in 0..x {
         let mut ulen = len / x;
 
-        if len % (n as usize) > j {
+        if len % state_count > j {
             ulen += 1;
         }
 
@@ -175,14 +175,17 @@ where
 
     for j in 0..x {
         for i in 0..ulens[j] {
-            dst[i * (n as usize) + j] = t[j][i];
+            dst[i * state_count + j] = t[j][i];
         }
     }
 
     Ok(dst)
 }
 
-fn decode_rle_meta<R>(reader: &mut R, n: u32) -> io::Result<([bool; 256], Cursor<Vec<u8>>, usize)>
+fn decode_rle_meta<R>(
+    reader: &mut R,
+    state_count: usize,
+) -> io::Result<([bool; 256], Cursor<Vec<u8>>, usize)>
 where
     R: Read,
 {
@@ -208,7 +211,7 @@ where
 
         let mut buf_reader = &buf[..];
         let mut dst = vec![0; rle_meta_len / 2];
-        order_0::decode(&mut buf_reader, &mut dst, n)?;
+        order_0::decode(&mut buf_reader, &mut dst, state_count)?;
 
         dst
     };

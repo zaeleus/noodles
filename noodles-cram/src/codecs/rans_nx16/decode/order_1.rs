@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use crate::io::reader::num::{read_u8, read_u32_le, read_uint7};
 
-pub fn decode<R>(reader: &mut R, output: &mut [u8], n: u32) -> io::Result<()>
+pub fn decode<R>(reader: &mut R, output: &mut [u8], state_count: usize) -> io::Result<()>
 where
     R: Read,
 {
@@ -16,7 +16,7 @@ where
 
     let bits = read_frequencies(reader, &mut freqs, &mut cumulative_freqs)?;
 
-    let mut state = vec![0; n as usize];
+    let mut state = vec![0; state_count];
 
     for s in &mut state {
         *s = read_u32_le(reader)?;
@@ -25,12 +25,12 @@ where
     let mut i = 0;
     let mut last_syms = vec![0; state.len()];
 
-    while i < output.len() / (n as usize) {
-        for j in 0..(n as usize) {
+    while i < output.len() / state_count {
+        for j in 0..state_count {
             let f = rans_get_cumulative_freq_nx16(state[j], bits);
             let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[j]], f);
 
-            output[i + j * (output.len() / (n as usize))] = s;
+            output[i + j * (output.len() / state_count)] = s;
 
             state[j] = rans_advance_step_nx16(
                 state[j],
@@ -47,8 +47,8 @@ where
         i += 1;
     }
 
-    i *= n as usize;
-    let m = (n - 1) as usize;
+    i *= state_count;
+    let m = state_count - 1;
 
     while i < output.len() {
         let f = rans_get_cumulative_freq_nx16(state[m], bits);

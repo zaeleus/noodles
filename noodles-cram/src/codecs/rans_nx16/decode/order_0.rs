@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use crate::io::reader::num::{read_u32_le, read_uint7};
 
-pub fn decode<R>(reader: &mut R, output: &mut [u8], n: u32) -> io::Result<()>
+pub fn decode<R>(reader: &mut R, output: &mut [u8], state_count: usize) -> io::Result<()>
 where
     R: Read,
 {
@@ -16,14 +16,14 @@ where
 
     read_frequencies(reader, &mut freqs, &mut cumulative_freqs)?;
 
-    let mut state = vec![0; n as usize];
+    let mut state = vec![0; state_count];
 
     for s in &mut state {
         *s = read_u32_le(reader)?;
     }
 
     for (i, b) in output.iter_mut().enumerate() {
-        let j = i % (n as usize);
+        let j = i % state_count;
 
         let f = rans_get_cumulative_freq_nx16(state[j], 12);
         let s = rans_get_symbol_from_freq(&cumulative_freqs, f);
