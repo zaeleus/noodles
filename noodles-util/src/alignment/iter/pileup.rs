@@ -240,7 +240,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::num::NonZeroUsize;
+    use std::num::NonZero;
 
     use super::*;
     use sam::alignment::RecordBuf;
@@ -304,7 +304,7 @@ mod tests {
         .collect();
 
         let header = Header::builder()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(NonZeroUsize::MAX))
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(NonZero::<usize>::MAX))
             .build();
 
         let pileup = Pileup::new(&header, records.into_iter());
