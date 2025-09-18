@@ -27,7 +27,7 @@ where
     }
 
     if flags.is_striped() {
-        return rans_decode_stripe(reader, len, state_count);
+        return rans_decode_stripe(reader, len);
     }
 
     let mut p = None;
@@ -140,7 +140,7 @@ where
     Ok(r)
 }
 
-fn rans_decode_stripe<R>(reader: &mut R, len: usize, state_count: usize) -> io::Result<Vec<u8>>
+fn rans_decode_stripe<R>(reader: &mut R, len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
@@ -161,7 +161,7 @@ where
     for j in 0..x {
         let mut ulen = len / x;
 
-        if len % state_count > j {
+        if len % x > j {
             ulen += 1;
         }
 
@@ -175,7 +175,7 @@ where
 
     for j in 0..x {
         for i in 0..ulens[j] {
-            dst[i * state_count + j] = t[j][i];
+            dst[i * x + j] = t[j][i];
         }
     }
 

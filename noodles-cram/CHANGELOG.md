@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * cram/codecs/rans_nx16/decode: Use stream count in calculations.
+
+    This incorrectly used the state count, which coincidentally tends to match
+    the stream count.
+
 ## 0.86.0 - 2025-08-25
 
 ### Changed
