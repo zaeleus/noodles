@@ -18,15 +18,15 @@ where
 {
     let flags = read_u8(reader).map(Flags::from)?;
 
-    let state_count = if flags.contains(Flags::N32) { 32 } else { 4 };
+    let state_count = flags.state_count();
 
-    if !flags.contains(Flags::NO_SIZE) {
+    if flags.has_uncompressed_size() {
         len = read_uint7(reader).and_then(|n| {
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
     }
 
-    if flags.contains(Flags::STRIPE) {
+    if flags.is_striped() {
         return rans_decode_stripe(reader, len, state_count);
     }
 
@@ -34,7 +34,7 @@ where
     let mut n_sym = None;
     let pack_len = len;
 
-    if flags.contains(Flags::PACK) {
+    if flags.is_bit_packed() {
         let (q, n, new_len) = decode_pack_meta(reader)?;
         p = Some(q);
         n_sym = Some(n);
@@ -45,7 +45,7 @@ where
     let mut rle_meta = None;
     let rle_len = len;
 
-    if flags.contains(Flags::RLE) {
+    if flags.is_rle() {
         let (m, meta, new_len) = decode_rle_meta(reader, state_count)?;
         l = Some(m);
         rle_meta = Some(meta);
@@ -54,21 +54,21 @@ where
 
     let mut data = vec![0; len];
 
-    if flags.contains(Flags::CAT) {
+    if flags.is_uncompressed() {
         reader.read_exact(&mut data)?;
-    } else if flags.contains(Flags::ORDER) {
-        order_1::decode(reader, &mut data, state_count)?;
-    } else {
+    } else if flags.order() == 0 {
         order_0::decode(reader, &mut data, state_count)?;
+    } else {
+        order_1::decode(reader, &mut data, state_count)?;
     };
 
-    if flags.contains(Flags::RLE) {
+    if flags.is_rle() {
         let l = l.unwrap();
         let mut rle_meta = rle_meta.unwrap();
         data = rle::decode(&data, &l, &mut rle_meta, rle_len)?;
     }
 
-    if flags.contains(Flags::PACK) {
+    if flags.is_bit_packed() {
         let p = p.unwrap();
         let n_sym = n_sym.unwrap();
         data = pack::decode(&data, &p, n_sym, pack_len)?;
