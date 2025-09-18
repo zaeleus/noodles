@@ -4,7 +4,7 @@ pub mod pack;
 mod rle;
 
 use std::{
-    io::{self, Cursor, Read},
+    io::{self, Read},
     mem,
     num::NonZero,
 };
@@ -46,7 +46,7 @@ where
     let rle_len = len;
 
     if flags.is_rle() {
-        let (m, meta, new_len) = decode_rle_meta(reader, state_count)?;
+        let (m, meta, new_len) = rle::decode_rle_meta(reader, state_count)?;
         l = Some(m);
         rle_meta = Some(meta);
         len = new_len;
@@ -180,58 +180,6 @@ where
     }
 
     Ok(dst)
-}
-
-fn decode_rle_meta<R>(
-    reader: &mut R,
-    state_count: usize,
-) -> io::Result<([bool; 256], Cursor<Vec<u8>>, usize)>
-where
-    R: Read,
-{
-    let rle_meta_len = read_uint7(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let len = read_uint7(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let rle_meta = if rle_meta_len & 1 == 1 {
-        let mut buf = vec![0; rle_meta_len / 2];
-        reader.read_exact(&mut buf)?;
-        buf
-    } else {
-        let comp_meta_len = read_uint7(reader).and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        let mut buf = vec![0; comp_meta_len];
-        reader.read_exact(&mut buf)?;
-
-        let mut buf_reader = &buf[..];
-        let mut dst = vec![0; rle_meta_len / 2];
-        order_0::decode(&mut buf_reader, &mut dst, state_count)?;
-
-        dst
-    };
-
-    let mut rle_meta_reader = Cursor::new(rle_meta);
-
-    let mut m = read_u8(&mut rle_meta_reader).map(u16::from)?;
-
-    if m == 0 {
-        m = 256;
-    }
-
-    let mut l = [false; 256];
-
-    for _ in 0..m {
-        let s = read_u8(&mut rle_meta_reader)?;
-        l[usize::from(s)] = true;
-    }
-
-    Ok((l, rle_meta_reader, len))
 }
 
 pub fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, NonZero<usize>, usize)>
