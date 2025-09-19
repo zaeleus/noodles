@@ -14,7 +14,6 @@ where
         clens.push(clen);
     }
 
-    let mut ulens = Vec::with_capacity(x);
     let mut t = Vec::with_capacity(x);
 
     for j in 0..x {
@@ -26,17 +25,37 @@ where
 
         let chunk = super::decode(reader, ulen)?;
 
-        ulens.push(ulen);
         t.push(chunk);
     }
 
-    let mut dst = vec![0; len];
+    Ok(transpose(&t, len))
+}
 
-    for j in 0..x {
-        for i in 0..ulens[j] {
-            dst[i * x + j] = t[j][i];
+fn transpose<T>(chunks: &[T], uncompressed_size: usize) -> Vec<u8>
+where
+    T: AsRef<[u8]>,
+{
+    let mut dst = vec![0; uncompressed_size];
+
+    for (i, chunk) in chunks.iter().enumerate() {
+        for (j, s) in chunk.as_ref().iter().enumerate() {
+            dst[j * chunks.len() + i] = *s;
         }
     }
 
-    Ok(dst)
+    dst
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_transpose() {
+        // § 3.6 "Striped rANS Nx16" (2023-03-15)
+        let chunks = [&b"abcde"[..], &b"ABCD"[..], &b"1234"[..]];
+        let actual = transpose(&chunks, 13);
+        let expected = b"aA1bB2cC3dD4e";
+        assert_eq!(actual, expected);
+    }
 }
