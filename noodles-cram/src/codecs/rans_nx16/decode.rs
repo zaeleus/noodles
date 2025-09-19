@@ -16,7 +16,7 @@ pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let flags = read_u8(reader).map(Flags::from)?;
+    let flags = read_flags(reader)?;
 
     let state_count = flags.state_count();
 
@@ -75,6 +75,13 @@ where
     }
 
     Ok(data)
+}
+
+fn read_flags<R>(reader: &mut R) -> io::Result<Flags>
+where
+    R: Read,
+{
+    read_u8(reader).map(Flags::from)
 }
 
 fn read_alphabet<R>(reader: &mut R) -> io::Result<[bool; 256]>
