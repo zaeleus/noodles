@@ -10,7 +10,7 @@ use std::{
 pub use self::{
     itf8::{read_itf8, read_itf8_as},
     ltf8::{read_ltf8, read_ltf8_as},
-    vlq::read_uint7,
+    vlq::{read_uint7, read_uint7_as},
 };
 
 pub(crate) fn read_u8<R>(reader: &mut R) -> io::Result<u8>

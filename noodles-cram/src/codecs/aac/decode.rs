@@ -1,7 +1,7 @@
 use std::io::{self, Read};
 
 use super::{Flags, Model, RangeCoder};
-use crate::io::reader::num::{read_u8, read_uint7};
+use crate::io::reader::num::{read_u8, read_uint7_as};
 
 pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
@@ -12,9 +12,7 @@ where
     let flags = read_u8(reader).map(Flags::from)?;
 
     if !flags.contains(Flags::NO_SIZE) {
-        len = read_uint7(reader).and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
+        len = read_uint7_as(reader)?;
     }
 
     if flags.contains(Flags::STRIPE) {
@@ -64,13 +62,10 @@ where
     R: Read,
 {
     let n = read_u8(reader).map(usize::from)?;
-    let mut clens = Vec::with_capacity(n);
+    let mut clens: Vec<usize> = Vec::with_capacity(n);
 
     for _ in 0..n {
-        let clen = read_uint7(reader).and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
+        let clen = read_uint7_as(reader)?;
         clens.push(clen);
     }
 

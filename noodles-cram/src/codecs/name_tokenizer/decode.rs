@@ -4,7 +4,7 @@ use super::Type;
 use crate::{
     codecs::{aac, rans_nx16},
     io::{
-        reader::num::{read_u8, read_u32_le, read_uint7},
+        reader::num::{read_u8, read_u32_le, read_uint7_as},
         writer::num::write_u8,
     },
 };
@@ -237,9 +237,7 @@ where
             let buf = b[dup_pos].get(dup_type).get_ref().clone();
             b[t as usize].set(ty, buf);
         } else {
-            let clen = read_uint7(reader).and_then(|n| {
-                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })?;
+            let clen = read_uint7_as(reader)?;
 
             let mut data = vec![0; clen];
             reader.read_exact(&mut data)?;

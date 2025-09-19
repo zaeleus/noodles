@@ -1,19 +1,16 @@
 use std::io::{self, Read};
 
-use crate::io::reader::num::{read_u8, read_uint7};
+use crate::io::reader::num::{read_u8, read_uint7_as};
 
 pub(super) fn decode<R>(reader: &mut R, len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
     let x = read_u8(reader).map(usize::from)?;
-    let mut clens = Vec::with_capacity(x);
+    let mut clens: Vec<usize> = Vec::with_capacity(x);
 
     for _ in 0..x {
-        let clen = read_uint7(reader).and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
+        let clen = read_uint7_as(reader)?;
         clens.push(clen);
     }
 

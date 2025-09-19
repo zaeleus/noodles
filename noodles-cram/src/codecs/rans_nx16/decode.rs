@@ -11,7 +11,7 @@ use std::{
 };
 
 use super::Flags;
-use crate::io::reader::num::{read_u8, read_uint7};
+use crate::io::reader::num::{read_u8, read_uint7_as};
 
 pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
@@ -22,9 +22,7 @@ where
     let state_count = flags.state_count();
 
     if flags.has_uncompressed_size() {
-        len = read_uint7(reader).and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
+        len = read_uint7_as(reader)?;
     }
 
     if flags.is_striped() {
@@ -160,9 +158,7 @@ where
     let mut p = vec![0; symbol_count.get()];
     reader.read_exact(&mut p)?;
 
-    let len = read_uint7(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let len = read_uint7_as(reader)?;
 
     Ok((p, symbol_count, len))
 }

@@ -8,15 +8,13 @@ use super::{
     parameter::{self, Parameter},
     parameters::{self, Parameters, fqz_decode_params},
 };
-use crate::{codecs::aac::RangeCoder, io::reader::num::read_uint7};
+use crate::{codecs::aac::RangeCoder, io::reader::num::read_uint7_as};
 
 pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let buf_len = read_uint7(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let buf_len = read_uint7_as(reader)?;
 
     let mut params = fqz_decode_params(reader)?;
 

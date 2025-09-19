@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-use crate::io::reader::num::{read_u8, read_u32_le, read_uint7};
+use crate::io::reader::num::{read_u8, read_u32_le, read_uint7, read_uint7_as};
 
 pub fn decode<R>(reader: &mut R, output: &mut [u8], state_count: usize) -> io::Result<()>
 where
@@ -87,13 +87,8 @@ where
     let bits = u32::from(comp >> 4);
 
     if comp & 0x01 != 0 {
-        let u_size = read_uint7(reader).and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
-
-        let c_size = read_uint7(reader).and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })?;
+        let u_size = read_uint7_as(reader)?;
+        let c_size = read_uint7_as(reader)?;
 
         let mut c_data = vec![0; c_size];
         reader.read_exact(&mut c_data)?;

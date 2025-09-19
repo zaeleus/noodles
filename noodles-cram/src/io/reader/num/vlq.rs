@@ -1,4 +1,7 @@
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    num,
+};
 
 use super::read_u8;
 
@@ -20,6 +23,17 @@ where
     }
 
     Ok(n)
+}
+
+pub fn read_uint7_as<R, N>(reader: &mut R) -> io::Result<N>
+where
+    R: Read,
+    N: TryFrom<u32, Error = num::TryFromIntError>,
+{
+    read_uint7(reader).and_then(|n| {
+        n.try_into()
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
 #[cfg(test)]
