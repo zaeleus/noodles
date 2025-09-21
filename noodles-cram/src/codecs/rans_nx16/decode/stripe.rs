@@ -8,12 +8,7 @@ where
 {
     let chunk_count = read_chunk_count(reader)?;
 
-    let mut clens: Vec<usize> = Vec::with_capacity(chunk_count);
-
-    for _ in 0..chunk_count {
-        let clen = read_uint7_as(reader)?;
-        clens.push(clen);
-    }
+    let _compressed_sizes = read_compressed_sizes(reader, chunk_count)?;
 
     let mut t = Vec::with_capacity(chunk_count);
 
@@ -37,6 +32,13 @@ where
     R: Read,
 {
     read_u8(reader).map(usize::from)
+}
+
+fn read_compressed_sizes<R>(reader: &mut R, chunk_count: usize) -> io::Result<Vec<usize>>
+where
+    R: Read,
+{
+    (0..chunk_count).map(|_| read_uint7_as(reader)).collect()
 }
 
 fn transpose<T>(chunks: &[T], uncompressed_size: usize) -> Vec<u8>
