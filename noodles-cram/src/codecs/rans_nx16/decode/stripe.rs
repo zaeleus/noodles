@@ -6,20 +6,21 @@ pub(super) fn decode<R>(reader: &mut R, len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    let x = read_u8(reader).map(usize::from)?;
-    let mut clens: Vec<usize> = Vec::with_capacity(x);
+    let chunk_count = read_chunk_count(reader)?;
 
-    for _ in 0..x {
+    let mut clens: Vec<usize> = Vec::with_capacity(chunk_count);
+
+    for _ in 0..chunk_count {
         let clen = read_uint7_as(reader)?;
         clens.push(clen);
     }
 
-    let mut t = Vec::with_capacity(x);
+    let mut t = Vec::with_capacity(chunk_count);
 
-    for j in 0..x {
-        let mut ulen = len / x;
+    for j in 0..chunk_count {
+        let mut ulen = len / chunk_count;
 
-        if len % x > j {
+        if len % chunk_count > j {
             ulen += 1;
         }
 
@@ -29,6 +30,13 @@ where
     }
 
     Ok(transpose(&t, len))
+}
+
+fn read_chunk_count<R>(reader: &mut R) -> io::Result<usize>
+where
+    R: Read,
+{
+    read_u8(reader).map(usize::from)
 }
 
 fn transpose<T>(chunks: &[T], uncompressed_size: usize) -> Vec<u8>
