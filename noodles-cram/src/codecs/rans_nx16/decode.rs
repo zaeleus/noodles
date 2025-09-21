@@ -7,7 +7,6 @@ mod stripe;
 use std::{
     io::{self, Read},
     mem,
-    num::NonZero,
 };
 
 use super::Flags;
@@ -34,7 +33,7 @@ where
     let pack_len = len;
 
     if flags.is_bit_packed() {
-        let (q, n, new_len) = decode_pack_meta(reader)?;
+        let (q, n, new_len) = pack::decode_pack_meta(reader)?;
         p = Some(q);
         n_sym = Some(n);
         len = new_len;
@@ -144,23 +143,6 @@ where
     }
 
     Ok(r)
-}
-
-pub fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, NonZero<usize>, usize)>
-where
-    R: Read,
-{
-    // n_sym
-    let symbol_count = read_u8(reader).and_then(|n| {
-        NonZero::try_from(usize::from(n)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let mut p = vec![0; symbol_count.get()];
-    reader.read_exact(&mut p)?;
-
-    let len = read_uint7_as(reader)?;
-
-    Ok((p, symbol_count, len))
 }
 
 fn read_u16_le<R>(reader: &mut R) -> io::Result<u16>

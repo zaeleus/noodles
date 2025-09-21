@@ -7,7 +7,7 @@ pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
-    use crate::codecs::rans_nx16::decode::{decode_pack_meta, pack};
+    use crate::codecs::rans_nx16::decode::pack;
 
     let flags = read_u8(reader).map(Flags::from)?;
 
@@ -24,7 +24,7 @@ where
     let pack_len = len;
 
     if flags.contains(Flags::PACK) {
-        let (q, n, new_len) = decode_pack_meta(reader)?;
+        let (q, n, new_len) = pack::decode_pack_meta(reader)?;
         p = Some(q);
         n_sym = Some(n);
         len = new_len;
