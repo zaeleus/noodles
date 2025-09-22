@@ -11,14 +11,12 @@ where
     let _compressed_sizes = read_compressed_sizes(reader, chunk_count)?;
     let uncompressed_sizes = build_uncompressed_sizes(len, chunk_count);
 
-    let mut t = Vec::with_capacity(chunk_count);
+    let chunks: Vec<_> = uncompressed_sizes
+        .into_iter()
+        .map(|uncompressed_size| super::decode(reader, uncompressed_size))
+        .collect::<io::Result<_>>()?;
 
-    for ulen in uncompressed_sizes {
-        let chunk = super::decode(reader, ulen)?;
-        t.push(chunk);
-    }
-
-    Ok(transpose(&t, len))
+    Ok(transpose(&chunks, len))
 }
 
 fn read_chunk_count<R>(reader: &mut R) -> io::Result<usize>
