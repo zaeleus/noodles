@@ -8,12 +8,17 @@ where
 {
     let chunk_count = read_chunk_count(reader)?;
 
-    let _compressed_sizes = read_compressed_sizes(reader, chunk_count)?;
+    let compressed_sizes = read_compressed_sizes(reader, chunk_count)?;
     let uncompressed_sizes = build_uncompressed_sizes(len, chunk_count);
 
-    let chunks: Vec<_> = uncompressed_sizes
+    let chunks: Vec<_> = compressed_sizes
         .into_iter()
-        .map(|uncompressed_size| super::decode(reader, uncompressed_size))
+        .zip(uncompressed_sizes)
+        .map(|(compressed_size, uncompressed_size)| {
+            let mut buf = vec![0; compressed_size];
+            reader.read_exact(&mut buf)?;
+            super::decode(&mut &buf[..], uncompressed_size)
+        })
         .collect::<io::Result<_>>()?;
 
     Ok(transpose(&chunks, len))
