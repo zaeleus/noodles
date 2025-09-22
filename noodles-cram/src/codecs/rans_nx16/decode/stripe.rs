@@ -2,22 +2,18 @@ use std::io::{self, Read};
 
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
-pub(super) fn decode<R>(reader: &mut R, len: usize) -> io::Result<Vec<u8>>
-where
-    R: Read,
-{
-    let chunk_count = read_chunk_count(reader)?;
+pub(super) fn decode(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
+    let chunk_count = read_chunk_count(src)?;
 
-    let compressed_sizes = read_compressed_sizes(reader, chunk_count)?;
+    let compressed_sizes = read_compressed_sizes(src, chunk_count)?;
     let uncompressed_sizes = build_uncompressed_sizes(len, chunk_count);
 
     let chunks: Vec<_> = compressed_sizes
         .into_iter()
         .zip(uncompressed_sizes)
         .map(|(compressed_size, uncompressed_size)| {
-            let mut buf = vec![0; compressed_size];
-            reader.read_exact(&mut buf)?;
-            super::decode(&mut &buf[..], uncompressed_size)
+            let buf = split_off(src, compressed_size)?;
+            super::decode(buf, uncompressed_size)
         })
         .collect::<io::Result<_>>()?;
 
@@ -62,6 +58,16 @@ where
     }
 
     dst
+}
+
+fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+    *src = rest;
+
+    Ok(buf)
 }
 
 #[cfg(test)]

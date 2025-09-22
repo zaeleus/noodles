@@ -42,9 +42,7 @@ impl Block<'_> {
                 Ok(dst)
             }
             CompressionMethod::Rans4x8 => rans_4x8::decode(&mut &self.src[..]),
-            CompressionMethod::RansNx16 => {
-                rans_nx16::decode(&mut &self.src[..], self.uncompressed_size)
-            }
+            CompressionMethod::RansNx16 => rans_nx16::decode(self.src, self.uncompressed_size),
             CompressionMethod::AdaptiveArithmeticCoding => {
                 aac::decode(&mut &self.src[..], self.uncompressed_size)
             }

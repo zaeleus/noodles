@@ -247,7 +247,7 @@ where
             let buf = if use_arith {
                 aac::decode(&mut data_reader, 0)?
             } else {
-                rans_nx16::decode(&mut data_reader, 0)?
+                rans_nx16::decode(data_reader, 0)?
             };
 
             b[t as usize].set(ty, buf);

@@ -1,11 +1,8 @@
-use std::io::{self, Read};
+use std::io;
 
 use crate::io::reader::num::{read_u32_le, read_uint7};
 
-pub fn decode<R>(reader: &mut R, output: &mut [u8], state_count: usize) -> io::Result<()>
-where
-    R: Read,
-{
+pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
     use super::{
         rans_advance_step_nx16, rans_get_cumulative_freq_nx16, rans_get_symbol_from_freq,
         rans_renorm_nx16,
@@ -14,21 +11,21 @@ where
     let mut freqs = [0; 256];
     let mut cumulative_freqs = [0; 256];
 
-    read_frequencies(reader, &mut freqs, &mut cumulative_freqs)?;
+    read_frequencies(src, &mut freqs, &mut cumulative_freqs)?;
 
     let mut state = vec![0; state_count];
 
     for s in &mut state {
-        *s = read_u32_le(reader)?;
+        *s = read_u32_le(src)?;
     }
 
-    for (i, b) in output.iter_mut().enumerate() {
+    for (i, d) in dst.iter_mut().enumerate() {
         let j = i % state_count;
 
         let f = rans_get_cumulative_freq_nx16(state[j], 12);
         let s = rans_get_symbol_from_freq(&cumulative_freqs, f);
 
-        *b = s;
+        *d = s;
 
         state[j] = rans_advance_step_nx16(
             state[j],
@@ -37,7 +34,7 @@ where
             12,
         );
 
-        state[j] = rans_renorm_nx16(reader, state[j])?;
+        state[j] = rans_renorm_nx16(src, state[j])?;
     }
 
     Ok(())
@@ -62,21 +59,18 @@ pub fn normalize_frequencies(freqs: &mut [u32], bits: u32) {
     }
 }
 
-fn read_frequencies<R>(
-    reader: &mut R,
+fn read_frequencies(
+    src: &mut &[u8],
     freqs: &mut [u32],
     cumulative_freqs: &mut [u32],
-) -> io::Result<()>
-where
-    R: Read,
-{
+) -> io::Result<()> {
     use super::read_alphabet;
 
-    let alphabet = read_alphabet(reader)?;
+    let alphabet = read_alphabet(src)?;
 
     for i in 0..alphabet.len() {
         if alphabet[i] {
-            freqs[i] = read_uint7(reader)?;
+            freqs[i] = read_uint7(src)?;
         }
     }
 
