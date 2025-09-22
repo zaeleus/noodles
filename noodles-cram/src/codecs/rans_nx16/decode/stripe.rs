@@ -9,18 +9,12 @@ where
     let chunk_count = read_chunk_count(reader)?;
 
     let _compressed_sizes = read_compressed_sizes(reader, chunk_count)?;
+    let uncompressed_sizes = build_uncompressed_sizes(len, chunk_count);
 
     let mut t = Vec::with_capacity(chunk_count);
 
-    for j in 0..chunk_count {
-        let mut ulen = len / chunk_count;
-
-        if len % chunk_count > j {
-            ulen += 1;
-        }
-
+    for ulen in uncompressed_sizes {
         let chunk = super::decode(reader, ulen)?;
-
         t.push(chunk);
     }
 
@@ -41,6 +35,17 @@ where
     (0..chunk_count).map(|_| read_uint7_as(reader)).collect()
 }
 
+// § 3.6 "Striped rANS Nx16" (2023-03-15): "The uncompressed data length may not necessary be an
+// exact multiple of _N_, in which case the latter uncompressed sub-streams may be 1 byte shorter."
+fn build_uncompressed_sizes(len: usize, chunk_count: usize) -> Vec<usize> {
+    (0..chunk_count)
+        .map(|i| {
+            let (q, r) = (len / chunk_count, len % chunk_count);
+            if r > i { q + 1 } else { q }
+        })
+        .collect()
+}
+
 fn transpose<T>(chunks: &[T], uncompressed_size: usize) -> Vec<u8>
 where
     T: AsRef<[u8]>,
@@ -59,6 +64,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_build_uncompressed_sizes() {
+        assert_eq!(build_uncompressed_sizes(13, 3), [5, 4, 4]);
+    }
 
     #[test]
     fn test_transpose() {
