@@ -22,14 +22,11 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
         return stripe::decode(&mut src, len);
     }
 
-    let mut p = None;
-    let mut n_sym = None;
-    let pack_len = len;
+    let mut bit_pack_context = None;
 
     if flags.is_bit_packed() {
-        let (q, n, new_len) = bit_pack::decode_pack_meta(&mut src)?;
-        p = Some(q);
-        n_sym = Some(n);
+        let (ctx, new_len) = bit_pack::read_context(&mut src, len)?;
+        bit_pack_context = Some(ctx);
         len = new_len;
     }
 
@@ -60,10 +57,8 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
         dst = rle::decode(&dst, &l, &mut rle_meta, rle_len)?;
     }
 
-    if flags.is_bit_packed() {
-        let p = p.unwrap();
-        let n_sym = n_sym.unwrap();
-        dst = bit_pack::decode(&dst, &p, n_sym, pack_len)?;
+    if let Some(ctx) = bit_pack_context {
+        dst = bit_pack::decode(&dst, &ctx)?;
     }
 
     Ok(dst)

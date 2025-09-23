@@ -16,14 +16,11 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
         return decode_stripe(&mut src, len);
     }
 
-    let mut p = None;
-    let mut n_sym = None;
-    let pack_len = len;
+    let mut bit_pack_context = None;
 
     if flags.contains(Flags::PACK) {
-        let (q, n, new_len) = bit_pack::decode_pack_meta(&mut src)?;
-        p = Some(q);
-        n_sym = Some(n);
+        let (ctx, new_len) = bit_pack::read_context(&mut src, len)?;
+        bit_pack_context = Some(ctx);
         len = new_len;
     }
 
@@ -45,10 +42,8 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
         decode_order_0(&mut src, &mut data)?;
     }
 
-    if flags.contains(Flags::PACK) {
-        let p = p.unwrap();
-        let n_sym = n_sym.unwrap();
-        data = bit_pack::decode(&data, &p, n_sym, pack_len)?;
+    if let Some(ctx) = bit_pack_context {
+        data = bit_pack::decode(&data, &ctx)?;
     }
 
     Ok(data)

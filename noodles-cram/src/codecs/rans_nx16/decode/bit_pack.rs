@@ -1,29 +1,47 @@
-use std::{
-    io::{self, Read},
-    num::NonZero,
-};
+use std::{io, num::NonZero};
 
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
-pub fn decode_pack_meta<R>(reader: &mut R) -> io::Result<(Vec<u8>, NonZero<usize>, usize)>
-where
-    R: Read,
-{
-    // n_sym
-    let symbol_count = read_u8(reader).and_then(|n| {
+pub struct Context<'a> {
+    pub symbol_count: NonZero<usize>,
+    pub mapping_table: &'a [u8],
+    pub uncompressed_size: usize,
+}
+
+pub fn read_context<'a>(
+    src: &mut &'a [u8],
+    uncompressed_size: usize,
+) -> io::Result<(Context<'a>, usize)> {
+    let symbol_count = read_u8(src).and_then(|n| {
         NonZero::try_from(usize::from(n)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut p = vec![0; symbol_count.get()];
-    reader.read_exact(&mut p)?;
+    let (mapping_table, rest) = src
+        .split_at_checked(symbol_count.get())
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
-    let len = read_uint7_as(reader)?;
+    *src = rest;
 
-    Ok((p, symbol_count, len))
+    let len = read_uint7_as(src)?;
+
+    let context = Context {
+        symbol_count,
+        mapping_table,
+        uncompressed_size,
+    };
+
+    Ok((context, len))
 }
 
-pub fn decode(src: &[u8], p: &[u8], n_sym: NonZero<usize>, len: usize) -> io::Result<Vec<u8>> {
-    let mut dst = vec![0; len];
+pub fn decode(
+    src: &[u8],
+    Context {
+        symbol_count: n_sym,
+        mapping_table: p,
+        uncompressed_size: len,
+    }: &Context<'_>,
+) -> io::Result<Vec<u8>> {
+    let mut dst = vec![0; *len];
     let mut j = 0;
 
     if n_sym.get() <= 1 {
