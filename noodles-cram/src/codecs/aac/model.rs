@@ -1,4 +1,4 @@
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 
 use super::RangeCoder;
 
@@ -28,10 +28,7 @@ impl Model {
         }
     }
 
-    pub fn decode<R>(&mut self, reader: &mut R, range_coder: &mut RangeCoder) -> io::Result<u8>
-    where
-        R: Read,
-    {
+    pub fn decode(&mut self, src: &mut &[u8], range_coder: &mut RangeCoder) -> io::Result<u8> {
         let freq = range_coder.range_get_freq(self.total_freq);
 
         let mut acc = 0;
@@ -42,7 +39,7 @@ impl Model {
             x += 1;
         }
 
-        range_coder.range_decode(reader, acc, self.frequencies[x])?;
+        range_coder.range_decode(src, acc, self.frequencies[x])?;
 
         self.frequencies[x] += 16;
         self.total_freq += 16;

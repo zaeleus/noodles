@@ -1,4 +1,4 @@
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 
 use crate::io::{reader::num::read_u8, writer::num::write_u8};
 
@@ -14,12 +14,9 @@ pub struct RangeCoder {
 }
 
 impl RangeCoder {
-    pub fn range_decode_create<R>(&mut self, reader: &mut R) -> io::Result<()>
-    where
-        R: Read,
-    {
+    pub fn range_decode_create(&mut self, src: &mut &[u8]) -> io::Result<()> {
         for _ in 0..=4 {
-            let b = read_u8(reader).map(u32::from)?;
+            let b = read_u8(src).map(u32::from)?;
             self.code = (self.code << 8) | b;
         }
 
@@ -33,16 +30,13 @@ impl RangeCoder {
         self.code / self.range
     }
 
-    pub fn range_decode<R>(&mut self, reader: &mut R, sym_low: u32, sym_freq: u32) -> io::Result<()>
-    where
-        R: Read,
-    {
+    pub fn range_decode(&mut self, src: &mut &[u8], sym_low: u32, sym_freq: u32) -> io::Result<()> {
         self.code -= sym_low * self.range;
         self.range *= sym_freq;
 
         while self.range < (1 << 24) {
             self.range <<= 8;
-            let b = read_u8(reader).map(u32::from)?;
+            let b = read_u8(src).map(u32::from)?;
             self.code = (self.code << 8) | b;
         }
 

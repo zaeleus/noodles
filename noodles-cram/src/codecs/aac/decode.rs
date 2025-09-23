@@ -3,20 +3,17 @@ use std::io::{self, Read};
 use super::{Flags, Model, RangeCoder};
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
-pub fn decode<R>(reader: &mut R, mut len: usize) -> io::Result<Vec<u8>>
-where
-    R: Read,
-{
+pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     use crate::codecs::rans_nx16::decode::pack;
 
-    let flags = read_u8(reader).map(Flags::from)?;
+    let flags = read_u8(&mut src).map(Flags::from)?;
 
     if !flags.contains(Flags::NO_SIZE) {
-        len = read_uint7_as(reader)?;
+        len = read_uint7_as(&mut src)?;
     }
 
     if flags.contains(Flags::STRIPE) {
-        return decode_stripe(reader, len);
+        return decode_stripe(&mut src, len);
     }
 
     let mut p = None;
@@ -24,7 +21,7 @@ where
     let pack_len = len;
 
     if flags.contains(Flags::PACK) {
-        let (q, n, new_len) = pack::decode_pack_meta(reader)?;
+        let (q, n, new_len) = pack::decode_pack_meta(&mut src)?;
         p = Some(q);
         n_sym = Some(n);
         len = new_len;
@@ -33,19 +30,19 @@ where
     let mut data = vec![0; len];
 
     if flags.contains(Flags::CAT) {
-        reader.read_exact(&mut data)?;
+        src.read_exact(&mut data)?;
     } else if flags.contains(Flags::EXT) {
-        decode_ext(reader, &mut data)?;
+        decode_ext(&mut src, &mut data)?;
     } else if flags.contains(Flags::RLE) {
         if flags.contains(Flags::ORDER) {
-            decode_rle_1(reader, &mut data)?;
+            decode_rle_1(&mut src, &mut data)?;
         } else {
-            decode_rle_0(reader, &mut data)?;
+            decode_rle_0(&mut src, &mut data)?;
         }
     } else if flags.contains(Flags::ORDER) {
-        decode_order_1(reader, &mut data)?;
+        decode_order_1(&mut src, &mut data)?;
     } else {
-        decode_order_0(reader, &mut data)?;
+        decode_order_0(&mut src, &mut data)?;
     }
 
     if flags.contains(Flags::PACK) {
@@ -57,29 +54,28 @@ where
     Ok(data)
 }
 
-fn decode_stripe<R>(reader: &mut R, len: usize) -> io::Result<Vec<u8>>
-where
-    R: Read,
-{
-    let n = read_u8(reader).map(usize::from)?;
+fn decode_stripe(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
+    let n = read_u8(src).map(usize::from)?;
     let mut clens: Vec<usize> = Vec::with_capacity(n);
 
     for _ in 0..n {
-        let clen = read_uint7_as(reader)?;
+        let clen = read_uint7_as(src)?;
         clens.push(clen);
     }
 
     let mut ulens = Vec::with_capacity(n);
     let mut t = Vec::with_capacity(n);
 
-    for j in 0..n {
+    for (j, clen) in clens.iter().enumerate() {
         let mut ulen = len / n;
 
         if len % n > j {
             ulen += 1;
         }
 
-        let chunk = decode(reader, ulen)?;
+        let mut buf = vec![0; *clen];
+        src.read_exact(&mut buf)?;
+        let chunk = decode(&buf, ulen)?;
 
         ulens.push(ulen);
         t.push(chunk);
@@ -106,30 +102,27 @@ where
     decoder.read_exact(dst)
 }
 
-fn decode_rle_0<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
-where
-    R: Read,
-{
-    let max_sym = read_u8(reader).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+fn decode_rle_0(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
+    let max_sym = read_u8(src).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
 
     let mut model_lit = Model::new(max_sym);
     let mut model_run = vec![Model::new(3); 258];
 
     let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(reader)?;
+    range_coder.range_decode_create(src)?;
 
     let mut i = 0;
 
     while i < dst.len() {
-        let b = model_lit.decode(reader, &mut range_coder)?;
+        let b = model_lit.decode(src, &mut range_coder)?;
         dst[i] = b;
 
-        let mut part = model_run[usize::from(b)].decode(reader, &mut range_coder)?;
+        let mut part = model_run[usize::from(b)].decode(src, &mut range_coder)?;
         let mut run = usize::from(part);
         let mut rctx = 256;
 
         while part == 3 {
-            part = model_run[rctx].decode(reader, &mut range_coder)?;
+            part = model_run[rctx].decode(src, &mut range_coder)?;
             rctx = 257;
             run += usize::from(part);
         }
@@ -144,32 +137,29 @@ where
     Ok(())
 }
 
-fn decode_rle_1<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
-where
-    R: Read,
-{
-    let max_sym = read_u8(reader).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
+fn decode_rle_1(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
+    let max_sym = read_u8(src).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
 
     let mut model_lit = vec![Model::new(max_sym); usize::from(max_sym) + 1];
     let mut model_run = vec![Model::new(3); 258];
 
     let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(reader)?;
+    range_coder.range_decode_create(src)?;
 
     let mut i = 0;
     let mut last = 0;
 
     while i < dst.len() {
-        let b = model_lit[last].decode(reader, &mut range_coder)?;
+        let b = model_lit[last].decode(src, &mut range_coder)?;
         dst[i] = b;
         last = usize::from(b);
 
-        let mut part = model_run[last].decode(reader, &mut range_coder)?;
+        let mut part = model_run[last].decode(src, &mut range_coder)?;
         let mut run = usize::from(part);
         let mut rctx = 256;
 
         while part == 3 {
-            part = model_run[rctx].decode(reader, &mut range_coder)?;
+            part = model_run[rctx].decode(src, &mut range_coder)?;
             rctx = 257;
             run += usize::from(part);
         }
@@ -184,39 +174,33 @@ where
     Ok(())
 }
 
-fn decode_order_0<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
-where
-    R: Read,
-{
-    let max_sym = read_u8(reader).map(|n| n.overflowing_sub(1).0)?;
+fn decode_order_0(src: &mut &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
+    let max_sym = read_u8(src).map(|n| n.overflowing_sub(1).0)?;
 
     let mut model = Model::new(max_sym);
 
     let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(reader)?;
+    range_coder.range_decode_create(src)?;
 
     for b in dst {
-        *b = model.decode(reader, &mut range_coder)?;
+        *b = model.decode(src, &mut range_coder)?;
     }
 
     Ok(())
 }
 
-fn decode_order_1<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<()>
-where
-    R: Read,
-{
-    let max_sym = read_u8(reader).map(|n| n.overflowing_sub(1).0)?;
+fn decode_order_1(src: &mut &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
+    let max_sym = read_u8(src).map(|n| n.overflowing_sub(1).0)?;
 
     let mut models = vec![Model::new(max_sym); usize::from(max_sym) + 1];
 
     let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(reader)?;
+    range_coder.range_decode_create(src)?;
 
     let mut last = 0;
 
     for b in dst {
-        *b = models[last].decode(reader, &mut range_coder)?;
+        *b = models[last].decode(src, &mut range_coder)?;
         last = usize::from(*b);
     }
 
@@ -229,35 +213,33 @@ mod tests {
 
     #[test]
     fn test_decode_order_0() -> io::Result<()> {
-        let data = [
+        let src = [
             0x00, // flags = {empty}
             0x07, // uncompressed len = 7
             0x74, 0x00, 0xf4, 0xe5, 0xb7, 0x4e, 0x50, 0x0f, 0x2e, 0x97, 0x00,
         ];
 
-        let mut reader = &data[..];
-        assert_eq!(decode(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&src, 0)?, b"noodles");
 
         Ok(())
     }
 
     #[test]
     fn test_decode_order_1() -> io::Result<()> {
-        let data = [
+        let src = [
             0x01, // flags = ORDER
             0x07, // uncompressed len = 7
             0x74, 0x00, 0xf4, 0xe3, 0x83, 0x41, 0xe2, 0x9a, 0xef, 0x53, 0x50, 0x00,
         ];
 
-        let mut reader = &data[..];
-        assert_eq!(decode(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&src, 0)?, b"noodles");
 
         Ok(())
     }
 
     #[test]
     fn test_decode_stripe() -> io::Result<()> {
-        let data = [
+        let src = [
             0x08, // flags = STRIPE
             0x07, // uncompressed len = 7
             0x04, 0x09, 0x09, 0x09, 0x08, 0x00, 0x02, 0x6f, 0x00, 0xff, 0xa7, 0xab, 0x62, 0x00,
@@ -266,65 +248,60 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         ];
 
-        let mut reader = &data[..];
-        assert_eq!(decode(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&src, 0)?, b"noodles");
 
         Ok(())
     }
 
     #[test]
     fn test_decode_uncompressed() -> io::Result<()> {
-        let data = [
+        let src = [
             0x20, // flags = CAT
             0x07, // uncompressed len = 7
             0x6e, 0x6f, 0x6f, 0x64, 0x6c, 0x65, 0x73,
         ];
 
-        let mut reader = &data[..];
-        assert_eq!(decode(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&src, 0)?, b"noodles");
 
         Ok(())
     }
 
     #[test]
     fn test_decode_rle_with_order_0() -> io::Result<()> {
-        let data = [
+        let src = [
             0x40, // flags = RLE
             0x0d, // uncompressed len = 13
             0x74, 0x00, 0xf3, 0x4b, 0x21, 0x10, 0xa8, 0xe3, 0x84, 0xfe, 0x6b, 0x22, 0x00,
         ];
 
-        let mut reader = &data[..];
-        assert_eq!(decode(&mut reader, 0)?, b"noooooooodles");
+        assert_eq!(decode(&src, 0)?, b"noooooooodles");
 
         Ok(())
     }
 
     #[test]
     fn test_decode_rle_with_order_1() -> io::Result<()> {
-        let data = [
+        let src = [
             0x41, // flags = ORDER | RLE
             0x0d, // uncompressed len = 13
             0x74, 0x00, 0xf3, 0x4a, 0x89, 0x79, 0xc1, 0xe8, 0xc3, 0xc5, 0x62, 0x31, 0x00,
         ];
 
-        let mut reader = &data[..];
-        assert_eq!(decode(&mut reader, 0)?, b"noooooooodles");
+        assert_eq!(decode(&src, 0)?, b"noooooooodles");
 
         Ok(())
     }
 
     #[test]
     fn test_decode_bit_packing_with_6_symbols() -> io::Result<()> {
-        let data = [
+        let src = [
             0x80, // flags = PACK
             0x07, // uncompressed len = 7
             0x06, 0x64, 0x65, 0x6c, 0x6e, 0x6f, 0x73, 0x04, 0x44, 0x00, 0xfc, 0x6e, 0x0c, 0xbf,
             0x01, 0xf8, 0x00,
         ];
 
-        let mut reader = &data[..];
-        assert_eq!(decode(&mut reader, 0)?, b"noodles");
+        assert_eq!(decode(&src, 0)?, b"noodles");
 
         Ok(())
     }

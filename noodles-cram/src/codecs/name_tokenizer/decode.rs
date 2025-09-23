@@ -240,7 +240,7 @@ where
             reader.read_exact(&mut data)?;
 
             let buf = if use_arith {
-                aac::decode(&mut &data[..], 0)?
+                aac::decode(&data, 0)?
             } else {
                 rans_nx16::decode(&data, 0)?
             };
