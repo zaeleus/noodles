@@ -40,9 +40,7 @@ mod tests {
             let src: Vec<_> = data.iter().flatten().copied().collect();
 
             let compressed_data = encode(&lens, &src)?;
-
-            let mut reader = &compressed_data[..];
-            let uncompressed_data = decode(&mut reader)?;
+            let uncompressed_data = decode(&compressed_data)?;
 
             assert_eq!(uncompressed_data, src);
 

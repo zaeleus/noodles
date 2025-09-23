@@ -23,33 +23,30 @@ pub struct Parameter {
     pub d_tab: Option<Vec<u8>>,
 }
 
-pub fn fqz_decode_single_param<R>(reader: &mut R) -> io::Result<Parameter>
-where
-    R: Read,
-{
-    let context = read_u16_le(reader)?;
-    let flags = read_u8(reader).map(Flags::from)?;
-    let max_sym = read_u8(reader)?;
+pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
+    let context = read_u16_le(src)?;
+    let flags = read_u8(src).map(Flags::from)?;
+    let max_sym = read_u8(src)?;
 
-    let n = read_u8(reader)?;
+    let n = read_u8(src)?;
     let (q_bits, q_shift) = (n >> 4, n & 0x0f);
 
-    let n = read_u8(reader)?;
+    let n = read_u8(src)?;
     let (q_loc, s_loc) = (n >> 4, n & 0x0f);
 
-    let n = read_u8(reader)?;
+    let n = read_u8(src)?;
     let (p_loc, d_loc) = (n >> 4, n & 0x0f);
 
     let q_map = if flags.contains(Flags::HAVE_QMAP) {
         let mut map = vec![0; usize::from(max_sym)];
-        reader.read_exact(&mut map)?;
+        src.read_exact(&mut map)?;
         Some(map)
     } else {
         None
     };
 
     let q_tab = if flags.contains(Flags::HAVE_QTAB) {
-        read_array(reader, 256)?
+        read_array(src, 256)?
     } else {
         let mut tab = Vec::with_capacity(256);
 
@@ -61,13 +58,13 @@ where
     };
 
     let p_tab = if flags.contains(Flags::HAVE_PTAB) {
-        read_array(reader, 1024).map(Some)?
+        read_array(src, 1024).map(Some)?
     } else {
         None
     };
 
     let d_tab = if flags.contains(Flags::HAVE_DTAB) {
-        read_array(reader, 256).map(Some)?
+        read_array(src, 256).map(Some)?
     } else {
         None
     };

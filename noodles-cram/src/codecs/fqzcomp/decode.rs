@@ -1,7 +1,4 @@
-use std::{
-    cmp,
-    io::{self, Read},
-};
+use std::{cmp, io};
 
 use super::{
     Models,
@@ -10,16 +7,13 @@ use super::{
 };
 use crate::{codecs::aac::RangeCoder, io::reader::num::read_uint7_as};
 
-pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
-where
-    R: Read,
-{
-    let buf_len = read_uint7_as(reader)?;
+pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
+    let buf_len = read_uint7_as(&mut src)?;
 
-    let mut params = fqz_decode_params(reader)?;
+    let mut params = fqz_decode_params(&mut src)?;
 
     let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(reader)?;
+    range_coder.range_decode_create(&mut src)?;
 
     let mut models = Models::new(params.max_sym, params.max_sel);
 
@@ -37,7 +31,7 @@ where
     while i < buf_len {
         if record.pos == 0 {
             x = fqz_new_record(
-                reader,
+                &mut src,
                 &mut params,
                 &mut range_coder,
                 &mut models,
@@ -63,7 +57,7 @@ where
         }
 
         let param = &mut params.params[x];
-        let q = models.qual[usize::from(ctx)].decode(reader, &mut range_coder)?;
+        let q = models.qual[usize::from(ctx)].decode(&mut src, &mut range_coder)?;
 
         dst[i] = if let Some(q_map) = param.q_map.as_deref() {
             q_map[usize::from(q)]
@@ -96,23 +90,20 @@ struct Record {
     prevq: u8,
 }
 
-fn fqz_new_record<R>(
-    reader: &mut R,
+fn fqz_new_record(
+    src: &mut &[u8],
     parameters: &mut Parameters,
     range_coder: &mut RangeCoder,
     models: &mut Models,
     record: &mut Record,
     mut last_len: usize,
     rev_len: &mut Vec<(bool, usize)>,
-) -> io::Result<usize>
-where
-    R: Read,
-{
+) -> io::Result<usize> {
     let mut sel = 0;
     let mut x = 0;
 
     if parameters.max_sel > 0 {
-        sel = models.sel.decode(reader, range_coder)?;
+        sel = models.sel.decode(src, range_coder)?;
 
         if parameters.gflags.contains(parameters::Flags::HAVE_S_TAB) {
             x = usize::from(parameters.s_tab[usize::from(sel)]);
@@ -126,14 +117,14 @@ where
     let is_fixed_len = param.flags.contains(parameter::Flags::DO_LEN);
 
     if !is_fixed_len || record.rec == 0 {
-        last_len = decode_length(reader, range_coder, models)? as usize;
+        last_len = decode_length(src, range_coder, models)? as usize;
     }
 
     record.rec_len = last_len;
     record.pos = record.rec_len;
 
     if parameters.gflags.contains(parameters::Flags::DO_REV) {
-        let rev = models.rev.decode(reader, range_coder).map(|n| n == 1)?;
+        let rev = models.rev.decode(src, range_coder).map(|n| n == 1)?;
         let len = record.rec_len;
         rev_len.push((rev, len));
     }
@@ -141,7 +132,7 @@ where
     record.rec += 1;
 
     if param.flags.contains(parameter::Flags::DO_DEDUP) {
-        record.is_dup = models.dup.decode(reader, range_coder)? == 1;
+        record.is_dup = models.dup.decode(src, range_coder)? == 1;
     }
 
     record.qctx = 0;
@@ -185,18 +176,15 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
     (ctx & 0xffff) as u16
 }
 
-fn decode_length<R>(
-    reader: &mut R,
+fn decode_length(
+    src: &mut &[u8],
     range_coder: &mut RangeCoder,
     models: &mut Models,
-) -> io::Result<u32>
-where
-    R: Read,
-{
-    let b0 = models.len[0].decode(reader, range_coder).map(u32::from)?;
-    let b1 = models.len[1].decode(reader, range_coder).map(u32::from)?;
-    let b2 = models.len[2].decode(reader, range_coder).map(u32::from)?;
-    let b3 = models.len[3].decode(reader, range_coder).map(u32::from)?;
+) -> io::Result<u32> {
+    let b0 = models.len[0].decode(src, range_coder).map(u32::from)?;
+    let b1 = models.len[1].decode(src, range_coder).map(u32::from)?;
+    let b2 = models.len[2].decode(src, range_coder).map(u32::from)?;
+    let b3 = models.len[3].decode(src, range_coder).map(u32::from)?;
 
     Ok((b3 << 24) | (b2 << 16) | (b1 << 8) | b0)
 }
@@ -230,14 +218,13 @@ mod tests {
 
     #[test]
     fn test_decode() -> io::Result<()> {
-        let data = [
+        let src = [
             0x19, 0x05, 0x00, 0x00, 0x00, 0x20, 0x03, 0x82, 0x7f, 0x0f, 0x01, 0x01, 0x7d, 0xff,
             0xff, 0x01, 0x84, 0x00, 0x09, 0xff, 0xff, 0xf6, 0x01, 0x65, 0x00, 0x86, 0x2e, 0x98,
             0xea, 0xca, 0x71, 0x6f, 0x22, 0xcd, 0xd8, 0x40,
         ];
 
-        let mut reader = &data[..];
-        let actual = decode(&mut reader)?;
+        let actual = decode(&src)?;
 
         let expected = [
             0, 0, 0, 1, 1, 2, 1, 1, 0, 0, // 1

@@ -46,7 +46,7 @@ impl Block<'_> {
             CompressionMethod::AdaptiveArithmeticCoding => {
                 aac::decode(&mut &self.src[..], self.uncompressed_size)
             }
-            CompressionMethod::Fqzcomp => fqzcomp::decode(&mut &self.src[..]),
+            CompressionMethod::Fqzcomp => fqzcomp::decode(self.src),
             CompressionMethod::NameTokenizer => name_tokenizer::decode(self.src),
         }
     }

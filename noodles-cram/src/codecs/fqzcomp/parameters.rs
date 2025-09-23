@@ -2,7 +2,7 @@ mod flags;
 
 pub use self::flags::Flags;
 
-use std::io::{self, Read};
+use std::io;
 
 use super::parameter::{Parameter, fqz_decode_single_param};
 use crate::io::reader::num::read_u8;
@@ -17,11 +17,8 @@ pub struct Parameters {
     pub max_sym: u8,
 }
 
-pub fn fqz_decode_params<R>(reader: &mut R) -> io::Result<Parameters>
-where
-    R: Read,
-{
-    let vers = read_u8(reader)?;
+pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
+    let vers = read_u8(src)?;
 
     if vers != VERSION {
         return Err(io::Error::new(
@@ -30,18 +27,18 @@ where
         ));
     }
 
-    let gflags = read_u8(reader).map(Flags::from)?;
+    let gflags = read_u8(src).map(Flags::from)?;
 
     let (n_param, mut max_sel) = if gflags.contains(Flags::MULTI_PARAM) {
-        let n = read_u8(reader)?;
+        let n = read_u8(src)?;
         (usize::from(n), n)
     } else {
         (1, 0)
     };
 
     let s_tab = if gflags.contains(Flags::HAVE_S_TAB) {
-        max_sel = read_u8(reader)?;
-        read_array(reader, 256)?
+        max_sel = read_u8(src)?;
+        read_array(src, 256)?
     } else {
         Vec::new()
     };
@@ -50,7 +47,7 @@ where
     let mut max_sym = 0;
 
     for _ in 0..n_param {
-        let param = fqz_decode_single_param(reader)?;
+        let param = fqz_decode_single_param(src)?;
 
         if param.max_sym > max_sym {
             max_sym = param.max_sym;
@@ -68,24 +65,21 @@ where
     })
 }
 
-pub fn read_array<R>(reader: &mut R, n: usize) -> io::Result<Vec<u8>>
-where
-    R: Read,
-{
+pub fn read_array(src: &mut &[u8], n: usize) -> io::Result<Vec<u8>> {
     let (mut j, mut z) = (0, 0);
     let mut last = 0;
 
     let mut runs = vec![0; n];
 
     while z < n {
-        let run = read_u8(reader)?;
+        let run = read_u8(src)?;
 
         runs[j] = run;
         j += 1;
         z += usize::from(run);
 
         if run == last {
-            let copy = read_u8(reader)?;
+            let copy = read_u8(src)?;
 
             for _ in 0..copy {
                 runs[j] = run;
