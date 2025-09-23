@@ -1,6 +1,6 @@
+pub mod bit_pack;
 mod order_0;
 mod order_1;
-pub mod pack;
 mod rle;
 mod stripe;
 
@@ -27,7 +27,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     let pack_len = len;
 
     if flags.is_bit_packed() {
-        let (q, n, new_len) = pack::decode_pack_meta(&mut src)?;
+        let (q, n, new_len) = bit_pack::decode_pack_meta(&mut src)?;
         p = Some(q);
         n_sym = Some(n);
         len = new_len;
@@ -63,7 +63,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     if flags.is_bit_packed() {
         let p = p.unwrap();
         let n_sym = n_sym.unwrap();
-        dst = pack::decode(&dst, &p, n_sym, pack_len)?;
+        dst = bit_pack::decode(&dst, &p, n_sym, pack_len)?;
     }
 
     Ok(dst)

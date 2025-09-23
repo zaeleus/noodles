@@ -4,7 +4,7 @@ use super::{Flags, Model, RangeCoder};
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
 pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
-    use crate::codecs::rans_nx16::decode::pack;
+    use crate::codecs::rans_nx16::decode::bit_pack;
 
     let flags = read_u8(&mut src).map(Flags::from)?;
 
@@ -21,7 +21,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     let pack_len = len;
 
     if flags.contains(Flags::PACK) {
-        let (q, n, new_len) = pack::decode_pack_meta(&mut src)?;
+        let (q, n, new_len) = bit_pack::decode_pack_meta(&mut src)?;
         p = Some(q);
         n_sym = Some(n);
         len = new_len;
@@ -48,7 +48,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     if flags.contains(Flags::PACK) {
         let p = p.unwrap();
         let n_sym = n_sym.unwrap();
-        data = pack::decode(&data, &p, n_sym, pack_len)?;
+        data = bit_pack::decode(&data, &p, n_sym, pack_len)?;
     }
 
     Ok(data)
