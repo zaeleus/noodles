@@ -47,7 +47,7 @@ impl Block<'_> {
                 aac::decode(&mut &self.src[..], self.uncompressed_size)
             }
             CompressionMethod::Fqzcomp => fqzcomp::decode(&mut &self.src[..]),
-            CompressionMethod::NameTokenizer => name_tokenizer::decode(&mut &self.src[..]),
+            CompressionMethod::NameTokenizer => name_tokenizer::decode(self.src),
         }
     }
 }

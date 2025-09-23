@@ -78,18 +78,16 @@ mod tests {
 
     #[test]
     fn test_self() -> io::Result<()> {
-        let data = b"\
+        let src = b"\
 I17_08765:2:123:61541:01763#9\0\
 I17_08765:2:123:1636:08611#9\0\
 I17_08765:2:124:45613:16161#9\0\
 ";
 
-        let input = encode(data)?;
+        let input = encode(src)?;
+        let output = decode(&input)?;
 
-        let mut reader = &input[..];
-        let output = decode(&mut reader)?;
-
-        assert_eq!(output, data);
+        assert_eq!(output, src);
 
         Ok(())
     }

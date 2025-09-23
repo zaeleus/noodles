@@ -9,15 +9,12 @@ use crate::{
     },
 };
 
-pub fn decode<R>(reader: &mut R) -> io::Result<Vec<u8>>
-where
-    R: Read,
-{
+pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     const NUL: u8 = 0x00;
 
-    let (ulen, n_names, use_arith) = read_header(reader)?;
+    let (ulen, n_names, use_arith) = read_header(&mut src)?;
 
-    let mut b = decode_token_byte_streams(reader, use_arith, n_names)?;
+    let mut b = decode_token_byte_streams(&mut src, use_arith, n_names)?;
 
     let mut names = vec![String::new(); n_names];
     let mut tokens = vec![vec![None; 128]; n_names];
@@ -242,12 +239,10 @@ where
             let mut data = vec![0; clen];
             reader.read_exact(&mut data)?;
 
-            let mut data_reader = &data[..];
-
             let buf = if use_arith {
-                aac::decode(&mut data_reader, 0)?
+                aac::decode(&mut &data[..], 0)?
             } else {
-                rans_nx16::decode(data_reader, 0)?
+                rans_nx16::decode(&data, 0)?
             };
 
             b[t as usize].set(ty, buf);
@@ -309,7 +304,7 @@ mod tests {
 
     #[test]
     fn test_decode() -> io::Result<()> {
-        let data = [
+        let src = [
             0x58, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x80, 0x15, 0x00, 0x03, 0x06,
             0x00, 0x04, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00,
             0x00, 0x80, 0x00, 0x00, 0x06, 0x18, 0x00, 0x0c, 0x00, 0x01, 0x00, 0x00, 0x0e, 0x02,
@@ -371,8 +366,7 @@ mod tests {
             0x00, 0x80, 0x00, 0x00,
         ];
 
-        let mut reader = &data[..];
-        let actual = decode(&mut reader)?;
+        let actual = decode(&src)?;
 
         let expected = b"\
 I17_08765:2:123:61541:01763#9\0\
@@ -387,7 +381,7 @@ I17_08765:2:124:45613:16161#9\0\
 
     #[test]
     fn test_decode_with_arithmetic_coder() -> io::Result<()> {
-        let data = [
+        let src = [
             0x58, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x80, 0x08, 0x00, 0x03, 0x07,
             0x00, 0xe6, 0x26, 0xbb, 0x6f, 0x06, 0x09, 0x00, 0x0c, 0x02, 0x00, 0x72, 0x16, 0xb3,
             0x22, 0x06, 0x80, 0x09, 0x00, 0x03, 0x0b, 0x00, 0x2e, 0x2f, 0x44, 0x56, 0x59, 0x01,
@@ -417,8 +411,7 @@ I17_08765:2:124:45613:16161#9\0\
             0xf6, 0x57, 0xac, 0x0e,
         ];
 
-        let mut reader = &data[..];
-        let actual = decode(&mut reader)?;
+        let actual = decode(&src)?;
 
         let expected = b"\
 I17_08765:2:123:61541:01763#9\0\
