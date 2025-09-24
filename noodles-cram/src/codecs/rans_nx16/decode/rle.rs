@@ -10,25 +10,9 @@ where
     let (context_size, is_compressed) = read_header(reader)?;
 
     let len = read_uint7_as(reader)?;
+    let context_src = read_src(reader, state_count, context_size, is_compressed)?;
 
-    let rle_meta = if !is_compressed {
-        let mut buf = vec![0; context_size];
-        reader.read_exact(&mut buf)?;
-        buf
-    } else {
-        let comp_meta_len = read_uint7_as(reader)?;
-
-        let mut buf = vec![0; comp_meta_len];
-        reader.read_exact(&mut buf)?;
-
-        let mut buf_reader = &buf[..];
-        let mut dst = vec![0; context_size];
-        order_0::decode(&mut buf_reader, &mut dst, state_count)?;
-
-        dst
-    };
-
-    Ok((rle_meta, len))
+    Ok((context_src, len))
 }
 
 fn read_header<R>(reader: &mut R) -> io::Result<(usize, bool)>
@@ -43,6 +27,33 @@ where
     let is_compressed = (n & 0x01) == 0;
 
     Ok((context_size, is_compressed))
+}
+
+fn read_src<R>(
+    reader: &mut R,
+    state_count: usize,
+    len: usize,
+    is_compressed: bool,
+) -> io::Result<Vec<u8>>
+where
+    R: Read,
+{
+    if is_compressed {
+        let comp_meta_len = read_uint7_as(reader)?;
+
+        let mut buf = vec![0; comp_meta_len];
+        reader.read_exact(&mut buf)?;
+
+        let mut buf_reader = &buf[..];
+        let mut dst = vec![0; len];
+        order_0::decode(&mut buf_reader, &mut dst, state_count)?;
+
+        Ok(dst)
+    } else {
+        let mut buf = vec![0; len];
+        reader.read_exact(&mut buf)?;
+        Ok(buf)
+    }
 }
 
 pub fn decode<R>(mut src: &[u8], rle_meta: &mut R, len: usize) -> io::Result<Vec<u8>>
