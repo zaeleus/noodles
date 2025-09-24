@@ -84,18 +84,17 @@ pub fn decode(mut src: &[u8], ctx: &Context<'_>) -> io::Result<Vec<u8>> {
 }
 
 fn read_rle_table(src: &mut &[u8]) -> io::Result<[bool; 256]> {
-    let mut m = read_u8(src).map(u16::from)?;
+    let mut rle_table = [false; 256];
 
-    if m == 0 {
-        m = 256;
+    let symbol_count = {
+        let n = read_u8(src).map(usize::from)?;
+        if n == 0 { rle_table.len() } else { n }
+    };
+
+    for _ in 0..symbol_count {
+        let sym = read_u8(src)?;
+        rle_table[usize::from(sym)] = true;
     }
 
-    let mut l = [false; 256];
-
-    for _ in 0..m {
-        let s = read_u8(src)?;
-        l[usize::from(s)] = true;
-    }
-
-    Ok(l)
+    Ok(rle_table)
 }
