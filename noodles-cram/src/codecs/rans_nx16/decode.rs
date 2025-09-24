@@ -130,6 +130,16 @@ fn read_u16_le(src: &mut &[u8]) -> io::Result<u16> {
     Ok(u16::from_le_bytes(*buf))
 }
 
+fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+    *src = rest;
+
+    Ok(buf)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,18 +1,18 @@
-use std::io::{self, Read};
+use std::{borrow::Cow, io};
 
-use super::order_0;
+use super::{order_0, split_off};
 use crate::io::reader::num::{read_u8, read_uint7, read_uint7_as};
 
-pub(super) struct Context {
-    src: Vec<u8>,
+pub(super) struct Context<'a> {
+    src: Cow<'a, [u8]>,
     len: usize,
 }
 
-pub(super) fn read_context(
-    src: &mut &[u8],
+pub(super) fn read_context<'a>(
+    src: &mut &'a [u8],
     state_count: usize,
     uncompressed_size: usize,
-) -> io::Result<(Context, usize)> {
+) -> io::Result<(Context<'a>, usize)> {
     let (context_size, is_compressed) = read_header(src)?;
 
     let len = read_uint7_as(src)?;
@@ -37,31 +37,25 @@ fn read_header(src: &mut &[u8]) -> io::Result<(usize, bool)> {
     Ok((context_size, is_compressed))
 }
 
-fn read_src(
-    src: &mut &[u8],
+fn read_src<'a>(
+    src: &mut &'a [u8],
     state_count: usize,
     len: usize,
     is_compressed: bool,
-) -> io::Result<Vec<u8>> {
+) -> io::Result<Cow<'a, [u8]>> {
     if is_compressed {
-        let comp_meta_len = read_uint7_as(src)?;
+        let compressed_size = read_uint7_as(src)?;
+        let mut buf = split_off(src, compressed_size)?;
 
-        let mut buf = vec![0; comp_meta_len];
-        src.read_exact(&mut buf)?;
-
-        let mut buf_reader = &buf[..];
         let mut dst = vec![0; len];
-        order_0::decode(&mut buf_reader, &mut dst, state_count)?;
-
-        Ok(dst)
+        order_0::decode(&mut buf, &mut dst, state_count)?;
+        Ok(Cow::from(dst))
     } else {
-        let mut buf = vec![0; len];
-        src.read_exact(&mut buf)?;
-        Ok(buf)
+        split_off(src, len).map(Cow::from)
     }
 }
 
-pub fn decode(mut src: &[u8], ctx: &Context) -> io::Result<Vec<u8>> {
+pub fn decode(mut src: &[u8], ctx: &Context<'_>) -> io::Result<Vec<u8>> {
     let mut context_src = &ctx.src[..];
 
     let l = read_rle_table(&mut context_src)?;
