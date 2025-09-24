@@ -58,25 +58,22 @@ fn read_src<'a>(
 pub fn decode(mut src: &[u8], ctx: &Context<'_>) -> io::Result<Vec<u8>> {
     let mut context_src = &ctx.src[..];
 
-    let l = read_rle_table(&mut context_src)?;
+    let rle_table = read_rle_table(&mut context_src)?;
 
     let mut dst = vec![0; ctx.len];
-    let mut j = 0;
+    let mut iter = dst.iter_mut();
 
-    while j < dst.len() {
+    while let Some(d) = iter.next() {
         let sym = read_u8(&mut src)?;
 
-        if l[usize::from(sym)] {
-            let run = read_uint7_as(&mut context_src)?;
+        *d = sym;
 
-            for k in 0..=run {
-                dst[j + k] = sym;
+        if rle_table[usize::from(sym)] {
+            let len = read_uint7_as(&mut context_src)?;
+
+            for e in iter.by_ref().take(len) {
+                *e = sym;
             }
-
-            j += run + 1;
-        } else {
-            dst[j] = sym;
-            j += 1;
         }
     }
 
