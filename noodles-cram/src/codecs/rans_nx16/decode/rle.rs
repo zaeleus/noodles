@@ -3,13 +3,27 @@ use std::io::{self, Read};
 use super::order_0;
 use crate::io::reader::num::{read_u8, read_uint7, read_uint7_as};
 
-pub(super) fn decode_rle_meta(src: &mut &[u8], state_count: usize) -> io::Result<(Vec<u8>, usize)> {
+pub(super) struct Context {
+    src: Vec<u8>,
+    len: usize,
+}
+
+pub(super) fn read_context(
+    src: &mut &[u8],
+    state_count: usize,
+    uncompressed_size: usize,
+) -> io::Result<(Context, usize)> {
     let (context_size, is_compressed) = read_header(src)?;
 
     let len = read_uint7_as(src)?;
     let context_src = read_src(src, state_count, context_size, is_compressed)?;
 
-    Ok((context_src, len))
+    let ctx = Context {
+        src: context_src,
+        len: uncompressed_size,
+    };
+
+    Ok((ctx, len))
 }
 
 fn read_header(src: &mut &[u8]) -> io::Result<(usize, bool)> {
@@ -47,12 +61,12 @@ fn read_src(
     }
 }
 
-pub fn decode(mut src: &[u8], ctx: &[u8], len: usize) -> io::Result<Vec<u8>> {
-    let mut context_src = ctx;
+pub fn decode(mut src: &[u8], ctx: &Context) -> io::Result<Vec<u8>> {
+    let mut context_src = &ctx.src[..];
 
     let l = read_rle_table(&mut context_src)?;
 
-    let mut dst = vec![0; len];
+    let mut dst = vec![0; ctx.len];
     let mut j = 0;
 
     while j < dst.len() {
