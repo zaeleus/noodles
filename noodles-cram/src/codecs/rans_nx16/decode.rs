@@ -30,13 +30,11 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
         len = new_len;
     }
 
-    let mut l = None;
     let mut rle_meta = None;
     let rle_len = len;
 
     if flags.is_rle() {
-        let (m, meta, new_len) = rle::decode_rle_meta(&mut src, state_count)?;
-        l = Some(m);
+        let (meta, new_len) = rle::decode_rle_meta(&mut src, state_count)?;
         rle_meta = Some(meta);
         len = new_len;
     }
@@ -51,10 +49,8 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
         order_1::decode(&mut src, &mut dst, state_count)?;
     };
 
-    if flags.is_rle() {
-        let l = l.unwrap();
-        let mut rle_meta = rle_meta.unwrap();
-        dst = rle::decode(&dst, &l, &mut rle_meta, rle_len)?;
+    if let Some(rle_meta) = rle_meta {
+        dst = rle::decode(&dst, &mut &rle_meta[..], rle_len)?;
     }
 
     if let Some(ctx) = bit_pack_context {

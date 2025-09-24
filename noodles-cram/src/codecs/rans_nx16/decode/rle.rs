@@ -1,12 +1,9 @@
-use std::io::{self, Cursor, Read};
+use std::io::{self, Read};
 
 use super::order_0;
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
-pub(super) fn decode_rle_meta<R>(
-    reader: &mut R,
-    state_count: usize,
-) -> io::Result<([bool; 256], Cursor<Vec<u8>>, usize)>
+pub(super) fn decode_rle_meta<R>(reader: &mut R, state_count: usize) -> io::Result<(Vec<u8>, usize)>
 where
     R: Read,
 {
@@ -30,21 +27,15 @@ where
         dst
     };
 
-    let mut rle_meta_reader = Cursor::new(rle_meta);
-    let l = read_rle_table(&mut rle_meta_reader)?;
-
-    Ok((l, rle_meta_reader, len))
+    Ok((rle_meta, len))
 }
 
-pub fn decode<R>(
-    mut src: &[u8],
-    l: &[bool; 256],
-    rle_meta: &mut R,
-    len: usize,
-) -> io::Result<Vec<u8>>
+pub fn decode<R>(mut src: &[u8], rle_meta: &mut R, len: usize) -> io::Result<Vec<u8>>
 where
     R: Read,
 {
+    let l = read_rle_table(rle_meta)?;
+
     let mut dst = vec![0; len];
     let mut j = 0;
 
