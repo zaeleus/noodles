@@ -50,7 +50,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     };
 
     if let Some(rle_meta) = rle_meta {
-        dst = rle::decode(&dst, &mut &rle_meta[..], rle_len)?;
+        dst = rle::decode(&dst, &rle_meta, rle_len)?;
     }
 
     if let Some(ctx) = bit_pack_context {
