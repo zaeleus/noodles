@@ -1,17 +1,18 @@
 use std::io::{self, Read};
 
 use super::order_0;
-use crate::io::reader::num::{read_u8, read_uint7_as};
+use crate::io::reader::num::{read_u8, read_uint7, read_uint7_as};
 
 pub(super) fn decode_rle_meta<R>(reader: &mut R, state_count: usize) -> io::Result<(Vec<u8>, usize)>
 where
     R: Read,
 {
-    let rle_meta_len: usize = read_uint7_as(reader)?;
+    let (context_size, is_compressed) = read_header(reader)?;
+
     let len = read_uint7_as(reader)?;
 
-    let rle_meta = if rle_meta_len & 1 == 1 {
-        let mut buf = vec![0; rle_meta_len / 2];
+    let rle_meta = if !is_compressed {
+        let mut buf = vec![0; context_size];
         reader.read_exact(&mut buf)?;
         buf
     } else {
@@ -21,13 +22,27 @@ where
         reader.read_exact(&mut buf)?;
 
         let mut buf_reader = &buf[..];
-        let mut dst = vec![0; rle_meta_len / 2];
+        let mut dst = vec![0; context_size];
         order_0::decode(&mut buf_reader, &mut dst, state_count)?;
 
         dst
     };
 
     Ok((rle_meta, len))
+}
+
+fn read_header<R>(reader: &mut R) -> io::Result<(usize, bool)>
+where
+    R: Read,
+{
+    let n = read_uint7(reader)?;
+
+    let context_size =
+        usize::try_from(n >> 1).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    let is_compressed = (n & 0x01) == 0;
+
+    Ok((context_size, is_compressed))
 }
 
 pub fn decode<R>(mut src: &[u8], rle_meta: &mut R, len: usize) -> io::Result<Vec<u8>>
