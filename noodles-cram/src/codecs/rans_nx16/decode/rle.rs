@@ -31,19 +31,7 @@ where
     };
 
     let mut rle_meta_reader = Cursor::new(rle_meta);
-
-    let mut m = read_u8(&mut rle_meta_reader).map(u16::from)?;
-
-    if m == 0 {
-        m = 256;
-    }
-
-    let mut l = [false; 256];
-
-    for _ in 0..m {
-        let s = read_u8(&mut rle_meta_reader)?;
-        l[usize::from(s)] = true;
-    }
+    let l = read_rle_table(&mut rle_meta_reader)?;
 
     Ok((l, rle_meta_reader, len))
 }
@@ -78,4 +66,24 @@ where
     }
 
     Ok(dst)
+}
+
+fn read_rle_table<R>(reader: &mut R) -> io::Result<[bool; 256]>
+where
+    R: Read,
+{
+    let mut m = read_u8(reader).map(u16::from)?;
+
+    if m == 0 {
+        m = 256;
+    }
+
+    let mut l = [false; 256];
+
+    for _ in 0..m {
+        let s = read_u8(reader)?;
+        l[usize::from(s)] = true;
+    }
+
+    Ok(l)
 }
