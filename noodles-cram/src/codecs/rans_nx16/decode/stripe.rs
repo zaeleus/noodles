@@ -75,6 +75,27 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_read_chunk_count() -> io::Result<()> {
+        let src = [0x04];
+        assert_eq!(read_chunk_count(&mut &src[..])?, 4);
+
+        let src = [];
+        assert!(matches!(
+            read_chunk_count(&mut &src[..]),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_compressed_sizes() -> io::Result<()> {
+        let src = [0x05, 0x04, 0x04];
+        assert_eq!(read_compressed_sizes(&mut &src[..], 3)?, [5, 4, 4]);
+        Ok(())
+    }
+
+    #[test]
     fn test_build_uncompressed_sizes() {
         assert_eq!(build_uncompressed_sizes(13, 3), [5, 4, 4]);
     }
