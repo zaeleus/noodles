@@ -7,7 +7,7 @@ mod stripe;
 use std::io::{self, Read};
 
 use super::Flags;
-use crate::io::reader::num::{read_u8, read_uint7_as};
+use crate::io::reader::num::{read_u8, read_u32_le, read_uint7_as};
 
 pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     let flags = read_flags(&mut src)?;
@@ -92,6 +92,10 @@ fn read_alphabet(src: &mut &[u8]) -> io::Result<[bool; 256]> {
     }
 
     Ok(alphabet)
+}
+
+fn read_states(src: &mut &[u8], state_count: usize) -> io::Result<Vec<u32>> {
+    (0..state_count).map(|_| read_u32_le(src)).collect()
 }
 
 fn rans_get_cumulative_freq_nx16(r: u32, bits: u32) -> u32 {

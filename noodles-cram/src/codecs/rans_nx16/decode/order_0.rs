@@ -1,6 +1,7 @@
 use std::io;
 
-use crate::io::reader::num::{read_u32_le, read_uint7};
+use super::read_states;
+use crate::io::reader::num::read_uint7;
 
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
     use super::{
@@ -13,28 +14,24 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
     read_frequencies(src, &mut freqs, &mut cumulative_freqs)?;
 
-    let mut state = vec![0; state_count];
-
-    for s in &mut state {
-        *s = read_u32_le(src)?;
-    }
+    let mut states = read_states(src, state_count)?;
 
     for (i, d) in dst.iter_mut().enumerate() {
         let j = i % state_count;
 
-        let f = rans_get_cumulative_freq_nx16(state[j], 12);
+        let f = rans_get_cumulative_freq_nx16(states[j], 12);
         let s = rans_get_symbol_from_freq(&cumulative_freqs, f);
 
         *d = s;
 
-        state[j] = rans_advance_step_nx16(
-            state[j],
+        states[j] = rans_advance_step_nx16(
+            states[j],
             cumulative_freqs[s as usize],
             freqs[s as usize],
             12,
         );
 
-        state[j] = rans_renorm_nx16(src, state[j])?;
+        states[j] = rans_renorm_nx16(src, states[j])?;
     }
 
     Ok(())

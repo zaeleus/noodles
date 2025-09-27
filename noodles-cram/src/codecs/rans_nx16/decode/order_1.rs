@@ -1,6 +1,7 @@
 use std::io::{self, Read};
 
-use crate::io::reader::num::{read_u8, read_u32_le, read_uint7, read_uint7_as};
+use super::read_states;
+use crate::io::reader::num::{read_u8, read_uint7, read_uint7_as};
 
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
     use super::{
@@ -13,30 +14,26 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
     let bits = read_frequencies(src, &mut freqs, &mut cumulative_freqs)?;
 
-    let mut state = vec![0; state_count];
-
-    for s in &mut state {
-        *s = read_u32_le(src)?;
-    }
+    let mut states = read_states(src, state_count)?;
 
     let mut i = 0;
-    let mut last_syms = vec![0; state.len()];
+    let mut last_syms = vec![0; states.len()];
 
     while i < dst.len() / state_count {
         for j in 0..state_count {
-            let f = rans_get_cumulative_freq_nx16(state[j], bits);
+            let f = rans_get_cumulative_freq_nx16(states[j], bits);
             let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[j]], f);
 
             dst[i + j * (dst.len() / state_count)] = s;
 
-            state[j] = rans_advance_step_nx16(
-                state[j],
+            states[j] = rans_advance_step_nx16(
+                states[j],
                 cumulative_freqs[last_syms[j]][usize::from(s)],
                 freqs[last_syms[j]][usize::from(s)],
                 bits,
             );
 
-            state[j] = rans_renorm_nx16(src, state[j])?;
+            states[j] = rans_renorm_nx16(src, states[j])?;
 
             last_syms[j] = usize::from(s);
         }
@@ -48,19 +45,19 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
     let m = state_count - 1;
 
     while i < dst.len() {
-        let f = rans_get_cumulative_freq_nx16(state[m], bits);
+        let f = rans_get_cumulative_freq_nx16(states[m], bits);
         let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[m]], f);
 
         dst[i] = s;
 
-        state[m] = rans_advance_step_nx16(
-            state[m],
+        states[m] = rans_advance_step_nx16(
+            states[m],
             cumulative_freqs[last_syms[m]][usize::from(s)],
             freqs[last_syms[m]][usize::from(s)],
             bits,
         );
 
-        state[m] = rans_renorm_nx16(src, state[m])?;
+        states[m] = rans_renorm_nx16(src, states[m])?;
 
         last_syms[m] = usize::from(s);
 
