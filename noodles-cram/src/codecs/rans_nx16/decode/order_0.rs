@@ -9,7 +9,8 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
         rans_renorm_nx16,
     };
 
-    let (frequencies, cumulative_frequencies) = read_frequencies(src)?;
+    let frequencies = read_frequencies(src)?;
+    let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
 
     let mut states = read_states(src, state_count)?;
 
@@ -53,7 +54,7 @@ pub fn normalize_frequencies(freqs: &mut [u32], bits: u32) {
     }
 }
 
-fn read_frequencies(src: &mut &[u8]) -> io::Result<([u32; 256], [u32; 256])> {
+fn read_frequencies(src: &mut &[u8]) -> io::Result<[u32; 256]> {
     let mut frequencies = [0; 256];
 
     let alphabet = read_alphabet(src)?;
@@ -66,11 +67,15 @@ fn read_frequencies(src: &mut &[u8]) -> io::Result<([u32; 256], [u32; 256])> {
 
     normalize_frequencies(&mut frequencies, 12);
 
+    Ok(frequencies)
+}
+
+fn build_cumulative_frequencies(frequencies: &[u32; 256]) -> [u32; 256] {
     let mut cumulative_frequencies = [0; 256];
 
     for i in 0..255 {
         cumulative_frequencies[i + 1] = cumulative_frequencies[i] + frequencies[i];
     }
 
-    Ok((frequencies, cumulative_frequencies))
+    cumulative_frequencies
 }
