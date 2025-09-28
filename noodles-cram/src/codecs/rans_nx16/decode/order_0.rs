@@ -1,6 +1,6 @@
 use std::io;
 
-use super::read_states;
+use super::{read_alphabet, read_states};
 use crate::io::reader::num::read_uint7;
 
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
@@ -9,10 +9,7 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
         rans_renorm_nx16,
     };
 
-    let mut freqs = [0; 256];
-    let mut cumulative_freqs = [0; 256];
-
-    read_frequencies(src, &mut freqs, &mut cumulative_freqs)?;
+    let (frequencies, cumulative_frequencies) = read_frequencies(src)?;
 
     let mut states = read_states(src, state_count)?;
 
@@ -20,14 +17,14 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
         let j = i % state_count;
 
         let f = rans_get_cumulative_freq_nx16(states[j], 12);
-        let s = rans_get_symbol_from_freq(&cumulative_freqs, f);
+        let s = rans_get_symbol_from_freq(&cumulative_frequencies, f);
 
         *d = s;
 
         states[j] = rans_advance_step_nx16(
             states[j],
-            cumulative_freqs[s as usize],
-            freqs[s as usize],
+            cumulative_frequencies[s as usize],
+            frequencies[s as usize],
             12,
         );
 
@@ -56,28 +53,24 @@ pub fn normalize_frequencies(freqs: &mut [u32], bits: u32) {
     }
 }
 
-fn read_frequencies(
-    src: &mut &[u8],
-    freqs: &mut [u32],
-    cumulative_freqs: &mut [u32],
-) -> io::Result<()> {
-    use super::read_alphabet;
+fn read_frequencies(src: &mut &[u8]) -> io::Result<([u32; 256], [u32; 256])> {
+    let mut frequencies = [0; 256];
 
     let alphabet = read_alphabet(src)?;
 
     for i in 0..alphabet.len() {
         if alphabet[i] {
-            freqs[i] = read_uint7(src)?;
+            frequencies[i] = read_uint7(src)?;
         }
     }
 
-    normalize_frequencies(freqs, 12);
+    normalize_frequencies(&mut frequencies, 12);
 
-    cumulative_freqs[0] = 0;
+    let mut cumulative_frequencies = [0; 256];
 
     for i in 0..255 {
-        cumulative_freqs[i + 1] = cumulative_freqs[i] + freqs[i];
+        cumulative_frequencies[i + 1] = cumulative_frequencies[i] + frequencies[i];
     }
 
-    Ok(())
+    Ok((frequencies, cumulative_frequencies))
 }
