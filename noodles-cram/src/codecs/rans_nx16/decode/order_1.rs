@@ -1,17 +1,15 @@
 use std::io::{self, Read};
 
-use super::read_states;
+use super::{
+    cumulative_frequencies_symbol, read_states, state_cumulative_frequency, state_renormalize,
+    state_step,
+};
 use crate::{
     codecs::rans_nx16::ALPHABET_SIZE,
     io::reader::num::{read_u8, read_uint7, read_uint7_as},
 };
 
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
-    use super::{
-        rans_advance_step_nx16, rans_get_cumulative_freq_nx16, rans_get_symbol_from_freq,
-        rans_renorm_nx16,
-    };
-
     let mut freqs = vec![vec![0; ALPHABET_SIZE]; ALPHABET_SIZE];
     let mut cumulative_freqs = vec![vec![0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
@@ -24,19 +22,19 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
     while i < dst.len() / state_count {
         for j in 0..state_count {
-            let f = rans_get_cumulative_freq_nx16(states[j], bits);
-            let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[j]], f);
+            let f = state_cumulative_frequency(states[j], bits);
+            let s = cumulative_frequencies_symbol(&cumulative_freqs[last_syms[j]], f);
 
             dst[i + j * (dst.len() / state_count)] = s;
 
-            states[j] = rans_advance_step_nx16(
+            states[j] = state_step(
                 states[j],
-                cumulative_freqs[last_syms[j]][usize::from(s)],
                 freqs[last_syms[j]][usize::from(s)],
+                cumulative_freqs[last_syms[j]][usize::from(s)],
                 bits,
             );
 
-            states[j] = rans_renorm_nx16(src, states[j])?;
+            states[j] = state_renormalize(states[j], src)?;
 
             last_syms[j] = usize::from(s);
         }
@@ -48,19 +46,19 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
     let m = state_count - 1;
 
     while i < dst.len() {
-        let f = rans_get_cumulative_freq_nx16(states[m], bits);
-        let s = rans_get_symbol_from_freq(&cumulative_freqs[last_syms[m]], f);
+        let f = state_cumulative_frequency(states[m], bits);
+        let s = cumulative_frequencies_symbol(&cumulative_freqs[last_syms[m]], f);
 
         dst[i] = s;
 
-        states[m] = rans_advance_step_nx16(
+        states[m] = state_step(
             states[m],
-            cumulative_freqs[last_syms[m]][usize::from(s)],
             freqs[last_syms[m]][usize::from(s)],
+            cumulative_freqs[last_syms[m]][usize::from(s)],
             bits,
         );
 
-        states[m] = rans_renorm_nx16(src, states[m])?;
+        states[m] = state_renormalize(states[m], src)?;
 
         last_syms[m] = usize::from(s);
 

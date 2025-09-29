@@ -98,30 +98,30 @@ fn read_states(src: &mut &[u8], state_count: usize) -> io::Result<Vec<u32>> {
     (0..state_count).map(|_| read_u32_le(src)).collect()
 }
 
-fn rans_get_cumulative_freq_nx16(r: u32, bits: u32) -> u32 {
-    r & ((1 << bits) - 1)
+fn state_cumulative_frequency(s: u32, bits: u32) -> u32 {
+    s & ((1 << bits) - 1)
 }
 
-fn rans_get_symbol_from_freq(cumulative_freqs: &[u32], freq: u32) -> u8 {
+fn cumulative_frequencies_symbol(cumulative_frequencies: &[u32], frequency: u32) -> u8 {
     let mut sym = 0;
 
-    while sym < 255 && freq >= cumulative_freqs[(sym + 1) as usize] {
+    while sym < 255 && frequency >= cumulative_frequencies[usize::from(sym + 1)] {
         sym += 1;
     }
 
     sym
 }
 
-fn rans_advance_step_nx16(r: u32, c: u32, f: u32, bits: u32) -> u32 {
-    f * (r >> bits) + (r & ((1 << bits) - 1)) - c
+fn state_step(s: u32, f: u32, g: u32, bits: u32) -> u32 {
+    f * (s >> bits) + (s & ((1 << bits) - 1)) - g
 }
 
-pub fn rans_renorm_nx16(src: &mut &[u8], mut r: u32) -> io::Result<u32> {
-    if r < (1 << 15) {
-        r = (r << 16) + read_u16_le(src).map(u32::from)?;
+fn state_renormalize(mut s: u32, src: &mut &[u8]) -> io::Result<u32> {
+    if s < (1 << 15) {
+        s = (s << 16) + read_u16_le(src).map(u32::from)?;
     }
 
-    Ok(r)
+    Ok(s)
 }
 
 fn read_u16_le(src: &mut &[u8]) -> io::Result<u16> {
