@@ -6,7 +6,7 @@ mod stripe;
 
 use std::io::{self, Read};
 
-use super::Flags;
+use super::{ALPHABET_SIZE, Flags};
 use crate::io::reader::num::{read_u8, read_u32_le, read_uint7_as};
 
 pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
@@ -63,8 +63,8 @@ fn read_flags(src: &mut &[u8]) -> io::Result<Flags> {
     read_u8(src).map(Flags::from)
 }
 
-fn read_alphabet(src: &mut &[u8]) -> io::Result<[bool; 256]> {
-    let mut alphabet = [false; 256];
+fn read_alphabet(src: &mut &[u8]) -> io::Result<[bool; ALPHABET_SIZE]> {
+    let mut alphabet = [false; ALPHABET_SIZE];
 
     let mut sym = read_u8(src)?;
     let mut last_sym = sym;

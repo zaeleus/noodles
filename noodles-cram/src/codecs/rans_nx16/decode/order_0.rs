@@ -1,7 +1,7 @@
 use std::io;
 
 use super::{read_alphabet, read_states};
-use crate::io::reader::num::read_uint7;
+use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::reader::num::read_uint7};
 
 const NORMALIZATION_BITS: u32 = 12;
 
@@ -56,8 +56,8 @@ pub fn normalize_frequencies(freqs: &mut [u32], bits: u32) {
     }
 }
 
-fn read_frequencies(src: &mut &[u8]) -> io::Result<[u32; 256]> {
-    let mut frequencies = [0; 256];
+fn read_frequencies(src: &mut &[u8]) -> io::Result<[u32; ALPHABET_SIZE]> {
+    let mut frequencies = [0; ALPHABET_SIZE];
 
     let alphabet = read_alphabet(src)?;
 
@@ -72,8 +72,8 @@ fn read_frequencies(src: &mut &[u8]) -> io::Result<[u32; 256]> {
     Ok(frequencies)
 }
 
-fn build_cumulative_frequencies(frequencies: &[u32; 256]) -> [u32; 256] {
-    let mut cumulative_frequencies = [0; 256];
+fn build_cumulative_frequencies(frequencies: &[u32; ALPHABET_SIZE]) -> [u32; ALPHABET_SIZE] {
+    let mut cumulative_frequencies = [0; ALPHABET_SIZE];
 
     for i in 0..255 {
         cumulative_frequencies[i + 1] = cumulative_frequencies[i] + frequencies[i];

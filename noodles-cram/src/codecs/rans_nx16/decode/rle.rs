@@ -1,7 +1,10 @@
 use std::{borrow::Cow, io};
 
 use super::{order_0, split_off};
-use crate::io::reader::num::{read_u8, read_uint7, read_uint7_as};
+use crate::{
+    codecs::rans_nx16::ALPHABET_SIZE,
+    io::reader::num::{read_u8, read_uint7, read_uint7_as},
+};
 
 pub(super) struct Context<'a> {
     src: Cow<'a, [u8]>,
@@ -80,8 +83,8 @@ pub fn decode(mut src: &[u8], ctx: &Context<'_>) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-fn read_rle_table(src: &mut &[u8]) -> io::Result<[bool; 256]> {
-    let mut rle_table = [false; 256];
+fn read_rle_table(src: &mut &[u8]) -> io::Result<[bool; ALPHABET_SIZE]> {
+    let mut rle_table = [false; ALPHABET_SIZE];
 
     let symbol_count = {
         let n = read_u8(src).map(usize::from)?;

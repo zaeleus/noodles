@@ -1,7 +1,10 @@
 use std::io::{self, Read};
 
 use super::read_states;
-use crate::io::reader::num::{read_u8, read_uint7, read_uint7_as};
+use crate::{
+    codecs::rans_nx16::ALPHABET_SIZE,
+    io::reader::num::{read_u8, read_uint7, read_uint7_as},
+};
 
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
     use super::{
@@ -9,8 +12,8 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
         rans_renorm_nx16,
     };
 
-    let mut freqs = vec![vec![0; 256]; 256];
-    let mut cumulative_freqs = vec![vec![0; 256]; 256];
+    let mut freqs = vec![vec![0; ALPHABET_SIZE]; ALPHABET_SIZE];
+    let mut cumulative_freqs = vec![vec![0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
     let bits = read_frequencies(src, &mut freqs, &mut cumulative_freqs)?;
 
