@@ -57,13 +57,13 @@ pub fn normalize_frequencies(freqs: &mut [u32], bits: u32) {
 }
 
 fn read_frequencies(src: &mut &[u8]) -> io::Result<[u32; ALPHABET_SIZE]> {
-    let mut frequencies = [0; ALPHABET_SIZE];
-
     let alphabet = read_alphabet(src)?;
 
-    for i in 0..alphabet.len() {
-        if alphabet[i] {
-            frequencies[i] = read_uint7(src)?;
+    let mut frequencies = [0; ALPHABET_SIZE];
+
+    for (i, frequency) in alphabet.iter().zip(&mut frequencies) {
+        if *i {
+            *frequency = read_uint7(src)?;
         }
     }
 
