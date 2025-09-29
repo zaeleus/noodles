@@ -3,6 +3,8 @@ use std::io;
 use super::{read_alphabet, read_states};
 use crate::io::reader::num::read_uint7;
 
+const NORMALIZATION_BITS: u32 = 12;
+
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
     use super::{
         rans_advance_step_nx16, rans_get_cumulative_freq_nx16, rans_get_symbol_from_freq,
@@ -17,7 +19,7 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
     for (i, d) in dst.iter_mut().enumerate() {
         let j = i % state_count;
 
-        let f = rans_get_cumulative_freq_nx16(states[j], 12);
+        let f = rans_get_cumulative_freq_nx16(states[j], NORMALIZATION_BITS);
         let s = rans_get_symbol_from_freq(&cumulative_frequencies, f);
 
         *d = s;
@@ -26,7 +28,7 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
             states[j],
             cumulative_frequencies[s as usize],
             frequencies[s as usize],
-            12,
+            NORMALIZATION_BITS,
         );
 
         states[j] = rans_renorm_nx16(src, states[j])?;
@@ -65,7 +67,7 @@ fn read_frequencies(src: &mut &[u8]) -> io::Result<[u32; 256]> {
         }
     }
 
-    normalize_frequencies(&mut frequencies, 12);
+    normalize_frequencies(&mut frequencies, NORMALIZATION_BITS);
 
     Ok(frequencies)
 }
