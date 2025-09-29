@@ -14,22 +14,24 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
     let mut states = read_states(src, state_count)?;
 
-    for (i, d) in dst.iter_mut().enumerate() {
-        let j = i % state_count;
+    for chunk in dst.chunks_mut(states.len()) {
+        for (d, state) in chunk.iter_mut().zip(states.iter_mut()) {
+            let f = state_cumulative_frequency(*state, NORMALIZATION_BITS);
+            let sym = cumulative_frequencies_symbol(&cumulative_frequencies, f);
 
-        let f = state_cumulative_frequency(states[j], NORMALIZATION_BITS);
-        let s = cumulative_frequencies_symbol(&cumulative_frequencies, f);
+            *d = sym;
 
-        *d = s;
+            let i = usize::from(sym);
 
-        states[j] = state_step(
-            states[j],
-            frequencies[s as usize],
-            cumulative_frequencies[s as usize],
-            NORMALIZATION_BITS,
-        );
+            *state = state_step(
+                *state,
+                frequencies[i],
+                cumulative_frequencies[i],
+                NORMALIZATION_BITS,
+            );
 
-        states[j] = state_renormalize(states[j], src)?;
+            *state = state_renormalize(*state, src)?;
+        }
     }
 
     Ok(())
