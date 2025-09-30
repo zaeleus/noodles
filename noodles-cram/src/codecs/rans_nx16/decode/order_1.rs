@@ -10,10 +10,10 @@ use crate::{
 };
 
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
-    let mut freqs = vec![vec![0; ALPHABET_SIZE]; ALPHABET_SIZE];
-    let mut cumulative_freqs = vec![vec![0; ALPHABET_SIZE]; ALPHABET_SIZE];
+    let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+    let bits = read_frequencies(src, &mut frequencies)?;
 
-    let bits = read_frequencies(src, &mut freqs, &mut cumulative_freqs)?;
+    let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
 
     let mut states = read_states(src, state_count)?;
 
@@ -23,14 +23,14 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
     while i < dst.len() / state_count {
         for j in 0..state_count {
             let f = state_cumulative_frequency(states[j], bits);
-            let s = cumulative_frequencies_symbol(&cumulative_freqs[last_syms[j]], f);
+            let s = cumulative_frequencies_symbol(&cumulative_frequencies[last_syms[j]], f);
 
             dst[i + j * (dst.len() / state_count)] = s;
 
             states[j] = state_step(
                 states[j],
-                freqs[last_syms[j]][usize::from(s)],
-                cumulative_freqs[last_syms[j]][usize::from(s)],
+                frequencies[last_syms[j]][usize::from(s)],
+                cumulative_frequencies[last_syms[j]][usize::from(s)],
                 bits,
             );
 
@@ -47,14 +47,14 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
     while i < dst.len() {
         let f = state_cumulative_frequency(states[m], bits);
-        let s = cumulative_frequencies_symbol(&cumulative_freqs[last_syms[m]], f);
+        let s = cumulative_frequencies_symbol(&cumulative_frequencies[last_syms[m]], f);
 
         dst[i] = s;
 
         states[m] = state_step(
             states[m],
-            freqs[last_syms[m]][usize::from(s)],
-            cumulative_freqs[last_syms[m]][usize::from(s)],
+            frequencies[last_syms[m]][usize::from(s)],
+            cumulative_frequencies[last_syms[m]][usize::from(s)],
             bits,
         );
 
@@ -70,8 +70,7 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
 fn read_frequencies(
     src: &mut &[u8],
-    freqs: &mut [Vec<u32>],
-    cumulative_freqs: &mut [Vec<u32>],
+    frequencies: &mut [[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
 ) -> io::Result<u32> {
     use super::order_0;
 
@@ -90,9 +89,9 @@ fn read_frequencies(
         order_0::decode(&mut c_data_reader, &mut u_data, 4)?;
 
         let mut u_data_reader = &u_data[..];
-        read_frequencies_inner(&mut u_data_reader, freqs, cumulative_freqs, bits)?;
+        read_frequencies_inner(&mut u_data_reader, frequencies, bits)?;
     } else {
-        read_frequencies_inner(src, freqs, cumulative_freqs, bits)?;
+        read_frequencies_inner(src, frequencies, bits)?;
     }
 
     Ok(bits)
@@ -100,8 +99,7 @@ fn read_frequencies(
 
 fn read_frequencies_inner(
     src: &mut &[u8],
-    freqs: &mut [Vec<u32>],
-    cumulative_freqs: &mut [Vec<u32>],
+    frequencies: &mut [[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
     bits: u32,
 ) -> io::Result<()> {
     use super::{order_0, read_alphabet};
@@ -125,7 +123,7 @@ fn read_frequencies_inner(
             } else {
                 let f = read_uint7(src)?;
 
-                freqs[i][j] = f;
+                frequencies[i][j] = f;
 
                 if f == 0 {
                     run = read_u8(src)?;
@@ -133,14 +131,24 @@ fn read_frequencies_inner(
             }
         }
 
-        order_0::normalize_frequencies(&mut freqs[i], bits);
-
-        cumulative_freqs[i][0] = 0;
-
-        for j in 0..255 {
-            cumulative_freqs[i][j + 1] = cumulative_freqs[i][j] + freqs[i][j];
-        }
+        order_0::normalize_frequencies(&mut frequencies[i], bits);
     }
 
     Ok(())
+}
+
+fn build_cumulative_frequencies(
+    frequencies: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
+) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
+    let mut cumulative_frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+
+    for i in 0..255 {
+        cumulative_frequencies[i][0] = 0;
+
+        for j in 0..255 {
+            cumulative_frequencies[i][j + 1] = cumulative_frequencies[i][j] + frequencies[i][j];
+        }
+    }
+
+    cumulative_frequencies
 }
