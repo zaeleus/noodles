@@ -72,7 +72,9 @@ fn read_frequencies(src: &mut &[u8]) -> io::Result<[u32; ALPHABET_SIZE]> {
     Ok(frequencies)
 }
 
-fn build_cumulative_frequencies(frequencies: &[u32; ALPHABET_SIZE]) -> [u32; ALPHABET_SIZE] {
+pub(super) fn build_cumulative_frequencies(
+    frequencies: &[u32; ALPHABET_SIZE],
+) -> [u32; ALPHABET_SIZE] {
     let mut cumulative_frequencies = [0; ALPHABET_SIZE];
 
     let mut f = cumulative_frequencies[0];

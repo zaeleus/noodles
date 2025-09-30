@@ -1,8 +1,8 @@
 use std::io::{self, Read};
 
 use super::{
-    cumulative_frequencies_symbol, read_states, state_cumulative_frequency, state_renormalize,
-    state_step,
+    cumulative_frequencies_symbol, order_0, read_states, state_cumulative_frequency,
+    state_renormalize, state_step,
 };
 use crate::{
     codecs::rans_nx16::ALPHABET_SIZE,
@@ -72,8 +72,6 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 }
 
 fn read_frequencies(src: &mut &[u8], frequencies: &mut Frequencies) -> io::Result<u32> {
-    use super::order_0;
-
     let comp = read_u8(src)?;
     let bits = u32::from(comp >> 4);
 
@@ -102,7 +100,7 @@ fn read_frequencies_inner(
     frequencies: &mut Frequencies,
     bits: u32,
 ) -> io::Result<()> {
-    use super::{order_0, read_alphabet};
+    use super::read_alphabet;
 
     let alphabet = read_alphabet(src)?;
 
@@ -140,12 +138,8 @@ fn read_frequencies_inner(
 fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
     let mut cumulative_frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
-    for i in 0..255 {
-        cumulative_frequencies[i][0] = 0;
-
-        for j in 0..255 {
-            cumulative_frequencies[i][j + 1] = cumulative_frequencies[i][j] + frequencies[i][j];
-        }
+    for (f, g) in frequencies.iter().zip(&mut cumulative_frequencies) {
+        *g = order_0::build_cumulative_frequencies(f);
     }
 
     cumulative_frequencies
