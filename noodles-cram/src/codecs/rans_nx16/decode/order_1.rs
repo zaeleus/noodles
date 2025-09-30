@@ -1,7 +1,7 @@
-use std::io::{self, Read};
+use std::io;
 
 use super::{
-    cumulative_frequencies_symbol, order_0, read_states, state_cumulative_frequency,
+    cumulative_frequencies_symbol, order_0, read_states, split_off, state_cumulative_frequency,
     state_renormalize, state_step,
 };
 use crate::{
@@ -72,22 +72,19 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 }
 
 fn read_frequencies(src: &mut &[u8], frequencies: &mut Frequencies) -> io::Result<u32> {
-    let comp = read_u8(src)?;
-    let bits = u32::from(comp >> 4);
+    const STATE_COUNT: usize = 4;
 
-    if comp & 0x01 != 0 {
-        let u_size = read_uint7_as(src)?;
-        let c_size = read_uint7_as(src)?;
+    let n = read_u8(src)?;
+    let bits = u32::from(n >> 4);
+    let is_compressed = (n & 0x01) != 0;
 
-        let mut c_data = vec![0; c_size];
-        src.read_exact(&mut c_data)?;
-
-        let mut c_data_reader = &c_data[..];
-        let mut u_data = vec![0; u_size];
-        order_0::decode(&mut c_data_reader, &mut u_data, 4)?;
-
-        let mut u_data_reader = &u_data[..];
-        read_frequencies_inner(&mut u_data_reader, frequencies, bits)?;
+    if is_compressed {
+        let uncompressed_size = read_uint7_as(src)?;
+        let compressed_size = read_uint7_as(src)?;
+        let mut compressed_data = split_off(src, compressed_size)?;
+        let mut dst = vec![0; uncompressed_size];
+        order_0::decode(&mut compressed_data, &mut dst, STATE_COUNT)?;
+        read_frequencies_inner(&mut &dst[..], frequencies, bits)?;
     } else {
         read_frequencies_inner(src, frequencies, bits)?;
     }
