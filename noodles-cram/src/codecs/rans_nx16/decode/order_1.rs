@@ -9,6 +9,9 @@ use crate::{
     io::reader::num::{read_u8, read_uint7, read_uint7_as},
 };
 
+type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
+type CumulativeFrequencies = Frequencies;
+
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
     let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
     let bits = read_frequencies(src, &mut frequencies)?;
@@ -68,10 +71,7 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
     Ok(())
 }
 
-fn read_frequencies(
-    src: &mut &[u8],
-    frequencies: &mut [[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
-) -> io::Result<u32> {
+fn read_frequencies(src: &mut &[u8], frequencies: &mut Frequencies) -> io::Result<u32> {
     use super::order_0;
 
     let comp = read_u8(src)?;
@@ -99,7 +99,7 @@ fn read_frequencies(
 
 fn read_frequencies_inner(
     src: &mut &[u8],
-    frequencies: &mut [[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
+    frequencies: &mut Frequencies,
     bits: u32,
 ) -> io::Result<()> {
     use super::{order_0, read_alphabet};
@@ -137,9 +137,7 @@ fn read_frequencies_inner(
     Ok(())
 }
 
-fn build_cumulative_frequencies(
-    frequencies: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE],
-) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
+fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
     let mut cumulative_frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
     for i in 0..255 {
