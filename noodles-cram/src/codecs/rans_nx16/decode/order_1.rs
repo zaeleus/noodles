@@ -15,55 +15,55 @@ type CumulativeFrequencies = Frequencies;
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
     let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
     let bits = read_frequencies(src, &mut frequencies)?;
-
     let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
 
     let mut states = read_states(src, state_count)?;
-
+    let mut prev_syms = vec![0; state_count];
     let mut i = 0;
-    let mut last_syms = vec![0; states.len()];
 
     while i < dst.len() / state_count {
-        for j in 0..state_count {
-            let f = state_cumulative_frequency(states[j], bits);
-            let s = cumulative_frequencies_symbol(&cumulative_frequencies[last_syms[j]], f);
+        for (j, state) in states.iter_mut().enumerate() {
+            let k = usize::from(prev_syms[j]);
 
-            dst[i + j * (dst.len() / state_count)] = s;
+            let f = state_cumulative_frequency(*state, bits);
+            let sym = cumulative_frequencies_symbol(&cumulative_frequencies[k], f);
 
-            states[j] = state_step(
-                states[j],
-                frequencies[last_syms[j]][usize::from(s)],
-                cumulative_frequencies[last_syms[j]][usize::from(s)],
+            dst[j * (dst.len() / state_count) + i] = sym;
+
+            let l = usize::from(sym);
+
+            *state = state_step(
+                *state,
+                frequencies[k][l],
+                cumulative_frequencies[k][l],
                 bits,
             );
 
-            states[j] = state_renormalize(states[j], src)?;
+            *state = state_renormalize(*state, src)?;
 
-            last_syms[j] = usize::from(s);
+            prev_syms[j] = sym;
         }
 
         i += 1;
     }
 
     i *= state_count;
+
     let m = state_count - 1;
+    let mut state = states[m];
 
     while i < dst.len() {
-        let f = state_cumulative_frequency(states[m], bits);
-        let s = cumulative_frequencies_symbol(&cumulative_frequencies[last_syms[m]], f);
+        let k = usize::from(prev_syms[m]);
+        let f = state_cumulative_frequency(state, bits);
+        let sym = cumulative_frequencies_symbol(&cumulative_frequencies[k], f);
 
-        dst[i] = s;
+        dst[i] = sym;
 
-        states[m] = state_step(
-            states[m],
-            frequencies[last_syms[m]][usize::from(s)],
-            cumulative_frequencies[last_syms[m]][usize::from(s)],
-            bits,
-        );
+        let l = usize::from(sym);
+        state = state_step(state, frequencies[k][l], cumulative_frequencies[k][l], bits);
+        state = state_renormalize(state, src)?;
 
-        states[m] = state_renormalize(states[m], src)?;
-
-        last_syms[m] = usize::from(s);
+        prev_syms[m] = sym;
 
         i += 1;
     }
