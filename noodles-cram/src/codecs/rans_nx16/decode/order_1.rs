@@ -22,8 +22,8 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
     let mut i = 0;
 
     while i < dst.len() / state_count {
-        for (j, state) in states.iter_mut().enumerate() {
-            let k = usize::from(prev_syms[j]);
+        for (j, (state, prev_sym)) in states.iter_mut().zip(&mut prev_syms).enumerate() {
+            let k = usize::from(*prev_sym);
 
             let f = state_cumulative_frequency(*state, bits);
             let sym = cumulative_frequencies_symbol(&cumulative_frequencies[k], f);
@@ -41,7 +41,7 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
             *state = state_renormalize(*state, src)?;
 
-            prev_syms[j] = sym;
+            *prev_sym = sym;
         }
 
         i += 1;
@@ -51,9 +51,10 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
     let m = state_count - 1;
     let mut state = states[m];
+    let mut prev_sym = prev_syms[m];
 
     while i < dst.len() {
-        let k = usize::from(prev_syms[m]);
+        let k = usize::from(prev_sym);
         let f = state_cumulative_frequency(state, bits);
         let sym = cumulative_frequencies_symbol(&cumulative_frequencies[k], f);
 
@@ -63,7 +64,7 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
         state = state_step(state, frequencies[k][l], cumulative_frequencies[k][l], bits);
         state = state_renormalize(state, src)?;
 
-        prev_syms[m] = sym;
+        prev_sym = sym;
 
         i += 1;
     }
