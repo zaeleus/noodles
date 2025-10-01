@@ -1,8 +1,8 @@
 use std::io;
 
 use super::{
-    cumulative_frequencies_symbol, order_0, read_states, split_off, state_cumulative_frequency,
-    state_renormalize, state_step,
+    cumulative_frequencies_symbol, order_0, read_alphabet, read_states, split_off,
+    state_cumulative_frequency, state_renormalize, state_step,
 };
 use crate::{
     codecs::rans_nx16::ALPHABET_SIZE,
@@ -97,36 +97,21 @@ fn read_frequencies_inner(
     frequencies: &mut Frequencies,
     bits: u32,
 ) -> io::Result<()> {
-    use super::read_alphabet;
-
     let alphabet = read_alphabet(src)?;
 
-    for (i, a) in alphabet.iter().enumerate() {
-        if !a {
-            continue;
-        }
+    for (_, fs) in alphabet.iter().zip(frequencies).filter(|(a, _)| **a) {
+        let mut iter = alphabet.iter().zip(fs.iter_mut()).filter(|(b, _)| **b);
 
-        let mut run = 0;
+        while let Some((_, f)) = iter.next() {
+            *f = read_uint7(src)?;
 
-        for (j, b) in alphabet.iter().enumerate() {
-            if !b {
-                continue;
-            }
-
-            if run > 0 {
-                run -= 1;
-            } else {
-                let f = read_uint7(src)?;
-
-                frequencies[i][j] = f;
-
-                if f == 0 {
-                    run = read_u8(src)?;
-                }
+            if *f == 0 {
+                let n = read_u8(src).map(usize::from)?;
+                for _ in iter.by_ref().take(n) {}
             }
         }
 
-        order_0::normalize_frequencies(&mut frequencies[i], bits);
+        order_0::normalize_frequencies(fs, bits);
     }
 
     Ok(())
