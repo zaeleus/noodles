@@ -19,16 +19,17 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
     let mut states = read_states(src, state_count)?;
     let mut prev_syms = vec![0; state_count];
-    let mut i = 0;
 
-    while i < dst.len() / state_count {
+    let chunk_size = dst.len() / state_count;
+
+    for i in 0..chunk_size {
         for (j, (state, prev_sym)) in states.iter_mut().zip(&mut prev_syms).enumerate() {
             let k = usize::from(*prev_sym);
 
             let f = state_cumulative_frequency(*state, bits);
             let sym = cumulative_frequencies_symbol(&cumulative_frequencies[k], f);
 
-            dst[j * (dst.len() / state_count) + i] = sym;
+            dst[j * chunk_size + i] = sym;
 
             let l = usize::from(sym);
 
@@ -43,30 +44,24 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
 
             *prev_sym = sym;
         }
-
-        i += 1;
     }
 
-    i *= state_count;
+    let last_chunk = &mut dst[chunk_size * state_count..];
+    let mut state = *states.last().unwrap();
+    let mut prev_sym = *prev_syms.last().unwrap();
 
-    let m = state_count - 1;
-    let mut state = states[m];
-    let mut prev_sym = prev_syms[m];
-
-    while i < dst.len() {
+    for d in last_chunk {
         let k = usize::from(prev_sym);
         let f = state_cumulative_frequency(state, bits);
         let sym = cumulative_frequencies_symbol(&cumulative_frequencies[k], f);
 
-        dst[i] = sym;
+        *d = sym;
 
         let l = usize::from(sym);
         state = state_step(state, frequencies[k][l], cumulative_frequencies[k][l], bits);
         state = state_renormalize(state, src)?;
 
         prev_sym = sym;
-
-        i += 1;
     }
 
     Ok(())
