@@ -64,31 +64,32 @@ fn read_flags(src: &mut &[u8]) -> io::Result<Flags> {
 }
 
 fn read_alphabet(src: &mut &[u8]) -> io::Result<[bool; ALPHABET_SIZE]> {
+    const NUL: u8 = 0x00;
+
     let mut alphabet = [false; ALPHABET_SIZE];
 
     let mut sym = read_u8(src)?;
-    let mut last_sym = sym;
-    let mut rle = 0;
+    let mut prev_sym = sym;
 
     loop {
         alphabet[usize::from(sym)] = true;
 
-        if rle > 0 {
-            rle -= 1;
-            sym += 1;
-        } else {
-            sym = read_u8(src)?;
+        sym = read_u8(src)?;
 
-            if last_sym < 255 && sym == last_sym + 1 {
-                rle = read_u8(src)?;
+        if sym == NUL {
+            break;
+        }
+
+        if sym - 1 == prev_sym {
+            let len = read_u8(src)?;
+
+            for _ in 0..len {
+                alphabet[usize::from(sym)] = true;
+                sym += 1;
             }
         }
 
-        last_sym = sym;
-
-        if sym == 0 {
-            break;
-        }
+        prev_sym = sym;
     }
 
     Ok(alphabet)
