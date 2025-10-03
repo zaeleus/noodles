@@ -14,15 +14,15 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
 
     write_u8(&mut dst, u8::from(flags))?;
 
-    if !flags.contains(Flags::NO_SIZE) {
+    if flags.has_uncompressed_size() {
         let n =
             u32::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         write_uint7(&mut dst, n)?;
     }
 
-    let n = if flags.contains(Flags::N32) { 32 } else { 4 };
+    let n = flags.state_count();
 
-    if flags.contains(Flags::STRIPE) {
+    if flags.is_striped() {
         let buf = rans_encode_stripe(&src, n)?;
         dst.extend(&buf);
         return Ok(dst);
@@ -30,7 +30,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut pack_header = None;
 
-    if flags.contains(Flags::PACK) {
+    if flags.is_bit_packed() {
         match pack::encode(&src) {
             Ok((header, buf)) => {
                 pack_header = Some(header);
@@ -46,7 +46,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut rle_header = None;
 
-    if flags.contains(Flags::RLE) {
+    if flags.is_rle() {
         let (header, buf) = rle::encode(&src)?;
         rle_header = Some(header);
         src = buf;
@@ -70,17 +70,17 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         dst[0] = u8::from(flags);
     }
 
-    if flags.contains(Flags::CAT) {
+    if flags.is_uncompressed() {
         dst.write_all(&src)?;
-    } else if flags.contains(Flags::ORDER) {
+    } else if flags.order() == 0 {
+        let (normalized_frequencies, compressed_data) = order_0::encode(&src, n)?;
+        order_0::write_frequencies(&mut dst, &normalized_frequencies)?;
+        dst.write_all(&compressed_data)?;
+    } else {
         let (normalized_contexts, compressed_data) = order_1::encode(&src, n)?;
         // bits = 12, no compression (0)
         write_u8(&mut dst, 12 << 4)?;
         order_1::write_contexts(&mut dst, &normalized_contexts)?;
-        dst.write_all(&compressed_data)?;
-    } else {
-        let (normalized_frequencies, compressed_data) = order_0::encode(&src, n)?;
-        order_0::write_frequencies(&mut dst, &normalized_frequencies)?;
         dst.write_all(&compressed_data)?;
     }
 
