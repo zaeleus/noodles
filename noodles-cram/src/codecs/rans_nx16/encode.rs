@@ -12,7 +12,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut src = src.to_vec();
     let mut dst = Vec::new();
 
-    write_u8(&mut dst, u8::from(flags))?;
+    write_flags(&mut dst, flags)?;
 
     if flags.has_uncompressed_size() {
         let n =
@@ -85,6 +85,10 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     }
 
     Ok(dst)
+}
+
+fn write_flags(dst: &mut Vec<u8>, flags: Flags) -> io::Result<()> {
+    write_u8(dst, u8::from(flags))
 }
 
 fn build_frequencies(src: &[u8]) -> Vec<u32> {
