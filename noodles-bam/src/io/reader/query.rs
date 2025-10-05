@@ -1,9 +1,13 @@
+mod iter;
+
 use std::io;
 
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_sam::alignment::Record as _;
+
+pub use self::iter::Iter;
 
 use crate::Record;
 
@@ -43,10 +47,7 @@ where
 /// An iterator over records of a BAM reader that intersects a given region.
 ///
 /// This is created by calling [`super::Reader::query`].
-pub struct Query<'r, R> {
-    reader: Reader<'r, R>,
-    record: Record,
-}
+pub struct Query<'r, R>(Iter<'r, R>);
 
 impl<'r, R> Query<'r, R>
 where
@@ -58,10 +59,7 @@ where
         reference_sequence_id: usize,
         interval: Interval,
     ) -> Self {
-        Self {
-            reader: Reader::new(reader, chunks, reference_sequence_id, interval),
-            record: Record::default(),
-        }
+        Self(Iter::new(reader, chunks, reference_sequence_id, interval))
     }
 }
 
@@ -72,11 +70,7 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.reader.read_record(&mut self.record) {
-            Ok(0) => None,
-            Ok(_) => Some(Ok(self.record.clone())),
-            Err(e) => Some(Err(e)),
-        }
+        self.0.next()
     }
 }
 
