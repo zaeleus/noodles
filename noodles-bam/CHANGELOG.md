@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/io/reader/query: Change `Query` to a reader.
+
+    `Query` is now a reader adapter, rather than an iterator. Use its
+    `IntoIterator` implementation for a similiar previous behavior.
+
 ## 0.83.0 - 2025-08-25
 
 ### Changed

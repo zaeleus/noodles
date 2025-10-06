@@ -350,7 +350,7 @@ where
         Ok(self.get_ref().virtual_position())
     }
 
-    /// Returns an iterator over records that intersect the given region.
+    /// Returns a reader over records that intersect the given region.
     ///
     /// To query for unmapped records, use [`Self::query_unmapped`].
     ///

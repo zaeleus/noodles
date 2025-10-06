@@ -44,10 +44,10 @@ where
     }
 }
 
-/// An iterator over records of a BAM reader that intersects a given region.
+/// A reader over records of a BAM reader that intersects a given region.
 ///
 /// This is created by calling [`super::Reader::query`].
-pub struct Query<'r, R>(Iter<'r, R>);
+pub struct Query<'r, R>(Reader<'r, R>);
 
 impl<'r, R> Query<'r, R>
 where
@@ -59,18 +59,19 @@ where
         reference_sequence_id: usize,
         interval: Interval,
     ) -> Self {
-        Self(Iter::new(reader, chunks, reference_sequence_id, interval))
+        Self(Reader::new(reader, chunks, reference_sequence_id, interval))
     }
 }
 
-impl<R> Iterator for Query<'_, R>
+impl<'r, R> IntoIterator for Query<'r, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     type Item = io::Result<Record>;
+    type IntoIter = Iter<'r, R>;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
+    fn into_iter(self) -> Self::IntoIter {
+        Iter::new(self.0)
     }
 }
 
@@ -237,6 +238,7 @@ mod tests {
         let query = reader.query(&header, &index, &region)?;
 
         let actual: Vec<_> = query
+            .into_iter()
             .map(|result| {
                 result.and_then(|record| RecordBuf::try_from_alignment_record(&header, &record))
             })

@@ -1,8 +1,6 @@
 use std::io;
 
 use noodles_bgzf as bgzf;
-use noodles_core::region::Interval;
-use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 
 use super::Reader;
 use crate::Record;
@@ -16,14 +14,9 @@ impl<'r, R> Iter<'r, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
-    pub(super) fn new(
-        reader: &'r mut R,
-        chunks: Vec<Chunk>,
-        reference_sequence_id: usize,
-        interval: Interval,
-    ) -> Self {
+    pub(super) fn new(reader: Reader<'r, R>) -> Self {
         Self {
-            reader: Reader::new(reader, chunks, reference_sequence_id, interval),
+            reader,
             record: Record::default(),
         }
     }
