@@ -11,17 +11,20 @@ pub use self::iter::Iter;
 
 use crate::Record;
 
-struct Reader<'r, R> {
+/// A reader over records of a BAM reader that intersects a given region.
+///
+/// This is created by calling [`super::Reader::query`].
+pub struct Query<'r, R> {
     inner: super::Reader<csi::io::Query<'r, R>>,
     reference_sequence_id: usize,
     interval: Interval,
 }
 
-impl<'r, R> Reader<'r, R>
+impl<'r, R> Query<'r, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
-    fn new(
+    pub(super) fn new(
         reader: &'r mut R,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
@@ -44,25 +47,6 @@ where
     }
 }
 
-/// A reader over records of a BAM reader that intersects a given region.
-///
-/// This is created by calling [`super::Reader::query`].
-pub struct Query<'r, R>(Reader<'r, R>);
-
-impl<'r, R> Query<'r, R>
-where
-    R: bgzf::io::BufRead + bgzf::io::Seek,
-{
-    pub(super) fn new(
-        reader: &'r mut R,
-        chunks: Vec<Chunk>,
-        reference_sequence_id: usize,
-        interval: Interval,
-    ) -> Self {
-        Self(Reader::new(reader, chunks, reference_sequence_id, interval))
-    }
-}
-
 impl<'r, R> IntoIterator for Query<'r, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
@@ -71,7 +55,7 @@ where
     type IntoIter = Iter<'r, R>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Iter::new(self.0)
+        Iter::new(self)
     }
 }
 

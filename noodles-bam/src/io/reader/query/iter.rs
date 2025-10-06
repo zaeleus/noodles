@@ -2,11 +2,11 @@ use std::io;
 
 use noodles_bgzf as bgzf;
 
-use super::Reader;
+use super::Query;
 use crate::Record;
 
 pub struct Iter<'r, R> {
-    reader: Reader<'r, R>,
+    inner: Query<'r, R>,
     record: Record,
 }
 
@@ -14,9 +14,9 @@ impl<'r, R> Iter<'r, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
-    pub(super) fn new(reader: Reader<'r, R>) -> Self {
+    pub(super) fn new(inner: Query<'r, R>) -> Self {
         Self {
-            reader,
+            inner,
             record: Record::default(),
         }
     }
@@ -29,7 +29,7 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.reader.read_record(&mut self.record) {
+        match self.inner.read_record(&mut self.record) {
             Ok(0) => None,
             Ok(_) => Some(Ok(self.record.clone())),
             Err(e) => Some(Err(e)),
