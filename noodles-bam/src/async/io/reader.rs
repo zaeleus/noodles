@@ -389,7 +389,7 @@ where
         ))
     }
 
-    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    /// Returns a stream of unmapped records after querying for the unmapped region.
     ///
     /// # Examples
     ///
