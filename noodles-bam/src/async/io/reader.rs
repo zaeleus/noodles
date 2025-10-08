@@ -12,7 +12,8 @@ use noodles_csi::BinningIndex;
 use noodles_sam::{self as sam, alignment::RecordBuf};
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
-use self::{header::read_header, query::query, record::read_record, record_buf::read_record_buf};
+pub use self::query::Query;
+use self::{header::read_header, record::read_record, record_buf::read_record_buf};
 use crate::{Record, io::reader::resolve_region};
 
 /// An async BAM reader.
@@ -361,7 +362,7 @@ where
     ///
     /// let index = bai::r#async::fs::read("sample.bam.bai").await?;
     /// let region = "sq0:8-13".parse()?;
-    /// let mut query = reader.query(&header, &index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?.records();
     ///
     /// while let Some(record) = query.try_next().await? {
     ///     // ...
@@ -374,14 +375,14 @@ where
         header: &sam::Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, I, R>>
+    ) -> io::Result<Query<'r, R>>
     where
         I: BinningIndex,
     {
         let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
-        Ok(query(
+        Ok(Query::new(
             self,
             chunks,
             reference_sequence_id,
