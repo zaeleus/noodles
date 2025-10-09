@@ -1,4 +1,4 @@
-mod iter;
+mod records;
 
 use std::io;
 
@@ -7,7 +7,7 @@ use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_sam::alignment::Record as _;
 
-pub use self::iter::Iter;
+pub use self::records::Records;
 
 use crate::Record;
 
@@ -52,10 +52,10 @@ where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     type Item = io::Result<Record>;
-    type IntoIter = Iter<'r, R>;
+    type IntoIter = Records<'r, R>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Iter::new(self)
+        Records::new(self)
     }
 }
 

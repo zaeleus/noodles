@@ -5,12 +5,12 @@ use noodles_bgzf as bgzf;
 use super::Query;
 use crate::Record;
 
-pub struct Iter<'r, R> {
+pub struct Records<'r, R> {
     inner: Query<'r, R>,
     record: Record,
 }
 
-impl<'r, R> Iter<'r, R>
+impl<'r, R> Records<'r, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
@@ -22,7 +22,7 @@ where
     }
 }
 
-impl<R> Iterator for Iter<'_, R>
+impl<R> Iterator for Records<'_, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
