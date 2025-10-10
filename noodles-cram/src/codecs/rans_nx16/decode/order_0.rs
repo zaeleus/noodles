@@ -37,22 +37,22 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
     Ok(())
 }
 
-pub fn normalize_frequencies(freqs: &mut [u32], bits: u32) {
-    let mut total: u32 = freqs.iter().sum();
+pub fn normalize_frequencies(frequencies: &mut [u32; ALPHABET_SIZE], bits: u32) {
+    let mut sum: u32 = frequencies.iter().sum();
 
-    if total == 0 || total == (1 << bits) {
+    if sum == 0 || sum == (1 << bits) {
         return;
     }
 
     let mut shift = 0;
 
-    while total < (1 << bits) {
-        total *= 2;
+    while sum < (1 << bits) {
+        sum *= 2;
         shift += 1;
     }
 
-    for freq in freqs {
-        *freq <<= shift;
+    for f in frequencies {
+        *f <<= shift;
     }
 }
 
