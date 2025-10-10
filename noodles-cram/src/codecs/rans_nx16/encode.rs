@@ -5,7 +5,7 @@ mod rle;
 
 use std::io::{self, Write};
 
-use super::Flags;
+use super::{ALPHABET_SIZE, Flags};
 use crate::io::writer::num::{write_u8, write_uint7};
 
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
@@ -91,8 +91,8 @@ fn write_flags(dst: &mut Vec<u8>, flags: Flags) -> io::Result<()> {
     write_u8(dst, u8::from(flags))
 }
 
-fn build_frequencies(src: &[u8]) -> Vec<u32> {
-    let mut frequencies = vec![0; 256];
+fn build_frequencies(src: &[u8]) -> [u32; ALPHABET_SIZE] {
+    let mut frequencies = [0; ALPHABET_SIZE];
 
     for &b in src {
         let i = usize::from(b);
