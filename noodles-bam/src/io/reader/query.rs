@@ -37,7 +37,29 @@ where
         }
     }
 
-    fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    /// Reads a record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_bam::{self as bam, bai};
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
+    /// let header = reader.read_header()?;
+    ///
+    /// let index = bai::fs::read("sample.bam.bai")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?;
+    ///
+    /// let mut record = bam::Record::default();
+    ///
+    /// while query.read_record(&mut record)? != 0 {
+    ///     // ...
+    /// }
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         next_record(
             &mut self.inner,
             record,

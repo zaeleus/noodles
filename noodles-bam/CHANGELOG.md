@@ -4,10 +4,12 @@
 
 ### Changed
 
-  * bam/io/reader/query: Change `Query` to a reader.
+  * bam/io/reader/query: Change `Query` to a reader ([#265]).
 
     `Query` is now a reader adapter, rather than an iterator. Use
     `Query::records` for an iterator.
+
+[#265]: https://github.com/zaeleus/noodles/pull/265
 
 ## 0.83.0 - 2025-08-25
 

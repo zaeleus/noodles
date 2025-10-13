@@ -48,7 +48,34 @@ where
         }
     }
 
-    async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    /// Reads a record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use noodles_bam::{self as bam, bai};
+    /// use noodles_core::Region;
+    /// use noodles_sam as sam;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
+    /// let header = reader.read_header().await?;
+    ///
+    /// let index = bai::r#async::fs::read("sample.bam.bai").await?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?;
+    ///
+    /// let mut record = bam::Record::default();
+    ///
+    /// while query.read_record(&mut record).await? != 0 {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         loop {
             match self.state {
                 State::Seek => {
