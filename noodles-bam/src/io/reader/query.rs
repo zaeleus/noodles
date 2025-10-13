@@ -45,6 +45,11 @@ where
             self.interval,
         )
     }
+
+    /// Returns an iterator over records.
+    pub fn records(self) -> Records<'r, R> {
+        Records::new(self)
+    }
 }
 
 impl<'r, R> IntoIterator for Query<'r, R>
@@ -55,7 +60,7 @@ where
     type IntoIter = Records<'r, R>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Records::new(self)
+        self.records()
     }
 }
 
