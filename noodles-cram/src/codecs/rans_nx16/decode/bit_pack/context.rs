@@ -32,3 +32,26 @@ pub fn read_context<'a>(
 
     Ok((context, len))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_context() -> io::Result<()> {
+        let src = [
+            0x04, // symbol count = 4
+            b'A', b'C', b'G', b'T', // mapping table
+            0x08, // uncompressed size = 8
+        ];
+
+        let (ctx, len) = read_context(&mut &src[..], 13)?;
+
+        assert_eq!(ctx.symbol_count, const { NonZero::new(4).unwrap() });
+        assert_eq!(ctx.mapping_table, b"ACGT");
+        assert_eq!(ctx.uncompressed_size, 13);
+        assert_eq!(len, 8);
+
+        Ok(())
+    }
+}
