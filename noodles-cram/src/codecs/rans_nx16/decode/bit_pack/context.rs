@@ -1,6 +1,9 @@
 use std::{io, num::NonZero};
 
-use crate::io::reader::num::{read_u8, read_uint7_as};
+use crate::{
+    codecs::rans_nx16::decode::split_off,
+    io::reader::num::{read_u8, read_uint7_as},
+};
 
 pub struct Context<'a> {
     pub symbol_count: NonZero<usize>,
@@ -16,12 +19,7 @@ pub fn read_context<'a>(
         NonZero::try_from(usize::from(n)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let (mapping_table, rest) = src
-        .split_at_checked(symbol_count.get())
-        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
-
-    *src = rest;
-
+    let mapping_table = split_off(src, symbol_count.get())?;
     let len = read_uint7_as(src)?;
 
     let context = Context {
