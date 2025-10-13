@@ -134,7 +134,7 @@ where
 
                 Box::new(
                     query
-                        .into_iter()
+                        .records()
                         .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
                 )
             }

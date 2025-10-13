@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         reader.query_unmapped().map(Box::new)?
     } else {
         let region = raw_region.parse()?;
-        Box::new(reader.query(&header, &region)?.into_iter())
+        Box::new(reader.query(&header, &region)?.records())
     };
 
     let stdout = io::stdout().lock();

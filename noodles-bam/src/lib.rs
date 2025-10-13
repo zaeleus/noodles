@@ -35,7 +35,7 @@
 //! let region = "sq0:5-8".parse()?;
 //! let query = reader.query(&header, &region)?;
 //!
-//! for result in query {
+//! for result in query.records() {
 //!     let record = result?;
 //!     // ...
 //! }

@@ -6,8 +6,8 @@
 
   * bam/io/reader/query: Change `Query` to a reader.
 
-    `Query` is now a reader adapter, rather than an iterator. Use its
-    `IntoIterator` implementation for a similiar previous behavior.
+    `Query` is now a reader adapter, rather than an iterator. Use
+    `Query::records` for an iterator.
 
 ## 0.83.0 - 2025-08-25
 
