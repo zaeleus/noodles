@@ -11,7 +11,7 @@ use crate::{
 pub fn decode(mut src: &[u8], ctx: &Context<'_>) -> io::Result<Vec<u8>> {
     let mut context_src = &ctx.src[..];
 
-    let rle_table = read_rle_table(&mut context_src)?;
+    let rle_alphabet = read_rle_alphabet(&mut context_src)?;
 
     let mut dst = vec![0; ctx.len];
     let mut iter = dst.iter_mut();
@@ -21,7 +21,7 @@ pub fn decode(mut src: &[u8], ctx: &Context<'_>) -> io::Result<Vec<u8>> {
 
         *d = sym;
 
-        if rle_table[usize::from(sym)] {
+        if rle_alphabet[usize::from(sym)] {
             let len = read_uint7_as(&mut context_src)?;
 
             for e in iter.by_ref().take(len) {
@@ -33,18 +33,18 @@ pub fn decode(mut src: &[u8], ctx: &Context<'_>) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-fn read_rle_table(src: &mut &[u8]) -> io::Result<[bool; ALPHABET_SIZE]> {
-    let mut rle_table = [false; ALPHABET_SIZE];
+fn read_rle_alphabet(src: &mut &[u8]) -> io::Result<[bool; ALPHABET_SIZE]> {
+    let mut alphabet = [false; ALPHABET_SIZE];
 
     let symbol_count = {
         let n = read_u8(src).map(usize::from)?;
-        if n == 0 { rle_table.len() } else { n }
+        if n == 0 { ALPHABET_SIZE } else { n }
     };
 
     for _ in 0..symbol_count {
         let sym = read_u8(src)?;
-        rle_table[usize::from(sym)] = true;
+        alphabet[usize::from(sym)] = true;
     }
 
-    Ok(rle_table)
+    Ok(alphabet)
 }
