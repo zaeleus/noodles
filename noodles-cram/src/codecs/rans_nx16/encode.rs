@@ -1,6 +1,6 @@
+pub mod bit_pack;
 mod order_0;
 mod order_1;
-pub mod pack;
 mod rle;
 mod stripe;
 
@@ -32,7 +32,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut pack_header = None;
 
     if flags.is_bit_packed() {
-        match pack::encode(&src) {
+        match bit_pack::encode(&src) {
             Ok((header, buf)) => {
                 pack_header = Some(header);
                 src = buf;
