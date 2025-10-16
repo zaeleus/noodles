@@ -1,4 +1,4 @@
-use std::{io, num::NonZero};
+use std::{error, fmt, num::NonZero};
 
 use crate::codecs::rans_nx16::ALPHABET_SIZE;
 
@@ -12,7 +12,27 @@ pub struct Context {
     pub mapping_table: [u8; ALPHABET_SIZE],
 }
 
-pub fn build_context(src: &[u8]) -> io::Result<Context> {
+#[derive(Debug, Eq, PartialEq)]
+pub enum BuildContextError {
+    EmptyAlphabet,
+    TooManySymbols(usize),
+}
+
+impl error::Error for BuildContextError {}
+
+impl fmt::Display for BuildContextError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::EmptyAlphabet => write!(f, "empty alphabet"),
+            Self::TooManySymbols(n) => write!(
+                f,
+                "too many symbols: expected 1 <= symbol count <= {MAX_SYMBOL_COUNT}, got {n}"
+            ),
+        }
+    }
+}
+
+pub fn build_context(src: &[u8]) -> Result<Context, BuildContextError> {
     let alphabet = build_alphabet(src);
     let (mapping_table, symbol_count) = build_mapping_table(&alphabet)?;
 
@@ -35,7 +55,7 @@ fn build_alphabet(src: &[u8]) -> [bool; ALPHABET_SIZE] {
 
 fn build_mapping_table(
     alphabet: &[bool; ALPHABET_SIZE],
-) -> io::Result<([u8; ALPHABET_SIZE], NonZero<usize>)> {
+) -> Result<([u8; ALPHABET_SIZE], NonZero<usize>), BuildContextError> {
     let mut mapping_table = [0; ALPHABET_SIZE];
     let mut symbol_count = 0;
 
@@ -46,14 +66,13 @@ fn build_mapping_table(
         let n = usize::from(symbol_count);
 
         if n > MAX_SYMBOL_COUNT {
-            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+            return Err(BuildContextError::TooManySymbols(n));
         }
     }
 
-    let n = NonZero::new(usize::from(symbol_count))
-        .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidInput))?;
-
-    Ok((mapping_table, n))
+    NonZero::new(usize::from(symbol_count))
+        .ok_or(BuildContextError::EmptyAlphabet)
+        .map(|n| (mapping_table, n))
 }
 
 #[cfg(test)]
@@ -61,7 +80,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_build_context() -> io::Result<()> {
+    fn test_build_context() -> Result<(), BuildContextError> {
         let src = b"ndls";
 
         let mut alphabet = [false; ALPHABET_SIZE];
@@ -106,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build_mapping_table() -> io::Result<()> {
+    fn test_build_mapping_table() -> Result<(), BuildContextError> {
         let src = b"ndls";
         let alphabet = build_alphabet(src);
 
@@ -121,21 +140,19 @@ mod tests {
         let expected = (expected_mapping_table, expected_symbol_count);
         assert_eq!(build_mapping_table(&alphabet)?, expected);
 
-        // 0 symbols
         let src = [];
         let alphabet = build_alphabet(&src);
-        assert!(matches!(
+        assert_eq!(
             build_mapping_table(&alphabet),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
-        ));
+            Err(BuildContextError::EmptyAlphabet)
+        );
 
-        // > 16 symbols
         let src = b"abcdefghijklmnopq";
         let alphabet = build_alphabet(src);
-        assert!(matches!(
+        assert_eq!(
             build_mapping_table(&alphabet),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput,
-        ));
+            Err(BuildContextError::TooManySymbols(17))
+        );
 
         Ok(())
     }

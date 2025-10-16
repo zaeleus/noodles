@@ -38,11 +38,13 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
                 pack_header = Some(header);
                 src = buf;
             }
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput => {
+            Err(
+                bit_pack::context::BuildContextError::EmptyAlphabet
+                | bit_pack::context::BuildContextError::TooManySymbols(_),
+            ) => {
                 flags.remove(Flags::PACK);
                 dst[0] = u8::from(flags);
             }
-            Err(e) => return Err(e),
         }
     }
 
