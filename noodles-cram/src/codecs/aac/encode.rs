@@ -23,14 +23,11 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         return Ok(dst);
     }
 
-    let mut pack_header = None;
-
     if flags.contains(Flags::PACK) {
         match bit_pack::build_context(&src) {
             Ok(ctx) => {
-                let (header, buf) = bit_pack::encode(&src, &ctx)?;
-                pack_header = Some(header);
-                src = buf;
+                src = bit_pack::encode(&src, &ctx);
+                bit_pack::write_context(&mut dst, &ctx, src.len())?;
             }
             Err(
                 bit_pack::context::BuildContextError::EmptyAlphabet
@@ -40,10 +37,6 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
                 dst[0] = u8::from(flags);
             }
         }
-    }
-
-    if let Some(header) = pack_header {
-        dst.write_all(&header)?;
     }
 
     if flags.contains(Flags::CAT) {

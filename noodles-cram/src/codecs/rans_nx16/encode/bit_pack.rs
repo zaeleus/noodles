@@ -1,38 +1,18 @@
 pub mod context;
 
-use std::io;
+pub use self::context::{Context, build_context, write_context};
+use crate::codecs::rans_nx16::ALPHABET_SIZE;
 
-pub use self::context::{Context, build_context};
-use crate::{
-    codecs::rans_nx16::ALPHABET_SIZE,
-    io::writer::num::{write_u8, write_uint7},
-};
-
-pub fn encode(src: &[u8], ctx: &Context) -> io::Result<(Vec<u8>, Vec<u8>)> {
+pub fn encode(src: &[u8], ctx: &Context) -> Vec<u8> {
     let mapping_table = &ctx.mapping_table;
 
-    let buf = match ctx.symbol_count.get() {
+    match ctx.symbol_count.get() {
         1 => Vec::new(),
         2 => pack(src, mapping_table, 8),
         3..=4 => pack(src, mapping_table, 4),
         5..=16 => pack(src, mapping_table, 2),
         _ => unreachable!(),
-    };
-
-    let mut header = Vec::new();
-
-    let n = u8::try_from(ctx.symbol_count.get())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_u8(&mut header, n)?;
-
-    for (sym, _) in ctx.alphabet.iter().enumerate().filter(|(_, a)| **a) {
-        write_u8(&mut header, sym as u8)?;
     }
-
-    let len = buf.len() as u32;
-    write_uint7(&mut header, len)?;
-
-    Ok((header, buf))
 }
 
 fn pack(src: &[u8], mapping_table: &[u8; ALPHABET_SIZE], chunk_size: usize) -> Vec<u8> {

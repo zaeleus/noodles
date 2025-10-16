@@ -1,6 +1,9 @@
-use std::{error, fmt, num::NonZero};
+use std::{error, fmt, io, num::NonZero};
 
-use crate::codecs::rans_nx16::ALPHABET_SIZE;
+use crate::{
+    codecs::rans_nx16::ALPHABET_SIZE,
+    io::writer::num::{write_u8, write_uint7},
+};
 
 // § 3.5 "rANS Nx16 Bit Packing" (2023-03-15): "It is not permitted to have `nsym` > 16 [...] as
 // bit packing is not possible."
@@ -8,7 +11,7 @@ const MAX_SYMBOL_COUNT: usize = 16;
 
 pub struct Context {
     pub symbol_count: NonZero<usize>,
-    pub alphabet: [bool; ALPHABET_SIZE],
+    alphabet: [bool; ALPHABET_SIZE],
     pub mapping_table: [u8; ALPHABET_SIZE],
 }
 
@@ -73,6 +76,23 @@ fn build_mapping_table(
     NonZero::new(usize::from(symbol_count))
         .ok_or(BuildContextError::EmptyAlphabet)
         .map(|n| (mapping_table, n))
+}
+
+pub fn write_context(dst: &mut Vec<u8>, ctx: &Context, compressed_size: usize) -> io::Result<()> {
+    let n = u8::try_from(ctx.symbol_count.get())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_u8(dst, n)?;
+
+    for (sym, _) in ctx.alphabet.iter().enumerate().filter(|(_, a)| **a) {
+        // SAFETY: `sym` < `ALPHABET_SIZE`.
+        write_u8(dst, sym as u8)?;
+    }
+
+    let n = u32::try_from(compressed_size)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_uint7(dst, n)?;
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -152,6 +172,26 @@ mod tests {
         assert_eq!(
             build_mapping_table(&alphabet),
             Err(BuildContextError::TooManySymbols(17))
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_context() -> Result<(), Box<dyn std::error::Error>> {
+        let src = b"ndls";
+        let ctx = build_context(src)?;
+
+        let mut dst = Vec::new();
+        write_context(&mut dst, &ctx, 1)?;
+
+        assert_eq!(
+            dst,
+            [
+                0x04, // symbol count = 4
+                b'd', b'l', b'n', b's', // mapping table
+                0x01, // compressed size = 1
+            ]
         );
 
         Ok(())
