@@ -1,49 +1,32 @@
+mod context;
+
 use std::io;
 
+pub use self::context::{Context, build_context};
 use crate::{
     codecs::rans_nx16::ALPHABET_SIZE,
     io::writer::num::{write_u8, write_uint7},
 };
 
-pub fn encode(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
-    let mut frequencies = [0; 256];
+pub fn encode(src: &[u8], ctx: &Context) -> io::Result<(Vec<u8>, Vec<u8>)> {
+    let mapping_table = &ctx.mapping_table;
 
-    for &b in src {
-        let sym = usize::from(b);
-        frequencies[sym] += 1;
-    }
-
-    let mut mapping_table = [0; ALPHABET_SIZE];
-    let mut n = 0;
-
-    for (sym, &f) in frequencies.iter().enumerate() {
-        if f > 0 {
-            mapping_table[sym] = n;
-            n += 1;
-        }
-    }
-
-    let buf = match n {
+    let buf = match ctx.symbol_count.get() {
         1 => Vec::new(),
-        2 => pack(src, &mapping_table, 8),
-        3..=4 => pack(src, &mapping_table, 4),
-        5..=16 => pack(src, &mapping_table, 2),
-        _ => {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "unique symbols > 16",
-            ));
-        }
+        2 => pack(src, mapping_table, 8),
+        3..=4 => pack(src, mapping_table, 4),
+        5..=16 => pack(src, mapping_table, 2),
+        _ => unreachable!(),
     };
 
     let mut header = Vec::new();
+
+    let n = u8::try_from(ctx.symbol_count.get())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_u8(&mut header, n)?;
 
-    for (sym, &f) in frequencies.iter().enumerate() {
-        if f > 0 {
-            let b = sym as u8;
-            write_u8(&mut header, b)?;
-        }
+    for (sym, _) in ctx.alphabet.iter().enumerate().filter(|(_, a)| **a) {
+        write_u8(&mut header, sym as u8)?;
     }
 
     let len = buf.len() as u32;

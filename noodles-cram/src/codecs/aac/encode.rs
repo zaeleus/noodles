@@ -26,8 +26,9 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut pack_header = None;
 
     if flags.contains(Flags::PACK) {
-        match bit_pack::encode(&src) {
-            Ok((header, buf)) => {
+        match bit_pack::build_context(&src) {
+            Ok(ctx) => {
+                let (header, buf) = bit_pack::encode(&src, &ctx)?;
                 pack_header = Some(header);
                 src = buf;
             }
