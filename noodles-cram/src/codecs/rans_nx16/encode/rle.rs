@@ -1,37 +1,11 @@
+mod context;
+
 use std::io::{self, Write};
 
+pub use self::context::{Context, build_context};
 use crate::io::writer::num::write_uint7;
 
-pub fn encode(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
-    let mut scores = [0; 256];
-
-    for window in src.windows(2) {
-        let prev_sym = usize::from(window[0]);
-        let curr_sym = usize::from(window[1]);
-
-        if curr_sym == prev_sym {
-            scores[curr_sym] += 1;
-        } else {
-            scores[curr_sym] -= 1;
-        }
-    }
-
-    let mut n = scores.iter().filter(|&&s| s > 0).count();
-
-    if n == 0 {
-        n = 1;
-        scores[0] = 1;
-    }
-
-    let mut meta = vec![n as u8];
-
-    for (i, &score) in scores.iter().enumerate() {
-        if score > 0 {
-            let sym = i as u8;
-            meta.push(sym);
-        }
-    }
-
+pub fn encode(src: &[u8], ctx: &mut Context) -> io::Result<(Vec<u8>, Vec<u8>)> {
     let mut buf = vec![0; src.len()];
     let mut end = 0;
 
@@ -41,7 +15,7 @@ pub fn encode(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
         buf[end] = src[i];
         end += 1;
 
-        if scores[src[i] as usize] > 0 {
+        if ctx.alphabet[src[i] as usize] > 0 {
             let mut run = 0;
             let last = src[i];
 
@@ -49,7 +23,7 @@ pub fn encode(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
                 run += 1;
             }
 
-            write_uint7(&mut meta, run as u32)?;
+            write_uint7(&mut ctx.dst, run as u32)?;
 
             i += run;
         }
@@ -61,13 +35,13 @@ pub fn encode(src: &[u8]) -> io::Result<(Vec<u8>, Vec<u8>)> {
 
     let mut header = Vec::new();
 
-    let rle_meta_len = meta.len() as u32;
+    let rle_meta_len = ctx.dst.len() as u32;
     write_uint7(&mut header, (rle_meta_len << 1) | 1)?;
 
     let len = buf.len() as u32;
     write_uint7(&mut header, len)?;
 
-    header.write_all(&meta)?;
+    header.write_all(&ctx.dst)?;
 
     Ok((header, buf))
 }

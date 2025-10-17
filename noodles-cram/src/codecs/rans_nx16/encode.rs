@@ -48,7 +48,8 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut rle_header = None;
 
     if flags.is_rle() {
-        let (header, buf) = rle::encode(&src)?;
+        let mut ctx = rle::build_context(&src)?;
+        let (header, buf) = rle::encode(&src, &mut ctx)?;
         rle_header = Some(header);
         src = buf;
     }
