@@ -45,17 +45,10 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         }
     }
 
-    let mut rle_header = None;
-
     if flags.is_rle() {
         let mut ctx = rle::build_context(&src)?;
-        let (header, buf) = rle::encode(&src, &mut ctx)?;
-        rle_header = Some(header);
-        src = buf;
-    }
-
-    if let Some(header) = rle_header {
-        dst.write_all(&header)?;
+        src = rle::encode(&src, &mut ctx)?;
+        rle::write_context(&mut dst, &ctx, src.len())?;
     }
 
     if src.len() < n {

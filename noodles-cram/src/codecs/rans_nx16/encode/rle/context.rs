@@ -3,7 +3,10 @@ use std::{
     num::{NonZero, Saturating},
 };
 
-use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_u8};
+use crate::{
+    codecs::rans_nx16::ALPHABET_SIZE,
+    io::writer::num::{write_u8, write_uint7},
+};
 
 pub struct Context {
     pub alphabet: [i32; ALPHABET_SIZE],
@@ -55,6 +58,20 @@ fn write_symbol_count(dst: &mut Vec<u8>, symbol_count: NonZero<usize>) -> io::Re
 
     // SAFETY: `n` < `ALPHABET_SIZE`.
     write_u8(dst, n as u8)
+}
+
+pub fn write_context(dst: &mut Vec<u8>, ctx: &Context, compressed_size: usize) -> io::Result<()> {
+    let n =
+        u32::try_from(ctx.dst.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_uint7(dst, (n << 1) | 1)?;
+
+    let n = u32::try_from(compressed_size)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_uint7(dst, n)?;
+
+    dst.extend(&ctx.dst);
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -117,6 +134,27 @@ mod tests {
         dst.clear();
         write_symbol_count(&mut dst, const { NonZero::new(256).unwrap() })?;
         assert_eq!(dst, [0x00]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_context() -> io::Result<()> {
+        let src = b"nnndlllllss";
+        let ctx = build_context(src)?;
+
+        let mut dst = Vec::new();
+        write_context(&mut dst, &ctx, 5)?;
+
+        assert_eq!(
+            dst,
+            [
+                0x07, // (context size = 3, is_compressed = false)
+                0x05, // compressed size
+                0x02, // symbol count
+                b'l', b'n', // alphabet
+            ]
+        );
 
         Ok(())
     }
