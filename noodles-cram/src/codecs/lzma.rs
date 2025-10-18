@@ -1,6 +1,6 @@
 use std::io::{self, Read, Write};
 
-use xz2::{bufread::XzDecoder, write::XzEncoder};
+use liblzma::{bufread::XzDecoder, write::XzEncoder};
 
 pub fn decode(src: &[u8], dst: &mut [u8]) -> io::Result<()> {
     let mut decoder = XzDecoder::new(src);
