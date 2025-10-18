@@ -46,7 +46,8 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     }
 
     if flags.is_rle() {
-        let mut ctx = rle::build_context(&src)?;
+        let mut ctx =
+            rle::build_context(&src).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         src = rle::encode(&src, &mut ctx)?;
         rle::write_context(&mut dst, &ctx, src.len())?;
     }
