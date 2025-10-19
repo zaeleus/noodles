@@ -6,7 +6,7 @@ use std::{
 use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_uint7};
 
 pub struct Context {
-    pub alphabet: [i32; ALPHABET_SIZE],
+    pub alphabet: [bool; ALPHABET_SIZE],
     pub dst: Vec<u8>,
 }
 
@@ -34,9 +34,9 @@ pub fn build_context(src: &[u8]) -> Result<Context, BuildContextError> {
         alphabet[usize::from(sym)] += delta;
     }
 
-    let alphabet = alphabet.map(|n| n.0);
+    let alphabet = alphabet.map(|n| n.0 > 0);
 
-    let n = alphabet.iter().filter(|&&n| n > 0).count();
+    let n = alphabet.iter().filter(|&&a| a).count();
     let symbol_count = NonZero::new(n).ok_or(BuildContextError::EmptyAlphabet)?;
 
     let mut dst = Vec::new();
@@ -47,12 +47,12 @@ pub fn build_context(src: &[u8]) -> Result<Context, BuildContextError> {
 
 fn write_alphabet(
     dst: &mut Vec<u8>,
-    alphabet: &[i32; ALPHABET_SIZE],
+    alphabet: &[bool; ALPHABET_SIZE],
     symbol_count: NonZero<usize>,
 ) {
     write_symbol_count(dst, symbol_count);
 
-    for (sym, _) in alphabet.iter().enumerate().filter(|(_, n)| **n > 0) {
+    for (sym, _) in alphabet.iter().enumerate().filter(|(_, a)| **a) {
         // SAFETY: `sym` < `ALPHABET_SIZE`.
         write_u8(dst, sym as u8);
     }
@@ -96,11 +96,9 @@ mod tests {
         let src = b"nnndlllllss";
         let ctx = build_context(src)?;
 
-        let mut expected_alphabet = [0; ALPHABET_SIZE];
-        expected_alphabet[usize::from(b'd')] = -1;
-        expected_alphabet[usize::from(b'l')] = 3;
-        expected_alphabet[usize::from(b'n')] = 2;
-        expected_alphabet[usize::from(b's')] = 0;
+        let mut expected_alphabet = [false; ALPHABET_SIZE];
+        expected_alphabet[usize::from(b'l')] = true;
+        expected_alphabet[usize::from(b'n')] = true;
         assert_eq!(ctx.alphabet, expected_alphabet);
 
         assert_eq!(
@@ -116,9 +114,8 @@ mod tests {
 
     #[test]
     fn test_write_alphabet() {
-        let mut alphabet = [0; ALPHABET_SIZE];
-        alphabet[usize::from(b'd')] = -1;
-        alphabet[usize::from(b'n')] = 1;
+        let mut alphabet = [false; ALPHABET_SIZE];
+        alphabet[usize::from(b'n')] = true;
 
         let symbol_count = const { NonZero::new(1).unwrap() };
 

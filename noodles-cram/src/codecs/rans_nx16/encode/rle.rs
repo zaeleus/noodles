@@ -15,7 +15,7 @@ pub fn encode(src: &[u8], ctx: &mut Context) -> io::Result<Vec<u8>> {
         buf[end] = src[i];
         end += 1;
 
-        if ctx.alphabet[src[i] as usize] > 0 {
+        if ctx.alphabet[src[i] as usize] {
             let mut run = 0;
             let last = src[i];
 
