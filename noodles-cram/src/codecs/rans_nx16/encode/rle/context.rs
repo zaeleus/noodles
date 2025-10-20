@@ -3,6 +3,7 @@ use std::{
     num::{NonZero, Saturating},
 };
 
+use super::write_u8;
 use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_uint7};
 
 pub struct Context {
@@ -81,10 +82,6 @@ pub fn write_context(dst: &mut Vec<u8>, ctx: &Context, compressed_size: usize) -
     dst.extend(&ctx.dst);
 
     Ok(())
-}
-
-fn write_u8(dst: &mut Vec<u8>, n: u8) {
-    dst.push(n);
 }
 
 #[cfg(test)]
