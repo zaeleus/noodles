@@ -34,3 +34,28 @@ pub fn encode(src: &[u8], ctx: &mut Context) -> io::Result<Vec<u8>> {
 fn write_u8(dst: &mut Vec<u8>, n: u8) {
     dst.push(n);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_encode() -> Result<(), Box<dyn std::error::Error>> {
+        let src = b"nnndlllllss";
+        let mut ctx = build_context(src)?;
+        let buf = encode(src, &mut ctx)?;
+
+        assert_eq!(buf, [b'n', b'd', b'l', b's', b's']);
+
+        assert_eq!(
+            ctx.dst,
+            [
+                0x02, // symbol count
+                b'l', b'n', // alphabet
+                0x02, 0x04, // run-lengths
+            ]
+        );
+
+        Ok(())
+    }
+}
