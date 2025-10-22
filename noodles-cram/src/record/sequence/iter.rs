@@ -138,8 +138,8 @@ impl<'r, 'c: 'r> Iterator for Iter<'r, 'c> {
                             if let Some(reference_sequence) = self.reference_sequence.as_ref() {
                                 let raw_reference_base = reference_sequence.at(reference_position);
 
-                                let reference_base = Base::try_from(raw_reference_base)
-                                    .expect("invalid reference base");
+                                let reference_base =
+                                    Base::try_from(raw_reference_base).unwrap_or(Base::N);
 
                                 let read_base = self.substitution_matrix.get(reference_base, *code);
 
@@ -214,7 +214,7 @@ mod tests {
 
     #[test]
     fn test_next() -> Result<(), Box<dyn std::error::Error>> {
-        let reference_sequence = b"CGTCCGTAACACTAGG";
+        let reference_sequence = b"CGTCYCGTAACACTAG";
 
         let features = [
             Feature::Bases {
@@ -234,36 +234,40 @@ mod tests {
                 position: Position::try_from(4)?,
                 code: 0b00,
             },
-            Feature::Insertion {
+            Feature::Substitution {
                 position: Position::try_from(5)?,
+                code: 0b11,
+            },
+            Feature::Insertion {
+                position: Position::try_from(6)?,
                 bases: b"G",
             },
             Feature::Deletion {
-                position: Position::try_from(6)?,
+                position: Position::try_from(7)?,
                 len: 1,
             },
             Feature::InsertBase {
-                position: Position::try_from(6)?,
+                position: Position::try_from(7)?,
                 base: b'A',
             },
             Feature::QualityScore {
-                position: Position::try_from(6)?,
+                position: Position::try_from(7)?,
                 quality_score: 0,
             },
             Feature::ReferenceSkip {
-                position: Position::try_from(7)?,
+                position: Position::try_from(8)?,
                 len: 1,
             },
             Feature::SoftClip {
-                position: Position::try_from(7)?,
+                position: Position::try_from(8)?,
                 bases: b"T",
             },
             Feature::Padding {
-                position: Position::try_from(8)?,
+                position: Position::try_from(9)?,
                 len: 1,
             },
             Feature::HardClip {
-                position: Position::try_from(8)?,
+                position: Position::try_from(9)?,
                 len: 1,
             },
         ];
@@ -273,11 +277,11 @@ mod tests {
             SubstitutionMatrix::default(),
             &features,
             Position::MIN,
-            8,
+            9,
         );
 
         let actual: Vec<_> = iter.collect();
-        assert_eq!(actual, b"CACAGATT");
+        assert_eq!(actual, b"CACATGATT");
 
         Ok(())
     }

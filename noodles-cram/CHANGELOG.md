@@ -9,6 +9,11 @@
     This incorrectly used the state count, which coincidentally tends to match
     the stream count.
 
+  * cram/record/sequence/iter: Read ambiguous substitition reference base as
+    any base (N) ([#355]).
+
+[#355]: https://github.com/zaeleus/noodles/discussions/355
+
 ## 0.86.0 - 2025-08-25
 
 ### Changed
