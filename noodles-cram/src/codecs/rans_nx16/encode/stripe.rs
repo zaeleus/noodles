@@ -18,23 +18,23 @@ pub(super) fn rans_encode_stripe(src: &[u8], n: usize) -> io::Result<Vec<u8>> {
         ulens.push(ulen);
     }
 
-    let mut chunks = vec![Vec::new(); n];
-    let t = transpose(src, &ulens);
+    let uncompressed_chunks = transpose(src, &ulens);
 
-    for (chunk, s) in chunks.iter_mut().zip(t.iter()) {
-        *chunk = super::encode(Flags::empty(), s)?;
-    }
+    let compressed_chunks: Vec<_> = uncompressed_chunks
+        .into_iter()
+        .map(|chunk| super::encode(Flags::empty(), &chunk))
+        .collect::<io::Result<_>>()?;
 
     let mut dst = Vec::new();
 
     write_u8(&mut dst, n as u8)?;
 
-    for chunk in &chunks {
+    for chunk in &compressed_chunks {
         let clen = chunk.len() as u32;
         write_uint7(&mut dst, clen)?;
     }
 
-    for chunk in &chunks {
+    for chunk in &compressed_chunks {
         dst.write_all(chunk)?;
     }
 
