@@ -27,10 +27,10 @@ where
         }
     }
 
-    pub(super) fn records<'a>(
-        &'a mut self,
-        header: &'a sam::Header,
-    ) -> impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'a {
+    pub(super) fn records<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+    ) -> impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r {
         let records: Box<dyn Iterator<Item = io::Result<_>>> = match self {
             Inner::Sam(reader) => Box::new(reader.records().map(|result| {
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)

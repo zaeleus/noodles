@@ -69,10 +69,10 @@ where
     /// assert!(records.next().is_none());
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn records<'a>(
-        &'a mut self,
-        header: &'a sam::Header,
-    ) -> impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'a {
+    pub fn records<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+    ) -> impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r {
         self.0.records(header)
     }
 }
