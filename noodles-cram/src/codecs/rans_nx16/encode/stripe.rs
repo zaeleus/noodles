@@ -5,13 +5,15 @@ use crate::{
     io::writer::num::{write_u8, write_uint7},
 };
 
-pub(super) fn rans_encode_stripe(src: &[u8], n: usize) -> io::Result<Vec<u8>> {
-    let mut ulens = Vec::with_capacity(n);
+const CHUNK_COUNT: usize = 4;
 
-    for j in 0..n {
-        let mut ulen = src.len() / n;
+pub(super) fn rans_encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
+    let mut ulens = Vec::with_capacity(CHUNK_COUNT);
 
-        if src.len() % n > j {
+    for j in 0..CHUNK_COUNT {
+        let mut ulen = src.len() / CHUNK_COUNT;
+
+        if src.len() % CHUNK_COUNT > j {
             ulen += 1;
         }
 
@@ -27,7 +29,7 @@ pub(super) fn rans_encode_stripe(src: &[u8], n: usize) -> io::Result<Vec<u8>> {
 
     let mut dst = Vec::new();
 
-    write_u8(&mut dst, n as u8)?;
+    write_u8(&mut dst, CHUNK_COUNT as u8)?;
 
     for chunk in &compressed_chunks {
         let clen = chunk.len() as u32;

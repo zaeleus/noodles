@@ -24,7 +24,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let n = flags.state_count();
 
     if flags.is_striped() {
-        let buf = stripe::rans_encode_stripe(&src, n)?;
+        let buf = stripe::rans_encode_stripe(&src)?;
         dst.extend(&buf);
         return Ok(dst);
     }
