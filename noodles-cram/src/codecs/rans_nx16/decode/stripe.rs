@@ -1,4 +1,7 @@
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    num::NonZero,
+};
 
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
@@ -20,26 +23,33 @@ pub(super) fn decode(src: &mut &[u8], uncompressed_size: usize) -> io::Result<Ve
     Ok(transpose(&chunks, uncompressed_size))
 }
 
-fn read_chunk_count<R>(reader: &mut R) -> io::Result<usize>
+fn read_chunk_count<R>(reader: &mut R) -> io::Result<NonZero<usize>>
 where
     R: Read,
 {
-    read_u8(reader).map(usize::from)
+    read_u8(reader).and_then(|n| {
+        NonZero::try_from(usize::from(n)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
-fn read_compressed_sizes<R>(reader: &mut R, chunk_count: usize) -> io::Result<Vec<usize>>
+fn read_compressed_sizes<R>(reader: &mut R, chunk_count: NonZero<usize>) -> io::Result<Vec<usize>>
 where
     R: Read,
 {
-    (0..chunk_count).map(|_| read_uint7_as(reader)).collect()
+    (0..chunk_count.get())
+        .map(|_| read_uint7_as(reader))
+        .collect()
 }
 
 // § 3.6 "Striped rANS Nx16" (2023-03-15): "The uncompressed data length may not necessary be an
 // exact multiple of _N_, in which case the latter uncompressed sub-streams may be 1 byte shorter."
-fn build_uncompressed_sizes(len: usize, chunk_count: usize) -> Vec<usize> {
-    (0..chunk_count)
+fn build_uncompressed_sizes(len: usize, chunk_count: NonZero<usize>) -> Vec<usize> {
+    let n = chunk_count.get();
+
+    (0..n)
         .map(|i| {
-            let (q, r) = (len / chunk_count, len % chunk_count);
+            // SAFETY: `n` > 0.
+            let (q, r) = (len / n, len % n);
             if r > i { q + 1 } else { q }
         })
         .collect()
@@ -77,7 +87,10 @@ mod tests {
     #[test]
     fn test_read_chunk_count() -> io::Result<()> {
         let src = [0x04];
-        assert_eq!(read_chunk_count(&mut &src[..])?, 4);
+        assert_eq!(
+            read_chunk_count(&mut &src[..])?,
+            const { NonZero::new(4).unwrap() }
+        );
 
         let src = [];
         assert!(matches!(
@@ -91,13 +104,21 @@ mod tests {
     #[test]
     fn test_read_compressed_sizes() -> io::Result<()> {
         let src = [0x05, 0x04, 0x04];
-        assert_eq!(read_compressed_sizes(&mut &src[..], 3)?, [5, 4, 4]);
+
+        assert_eq!(
+            read_compressed_sizes(&mut &src[..], const { NonZero::new(3).unwrap() })?,
+            [5, 4, 4]
+        );
+
         Ok(())
     }
 
     #[test]
     fn test_build_uncompressed_sizes() {
-        assert_eq!(build_uncompressed_sizes(13, 3), [5, 4, 4]);
+        assert_eq!(
+            build_uncompressed_sizes(13, const { NonZero::new(3).unwrap() }),
+            [5, 4, 4]
+        );
     }
 
     #[test]
