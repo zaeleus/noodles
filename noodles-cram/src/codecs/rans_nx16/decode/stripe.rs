@@ -2,11 +2,11 @@ use std::io::{self, Read};
 
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
-pub(super) fn decode(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
+pub(super) fn decode(src: &mut &[u8], uncompressed_size: usize) -> io::Result<Vec<u8>> {
     let chunk_count = read_chunk_count(src)?;
 
     let compressed_sizes = read_compressed_sizes(src, chunk_count)?;
-    let uncompressed_sizes = build_uncompressed_sizes(len, chunk_count);
+    let uncompressed_sizes = build_uncompressed_sizes(uncompressed_size, chunk_count);
 
     let chunks: Vec<_> = compressed_sizes
         .into_iter()
@@ -17,7 +17,7 @@ pub(super) fn decode(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
         })
         .collect::<io::Result<_>>()?;
 
-    Ok(transpose(&chunks, len))
+    Ok(transpose(&chunks, uncompressed_size))
 }
 
 fn read_chunk_count<R>(reader: &mut R) -> io::Result<usize>
