@@ -28,8 +28,7 @@ pub(super) fn rans_encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
         .collect::<io::Result<_>>()?;
 
     let mut dst = Vec::new();
-
-    write_u8(&mut dst, CHUNK_COUNT as u8)?;
+    write_chunk_count(&mut dst, compressed_chunks.len())?;
 
     for chunk in &compressed_chunks {
         let clen = chunk.len() as u32;
@@ -55,6 +54,15 @@ fn transpose(src: &[u8], chunk_sizes: &[usize]) -> Vec<Vec<u8>> {
     chunks
 }
 
+fn write_chunk_count(dst: &mut Vec<u8>, chunk_count: usize) -> io::Result<()> {
+    let n =
+        u8::try_from(chunk_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    write_u8(dst, n)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -68,5 +76,22 @@ mod tests {
             transpose(src, &chunk_sizes),
             [Vec::from(b"abcde"), Vec::from(b"ABCD"), Vec::from(b"1234")]
         )
+    }
+
+    #[test]
+    fn test_write_chunk_count() -> io::Result<()> {
+        let mut dst = Vec::new();
+
+        dst.clear();
+        write_chunk_count(&mut dst, 4)?;
+        assert_eq!(dst, [0x04]);
+
+        dst.clear();
+        assert!(matches!(
+            write_chunk_count(&mut dst, 256),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
     }
 }
