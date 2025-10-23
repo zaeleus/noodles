@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io;
 
 use crate::{
     codecs::rans_nx16::Flags,
@@ -30,10 +30,7 @@ pub(super) fn rans_encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = Vec::new();
     write_chunk_count(&mut dst, compressed_chunks.len())?;
     write_compressed_sizes(&mut dst, &compressed_chunks)?;
-
-    for chunk in &compressed_chunks {
-        dst.write_all(chunk)?;
-    }
+    dst.extend(compressed_chunks.into_iter().flatten());
 
     Ok(dst)
 }
