@@ -19,6 +19,25 @@ impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
+    /// Creates an async alignment reader.
+    ///
+    /// This attempts to autodetect the compression method and format of the input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use noodles_util::alignment;
+    /// use tokio::io;
+    /// let reader = alignment::r#async::io::Reader::new(io::empty()).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn new(reader: R) -> io::Result<Self> {
+        Builder::default().build_from_reader(reader).await
+    }
+
     /// Reads the SAM header.
     ///
     /// # Examples
@@ -26,9 +45,9 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_util::alignment::r#async::io::reader::Builder;
+    /// use noodles_util::alignment;
     /// use tokio::io;
-    /// let mut reader = Builder::default().build_from_reader(io::empty()).await?;
+    /// let mut reader = alignment::r#async::io::Reader::new(io::empty()).await?;
     /// let header = reader.read_header().await?;
     /// # Ok(())
     /// # }
@@ -45,10 +64,10 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
-    /// use noodles_util::alignment::r#async::io::reader::Builder;
+    /// use noodles_util::alignment;
     /// use tokio::io;
     ///
-    /// let mut reader = Builder::default().build_from_reader(io::empty()).await?;
+    /// let mut reader = alignment::r#async::io::Reader::new(io::empty()).await?;
     /// let header = reader.read_header().await?;
     ///
     /// let mut records = reader.records(&header);

@@ -7,6 +7,10 @@
   * util/variant/async/io/reader: Add variant record reader
     (`Reader::read_record`) ([#349]).
 
+  * util/alignment/io/reader: Add constructor (`Reader::new`).
+
+    This is similar to calling `Builder::build_from_reader` with defaults.
+
 [#349]: https://github.com/zaeleus/noodles/pull/349
 
 ### Changed
