@@ -1,19 +1,21 @@
-use std::io;
+use std::{io, num::NonZero};
 
 use crate::{
     codecs::rans_nx16::Flags,
     io::writer::num::{write_u8, write_uint7},
 };
 
-const CHUNK_COUNT: usize = 4;
+const CHUNK_COUNT: NonZero<usize> = NonZero::new(4).unwrap();
 
 pub(super) fn rans_encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
-    let mut ulens = Vec::with_capacity(CHUNK_COUNT);
+    let mut ulens = Vec::with_capacity(CHUNK_COUNT.get());
 
-    for j in 0..CHUNK_COUNT {
-        let mut ulen = src.len() / CHUNK_COUNT;
+    for j in 0..CHUNK_COUNT.get() {
+        // SAFETY: `CHUNK_COUNT` > 0.
+        let mut ulen = src.len() / CHUNK_COUNT.get();
 
-        if src.len() % CHUNK_COUNT > j {
+        // SAFETY: `CHUNK_COUNT` > 0.
+        if src.len() % CHUNK_COUNT.get() > j {
             ulen += 1;
         }
 
@@ -28,7 +30,7 @@ pub(super) fn rans_encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
         .collect::<io::Result<_>>()?;
 
     let mut dst = Vec::new();
-    write_chunk_count(&mut dst, compressed_chunks.len())?;
+    write_chunk_count(&mut dst, CHUNK_COUNT)?;
     write_compressed_sizes(&mut dst, &compressed_chunks)?;
     dst.extend(compressed_chunks.into_iter().flatten());
 
@@ -47,9 +49,9 @@ fn transpose(src: &[u8], chunk_sizes: &[usize]) -> Vec<Vec<u8>> {
     chunks
 }
 
-fn write_chunk_count(dst: &mut Vec<u8>, chunk_count: usize) -> io::Result<()> {
-    let n =
-        u8::try_from(chunk_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+fn write_chunk_count(dst: &mut Vec<u8>, chunk_count: NonZero<usize>) -> io::Result<()> {
+    let n = u8::try_from(chunk_count.get())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     write_u8(dst, n)?;
 
@@ -87,12 +89,12 @@ mod tests {
         let mut dst = Vec::new();
 
         dst.clear();
-        write_chunk_count(&mut dst, 4)?;
+        write_chunk_count(&mut dst, const { NonZero::new(4).unwrap() })?;
         assert_eq!(dst, [0x04]);
 
         dst.clear();
         assert!(matches!(
-            write_chunk_count(&mut dst, 256),
+            write_chunk_count(&mut dst, const { NonZero::new(256).unwrap() }),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
