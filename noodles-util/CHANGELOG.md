@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+  * util/variant/async/io/reader: Add variant record reader
+    (`Reader::read_record`) ([#349]).
+
+[#349]: https://github.com/zaeleus/noodles/pull/349
+
 ### Changed
 
   * util: Wrap inner readers and writers ([#348]).
@@ -12,13 +19,6 @@
     to a generic source or sink.
 
 [#348]: https://github.com/zaeleus/noodles/pull/348
-
-### Added
-
-  * util/variant/async/io/reader: Add variant record reader
-    (`Reader::read_record`) ([#349]).
-
-[#349]: https://github.com/zaeleus/noodles/pull/349
 
 ## 0.70.0 - 2025-08-25
 
