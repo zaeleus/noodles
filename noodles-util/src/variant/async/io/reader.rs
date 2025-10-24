@@ -27,13 +27,10 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_util::variant::r#async::io::reader::Builder;
+    /// use noodles_util::variant;
     ///
-    /// let data = b"##fileformat=VCFv4.5
-    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-    /// ";
-    ///
-    /// let mut reader = Builder::default().build_from_reader(&data[..]).await?;
+    /// let src = b"##fileformat=VCFv4.5\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+    /// let mut reader = variant::r#async::io::Reader::new(&src[..]).await?;
     /// let _header = reader.read_header().await?;
     /// # Ok(())
     /// # }
@@ -49,13 +46,10 @@ where
     /// ```
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
-    /// use noodles_util::variant::{self, r#async::io::reader::Builder};
+    /// use noodles_util::variant;
     ///
-    /// let data = b"##fileformat=VCFv4.5
-    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-    /// ";
-    ///
-    /// let mut reader = Builder::default().build_from_reader(&data[..]).await?;
+    /// let src = b"##fileformat=VCFv4.5\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+    /// let mut reader = variant::r#async::io::Reader::new(&src[..]).await?;
     /// let header = reader.read_header().await?;
     ///
     /// let mut record = variant::Record::default();
@@ -78,13 +72,10 @@ where
     /// # #[tokio::main]
     /// # async fn main() -> tokio::io::Result<()> {
     /// use futures::TryStreamExt;
-    /// use noodles_util::variant::r#async::io::reader::Builder;
+    /// use noodles_util::variant;
     ///
-    /// let data = b"##fileformat=VCFv4.5
-    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-    /// ";
-    ///
-    /// let mut reader = Builder::default().build_from_reader(&data[..]).await?;
+    /// let src = b"##fileformat=VCFv4.5\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+    /// let mut reader = variant::r#async::io::Reader::new(&src[..]).await?;
     /// reader.read_header().await?;
     ///
     /// let mut records = reader.records();

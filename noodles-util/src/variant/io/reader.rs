@@ -23,13 +23,11 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::io::reader::Builder;
+    /// use noodles_util::variant;
     ///
-    /// let data = b"##fileformat=VCFv4.5
-    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-    /// ";
+    /// let src = b"##fileformat=VCFv4.5\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+    /// let mut reader = variant::io::Reader::new(&src[..])?;
     ///
-    /// let mut reader = Builder::default().build_from_reader(&data[..])?;
     /// let _header = reader.read_header()?;
     /// # Ok::<_, std::io::Error>(())
     /// ```
@@ -42,13 +40,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::{self, io::reader::Builder};
+    /// use noodles_util::variant;
     ///
-    /// let data = b"##fileformat=VCFv4.5
-    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-    /// ";
-    ///
-    /// let mut reader = Builder::default().build_from_reader(&data[..])?;
+    /// let src = b"##fileformat=VCFv4.5\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+    /// let mut reader = variant::io::Reader::new(&src[..])?;
     /// let header = reader.read_header()?;
     ///
     /// let mut record = variant::Record::default();
@@ -67,19 +62,16 @@ where
     /// # Examples
     ///
     /// ```
-    /// use noodles_util::variant::io::reader::Builder;
+    /// use noodles_util::variant;
     ///
-    /// let data = b"##fileformat=VCFv4.5
-    /// #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
-    /// ";
-    ///
-    /// let mut reader = Builder::default().build_from_reader(&data[..])?;
+    /// let src = b"##fileformat=VCFv4.5\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+    /// let mut reader = variant::io::Reader::new(&src[..])?;
     /// let header = reader.read_header()?;
     ///
     /// let mut records = reader.records(&header);
     ///
     /// for result in records {
-    ///     let _record = result?;
+    ///     let record = result?;
     ///     // ...
     /// }
     /// # Ok::<_, std::io::Error>(())
