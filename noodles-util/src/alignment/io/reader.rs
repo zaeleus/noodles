@@ -22,25 +22,10 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{self, Cursor};
-    /// use noodles_sam::{
-    ///     self as sam,
-    ///     header::record::value::{map::{self, header::Version}, Map},
-    /// };
+    /// # use std::io;
     /// use noodles_util::alignment;
-    ///
-    /// let data = Cursor::new(b"@HD\tVN:1.6
-    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
-    /// ");
-    ///
-    /// let mut reader = alignment::io::reader::Builder::default().build_from_reader(data)?;
-    /// let actual = reader.read_header()?;
-    ///
-    /// let expected = sam::Header::builder()
-    ///     .set_header(Map::<map::Header>::new(Version::new(1, 6)))
-    ///     .build();
-    ///
-    /// assert_eq!(actual, expected);
+    /// let mut reader = alignment::io::reader::Builder::default().build_from_reader(io::empty())?;
+    /// let header = reader.read_header()?;
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
@@ -52,21 +37,17 @@ where
     /// # Examples
     ///
     /// ```
-    /// # use std::io::{self, Cursor};
-    /// use noodles_sam as sam;
+    /// # use std::io;
     /// use noodles_util::alignment;
     ///
-    /// let data = Cursor::new(b"@HD\tVN:1.6
-    /// *\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*
-    /// ");
-    ///
-    /// let mut reader = alignment::io::reader::Builder::default().build_from_reader(data)?;
+    /// let mut reader = alignment::io::reader::Builder::default().build_from_reader(io::empty())?;
     /// let header = reader.read_header()?;
-    ///
     /// let mut records = reader.records(&header);
     ///
-    /// assert!(records.next().transpose()?.is_some());
-    /// assert!(records.next().is_none());
+    /// for result in records {
+    ///     let record = result?;
+    ///     // ...
+    /// }
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn records<'r, 'h: 'r>(

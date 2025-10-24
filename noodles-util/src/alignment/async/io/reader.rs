@@ -29,7 +29,7 @@ where
     /// use noodles_util::alignment::r#async::io::reader::Builder;
     /// use tokio::io;
     /// let mut reader = Builder::default().build_from_reader(io::empty()).await?;
-    /// let _header = reader.read_header().await?;
+    /// let header = reader.read_header().await?;
     /// # Ok(())
     /// # }
     /// ```
