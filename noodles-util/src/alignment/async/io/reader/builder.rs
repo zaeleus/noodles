@@ -112,7 +112,7 @@ impl Builder {
     /// ```
     pub async fn build_from_reader<R>(self, reader: R) -> io::Result<Reader<R>>
     where
-        R: AsyncRead + Unpin + 'static,
+        R: AsyncRead + Unpin,
     {
         use super::Inner;
         use crate::alignment::io::reader::builder::{detect_compression_method, detect_format};

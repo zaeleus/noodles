@@ -18,6 +18,9 @@
     object. It is now the responsibility of the caller to convert the inner I/O
     to a generic source or sink.
 
+  * util/alignment/async/io/reader/builder: Relax reader lifetime for
+    `Builder::build_from_reader`.
+
 [#348]: https://github.com/zaeleus/noodles/pull/348
 
 ## 0.70.0 - 2025-08-25
