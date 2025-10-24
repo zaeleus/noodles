@@ -8,21 +8,8 @@ use crate::{
 const CHUNK_COUNT: NonZero<usize> = NonZero::new(4).unwrap();
 
 pub(super) fn rans_encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
-    let mut ulens = Vec::with_capacity(CHUNK_COUNT.get());
-
-    for j in 0..CHUNK_COUNT.get() {
-        // SAFETY: `CHUNK_COUNT` > 0.
-        let mut ulen = src.len() / CHUNK_COUNT.get();
-
-        // SAFETY: `CHUNK_COUNT` > 0.
-        if src.len() % CHUNK_COUNT.get() > j {
-            ulen += 1;
-        }
-
-        ulens.push(ulen);
-    }
-
-    let uncompressed_chunks = transpose(src, &ulens);
+    let uncompressed_sizes = build_uncompressed_sizes(src.len(), CHUNK_COUNT);
+    let uncompressed_chunks = transpose(src, &uncompressed_sizes);
 
     let compressed_chunks: Vec<_> = uncompressed_chunks
         .into_iter()
@@ -35,6 +22,20 @@ pub(super) fn rans_encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
     dst.extend(compressed_chunks.into_iter().flatten());
 
     Ok(dst)
+}
+
+// § 3.6 "Striped rANS Nx16" (2023-03-15): "The uncompressed data length may not necessary be an
+// exact multiple of _N_, in which case the latter uncompressed sub-streams may be 1 byte shorter."
+fn build_uncompressed_sizes(len: usize, chunk_count: NonZero<usize>) -> Vec<usize> {
+    let n = chunk_count.get();
+
+    (0..n)
+        .map(|i| {
+            // SAFETY: `n` > 0.
+            let (q, r) = (len / n, len % n);
+            if r > i { q + 1 } else { q }
+        })
+        .collect()
 }
 
 fn transpose(src: &[u8], chunk_sizes: &[usize]) -> Vec<Vec<u8>> {
@@ -72,6 +73,14 @@ fn write_compressed_sizes(dst: &mut Vec<u8>, chunks: &[Vec<u8>]) -> io::Result<(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_build_uncompressed_sizes() {
+        assert_eq!(
+            build_uncompressed_sizes(13, const { NonZero::new(3).unwrap() }),
+            [5, 4, 4]
+        );
+    }
 
     #[test]
     fn test_transpose() {
