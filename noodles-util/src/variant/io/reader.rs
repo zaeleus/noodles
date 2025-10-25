@@ -92,6 +92,8 @@ where
     ///
     /// This attempts to autodetect the compression method and format of the input.
     ///
+    /// # Examples
+    ///
     /// ```
     /// # use std::io;
     /// use noodles_util::variant;
