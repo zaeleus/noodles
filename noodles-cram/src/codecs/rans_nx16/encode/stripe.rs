@@ -7,7 +7,7 @@ use crate::{
 
 const CHUNK_COUNT: NonZero<usize> = NonZero::new(4).unwrap();
 
-pub(super) fn rans_encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
+pub(super) fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     let uncompressed_sizes = build_uncompressed_sizes(src.len(), CHUNK_COUNT);
     let uncompressed_chunks = transpose(src, &uncompressed_sizes);
 
@@ -73,6 +73,25 @@ fn write_compressed_sizes(dst: &mut Vec<u8>, chunks: &[Vec<u8>]) -> io::Result<(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_encode() -> io::Result<()> {
+        let src = b"ndls";
+        let actual = encode(src)?;
+
+        let expected = [
+            0x04, // chunk count = 4
+            0x02, 0x02, 0x02, 0x02, // compressed sizes = [2, 2, 2, 2]
+            0x30, 0x6e, // chunks[0]
+            0x30, 0x64, // chunks[1]
+            0x30, 0x6c, // chunks[2]
+            0x30, 0x73, // chunks[3]
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_build_uncompressed_sizes() {
