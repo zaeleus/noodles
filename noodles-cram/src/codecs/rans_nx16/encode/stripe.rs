@@ -13,7 +13,7 @@ pub(super) fn rans_encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
 
     let compressed_chunks: Vec<_> = uncompressed_chunks
         .into_iter()
-        .map(|chunk| super::encode(Flags::empty(), &chunk))
+        .map(|chunk| super::encode(Flags::NO_SIZE, &chunk))
         .collect::<io::Result<_>>()?;
 
     let mut dst = Vec::new();
