@@ -1,4 +1,4 @@
-//! rANS 4x8 codec.
+//! rANS Nx16 codec.
 
 pub(crate) mod decode;
 pub(crate) mod encode;
