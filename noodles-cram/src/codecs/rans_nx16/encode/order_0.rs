@@ -3,11 +3,8 @@ use std::{
     mem,
 };
 
-use super::{build_frequencies, normalize_frequencies};
-use crate::{
-    codecs::rans_nx16::ALPHABET_SIZE,
-    io::writer::num::{write_u32_le, write_uint7},
-};
+use super::{build_frequencies, normalize_frequencies, write_states};
+use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_uint7};
 
 const NORMALIZATION_BITS: u32 = 12;
 
@@ -45,11 +42,7 @@ pub fn encode(src: &[u8], ctx: &Context, n: usize) -> io::Result<Vec<u8>> {
     }
 
     let mut dst = Vec::with_capacity(states.len() * mem::size_of::<u32>() + buf.len());
-
-    for &state in &states {
-        write_u32_le(&mut dst, state)?;
-    }
-
+    write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
     Ok(dst)

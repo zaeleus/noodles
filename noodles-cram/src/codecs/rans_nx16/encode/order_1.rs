@@ -3,7 +3,8 @@ use std::{
     mem,
 };
 
-use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
+use super::write_states;
+use crate::io::writer::num::{write_u8, write_uint7};
 
 pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
     use super::{LOWER_BOUND, normalize, update};
@@ -60,11 +61,7 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
     }
 
     let mut dst = Vec::with_capacity(n * mem::size_of::<u32>() + buf.len());
-
-    for &state in &states {
-        write_u32_le(&mut dst, state)?;
-    }
-
+    write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
     Ok((freq, dst))

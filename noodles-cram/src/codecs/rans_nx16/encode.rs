@@ -7,7 +7,7 @@ mod stripe;
 use std::io::{self, Write};
 
 use super::{ALPHABET_SIZE, Flags};
-use crate::io::writer::num::{write_u8, write_uint7};
+use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
 
 // § 3 "rANS Nx16" (2023-03-15): "The lower-bound and initial encoder state _L_ is [...] 0x8000."
 const LOWER_BOUND: u32 = 0x8000;
@@ -81,6 +81,14 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
 
 fn write_flags(dst: &mut Vec<u8>, flags: Flags) -> io::Result<()> {
     write_u8(dst, u8::from(flags))
+}
+
+fn write_states(dst: &mut Vec<u8>, states: &[u32]) -> io::Result<()> {
+    for &state in states {
+        write_u32_le(dst, state)?;
+    }
+
+    Ok(())
 }
 
 fn build_frequencies(src: &[u8]) -> [u32; ALPHABET_SIZE] {
