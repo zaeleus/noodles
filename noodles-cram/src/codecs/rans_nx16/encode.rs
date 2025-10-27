@@ -24,7 +24,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         write_uint7(&mut dst, n)?;
     }
 
-    let n = flags.state_count();
+    let state_count = flags.state_count();
 
     if flags.is_striped() {
         let buf = stripe::encode(&src)?;
@@ -55,7 +55,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         rle::write_context(&mut dst, &ctx, src.len())?;
     }
 
-    if src.len() < n {
+    if src.len() < state_count {
         flags.remove(Flags::ORDER);
         flags.insert(Flags::CAT);
         dst[0] = u8::from(flags);
@@ -64,11 +64,11 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     if flags.is_uncompressed() {
         dst.write_all(&src)?;
     } else if flags.order() == 0 {
-        let (normalized_frequencies, compressed_data) = order_0::encode(&src, n)?;
+        let (normalized_frequencies, compressed_data) = order_0::encode(&src, state_count)?;
         order_0::write_frequencies(&mut dst, &normalized_frequencies)?;
         dst.write_all(&compressed_data)?;
     } else {
-        let (normalized_contexts, compressed_data) = order_1::encode(&src, n)?;
+        let (normalized_contexts, compressed_data) = order_1::encode(&src, state_count)?;
         // bits = 12, no compression (0)
         write_u8(&mut dst, 12 << 4)?;
         order_1::write_contexts(&mut dst, &normalized_contexts)?;
