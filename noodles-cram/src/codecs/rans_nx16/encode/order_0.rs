@@ -9,7 +9,7 @@ use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_uint7};
 const NORMALIZATION_BITS: u32 = 12;
 
 pub(super) struct Context {
-    pub(super) frequencies: [u32; ALPHABET_SIZE],
+    frequencies: [u32; ALPHABET_SIZE],
 }
 
 pub(super) fn build_context(src: &[u8]) -> Context {
@@ -19,6 +19,10 @@ pub(super) fn build_context(src: &[u8]) -> Context {
     Context {
         frequencies: normalized_frequencies,
     }
+}
+
+pub(super) fn write_context(dst: &mut Vec<u8>, ctx: &Context) -> io::Result<()> {
+    write_frequencies(dst, &ctx.frequencies)
 }
 
 pub fn encode(src: &[u8], ctx: &Context, n: usize) -> io::Result<Vec<u8>> {

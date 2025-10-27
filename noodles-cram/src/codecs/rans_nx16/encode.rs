@@ -66,7 +66,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     } else if flags.order() == 0 {
         let ctx = order_0::build_context(&src);
         let compressed_data = order_0::encode(&src, &ctx, state_count)?;
-        order_0::write_frequencies(&mut dst, &ctx.frequencies)?;
+        order_0::write_context(&mut dst, &ctx)?;
         dst.write_all(&compressed_data)?;
     } else {
         let (normalized_contexts, compressed_data) = order_1::encode(&src, state_count)?;
