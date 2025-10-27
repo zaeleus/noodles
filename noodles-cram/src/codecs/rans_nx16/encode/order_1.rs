@@ -157,7 +157,7 @@ fn normalize_contexts(contexts: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
 
     contexts
         .into_iter()
-        .map(|frequencies| normalize_frequencies(&frequencies))
+        .map(|frequencies| normalize_frequencies(&frequencies).to_vec())
         .collect()
 }
 

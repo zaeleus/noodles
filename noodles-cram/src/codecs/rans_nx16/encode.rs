@@ -93,7 +93,7 @@ fn build_frequencies(src: &[u8]) -> [u32; ALPHABET_SIZE] {
     frequencies
 }
 
-fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
+fn normalize_frequencies(frequencies: &[u32]) -> [u32; ALPHABET_SIZE] {
     use std::cmp::Ordering;
 
     const SCALE: u32 = 4096;
@@ -101,10 +101,10 @@ fn normalize_frequencies(frequencies: &[u32]) -> Vec<u32> {
     let (max_index, sum) = describe_frequencies(frequencies);
 
     if sum == 0 {
-        return vec![0; frequencies.len()];
+        return [0; ALPHABET_SIZE];
     }
 
-    let mut normalized_frequencies = vec![0; frequencies.len()];
+    let mut normalized_frequencies = [0; ALPHABET_SIZE];
     let mut normalized_sum = 0;
 
     for (&f, g) in frequencies.iter().zip(normalized_frequencies.iter_mut()) {

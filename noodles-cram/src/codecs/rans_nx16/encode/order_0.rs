@@ -3,11 +3,14 @@ use std::{
     mem,
 };
 
-use crate::io::writer::num::{write_u32_le, write_uint7};
+use crate::{
+    codecs::rans_nx16::ALPHABET_SIZE,
+    io::writer::num::{write_u32_le, write_uint7},
+};
 
 const NORMALIZATION_BITS: u32 = 12;
 
-pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<u32>, Vec<u8>)> {
+pub fn encode(src: &[u8], n: usize) -> io::Result<([u32; ALPHABET_SIZE], Vec<u8>)> {
     use super::{
         LOWER_BOUND, build_cumulative_frequencies, build_frequencies, normalize,
         normalize_frequencies, update,
