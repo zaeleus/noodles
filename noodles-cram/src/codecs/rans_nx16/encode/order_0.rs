@@ -5,6 +5,8 @@ use std::{
 
 use crate::io::writer::num::{write_u32_le, write_uint7};
 
+const NORMALIZATION_BITS: u32 = 12;
+
 pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<u32>, Vec<u8>)> {
     use super::{
         LOWER_BOUND, build_cumulative_frequencies, build_frequencies, normalize,
@@ -26,8 +28,8 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<u32>, Vec<u8>)> {
         let freq_i = freq[usize::from(sym)];
         let cfreq_i = cfreq[usize::from(sym)];
 
-        x = normalize(&mut buf, x, freq_i, 12)?;
-        states[j] = update(x, cfreq_i, freq_i, 12);
+        x = normalize(&mut buf, x, freq_i, NORMALIZATION_BITS)?;
+        states[j] = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
     }
 
     let mut dst = Vec::with_capacity(states.len() * mem::size_of::<u32>() + buf.len());
