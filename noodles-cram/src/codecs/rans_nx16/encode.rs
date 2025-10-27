@@ -64,8 +64,9 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     if flags.is_uncompressed() {
         dst.write_all(&src)?;
     } else if flags.order() == 0 {
-        let (normalized_frequencies, compressed_data) = order_0::encode(&src, state_count)?;
-        order_0::write_frequencies(&mut dst, &normalized_frequencies)?;
+        let ctx = order_0::build_context(&src);
+        let compressed_data = order_0::encode(&src, &ctx, state_count)?;
+        order_0::write_frequencies(&mut dst, &ctx.frequencies)?;
         dst.write_all(&compressed_data)?;
     } else {
         let (normalized_contexts, compressed_data) = order_1::encode(&src, state_count)?;

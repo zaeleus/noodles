@@ -3,6 +3,7 @@ use std::{
     mem,
 };
 
+use super::{build_frequencies, normalize_frequencies};
 use crate::{
     codecs::rans_nx16::ALPHABET_SIZE,
     io::writer::num::{write_u32_le, write_uint7},
@@ -10,16 +11,24 @@ use crate::{
 
 const NORMALIZATION_BITS: u32 = 12;
 
-pub fn encode(src: &[u8], n: usize) -> io::Result<([u32; ALPHABET_SIZE], Vec<u8>)> {
-    use super::{
-        LOWER_BOUND, build_cumulative_frequencies, build_frequencies, normalize,
-        normalize_frequencies, update,
-    };
+pub(super) struct Context {
+    pub(super) frequencies: [u32; ALPHABET_SIZE],
+}
 
+pub(super) fn build_context(src: &[u8]) -> Context {
     let frequencies = build_frequencies(src);
+    let normalized_frequencies = normalize_frequencies(&frequencies);
 
-    let freq = normalize_frequencies(&frequencies);
-    let cfreq = build_cumulative_frequencies(&freq);
+    Context {
+        frequencies: normalized_frequencies,
+    }
+}
+
+pub fn encode(src: &[u8], ctx: &Context, n: usize) -> io::Result<Vec<u8>> {
+    use super::{LOWER_BOUND, build_cumulative_frequencies, normalize, update};
+
+    let frequencies = &ctx.frequencies;
+    let cumulative_frequencies = build_cumulative_frequencies(frequencies);
 
     let mut buf = Vec::new();
     let mut states = vec![LOWER_BOUND; n];
@@ -28,8 +37,8 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<([u32; ALPHABET_SIZE], Vec<u8>
         let j = i % states.len();
 
         let mut x = states[j];
-        let freq_i = freq[usize::from(sym)];
-        let cfreq_i = cfreq[usize::from(sym)];
+        let freq_i = frequencies[usize::from(sym)];
+        let cfreq_i = cumulative_frequencies[usize::from(sym)];
 
         x = normalize(&mut buf, x, freq_i, NORMALIZATION_BITS)?;
         states[j] = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
@@ -43,7 +52,7 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<([u32; ALPHABET_SIZE], Vec<u8>
 
     dst.extend(buf.iter().rev());
 
-    Ok((freq, dst))
+    Ok(dst)
 }
 
 pub fn write_frequencies<W>(writer: &mut W, frequencies: &[u32]) -> io::Result<()>
