@@ -9,6 +9,9 @@ use std::io::{self, Write};
 use super::{ALPHABET_SIZE, Flags};
 use crate::io::writer::num::{write_u8, write_uint7};
 
+// § 3 "rANS Nx16" (2023-03-15): "The lower-bound and initial encoder state _L_ is [...] 0x8000."
+const LOWER_BOUND: u32 = 0x8000;
+
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut src = src.to_vec();
     let mut dst = Vec::new();

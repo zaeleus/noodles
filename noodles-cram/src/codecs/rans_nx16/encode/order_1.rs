@@ -6,9 +6,7 @@ use std::{
 use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
 
 pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
-    use super::{normalize, update};
-
-    const LOWER_BOUND: u32 = 0x8000;
+    use super::{LOWER_BOUND, normalize, update};
 
     let contexts = build_contexts(src, n);
     let freq = normalize_contexts(contexts);

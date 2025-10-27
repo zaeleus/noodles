@@ -7,10 +7,9 @@ use crate::io::writer::num::{write_u32_le, write_uint7};
 
 pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<u32>, Vec<u8>)> {
     use super::{
-        build_cumulative_frequencies, build_frequencies, normalize, normalize_frequencies, update,
+        LOWER_BOUND, build_cumulative_frequencies, build_frequencies, normalize,
+        normalize_frequencies, update,
     };
-
-    const LOWER_BOUND: u32 = 0x8000;
 
     let frequencies = build_frequencies(src);
 
