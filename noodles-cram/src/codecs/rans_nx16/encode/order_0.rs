@@ -1,9 +1,6 @@
-use std::{
-    io::{self, Write},
-    mem,
-};
+use std::io::{self, Write};
 
-use super::{build_frequencies, normalize_frequencies, write_states};
+use super::{LOWER_BOUND, build_frequencies, normalize_frequencies, write_states};
 use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_uint7};
 
 const NORMALIZATION_BITS: u32 = 12;
@@ -25,14 +22,14 @@ pub(super) fn write_context(dst: &mut Vec<u8>, ctx: &Context) -> io::Result<()> 
     write_frequencies(dst, &ctx.frequencies)
 }
 
-pub fn encode(src: &[u8], ctx: &Context, n: usize) -> io::Result<Vec<u8>> {
-    use super::{LOWER_BOUND, build_cumulative_frequencies, normalize, update};
+pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) -> io::Result<()> {
+    use super::{build_cumulative_frequencies, normalize, update};
 
     let frequencies = &ctx.frequencies;
     let cumulative_frequencies = build_cumulative_frequencies(frequencies);
 
     let mut buf = Vec::new();
-    let mut states = vec![LOWER_BOUND; n];
+    let mut states = vec![LOWER_BOUND; state_count];
 
     for (i, &sym) in src.iter().enumerate().rev() {
         let j = i % states.len();
@@ -45,11 +42,10 @@ pub fn encode(src: &[u8], ctx: &Context, n: usize) -> io::Result<Vec<u8>> {
         states[j] = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
     }
 
-    let mut dst = Vec::with_capacity(states.len() * mem::size_of::<u32>() + buf.len());
-    write_states(&mut dst, &states)?;
+    write_states(dst, &states)?;
     dst.extend(buf.iter().rev());
 
-    Ok(dst)
+    Ok(())
 }
 
 pub fn write_frequencies<W>(writer: &mut W, frequencies: &[u32]) -> io::Result<()>
