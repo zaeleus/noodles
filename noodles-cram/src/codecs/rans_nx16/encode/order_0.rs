@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{LOWER_BOUND, build_frequencies, normalize_frequencies, write_states};
+use super::{LOWER_BOUND, normalize, update, write_states};
 use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_uint7};
 
 const NORMALIZATION_BITS: u32 = 12;
@@ -23,8 +23,6 @@ pub(super) fn write_context(dst: &mut Vec<u8>, ctx: &Context) -> io::Result<()> 
 }
 
 pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) -> io::Result<()> {
-    use super::{build_cumulative_frequencies, normalize, update};
-
     let frequencies = &ctx.frequencies;
     let cumulative_frequencies = build_cumulative_frequencies(frequencies);
 
@@ -63,4 +61,80 @@ where
     }
 
     Ok(())
+}
+
+fn build_frequencies(src: &[u8]) -> [u32; ALPHABET_SIZE] {
+    let mut frequencies = [0; ALPHABET_SIZE];
+
+    for &b in src {
+        let i = usize::from(b);
+        frequencies[i] += 1;
+    }
+
+    frequencies
+}
+
+pub(super) fn normalize_frequencies(frequencies: &[u32]) -> [u32; ALPHABET_SIZE] {
+    use std::cmp::Ordering;
+
+    const SCALE: u32 = 4096;
+
+    let (max_index, sum) = describe_frequencies(frequencies);
+
+    if sum == 0 {
+        return [0; ALPHABET_SIZE];
+    }
+
+    let mut normalized_frequencies = [0; ALPHABET_SIZE];
+    let mut normalized_sum = 0;
+
+    for (&f, g) in frequencies.iter().zip(normalized_frequencies.iter_mut()) {
+        if f == 0 {
+            continue;
+        }
+
+        let mut normalized_frequency = f * SCALE / sum;
+
+        if normalized_frequency == 0 {
+            normalized_frequency = 1;
+        }
+
+        *g = normalized_frequency;
+        normalized_sum += normalized_frequency;
+    }
+
+    match normalized_sum.cmp(&SCALE) {
+        Ordering::Less => normalized_frequencies[max_index] += SCALE - normalized_sum,
+        Ordering::Equal => {}
+        Ordering::Greater => normalized_frequencies[max_index] -= normalized_sum - SCALE,
+    }
+
+    normalized_frequencies
+}
+
+fn describe_frequencies(frequencies: &[u32]) -> (usize, u32) {
+    let mut max = u32::MIN;
+    let mut max_index = 0;
+    let mut sum = 0;
+
+    for (i, &f) in frequencies.iter().enumerate() {
+        if f >= max {
+            max = f;
+            max_index = i;
+        }
+
+        sum += f;
+    }
+
+    (max_index, sum)
+}
+
+pub(super) fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
+    let mut cumulative_frequencies = vec![0; frequencies.len()];
+
+    for i in 0..frequencies.len() - 1 {
+        cumulative_frequencies[i + 1] = cumulative_frequencies[i] + frequencies[i];
+    }
+
+    cumulative_frequencies
 }

@@ -3,7 +3,7 @@ use std::{
     mem,
 };
 
-use super::write_states;
+use super::{order_0, write_states};
 use crate::io::writer::num::{write_u8, write_uint7};
 
 pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
@@ -150,19 +150,15 @@ fn build_contexts(src: &[u8], n: usize) -> Vec<Vec<u32>> {
 }
 
 fn normalize_contexts(contexts: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
-    use super::normalize_frequencies;
-
     contexts
         .into_iter()
-        .map(|frequencies| normalize_frequencies(&frequencies).to_vec())
+        .map(|frequencies| order_0::normalize_frequencies(&frequencies).to_vec())
         .collect()
 }
 
 fn build_cumulative_contexts(contexts: &[Vec<u32>]) -> Vec<Vec<u32>> {
-    use super::build_cumulative_frequencies;
-
     contexts
         .iter()
-        .map(|frequencies| build_cumulative_frequencies(frequencies))
+        .map(|frequencies| order_0::build_cumulative_frequencies(frequencies))
         .collect()
 }
