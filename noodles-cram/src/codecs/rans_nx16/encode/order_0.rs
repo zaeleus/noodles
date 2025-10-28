@@ -129,11 +129,13 @@ fn describe_frequencies(frequencies: &[u32]) -> (usize, u32) {
     (max_index, sum)
 }
 
-pub(super) fn build_cumulative_frequencies(frequencies: &[u32]) -> Vec<u32> {
-    let mut cumulative_frequencies = vec![0; frequencies.len()];
+pub(super) fn build_cumulative_frequencies(frequencies: &[u32]) -> [u32; ALPHABET_SIZE] {
+    let mut cumulative_frequencies = [0; ALPHABET_SIZE];
+    let mut f = cumulative_frequencies[0];
 
-    for i in 0..frequencies.len() - 1 {
-        cumulative_frequencies[i + 1] = cumulative_frequencies[i] + frequencies[i];
+    for (next_f, g) in cumulative_frequencies[1..].iter_mut().zip(frequencies) {
+        *next_f = f + g;
+        f = *next_f;
     }
 
     cumulative_frequencies

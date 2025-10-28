@@ -159,6 +159,6 @@ fn normalize_contexts(contexts: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
 fn build_cumulative_contexts(contexts: &[Vec<u32>]) -> Vec<Vec<u32>> {
     contexts
         .iter()
-        .map(|frequencies| order_0::build_cumulative_frequencies(frequencies))
+        .map(|frequencies| order_0::build_cumulative_frequencies(frequencies).to_vec())
         .collect()
 }
