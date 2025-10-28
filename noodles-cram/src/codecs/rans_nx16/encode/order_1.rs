@@ -11,31 +11,43 @@ use crate::{
 
 type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
 
-pub fn encode(src: &[u8], n: usize) -> io::Result<(Box<Frequencies>, Vec<u8>)> {
+pub(super) struct Context {
+    pub(super) frequencies: Frequencies,
+}
+
+pub(super) fn build_context(src: &[u8], state_count: usize) -> Context {
+    let frequencies = build_frequencies(src, state_count);
+    let normalized_frequencies = normalize_frequencies(&frequencies);
+
+    Context {
+        frequencies: normalized_frequencies,
+    }
+}
+
+pub fn encode(src: &[u8], ctx: &Context, state_count: usize) -> io::Result<Vec<u8>> {
     use super::{LOWER_BOUND, normalize, update};
 
-    let raw_frequencies = build_frequencies(src, n);
-    let frequencies = normalize_frequencies(&raw_frequencies);
-    let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
+    let frequencies = &ctx.frequencies;
+    let cumulative_frequencies = build_cumulative_frequencies(frequencies);
 
     let mut buf = Vec::new();
-    let mut states = vec![LOWER_BOUND; n];
+    let mut states = vec![LOWER_BOUND; state_count];
 
-    let fraction = src.len() / n;
+    let fraction = src.len() / state_count;
 
-    if src.len() > n * fraction {
-        let remainder = &src[n * fraction - 1..];
+    if src.len() > state_count * fraction {
+        let remainder = &src[state_count * fraction - 1..];
 
         for syms in remainder.windows(2).rev() {
             let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
             let freq_i = frequencies[sym_0][sym_1];
             let cfreq_i = cumulative_frequencies[sym_0][sym_1];
-            let x = normalize(&mut buf, states[n - 1], freq_i, 12)?;
-            states[n - 1] = update(x, cfreq_i, freq_i, 12);
+            let x = normalize(&mut buf, states[state_count - 1], freq_i, 12)?;
+            states[state_count - 1] = update(x, cfreq_i, freq_i, 12);
         }
     }
 
-    let chunks: Vec<_> = (0..n)
+    let chunks: Vec<_> = (0..state_count)
         .map(|i| &src[i * fraction..(i + 1) * fraction])
         .collect();
 
@@ -69,7 +81,7 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<(Box<Frequencies>, Vec<u8>)> {
     write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
-    Ok((Box::new(frequencies), dst))
+    Ok(dst)
 }
 
 pub fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Result<()>
@@ -132,12 +144,12 @@ where
     Ok(())
 }
 
-fn build_frequencies(src: &[u8], n: usize) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
+fn build_frequencies(src: &[u8], state_count: usize) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
     let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
-    let fraction = src.len() / n;
+    let fraction = src.len() / state_count;
 
-    for i in 0..n {
+    for i in 0..state_count {
         let sym = usize::from(src[i * fraction]);
         frequencies[0][sym] += 1;
     }
