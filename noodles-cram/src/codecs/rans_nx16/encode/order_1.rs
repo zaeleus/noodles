@@ -1,9 +1,6 @@
-use std::{
-    io::{self, Write},
-    mem,
-};
+use std::{io, mem};
 
-use super::{order_0, write_states};
+use super::{order_0, write_alphabet, write_states};
 use crate::{
     codecs::rans_nx16::ALPHABET_SIZE,
     io::writer::num::{write_u8, write_uint7},
@@ -12,7 +9,7 @@ use crate::{
 type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
 
 pub(super) struct Context {
-    pub(super) frequencies: Frequencies,
+    frequencies: Frequencies,
 }
 
 pub(super) fn build_context(src: &[u8], state_count: usize) -> Context {
@@ -22,6 +19,13 @@ pub(super) fn build_context(src: &[u8], state_count: usize) -> Context {
     Context {
         frequencies: normalized_frequencies,
     }
+}
+
+pub(super) fn write_context(dst: &mut Vec<u8>, ctx: &Context) -> io::Result<()> {
+    // bits = 12, no compression (0)
+    write_u8(dst, 12 << 4)?;
+    write_frequencies(dst, &ctx.frequencies)?;
+    Ok(())
 }
 
 pub fn encode(src: &[u8], ctx: &Context, state_count: usize) -> io::Result<Vec<u8>> {
@@ -84,12 +88,7 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize) -> io::Result<Vec<u
     Ok(dst)
 }
 
-pub fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Result<()>
-where
-    W: Write,
-{
-    use super::write_alphabet;
-
+fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result<()> {
     let mut alphabet = vec![0; 256];
     alphabet[0] = 1;
 
@@ -103,7 +102,7 @@ where
         }
     }
 
-    write_alphabet(writer, &alphabet)?;
+    write_alphabet(dst, &alphabet)?;
 
     for (sym_0, fs) in frequencies.iter().enumerate() {
         if alphabet[sym_0] == 0 {
@@ -120,7 +119,7 @@ where
             if rle > 0 {
                 rle -= 1;
             } else {
-                write_uint7(writer, f)?;
+                write_uint7(dst, f)?;
 
                 if f == 0 {
                     for (sym, &g) in alphabet.iter().enumerate().skip(sym_1 + 1) {
@@ -135,7 +134,7 @@ where
                         }
                     }
 
-                    write_u8(writer, rle)?;
+                    write_u8(dst, rle)?;
                 }
             }
         }

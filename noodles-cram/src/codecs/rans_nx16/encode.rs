@@ -70,9 +70,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     } else {
         let ctx = order_1::build_context(&src, state_count);
         let compressed_data = order_1::encode(&src, &ctx, state_count)?;
-        // bits = 12, no compression (0)
-        write_u8(&mut dst, 12 << 4)?;
-        order_1::write_frequencies(&mut dst, &ctx.frequencies)?;
+        order_1::write_context(&mut dst, &ctx)?;
         dst.write_all(&compressed_data)?;
     }
 
