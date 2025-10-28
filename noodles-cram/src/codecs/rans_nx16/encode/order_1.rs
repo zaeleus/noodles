@@ -4,14 +4,19 @@ use std::{
 };
 
 use super::{order_0, write_states};
-use crate::io::writer::num::{write_u8, write_uint7};
+use crate::{
+    codecs::rans_nx16::ALPHABET_SIZE,
+    io::writer::num::{write_u8, write_uint7},
+};
 
-pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
+type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
+
+pub fn encode(src: &[u8], n: usize) -> io::Result<(Box<Frequencies>, Vec<u8>)> {
     use super::{LOWER_BOUND, normalize, update};
 
-    let contexts = build_contexts(src, n);
-    let freq = normalize_contexts(contexts);
-    let cfreq = build_cumulative_contexts(&freq);
+    let raw_frequencies = build_frequencies(src, n);
+    let frequencies = normalize_frequencies(&raw_frequencies);
+    let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
 
     let mut buf = Vec::new();
     let mut states = vec![LOWER_BOUND; n];
@@ -23,8 +28,8 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
 
         for syms in remainder.windows(2).rev() {
             let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
-            let freq_i = freq[sym_0][sym_1];
-            let cfreq_i = cfreq[sym_0][sym_1];
+            let freq_i = frequencies[sym_0][sym_1];
+            let cfreq_i = cumulative_frequencies[sym_0][sym_1];
             let x = normalize(&mut buf, states[n - 1], freq_i, 12)?;
             states[n - 1] = update(x, cfreq_i, freq_i, 12);
         }
@@ -43,8 +48,8 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
         for (state, ws) in states.iter_mut().rev().zip(windows.iter_mut().rev()) {
             let syms = ws.next().unwrap();
             let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
-            let freq_i = freq[sym_0][sym_1];
-            let cfreq_i = cfreq[sym_0][sym_1];
+            let freq_i = frequencies[sym_0][sym_1];
+            let cfreq_i = cumulative_frequencies[sym_0][sym_1];
             let x = normalize(&mut buf, *state, freq_i, 12)?;
             *state = update(x, cfreq_i, freq_i, 12);
         }
@@ -54,8 +59,8 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
 
     for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
         let sym = usize::from(chunk[0]);
-        let freq_i = freq[0][sym];
-        let cfreq_i = cfreq[0][sym];
+        let freq_i = frequencies[0][sym];
+        let cfreq_i = cumulative_frequencies[0][sym];
         let x = normalize(&mut buf, *state, freq_i, 12)?;
         *state = update(x, cfreq_i, freq_i, 12);
     }
@@ -64,21 +69,21 @@ pub fn encode(src: &[u8], n: usize) -> io::Result<(Vec<Vec<u32>>, Vec<u8>)> {
     write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
-    Ok((freq, dst))
+    Ok((Box::new(frequencies), dst))
 }
 
-pub fn write_contexts<W>(writer: &mut W, contexts: &[Vec<u32>]) -> io::Result<()>
+pub fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Result<()>
 where
     W: Write,
 {
     use super::write_alphabet;
 
-    let mut frequencies = vec![0; 256];
-    frequencies[0] = 1;
+    let mut alphabet = vec![0; 256];
+    alphabet[0] = 1;
 
-    for (i, f) in frequencies.iter_mut().enumerate() {
-        for context in contexts {
-            let g = context[i];
+    for (i, f) in alphabet.iter_mut().enumerate() {
+        for fs in frequencies {
+            let g = fs[i];
 
             if g > 0 {
                 *f += g;
@@ -86,17 +91,17 @@ where
         }
     }
 
-    write_alphabet(writer, &frequencies)?;
+    write_alphabet(writer, &alphabet)?;
 
-    for (sym_0, context) in contexts.iter().enumerate() {
-        if frequencies[sym_0] == 0 {
+    for (sym_0, fs) in frequencies.iter().enumerate() {
+        if alphabet[sym_0] == 0 {
             continue;
         }
 
         let mut rle = 0;
 
-        for (sym_1, &f) in context.iter().enumerate() {
-            if frequencies[sym_1] == 0 {
+        for (sym_1, &f) in fs.iter().enumerate() {
+            if alphabet[sym_1] == 0 {
                 continue;
             }
 
@@ -106,12 +111,12 @@ where
                 write_uint7(writer, f)?;
 
                 if f == 0 {
-                    for (sym, &g) in frequencies.iter().enumerate().skip(sym_1 + 1) {
+                    for (sym, &g) in alphabet.iter().enumerate().skip(sym_1 + 1) {
                         if g == 0 {
                             continue;
                         }
 
-                        if contexts[sym_0][sym] == 0 {
+                        if frequencies[sym_0][sym] == 0 {
                             rle += 1;
                         } else {
                             break;
@@ -127,8 +132,8 @@ where
     Ok(())
 }
 
-fn build_contexts(src: &[u8], n: usize) -> Vec<Vec<u32>> {
-    let mut frequencies = vec![vec![0; 256]; 256];
+fn build_frequencies(src: &[u8], n: usize) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
+    let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
     let fraction = src.len() / n;
 
@@ -149,16 +154,24 @@ fn build_contexts(src: &[u8], n: usize) -> Vec<Vec<u32>> {
     frequencies
 }
 
-fn normalize_contexts(contexts: Vec<Vec<u32>>) -> Vec<Vec<u32>> {
-    contexts
-        .into_iter()
-        .map(|frequencies| order_0::normalize_frequencies(&frequencies).to_vec())
-        .collect()
+fn normalize_frequencies(raw_frequencies: &[[u32; ALPHABET_SIZE]; ALPHABET_SIZE]) -> Frequencies {
+    let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+
+    for (f, g) in raw_frequencies.iter().zip(&mut frequencies) {
+        *g = order_0::normalize_frequencies(f);
+    }
+
+    frequencies
 }
 
-fn build_cumulative_contexts(contexts: &[Vec<u32>]) -> Vec<Vec<u32>> {
-    contexts
-        .iter()
-        .map(|frequencies| order_0::build_cumulative_frequencies(frequencies).to_vec())
-        .collect()
+fn build_cumulative_frequencies(
+    frequencies: &Frequencies,
+) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
+    let mut cumulative_frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+
+    for (f, g) in frequencies.iter().zip(&mut cumulative_frequencies) {
+        *g = order_0::build_cumulative_frequencies(f);
+    }
+
+    cumulative_frequencies
 }

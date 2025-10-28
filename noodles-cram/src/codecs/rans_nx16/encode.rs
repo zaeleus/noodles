@@ -71,7 +71,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         let (normalized_contexts, compressed_data) = order_1::encode(&src, state_count)?;
         // bits = 12, no compression (0)
         write_u8(&mut dst, 12 << 4)?;
-        order_1::write_contexts(&mut dst, &normalized_contexts)?;
+        order_1::write_frequencies(&mut dst, &normalized_contexts)?;
         dst.write_all(&compressed_data)?;
     }
 
