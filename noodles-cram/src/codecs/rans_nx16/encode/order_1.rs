@@ -1,4 +1,4 @@
-use std::{io, mem};
+use std::io;
 
 use super::{order_0, write_alphabet, write_states};
 use crate::{
@@ -28,7 +28,7 @@ pub(super) fn write_context(dst: &mut Vec<u8>, ctx: &Context) -> io::Result<()> 
     Ok(())
 }
 
-pub fn encode(src: &[u8], ctx: &Context, state_count: usize) -> io::Result<Vec<u8>> {
+pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) -> io::Result<()> {
     use super::{LOWER_BOUND, normalize, update};
 
     let frequencies = &ctx.frequencies;
@@ -81,11 +81,10 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize) -> io::Result<Vec<u
         *state = update(x, cfreq_i, freq_i, 12);
     }
 
-    let mut dst = Vec::with_capacity(n * mem::size_of::<u32>() + buf.len());
-    write_states(&mut dst, &states)?;
+    write_states(dst, &states)?;
     dst.extend(buf.iter().rev());
 
-    Ok(dst)
+    Ok(())
 }
 
 fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result<()> {
