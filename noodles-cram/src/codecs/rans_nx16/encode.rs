@@ -320,4 +320,25 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_write_alphabet() -> io::Result<()> {
+        const NUL: u8 = 0x00;
+
+        let src = b"abracadabra";
+
+        let mut alphabet = [0; ALPHABET_SIZE];
+
+        for &sym in src {
+            alphabet[usize::from(sym)] = 1;
+        }
+
+        let mut dst = Vec::new();
+        write_alphabet(&mut dst, &alphabet)?;
+
+        let expected = [b'a', b'b', 0x02, b'r', NUL];
+        assert_eq!(dst, expected);
+
+        Ok(())
+    }
 }
