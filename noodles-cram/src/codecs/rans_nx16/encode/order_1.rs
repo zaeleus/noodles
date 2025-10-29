@@ -6,6 +6,8 @@ use crate::{
     io::writer::num::{write_u8, write_uint7},
 };
 
+const CONTEXT_SIZE: usize = 2;
+
 type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
 
 pub(super) struct Context {
@@ -42,7 +44,7 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
     if src.len() > state_count * fraction {
         let remainder = &src[state_count * fraction - 1..];
 
-        for syms in remainder.windows(2).rev() {
+        for syms in remainder.windows(CONTEXT_SIZE).rev() {
             let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
             let freq_i = frequencies[sym_0][sym_1];
             let cfreq_i = cumulative_frequencies[sym_0][sym_1];
@@ -55,7 +57,10 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
         .map(|i| &src[i * fraction..(i + 1) * fraction])
         .collect();
 
-    let mut windows: Vec<_> = chunks.iter().map(|chunk| chunk.windows(2).rev()).collect();
+    let mut windows: Vec<_> = chunks
+        .iter()
+        .map(|chunk| chunk.windows(CONTEXT_SIZE).rev())
+        .collect();
 
     let mut n = 0;
     let window_count = windows[0].size_hint().0;
@@ -152,7 +157,7 @@ fn build_frequencies(src: &[u8], state_count: usize) -> [[u32; ALPHABET_SIZE]; A
         frequencies[0][sym] += 1;
     }
 
-    for window in src.windows(2) {
+    for window in src.windows(CONTEXT_SIZE) {
         let sym_0 = usize::from(window[0]);
         let sym_1 = usize::from(window[1]);
         frequencies[sym_0][sym_1] += 1;
