@@ -100,19 +100,7 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
 }
 
 fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result<()> {
-    let mut alphabet = vec![0; 256];
-    alphabet[usize::from(NUL)] = 1;
-
-    for (i, f) in alphabet.iter_mut().enumerate() {
-        for fs in frequencies {
-            let g = fs[i];
-
-            if g > 0 {
-                *f += g;
-            }
-        }
-    }
-
+    let alphabet = build_alphabet(frequencies);
     write_alphabet(dst, &alphabet)?;
 
     for (sym_0, fs) in frequencies.iter().enumerate() {
@@ -152,6 +140,23 @@ fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result
     }
 
     Ok(())
+}
+
+fn build_alphabet(frequencies: &Frequencies) -> [u32; ALPHABET_SIZE] {
+    let mut alphabet = [0; ALPHABET_SIZE];
+    alphabet[usize::from(NUL)] = 1;
+
+    for (i, f) in alphabet.iter_mut().enumerate() {
+        for fs in frequencies {
+            let g = fs[i];
+
+            if g > 0 {
+                *f += g;
+            }
+        }
+    }
+
+    alphabet
 }
 
 fn build_frequencies(src: &[u8], state_count: usize) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
