@@ -5,8 +5,10 @@ use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_uint7};
 
 const NORMALIZATION_BITS: u32 = 12;
 
+type Frequencies = [u32; ALPHABET_SIZE];
+
 pub(super) struct Context {
-    frequencies: [u32; ALPHABET_SIZE],
+    frequencies: Frequencies,
 }
 
 pub(super) fn build_context(src: &[u8]) -> Context {
@@ -46,7 +48,7 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
     Ok(())
 }
 
-pub fn write_frequencies<W>(writer: &mut W, frequencies: &[u32]) -> io::Result<()>
+pub fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Result<()>
 where
     W: Write,
 {
@@ -63,7 +65,7 @@ where
     Ok(())
 }
 
-fn build_frequencies(src: &[u8]) -> [u32; ALPHABET_SIZE] {
+fn build_frequencies(src: &[u8]) -> Frequencies {
     let mut frequencies = [0; ALPHABET_SIZE];
 
     for &b in src {
@@ -74,7 +76,7 @@ fn build_frequencies(src: &[u8]) -> [u32; ALPHABET_SIZE] {
     frequencies
 }
 
-pub(super) fn normalize_frequencies(frequencies: &[u32]) -> [u32; ALPHABET_SIZE] {
+pub(super) fn normalize_frequencies(frequencies: &Frequencies) -> Frequencies {
     use std::cmp::Ordering;
 
     const SCALE: u32 = 4096;
@@ -112,7 +114,7 @@ pub(super) fn normalize_frequencies(frequencies: &[u32]) -> [u32; ALPHABET_SIZE]
     normalized_frequencies
 }
 
-fn describe_frequencies(frequencies: &[u32]) -> (usize, u32) {
+fn describe_frequencies(frequencies: &Frequencies) -> (usize, u32) {
     let mut max = u32::MIN;
     let mut max_index = 0;
     let mut sum = 0;
@@ -129,7 +131,7 @@ fn describe_frequencies(frequencies: &[u32]) -> (usize, u32) {
     (max_index, sum)
 }
 
-pub(super) fn build_cumulative_frequencies(frequencies: &[u32]) -> [u32; ALPHABET_SIZE] {
+pub(super) fn build_cumulative_frequencies(frequencies: &Frequencies) -> [u32; ALPHABET_SIZE] {
     let mut cumulative_frequencies = [0; ALPHABET_SIZE];
     let mut f = cumulative_frequencies[0];
 
