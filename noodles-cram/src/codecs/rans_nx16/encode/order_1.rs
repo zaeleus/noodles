@@ -157,21 +157,21 @@ fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result
 fn build_frequencies(src: &[u8], state_count: usize) -> [[u32; ALPHABET_SIZE]; ALPHABET_SIZE] {
     let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
-    let fraction = src.len() / state_count;
+    let chunk_size = src.len() / state_count;
 
-    for i in 0..state_count {
-        let sym = usize::from(src[i * fraction]);
-        frequencies[usize::from(NUL)][sym] += 1;
+    for chunk in src.chunks_exact(chunk_size).take(state_count) {
+        let (i, j) = (usize::from(NUL), usize::from(chunk[0]));
+        frequencies[i][j] += 1;
     }
 
-    for window in src.windows(CONTEXT_SIZE) {
-        let sym_0 = usize::from(window[0]);
-        let sym_1 = usize::from(window[1]);
-        frequencies[sym_0][sym_1] += 1;
+    for syms in src.windows(CONTEXT_SIZE) {
+        let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
+        frequencies[i][j] += 1;
     }
 
-    let sym = src.last().copied().map(usize::from).unwrap();
-    frequencies[sym][usize::from(NUL)] += 1;
+    let sym = src.last().copied().unwrap();
+    let (i, j) = (usize::from(sym), usize::from(NUL));
+    frequencies[i][j] += 1;
 
     frequencies
 }
