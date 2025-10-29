@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+
+  * cram: Replace xz2 with lzma-rust2 ([#351]).
+
+    lzma-rust2 is a Rust implementation of LZMA. This removes the dependency on
+    liblzma.
+
+[#351]: https://github.com/zaeleus/noodles/pull/351
+
 ### Fixed
 
   * cram/codecs/rans_nx16/decode: Use stream count in calculations.
