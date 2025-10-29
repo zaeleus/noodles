@@ -8,6 +8,7 @@ use crate::{
 
 const CONTEXT_SIZE: usize = 2;
 const NORMALIZATION_BITS: u32 = 12;
+const NUL: u8 = 0x00;
 
 type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
 
@@ -86,8 +87,8 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
 
     for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
         let sym = usize::from(chunk[0]);
-        let freq_i = frequencies[0][sym];
-        let cfreq_i = cumulative_frequencies[0][sym];
+        let freq_i = frequencies[usize::from(NUL)][sym];
+        let cfreq_i = cumulative_frequencies[usize::from(NUL)][sym];
         let x = normalize(&mut buf, *state, freq_i, NORMALIZATION_BITS)?;
         *state = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
     }
@@ -100,7 +101,7 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
 
 fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result<()> {
     let mut alphabet = vec![0; 256];
-    alphabet[0] = 1;
+    alphabet[usize::from(NUL)] = 1;
 
     for (i, f) in alphabet.iter_mut().enumerate() {
         for fs in frequencies {
@@ -160,7 +161,7 @@ fn build_frequencies(src: &[u8], state_count: usize) -> [[u32; ALPHABET_SIZE]; A
 
     for i in 0..state_count {
         let sym = usize::from(src[i * fraction]);
-        frequencies[0][sym] += 1;
+        frequencies[usize::from(NUL)][sym] += 1;
     }
 
     for window in src.windows(CONTEXT_SIZE) {
@@ -170,7 +171,7 @@ fn build_frequencies(src: &[u8], state_count: usize) -> [[u32; ALPHABET_SIZE]; A
     }
 
     let sym = src.last().copied().map(usize::from).unwrap();
-    frequencies[sym][0] += 1;
+    frequencies[sym][usize::from(NUL)] += 1;
 
     frequencies
 }
@@ -203,8 +204,6 @@ mod tests {
 
     #[test]
     fn test_build_frequencies() {
-        const NUL: u8 = 0x00;
-
         let src = b"abracadabra";
 
         let mut expected = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
