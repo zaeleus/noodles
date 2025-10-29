@@ -7,6 +7,7 @@ use crate::{
 };
 
 const CONTEXT_SIZE: usize = 2;
+const NORMALIZATION_BITS: u32 = 12;
 
 type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
 
@@ -48,8 +49,13 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
             let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
             let freq_i = frequencies[sym_0][sym_1];
             let cfreq_i = cumulative_frequencies[sym_0][sym_1];
-            let x = normalize(&mut buf, states[state_count - 1], freq_i, 12)?;
-            states[state_count - 1] = update(x, cfreq_i, freq_i, 12);
+            let x = normalize(
+                &mut buf,
+                states[state_count - 1],
+                freq_i,
+                NORMALIZATION_BITS,
+            )?;
+            states[state_count - 1] = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
         }
     }
 
@@ -71,8 +77,8 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
             let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
             let freq_i = frequencies[sym_0][sym_1];
             let cfreq_i = cumulative_frequencies[sym_0][sym_1];
-            let x = normalize(&mut buf, *state, freq_i, 12)?;
-            *state = update(x, cfreq_i, freq_i, 12);
+            let x = normalize(&mut buf, *state, freq_i, NORMALIZATION_BITS)?;
+            *state = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
         }
 
         n += 1;
@@ -82,8 +88,8 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
         let sym = usize::from(chunk[0]);
         let freq_i = frequencies[0][sym];
         let cfreq_i = cumulative_frequencies[0][sym];
-        let x = normalize(&mut buf, *state, freq_i, 12)?;
-        *state = update(x, cfreq_i, freq_i, 12);
+        let x = normalize(&mut buf, *state, freq_i, NORMALIZATION_BITS)?;
+        *state = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
     }
 
     write_states(dst, &states)?;
