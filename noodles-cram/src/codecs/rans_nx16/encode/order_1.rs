@@ -185,3 +185,31 @@ fn build_cumulative_frequencies(
 
     cumulative_frequencies
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_frequencies() {
+        const NUL: u8 = 0x00;
+
+        let src = b"abracadabra";
+
+        let mut expected = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+        expected[usize::from(NUL)][usize::from(b'a')] = 1;
+        expected[usize::from(NUL)][usize::from(b'c')] = 1;
+        expected[usize::from(NUL)][usize::from(b'd')] = 1;
+        expected[usize::from(NUL)][usize::from(b'r')] = 1;
+        expected[usize::from(b'a')][usize::from(NUL)] = 1;
+        expected[usize::from(b'a')][usize::from(b'b')] = 2;
+        expected[usize::from(b'a')][usize::from(b'c')] = 1;
+        expected[usize::from(b'a')][usize::from(b'd')] = 1;
+        expected[usize::from(b'b')][usize::from(b'r')] = 2;
+        expected[usize::from(b'c')][usize::from(b'a')] = 1;
+        expected[usize::from(b'd')][usize::from(b'a')] = 1;
+        expected[usize::from(b'r')][usize::from(b'a')] = 2;
+
+        assert_eq!(build_frequencies(src, 4), expected);
+    }
+}
