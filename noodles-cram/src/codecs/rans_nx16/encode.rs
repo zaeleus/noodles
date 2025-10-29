@@ -6,7 +6,7 @@ mod stripe;
 
 use std::io::{self, Write};
 
-use super::Flags;
+use super::{ALPHABET_SIZE, Flags};
 use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
 
 // § 3 "rANS Nx16" (2023-03-15): "The lower-bound and initial encoder state _L_ is [...] 0x8000."
@@ -92,34 +92,32 @@ fn update(r: u32, c: u32, f: u32, bits: u32) -> u32 {
     ((r / f) << bits) + c + (r % f)
 }
 
-fn write_alphabet<W>(writer: &mut W, frequencies: &[u32]) -> io::Result<()>
-where
-    W: Write,
-{
-    let mut rle = 0;
+fn write_alphabet(dst: &mut Vec<u8>, alphabet: &[bool; ALPHABET_SIZE]) -> io::Result<()> {
+    const NUL: u8 = 0x00;
 
-    for (sym, &f) in frequencies.iter().enumerate() {
-        if f == 0 {
+    let mut iter = alphabet.iter().enumerate();
+    let mut prev_sym = 0;
+
+    while let Some((sym, &a)) = iter.next() {
+        if !a {
             continue;
         }
 
-        if rle > 0 {
-            rle -= 1;
-        } else {
-            write_u8(writer, sym as u8)?;
+        // SAFETY: `sym` < `ALPHABET_SIZE`.
+        write_u8(dst, sym as u8)?;
 
-            if sym > 0 && frequencies[sym - 1] > 0 {
-                rle = frequencies[sym + 1..]
-                    .iter()
-                    .position(|&f| f == 0)
-                    .unwrap_or(0);
-
-                write_u8(writer, rle as u8)?;
-            }
+        if sym > 0 && sym - 1 == prev_sym {
+            let i = sym + 1;
+            let len = alphabet[i..].iter().position(|&b| !b).unwrap_or(0);
+            // SAFETY: `len` < `ALPHABET_SIZE`.
+            write_u8(dst, len as u8)?;
+            for _ in iter.by_ref().take(len) {}
         }
+
+        prev_sym = sym;
     }
 
-    write_u8(writer, 0x00)?;
+    write_u8(dst, NUL)?;
 
     Ok(())
 }
@@ -140,7 +138,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::codecs::rans_nx16::ALPHABET_SIZE;
 
     #[test]
     fn test_encode_order_0() -> io::Result<()> {
@@ -250,10 +247,10 @@ mod tests {
 
         let src = b"abracadabra";
 
-        let mut alphabet = [0; ALPHABET_SIZE];
+        let mut alphabet = [false; ALPHABET_SIZE];
 
         for &sym in src {
-            alphabet[usize::from(sym)] = 1;
+            alphabet[usize::from(sym)] = true;
         }
 
         let mut dst = Vec::new();

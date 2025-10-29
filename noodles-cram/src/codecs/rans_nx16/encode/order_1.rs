@@ -104,14 +104,14 @@ fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result
     write_alphabet(dst, &alphabet)?;
 
     for (sym_0, fs) in frequencies.iter().enumerate() {
-        if alphabet[sym_0] == 0 {
+        if !alphabet[sym_0] {
             continue;
         }
 
         let mut rle = 0;
 
         for (sym_1, &f) in fs.iter().enumerate() {
-            if alphabet[sym_1] == 0 {
+            if !alphabet[sym_1] {
                 continue;
             }
 
@@ -121,8 +121,8 @@ fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result
                 write_uint7(dst, f)?;
 
                 if f == 0 {
-                    for (sym, &g) in alphabet.iter().enumerate().skip(sym_1 + 1) {
-                        if g == 0 {
+                    for (sym, &b) in alphabet.iter().enumerate().skip(sym_1 + 1) {
+                        if !b {
                             continue;
                         }
 
@@ -142,18 +142,11 @@ fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result
     Ok(())
 }
 
-fn build_alphabet(frequencies: &Frequencies) -> [u32; ALPHABET_SIZE] {
-    let mut alphabet = [0; ALPHABET_SIZE];
-    alphabet[usize::from(NUL)] = 1;
+fn build_alphabet(frequencies: &Frequencies) -> [bool; ALPHABET_SIZE] {
+    let mut alphabet = [false; ALPHABET_SIZE];
 
-    for (i, f) in alphabet.iter_mut().enumerate() {
-        for fs in frequencies {
-            let g = fs[i];
-
-            if g > 0 {
-                *f += g;
-            }
-        }
+    for (fs, a) in frequencies.iter().zip(&mut alphabet) {
+        *a = fs.iter().any(|&f| f > 0);
     }
 
     alphabet
@@ -206,6 +199,21 @@ fn build_cumulative_frequencies(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_build_alphabet() {
+        let src = b"abracadabra";
+        let frequencies = build_frequencies(src, 4);
+
+        let mut expected = [false; ALPHABET_SIZE];
+        expected[usize::from(NUL)] = true;
+
+        for &sym in src {
+            expected[usize::from(sym)] = true;
+        }
+
+        assert_eq!(build_alphabet(&frequencies), expected);
+    }
 
     #[test]
     fn test_build_frequencies() {

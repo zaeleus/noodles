@@ -1,6 +1,6 @@
-use std::io::{self, Write};
+use std::io;
 
-use super::{LOWER_BOUND, normalize, update, write_states};
+use super::{LOWER_BOUND, normalize, update, write_alphabet, write_states};
 use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_uint7};
 
 const NORMALIZATION_BITS: u32 = 12;
@@ -48,21 +48,21 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
     Ok(())
 }
 
-pub fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Result<()>
-where
-    W: Write,
-{
-    use super::write_alphabet;
-
-    write_alphabet(writer, frequencies)?;
+fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result<()> {
+    let alphabet = build_alphabet(frequencies);
+    write_alphabet(dst, &alphabet)?;
 
     for &f in frequencies {
         if f > 0 {
-            write_uint7(writer, f)?;
+            write_uint7(dst, f)?;
         }
     }
 
     Ok(())
+}
+
+fn build_alphabet(frequencies: &Frequencies) -> [bool; ALPHABET_SIZE] {
+    frequencies.map(|f| f > 0)
 }
 
 fn build_frequencies(src: &[u8]) -> Frequencies {
@@ -141,4 +141,23 @@ pub(super) fn build_cumulative_frequencies(frequencies: &Frequencies) -> [u32; A
     }
 
     cumulative_frequencies
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_alphabet() {
+        let src = b"abracadabra";
+        let frequencies = build_frequencies(src);
+
+        let mut expected = [false; ALPHABET_SIZE];
+
+        for &sym in src {
+            expected[usize::from(sym)] = true;
+        }
+
+        assert_eq!(build_alphabet(&frequencies), expected);
+    }
 }
