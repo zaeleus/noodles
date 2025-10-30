@@ -39,11 +39,10 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
     let mut buf = Vec::new();
     let mut states = vec![LOWER_BOUND; state_count];
 
-    let fraction = src.len() / state_count;
+    let (chunks, remainder) = split_chunks(src, state_count);
 
-    if src.len() > state_count * fraction {
+    if remainder.len() >= CONTEXT_SIZE {
         let state = states.last_mut().unwrap();
-        let remainder = &src[state_count * fraction - 1..];
 
         for syms in remainder.windows(CONTEXT_SIZE).rev() {
             let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
@@ -52,10 +51,6 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
             *state = state_step(*state, f, g, NORMALIZATION_BITS);
         }
     }
-
-    let chunks: Vec<_> = (0..state_count)
-        .map(|i| &src[i * fraction..(i + 1) * fraction])
-        .collect();
 
     let mut windows: Vec<_> = chunks
         .iter()
@@ -187,6 +182,18 @@ fn build_cumulative_frequencies(
     cumulative_frequencies
 }
 
+fn split_chunks(src: &[u8], state_count: usize) -> (Vec<&[u8]>, &[u8]) {
+    let chunk_size = src.len() / state_count;
+    let i = chunk_size * state_count;
+
+    // SAFETY: `i` <= `src.len()`.
+    let (buf, remainder) = src.split_at(i);
+
+    let chunks = buf.chunks(chunk_size).collect();
+
+    (chunks, remainder)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -225,5 +232,21 @@ mod tests {
         expected[usize::from(b'r')][usize::from(b'a')] = 2;
 
         assert_eq!(build_frequencies(src, 4), expected);
+    }
+
+    #[test]
+    fn test_split_chunks() {
+        assert_eq!(
+            split_chunks(b"abracadabra", 4),
+            (
+                vec![&b"ab"[..], &b"ra"[..], &b"ca"[..], &b"da"[..]],
+                &b"bra"[..]
+            )
+        );
+
+        assert_eq!(
+            split_chunks(b"ndls", 2),
+            (vec![&b"nd"[..], &b"ls"[..]], &[][..])
+        );
     }
 }
