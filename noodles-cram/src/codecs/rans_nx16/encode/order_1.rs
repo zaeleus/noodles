@@ -1,6 +1,6 @@
 use std::io;
 
-use super::{order_0, write_alphabet, write_states};
+use super::{LOWER_BOUND, order_0, state_renormalize, state_step, write_alphabet, write_states};
 use crate::{
     codecs::rans_nx16::ALPHABET_SIZE,
     io::writer::num::{write_u8, write_uint7},
@@ -33,8 +33,6 @@ pub(super) fn write_context(dst: &mut Vec<u8>, ctx: &Context) -> io::Result<()> 
 }
 
 pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) -> io::Result<()> {
-    use super::{LOWER_BOUND, normalize, update};
-
     let frequencies = &ctx.frequencies;
     let cumulative_frequencies = build_cumulative_frequencies(frequencies);
 
@@ -44,19 +42,14 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
     let fraction = src.len() / state_count;
 
     if src.len() > state_count * fraction {
+        let state = states.last_mut().unwrap();
         let remainder = &src[state_count * fraction - 1..];
 
         for syms in remainder.windows(CONTEXT_SIZE).rev() {
-            let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
-            let freq_i = frequencies[sym_0][sym_1];
-            let cfreq_i = cumulative_frequencies[sym_0][sym_1];
-            let x = normalize(
-                &mut buf,
-                states[state_count - 1],
-                freq_i,
-                NORMALIZATION_BITS,
-            )?;
-            states[state_count - 1] = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
+            let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
+            let (f, g) = (frequencies[i][j], cumulative_frequencies[i][j]);
+            *state = state_renormalize(*state, f, NORMALIZATION_BITS, &mut buf);
+            *state = state_step(*state, f, g, NORMALIZATION_BITS);
         }
     }
 
@@ -75,22 +68,20 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
     while n < window_count {
         for (state, ws) in states.iter_mut().rev().zip(windows.iter_mut().rev()) {
             let syms = ws.next().unwrap();
-            let (sym_0, sym_1) = (usize::from(syms[0]), usize::from(syms[1]));
-            let freq_i = frequencies[sym_0][sym_1];
-            let cfreq_i = cumulative_frequencies[sym_0][sym_1];
-            let x = normalize(&mut buf, *state, freq_i, NORMALIZATION_BITS)?;
-            *state = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
+            let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
+            let (f, g) = (frequencies[i][j], cumulative_frequencies[i][j]);
+            *state = state_renormalize(*state, f, NORMALIZATION_BITS, &mut buf);
+            *state = state_step(*state, f, g, NORMALIZATION_BITS);
         }
 
         n += 1;
     }
 
     for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
-        let sym = usize::from(chunk[0]);
-        let freq_i = frequencies[usize::from(NUL)][sym];
-        let cfreq_i = cumulative_frequencies[usize::from(NUL)][sym];
-        let x = normalize(&mut buf, *state, freq_i, NORMALIZATION_BITS)?;
-        *state = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
+        let (i, j) = (usize::from(NUL), usize::from(chunk[0]));
+        let (f, g) = (frequencies[i][j], cumulative_frequencies[i][j]);
+        *state = state_renormalize(*state, f, NORMALIZATION_BITS, &mut buf);
+        *state = state_step(*state, f, g, NORMALIZATION_BITS);
     }
 
     write_states(dst, &states)?;

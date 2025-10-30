@@ -88,10 +88,6 @@ fn write_states(dst: &mut Vec<u8>, states: &[u32]) -> io::Result<()> {
     Ok(())
 }
 
-fn update(r: u32, c: u32, f: u32, bits: u32) -> u32 {
-    ((r / f) << bits) + c + (r % f)
-}
-
 fn write_alphabet(dst: &mut Vec<u8>, alphabet: &[bool; ALPHABET_SIZE]) -> io::Result<()> {
     const NUL: u8 = 0x00;
 
@@ -122,17 +118,23 @@ fn write_alphabet(dst: &mut Vec<u8>, alphabet: &[bool; ALPHABET_SIZE]) -> io::Re
     Ok(())
 }
 
-pub fn normalize<W>(writer: &mut W, mut r: u32, freq_i: u32, bits: u32) -> io::Result<u32>
-where
-    W: Write,
-{
-    while r >= ((1 << (31 - bits)) * freq_i) {
-        write_u8(writer, ((r >> 8) & 0xff) as u8)?;
-        write_u8(writer, (r & 0xff) as u8)?;
-        r >>= 16;
+fn state_step(s: u32, f: u32, g: u32, bits: u32) -> u32 {
+    let (q, r) = (s / f, s % f);
+    (q << bits) + r + g
+}
+
+fn state_renormalize(mut s: u32, f: u32, bits: u32, dst: &mut Vec<u8>) -> u32 {
+    while s >= (1 << (31 - bits)) * f {
+        write_u16_be(dst, (s & 0xffff) as u16);
+        s >>= 16;
     }
 
-    Ok(r)
+    s
+}
+
+fn write_u16_be(dst: &mut Vec<u8>, n: u16) {
+    let buf = n.to_be_bytes();
+    dst.extend(buf);
 }
 
 #[cfg(test)]

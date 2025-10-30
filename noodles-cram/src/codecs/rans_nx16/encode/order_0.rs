@@ -1,6 +1,6 @@
 use std::io;
 
-use super::{LOWER_BOUND, normalize, update, write_alphabet, write_states};
+use super::{LOWER_BOUND, state_renormalize, state_step, write_alphabet, write_states};
 use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::writer::num::write_uint7};
 
 const NORMALIZATION_BITS: u32 = 12;
@@ -32,14 +32,11 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
     let mut states = vec![LOWER_BOUND; state_count];
 
     for (i, &sym) in src.iter().enumerate().rev() {
-        let j = i % states.len();
-
-        let mut x = states[j];
-        let freq_i = frequencies[usize::from(sym)];
-        let cfreq_i = cumulative_frequencies[usize::from(sym)];
-
-        x = normalize(&mut buf, x, freq_i, NORMALIZATION_BITS)?;
-        states[j] = update(x, cfreq_i, freq_i, NORMALIZATION_BITS);
+        let state = &mut states[i % state_count];
+        let j = usize::from(sym);
+        let (f, g) = (frequencies[j], cumulative_frequencies[j]);
+        *state = state_renormalize(*state, f, NORMALIZATION_BITS, &mut buf);
+        *state = state_step(*state, f, g, NORMALIZATION_BITS);
     }
 
     write_states(dst, &states)?;
