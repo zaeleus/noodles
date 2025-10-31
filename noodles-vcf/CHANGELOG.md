@@ -7,6 +7,9 @@
   * vcf/io/writer/record/info/field/value: Remove colon (`:`) from encode set
     ([#339]).
 
+  * vcf/io/writer/record/samples/sample/value/character: Remove semicolon (`;`)
+    and equal sign (`=`) from encode set.
+
 [#339]: https://github.com/zaeleus/noodles/issues/339
 
 ## 0.81.0 - 2025-08-25

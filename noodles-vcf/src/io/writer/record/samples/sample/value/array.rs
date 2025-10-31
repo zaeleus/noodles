@@ -104,8 +104,8 @@ mod tests {
         let array = ArrayBuf::Character(vec![Some('n')]);
         t(&mut buf, &array, b"n")?;
 
-        let array = ArrayBuf::Character(vec![Some('n'), Some(';'), None]);
-        t(&mut buf, &array, b"n,%3B,.")?;
+        let array = ArrayBuf::Character(vec![Some('n'), Some(';'), Some('='), Some(':'), None]);
+        t(&mut buf, &array, b"n,;,=,%3A,.")?;
 
         let array = ArrayBuf::String(vec![Some(String::from("noodles"))]);
         t(&mut buf, &array, b"noodles")?;
