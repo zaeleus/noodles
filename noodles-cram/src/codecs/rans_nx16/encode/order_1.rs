@@ -41,7 +41,7 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
 
     let (chunks, remainder) = split_chunks(src, state_count);
 
-    if remainder.len() >= CONTEXT_SIZE {
+    if !remainder.is_empty() {
         let state = states.last_mut().unwrap();
 
         for syms in remainder.windows(CONTEXT_SIZE).rev() {
@@ -183,13 +183,12 @@ fn build_cumulative_frequencies(
 }
 
 fn split_chunks(src: &[u8], state_count: usize) -> (Vec<&[u8]>, &[u8]) {
-    let chunk_size = src.len() / state_count;
-    let i = chunk_size * state_count;
+    let (q, r) = (src.len() / state_count, src.len() % state_count);
+    let i = q * state_count;
 
     // SAFETY: `i` <= `src.len()`.
-    let (buf, remainder) = src.split_at(i);
-
-    let chunks = buf.chunks(chunk_size).collect();
+    let chunks = src[..i].chunks(q).collect();
+    let remainder = if r > 0 { &src[i - 1..] } else { &[] };
 
     (chunks, remainder)
 }
@@ -240,7 +239,7 @@ mod tests {
             split_chunks(b"abracadabra", 4),
             (
                 vec![&b"ab"[..], &b"ra"[..], &b"ca"[..], &b"da"[..]],
-                &b"bra"[..]
+                &b"abra"[..]
             )
         );
 
