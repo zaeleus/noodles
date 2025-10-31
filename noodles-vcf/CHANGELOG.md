@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/io/writer/record/info/field/value/character: Remove colon (`:`) from
+    encode set.
+
 ## 0.81.0 - 2025-08-25
 
 ### Changed
