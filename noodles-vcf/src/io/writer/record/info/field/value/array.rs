@@ -119,9 +119,10 @@ mod tests {
         let array = ArrayBuf::String(vec![
             Some(String::from("noodles")),
             Some(String::from(":")),
+            Some(String::from("=")),
             None,
         ]);
-        t(&mut buf, &array, b"noodles,%3A,.")?;
+        t(&mut buf, &array, b"noodles,:,%3D,.")?;
 
         Ok(())
     }

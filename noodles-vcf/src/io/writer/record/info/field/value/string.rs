@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use crate::io::writer::record::value::percent_encode;
+use percent_encoding::{AsciiSet, CONTROLS, PercentEncode, utf8_percent_encode};
 
 pub(super) fn write_string<W>(writer: &mut W, s: &str) -> io::Result<()>
 where
@@ -11,6 +11,21 @@ where
     }
 
     Ok(())
+}
+
+// § 1.2 "Character encoding, non-printable characters and characters with special meaning"
+// (2024-10-09).
+const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS
+    .add(b';')
+    .add(b'=')
+    .add(b'%')
+    .add(b',')
+    .add(b'\r')
+    .add(b'\n')
+    .add(b'\t');
+
+pub(super) fn percent_encode(s: &str) -> PercentEncode<'_> {
+    utf8_percent_encode(s, PERCENT_ENCODE_SET)
 }
 
 #[cfg(test)]
@@ -26,8 +41,8 @@ mod tests {
         assert_eq!(buf, b"ndls");
 
         buf.clear();
-        write_string(&mut buf, "noodles=vcf;")?;
-        assert_eq!(buf, b"noodles%3Dvcf%3B");
+        write_string(&mut buf, "n=d:ls;")?;
+        assert_eq!(buf, b"n%3Dd:ls%3B");
 
         Ok(())
     }
