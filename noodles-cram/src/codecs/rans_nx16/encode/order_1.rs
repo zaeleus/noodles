@@ -84,38 +84,25 @@ fn write_frequencies(
     alphabet: &[bool; ALPHABET_SIZE],
     frequencies: &Frequencies,
 ) -> io::Result<()> {
-    for (sym_0, fs) in frequencies.iter().enumerate() {
-        if !alphabet[sym_0] {
-            continue;
-        }
+    for (_, fs) in alphabet.iter().zip(frequencies).filter(|(a, _)| **a) {
+        let mut iter = alphabet.iter().zip(fs).filter(|(b, _)| **b).peekable();
 
-        let mut rle = 0;
+        while let Some((_, &f)) = iter.next() {
+            write_uint7(dst, f)?;
 
-        for (sym_1, &f) in fs.iter().enumerate() {
-            if !alphabet[sym_1] {
-                continue;
-            }
+            if f == 0 {
+                let mut len = 0;
 
-            if rle > 0 {
-                rle -= 1;
-            } else {
-                write_uint7(dst, f)?;
-
-                if f == 0 {
-                    for (sym, &b) in alphabet.iter().enumerate().skip(sym_1 + 1) {
-                        if !b {
-                            continue;
-                        }
-
-                        if frequencies[sym_0][sym] == 0 {
-                            rle += 1;
-                        } else {
-                            break;
-                        }
-                    }
-
-                    write_u8(dst, rle)?;
+                while let Some((_, g)) = iter.peek()
+                    && **g == 0
+                {
+                    len += 1;
+                    iter.next();
                 }
+
+                let n = u8::try_from(len)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+                write_u8(dst, n)?;
             }
         }
     }
@@ -191,6 +178,42 @@ fn split_chunks(src: &[u8], state_count: usize) -> (Vec<&[u8]>, &[u8]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_write_frequencies() -> io::Result<()> {
+        let src = b"abra";
+        let frequencies = build_frequencies(src, 4);
+        let alphabet = build_alphabet(&frequencies);
+
+        let mut dst = Vec::new();
+        write_frequencies(&mut dst, &alphabet, &frequencies)?;
+
+        let expected = [
+            0x00, // frequencies[NUL][NUL] = 0
+            0x00, // run length = 0
+            0x02, // frequencies[NUL]['a'] = 2
+            0x01, // frequencies[NUL]['b'] = 1
+            0x01, // frequencies[NUL]['r'] = 1
+            0x01, // frequencies['a'][NUL] = 1
+            0x00, // frequencies['a']['a'] = 0
+            0x00, // run length = 0
+            0x01, // frequencies['a']['b'] = 1
+            0x00, // frequencies['a']['r'] = 0
+            0x00, // run length = 0
+            0x00, // frequencies['b'][NUL] = 0
+            0x02, // run length = 2
+            0x01, // frequencies['b']['r'] = 1
+            0x00, // frequencies['r'][NUL] = 0
+            0x00, // run length = 0
+            0x01, // frequencies['r']['a'] = 1
+            0x00, // frequencies['r']['b'] = 0
+            0x01, // run length = 1
+        ];
+
+        assert_eq!(dst, expected);
+
+        Ok(())
+    }
 
     #[test]
     fn test_build_alphabet() {
