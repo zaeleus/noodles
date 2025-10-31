@@ -7,7 +7,6 @@ mod quality_score;
 mod reference_bases;
 mod reference_sequence_name;
 mod samples;
-pub(super) mod value;
 
 use std::io::{self, Write};
 
