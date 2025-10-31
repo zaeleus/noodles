@@ -52,24 +52,13 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
         }
     }
 
-    let mut windows: Vec<_> = chunks
-        .iter()
-        .map(|chunk| chunk.windows(CONTEXT_SIZE).rev())
-        .collect();
-
-    let mut n = 0;
-    let window_count = windows[0].size_hint().0;
-
-    while n < window_count {
-        for (state, ws) in states.iter_mut().rev().zip(windows.iter_mut().rev()) {
-            let syms = ws.next().unwrap();
+    for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
+        for syms in chunk.windows(CONTEXT_SIZE).rev() {
             let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
             let (f, g) = (frequencies[i][j], cumulative_frequencies[i][j]);
             *state = state_renormalize(*state, f, NORMALIZATION_BITS, &mut buf);
             *state = state_step(*state, f, g, NORMALIZATION_BITS);
         }
-
-        n += 1;
     }
 
     for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
