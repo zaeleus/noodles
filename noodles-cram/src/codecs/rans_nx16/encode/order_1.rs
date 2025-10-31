@@ -28,7 +28,12 @@ pub(super) fn build_context(src: &[u8], state_count: usize) -> Context {
 pub(super) fn write_context(dst: &mut Vec<u8>, ctx: &Context) -> io::Result<()> {
     // bits = 12, no compression (0)
     write_u8(dst, 12 << 4)?;
-    write_frequencies(dst, &ctx.frequencies)?;
+
+    let alphabet = build_alphabet(&ctx.frequencies);
+    write_alphabet(dst, &alphabet)?;
+
+    write_frequencies(dst, &alphabet, &ctx.frequencies)?;
+
     Ok(())
 }
 
@@ -74,10 +79,11 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
     Ok(())
 }
 
-fn write_frequencies(dst: &mut Vec<u8>, frequencies: &Frequencies) -> io::Result<()> {
-    let alphabet = build_alphabet(frequencies);
-    write_alphabet(dst, &alphabet)?;
-
+fn write_frequencies(
+    dst: &mut Vec<u8>,
+    alphabet: &[bool; ALPHABET_SIZE],
+    frequencies: &Frequencies,
+) -> io::Result<()> {
     for (sym_0, fs) in frequencies.iter().enumerate() {
         if !alphabet[sym_0] {
             continue;
