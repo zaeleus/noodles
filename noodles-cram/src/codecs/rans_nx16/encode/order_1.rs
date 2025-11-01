@@ -13,14 +13,17 @@ const NUL: u8 = 0x00;
 type Frequencies = [[u32; ALPHABET_SIZE]; ALPHABET_SIZE];
 
 pub(super) struct Context {
+    alphabet: [bool; ALPHABET_SIZE],
     frequencies: Frequencies,
 }
 
 pub(super) fn build_context(src: &[u8], state_count: usize) -> Context {
+    let alphabet = build_alphabet(src);
     let frequencies = build_frequencies(src, state_count);
     let normalized_frequencies = normalize_frequencies(&frequencies);
 
     Context {
+        alphabet,
         frequencies: normalized_frequencies,
     }
 }
@@ -28,12 +31,8 @@ pub(super) fn build_context(src: &[u8], state_count: usize) -> Context {
 pub(super) fn write_context(dst: &mut Vec<u8>, ctx: &Context) -> io::Result<()> {
     // bits = 12, no compression (0)
     write_u8(dst, 12 << 4)?;
-
-    let alphabet = build_alphabet(&ctx.frequencies);
-    write_alphabet(dst, &alphabet)?;
-
-    write_frequencies(dst, &alphabet, &ctx.frequencies)?;
-
+    write_alphabet(dst, &ctx.alphabet)?;
+    write_frequencies(dst, &ctx.alphabet, &ctx.frequencies)?;
     Ok(())
 }
 
@@ -110,11 +109,13 @@ fn write_frequencies(
     Ok(())
 }
 
-fn build_alphabet(frequencies: &Frequencies) -> [bool; ALPHABET_SIZE] {
+fn build_alphabet(src: &[u8]) -> [bool; ALPHABET_SIZE] {
     let mut alphabet = [false; ALPHABET_SIZE];
+    alphabet[usize::from(NUL)] = true;
 
-    for (fs, a) in frequencies.iter().zip(&mut alphabet) {
-        *a = fs.iter().any(|&f| f > 0);
+    for &b in src {
+        let i = usize::from(b);
+        alphabet[i] = true;
     }
 
     alphabet
@@ -134,10 +135,6 @@ fn build_frequencies(src: &[u8], state_count: usize) -> [[u32; ALPHABET_SIZE]; A
         let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
         frequencies[i][j] += 1;
     }
-
-    let sym = src.last().copied().unwrap();
-    let (i, j) = (usize::from(sym), usize::from(NUL));
-    frequencies[i][j] += 1;
 
     frequencies
 }
@@ -183,7 +180,7 @@ mod tests {
     fn test_write_frequencies() -> io::Result<()> {
         let src = b"abra";
         let frequencies = build_frequencies(src, 4);
-        let alphabet = build_alphabet(&frequencies);
+        let alphabet = build_alphabet(src);
 
         let mut dst = Vec::new();
         write_frequencies(&mut dst, &alphabet, &frequencies)?;
@@ -194,9 +191,8 @@ mod tests {
             0x02, // frequencies[NUL]['a'] = 2
             0x01, // frequencies[NUL]['b'] = 1
             0x01, // frequencies[NUL]['r'] = 1
-            0x01, // frequencies['a'][NUL] = 1
-            0x00, // frequencies['a']['a'] = 0
-            0x00, // run length = 0
+            0x00, // frequencies['a'][NUL] = 0
+            0x01, // run length = 1
             0x01, // frequencies['a']['b'] = 1
             0x00, // frequencies['a']['r'] = 0
             0x00, // run length = 0
@@ -218,16 +214,16 @@ mod tests {
     #[test]
     fn test_build_alphabet() {
         let src = b"abracadabra";
-        let frequencies = build_frequencies(src, 4);
 
         let mut expected = [false; ALPHABET_SIZE];
         expected[usize::from(NUL)] = true;
+        expected[usize::from(b'a')] = true;
+        expected[usize::from(b'b')] = true;
+        expected[usize::from(b'c')] = true;
+        expected[usize::from(b'd')] = true;
+        expected[usize::from(b'r')] = true;
 
-        for &sym in src {
-            expected[usize::from(sym)] = true;
-        }
-
-        assert_eq!(build_alphabet(&frequencies), expected);
+        assert_eq!(build_alphabet(src), expected);
     }
 
     #[test]
@@ -239,7 +235,6 @@ mod tests {
         expected[usize::from(NUL)][usize::from(b'c')] = 1;
         expected[usize::from(NUL)][usize::from(b'd')] = 1;
         expected[usize::from(NUL)][usize::from(b'r')] = 1;
-        expected[usize::from(b'a')][usize::from(NUL)] = 1;
         expected[usize::from(b'a')][usize::from(b'b')] = 2;
         expected[usize::from(b'a')][usize::from(b'c')] = 1;
         expected[usize::from(b'a')][usize::from(b'd')] = 1;
