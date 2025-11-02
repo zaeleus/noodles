@@ -21,7 +21,7 @@ bstr.workspace = true
 bzip2 = "0.6.0"
 flate2.workspace = true
 indexmap.workspace = true
-lzma-rust2 = { version = "0.14.3", default-features = false, features = ["encoder", "std", "xz"] }
+lzma-rust2 = { version = "0.15.1", default-features = false, features = ["encoder", "std", "xz"] }
 md-5 = "0.10.0"
 noodles-bam = { path = "../noodles-bam", version = "0.83.0" }
 noodles-core = { path = "../noodles-core", version = "0.18.0" }
