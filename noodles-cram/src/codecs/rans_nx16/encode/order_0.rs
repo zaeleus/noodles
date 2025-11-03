@@ -147,6 +147,27 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_write_frequencies() -> io::Result<()> {
+        let src = b"abracadabra";
+        let frequencies = build_frequencies(src);
+
+        let mut dst = Vec::new();
+        write_frequencies(&mut dst, &frequencies)?;
+
+        let expected = [
+            0x05, // frequencies[b'a'] = 5
+            0x02, // frequencies[b'b'] = 2
+            0x01, // frequencies[b'c'] = 1
+            0x01, // frequencies[b'd'] = 1
+            0x02, // frequencies[b'r'] = 2
+        ];
+
+        assert_eq!(dst, expected);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_build_alphabet() {
         let src = b"abracadabra";
         let frequencies = build_frequencies(src);
