@@ -180,4 +180,18 @@ mod tests {
 
         assert_eq!(build_alphabet(&frequencies), expected);
     }
+
+    #[test]
+    fn test_build_frequencies() {
+        let src = b"abracadabra";
+
+        let mut expected = [0; ALPHABET_SIZE];
+        expected[usize::from(b'a')] = 5;
+        expected[usize::from(b'b')] = 2;
+        expected[usize::from(b'c')] = 1;
+        expected[usize::from(b'd')] = 1;
+        expected[usize::from(b'r')] = 2;
+
+        assert_eq!(build_frequencies(src), expected);
+    }
 }
