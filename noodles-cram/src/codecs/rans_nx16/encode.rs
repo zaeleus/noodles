@@ -19,9 +19,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     write_flags(&mut dst, flags)?;
 
     if flags.has_uncompressed_size() {
-        let n =
-            u32::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        write_uint7(&mut dst, n)?;
+        write_uncompressed_size(&mut dst, src.len())?;
     }
 
     let state_count = flags.state_count();
@@ -78,6 +76,11 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
 
 fn write_flags(dst: &mut Vec<u8>, flags: Flags) -> io::Result<()> {
     write_u8(dst, u8::from(flags))
+}
+
+fn write_uncompressed_size(dst: &mut Vec<u8>, size: usize) -> io::Result<()> {
+    let n = u32::try_from(size).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_uint7(dst, n)
 }
 
 fn write_states(dst: &mut Vec<u8>, states: &[u32]) -> io::Result<()> {
