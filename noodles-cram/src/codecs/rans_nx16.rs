@@ -25,7 +25,7 @@ mod tests {
             Flags::N32,
             Flags::STRIPE,
             Flags::CAT,
-            // Flags::RLE,
+            Flags::RLE,
             Flags::PACK,
         ];
 

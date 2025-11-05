@@ -47,10 +47,16 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     }
 
     if flags.is_rle() {
-        let mut ctx =
-            rle::build_context(&src).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        src = rle::encode(&src, &mut ctx)?;
-        rle::write_context(&mut dst, &ctx, src.len())?;
+        match rle::build_context(&src) {
+            Ok(mut ctx) => {
+                src = rle::encode(&src, &mut ctx)?;
+                rle::write_context(&mut dst, &ctx, src.len())?;
+            }
+            Err(rle::context::BuildContextError::EmptyAlphabet) => {
+                flags.remove(Flags::RLE);
+                dst[0] = u8::from(flags);
+            }
+        }
     }
 
     if src.len() < state_count {
