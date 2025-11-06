@@ -12,7 +12,7 @@ documentation = "https://docs.rs/noodles-csi"
 categories = ["parser-implementations", "science::bioinformatics"]
 
 [features]
-async = ["dep:tokio", "noodles-bgzf/async"]
+async = ["dep:pin-project-lite", "dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
 bstr.workspace = true
@@ -21,6 +21,7 @@ indexmap.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.43.0" }
 noodles-core = { path = "../noodles-core", version = "0.18.0" }
 
+pin-project-lite = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 [dev-dependencies]

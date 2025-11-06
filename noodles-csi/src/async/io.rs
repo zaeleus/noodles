@@ -1,6 +1,7 @@
 //! Async CSI.
 
+mod query;
 mod reader;
 mod writer;
 
-pub use self::{reader::Reader, writer::Writer};
+pub use self::{query::Query, reader::Reader, writer::Writer};
