@@ -19,6 +19,16 @@ pub use self::builder::Builder;
 use self::inflater::Inflater;
 use crate::{VirtualPosition, gzi, io::Block};
 
+enum SeekState<R>
+where
+    R: AsyncRead,
+{
+    Init,
+    Seek(Inflater<R>),
+    Finish(TryBuffered<Inflater<R>>),
+    Done(VirtualPosition),
+}
+
 pin_project! {
     /// An async BGZF reader.
     pub struct Reader<R>
@@ -30,6 +40,7 @@ pin_project! {
         block: Block,
         position: u64,
         worker_count: NonZero<usize>,
+        seek_state: Option<SeekState<R>>,
     }
 }
 
@@ -183,6 +194,72 @@ where
         self.stream.replace(stream);
 
         Ok(pos)
+    }
+
+    #[doc(hidden)]
+    pub fn poll_seek(
+        mut self: Pin<&mut &mut Self>,
+        cx: &mut Context<'_>,
+        pos: VirtualPosition,
+    ) -> Poll<io::Result<VirtualPosition>> {
+        loop {
+            self.seek_state = match self.seek_state.take().unwrap() {
+                SeekState::Init => {
+                    let stream = self.stream.take().expect("missing stream");
+                    let blocks = stream.into_inner();
+                    Some(SeekState::Seek(blocks))
+                }
+                SeekState::Seek(mut blocks) => {
+                    match Pin::new(&mut blocks).poll_seek(cx, pos) {
+                        Poll::Ready(Ok(_)) => {}
+                        Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
+                        Poll::Pending => {
+                            self.seek_state = Some(SeekState::Seek(blocks));
+                            return Poll::Pending;
+                        }
+                    }
+
+                    let stream = blocks.try_buffered(self.worker_count.get());
+                    Some(SeekState::Finish(stream))
+                }
+                SeekState::Finish(mut stream) => {
+                    let item = match Pin::new(&mut stream).poll_next(cx) {
+                        Poll::Ready(item) => item,
+                        Poll::Pending => {
+                            self.seek_state = Some(SeekState::Finish(stream));
+                            return Poll::Pending;
+                        }
+                    };
+
+                    self.block = match item {
+                        Some(Ok(mut block)) => {
+                            let (cpos, upos) = pos.into();
+
+                            self.position = cpos + block.size();
+
+                            block.set_position(cpos);
+                            block.data_mut().set_position(usize::from(upos));
+
+                            block
+                        }
+                        Some(Err(e)) => return Poll::Ready(Err(e)),
+                        None => Block::default(),
+                    };
+
+                    self.stream.replace(stream);
+
+                    Some(SeekState::Done(pos))
+                }
+                SeekState::Done(p) => {
+                    if pos == p {
+                        self.seek_state = Some(SeekState::Done(pos));
+                        return Poll::Ready(Ok(pos));
+                    } else {
+                        Some(SeekState::Init)
+                    }
+                }
+            };
+        }
     }
 
     /// Seeks the stream to the given uncompressed position.
