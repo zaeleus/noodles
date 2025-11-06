@@ -4,7 +4,7 @@ mod order_1;
 mod rle;
 mod stripe;
 
-use std::io::{self, Read};
+use std::io;
 
 use super::{ALPHABET_SIZE, Flags};
 use crate::io::reader::num::{read_u8, read_u32_le, read_uint7_as};
@@ -41,7 +41,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     let mut dst = vec![0; len];
 
     if flags.is_uncompressed() {
-        src.read_exact(&mut dst)?;
+        dst.copy_from_slice(src);
     } else if flags.order() == 0 {
         order_0::decode(&mut src, &mut dst, state_count)?;
     } else {
