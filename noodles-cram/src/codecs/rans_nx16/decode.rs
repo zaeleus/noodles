@@ -15,7 +15,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     let state_count = flags.state_count();
 
     if flags.has_uncompressed_size() {
-        len = read_uint7_as(&mut src)?;
+        len = read_uncompressed_size(&mut src)?;
     }
 
     if flags.is_striped() {
@@ -61,6 +61,10 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
 
 fn read_flags(src: &mut &[u8]) -> io::Result<Flags> {
     read_u8(src).map(Flags::from)
+}
+
+fn read_uncompressed_size(src: &mut &[u8]) -> io::Result<usize> {
+    read_uint7_as(src)
 }
 
 fn read_alphabet(src: &mut &[u8]) -> io::Result<[bool; ALPHABET_SIZE]> {
