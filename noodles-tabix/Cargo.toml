@@ -38,5 +38,9 @@ name = "tabix_list_reference_sequence_names_async"
 required-features = ["async"]
 
 [[example]]
+name = "tabix_query_generic_async"
+required-features = ["async", "noodles-csi/async"]
+
+[[example]]
 name = "tabix_read_header_async"
 required-features = ["async"]
