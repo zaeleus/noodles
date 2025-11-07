@@ -4,6 +4,8 @@
 
 ### Added
 
+  * csi/async/io: Add async indexed reader (`csi::r#async::io::IndexedReader`).
+
   * csi/async/io/reader: Add async query reader (`csi::r#async::io::Query`).
 
 ## 0.51.0 - 2025-08-25
