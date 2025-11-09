@@ -73,7 +73,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-pub(super) fn parse_record(
+pub(crate) fn parse_record(
     s: String,
     reference_sequence_name_index: usize,
     start_position_index: usize,

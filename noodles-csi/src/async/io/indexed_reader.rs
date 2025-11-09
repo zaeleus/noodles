@@ -1,9 +1,10 @@
+use futures::Stream;
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
-use super::Query;
-use crate::BinningIndex;
+use super::{Query, filtered_indexed_records};
+use crate::{BinningIndex, io::indexed_records::Record};
 
 /// An async indexed reader.
 pub struct IndexedReader<R, I> {
@@ -35,8 +36,8 @@ where
     R: AsyncRead + AsyncSeek + Unpin,
     I: BinningIndex,
 {
-    /// Returns a query reader.
-    pub fn query(&mut self, region: &Region) -> io::Result<Query<'_, R>> {
+    /// Returns a stream over records that intersects the given region.
+    pub fn query(&mut self, region: &Region) -> io::Result<impl Stream<Item = io::Result<Record>>> {
         let header = self
             .index
             .header()
@@ -54,6 +55,10 @@ where
 
         let chunks = self.index.query(reference_sequence_id, region.interval())?;
 
-        Ok(Query::new(&mut self.inner, chunks))
+        Ok(filtered_indexed_records(
+            Query::new(&mut self.inner, chunks),
+            header,
+            region,
+        ))
     }
 }

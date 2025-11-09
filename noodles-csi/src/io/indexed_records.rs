@@ -7,7 +7,7 @@ use std::io::{self, BufRead, Lines};
 use noodles_core::Region;
 
 pub use self::record::Record;
-use self::record::parse_record;
+pub(crate) use self::record::parse_record;
 use super::FilterByRegion;
 use crate::binning_index::index::{Header, header::format::CoordinateSystem};
 

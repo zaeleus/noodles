@@ -25,6 +25,7 @@ tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 [dev-dependencies]
 bstr.workspace = true
+futures = { workspace = true, features = ["std"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [lints]
