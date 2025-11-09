@@ -17,7 +17,7 @@ where
     R: Read,
     I: BinningIndex,
 {
-    /// Creates a indexed reader.
+    /// Creates an indexed reader.
     pub fn new(inner: R, index: I) -> Self {
         Self {
             inner: bgzf::io::Reader::new(inner),
