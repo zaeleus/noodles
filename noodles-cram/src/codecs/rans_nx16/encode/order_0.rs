@@ -194,4 +194,13 @@ mod tests {
 
         assert_eq!(build_frequencies(src), expected);
     }
+
+    #[test]
+    fn test_describe_frequencies() {
+        let src = b"abracadabra";
+        let frequencies = build_frequencies(src);
+        let (max_index, sum) = describe_frequencies(&frequencies);
+        assert_eq!(max_index, usize::from(b'a'));
+        assert_eq!(sum, 11);
+    }
 }
