@@ -19,29 +19,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_self_0() -> io::Result<()> {
-        let data = b"noodles";
+    fn test_self() -> io::Result<()> {
+        let src = b"noodles";
+        let options = [Order::Zero, Order::One];
 
-        let compressed_data = encode(Order::Zero, data)?;
-
-        let mut reader = &compressed_data[..];
-        let decompressed_data = decode(&mut reader)?;
-
-        assert_eq!(decompressed_data, data);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_self_1() -> io::Result<()> {
-        let data = b"noodles";
-
-        let compressed_data = encode(Order::One, data)?;
-
-        let mut reader = &compressed_data[..];
-        let decompressed_data = decode(&mut reader)?;
-
-        assert_eq!(decompressed_data, data);
+        for order in options {
+            let compressed_data = encode(order, src)?;
+            let uncompressed_data = decode(&mut &compressed_data[..])?;
+            assert_eq!(uncompressed_data, src);
+        }
 
         Ok(())
     }
