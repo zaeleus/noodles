@@ -196,6 +196,21 @@ mod tests {
     }
 
     #[test]
+    fn test_normalize_frequencies() {
+        let src = b"abracadabra";
+        let frequencies = build_frequencies(src);
+
+        let mut expected = [0; ALPHABET_SIZE];
+        expected[usize::from(b'a')] = 1864;
+        expected[usize::from(b'b')] = 744;
+        expected[usize::from(b'c')] = 372;
+        expected[usize::from(b'd')] = 372;
+        expected[usize::from(b'r')] = 744;
+
+        assert_eq!(normalize_frequencies(&frequencies), expected);
+    }
+
+    #[test]
     fn test_describe_frequencies() {
         let src = b"abracadabra";
         let frequencies = build_frequencies(src);
