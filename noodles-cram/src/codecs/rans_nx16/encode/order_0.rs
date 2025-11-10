@@ -76,9 +76,9 @@ fn build_frequencies(src: &[u8]) -> Frequencies {
 }
 
 pub(super) fn normalize_frequencies(frequencies: &Frequencies) -> Frequencies {
-    use std::cmp::Ordering;
-
-    const SCALE: u32 = 4096;
+    // § 3.1 "Frequency tables" (2023-03-15): "...the final power of two used in the Order-0
+    // (4096)..."
+    const SCALING_FACTOR: u32 = 4096;
 
     let (max_index, sum) = describe_frequencies(frequencies);
 
@@ -89,25 +89,20 @@ pub(super) fn normalize_frequencies(frequencies: &Frequencies) -> Frequencies {
     let mut normalized_frequencies = [0; ALPHABET_SIZE];
     let mut normalized_sum = 0;
 
-    for (&f, g) in frequencies.iter().zip(normalized_frequencies.iter_mut()) {
+    for (&f, g) in frequencies.iter().zip(&mut normalized_frequencies) {
         if f == 0 {
             continue;
         }
 
-        let mut normalized_frequency = f * SCALE / sum;
+        *g = (f * SCALING_FACTOR / sum).max(1);
 
-        if normalized_frequency == 0 {
-            normalized_frequency = 1;
-        }
-
-        *g = normalized_frequency;
-        normalized_sum += normalized_frequency;
+        normalized_sum += *g;
     }
 
-    match normalized_sum.cmp(&SCALE) {
-        Ordering::Less => normalized_frequencies[max_index] += SCALE - normalized_sum,
-        Ordering::Equal => {}
-        Ordering::Greater => normalized_frequencies[max_index] -= normalized_sum - SCALE,
+    if normalized_sum < SCALING_FACTOR {
+        normalized_frequencies[max_index] += SCALING_FACTOR - normalized_sum;
+    } else if normalized_sum > SCALING_FACTOR {
+        normalized_frequencies[max_index] -= normalized_sum - SCALING_FACTOR;
     }
 
     normalized_frequencies
