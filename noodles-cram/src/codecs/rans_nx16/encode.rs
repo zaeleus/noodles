@@ -4,7 +4,10 @@ mod order_1;
 mod rle;
 mod stripe;
 
-use std::io::{self, Write};
+use std::{
+    borrow::Cow,
+    io::{self, Write},
+};
 
 use super::{ALPHABET_SIZE, Flags};
 use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
@@ -13,7 +16,7 @@ use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
 const LOWER_BOUND: u32 = 0x8000;
 
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
-    let mut src = src.to_vec();
+    let mut src = Cow::from(src);
     let mut dst = Vec::new();
 
     write_flags(&mut dst, flags)?;
@@ -33,7 +36,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     if flags.is_bit_packed() {
         match bit_pack::build_context(&src) {
             Ok(ctx) => {
-                src = bit_pack::encode(&src, &ctx);
+                src = Cow::from(bit_pack::encode(&src, &ctx));
                 bit_pack::write_context(&mut dst, &ctx, src.len())?;
             }
             Err(
@@ -49,7 +52,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     if flags.is_rle() {
         match rle::build_context(&src) {
             Ok(mut ctx) => {
-                src = rle::encode(&src, &mut ctx)?;
+                src = rle::encode(&src, &mut ctx).map(Cow::from)?;
                 rle::write_context(&mut dst, &ctx, src.len())?;
             }
             Err(rle::context::BuildContextError::EmptyAlphabet) => {
