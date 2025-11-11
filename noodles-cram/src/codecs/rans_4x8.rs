@@ -25,7 +25,7 @@ mod tests {
 
         for order in options {
             let compressed_data = encode(order, src)?;
-            let uncompressed_data = decode(&mut &compressed_data[..])?;
+            let uncompressed_data = decode(&compressed_data)?;
             assert_eq!(uncompressed_data, src);
         }
 

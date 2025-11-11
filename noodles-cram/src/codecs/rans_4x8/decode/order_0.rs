@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use std::io;
 
 use super::{read_states, state_cumulative_frequency, state_renormalize, state_step};
 use crate::{
@@ -10,17 +10,14 @@ type Frequencies = [u16; ALPHABET_SIZE]; // F
 type CumulativeFrequencies = Frequencies; // C
 type CumulativeFrequenciesSymbolsTable = [u8; 4096];
 
-pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
-where
-    R: Read,
-{
-    let frequencies = read_frequencies(reader)?;
+pub fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
+    let frequencies = read_frequencies(src)?;
     let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
 
     let cumulative_frequencies_symbols_table =
         build_cumulative_frequencies_symbols_table(&cumulative_frequencies);
 
-    let mut states = read_states(reader)?;
+    let mut states = read_states(src)?;
 
     for chunk in dst.chunks_mut(states.len()) {
         for (d, state) in chunk.iter_mut().zip(states.iter_mut()) {
@@ -31,39 +28,36 @@ where
 
             let i = usize::from(sym);
             *state = state_step(*state, frequencies[i], cumulative_frequencies[i]);
-            *state = state_renormalize(*state, reader)?;
+            *state = state_renormalize(*state, src)?;
         }
     }
 
     Ok(())
 }
 
-pub(super) fn read_frequencies<R>(reader: &mut R) -> io::Result<Frequencies>
-where
-    R: Read,
-{
+pub(super) fn read_frequencies(src: &mut &[u8]) -> io::Result<Frequencies> {
     const NUL: u8 = 0x00;
 
     let mut frequencies = [0; ALPHABET_SIZE];
 
-    let mut sym = read_u8(reader)?;
+    let mut sym = read_u8(src)?;
     let mut prev_sym = sym;
 
     loop {
-        let f = read_itf8_as(reader)?;
+        let f = read_itf8_as(src)?;
         frequencies[usize::from(sym)] = f;
 
-        sym = read_u8(reader)?;
+        sym = read_u8(src)?;
 
         if sym == NUL {
             break;
         }
 
         if sym - 1 == prev_sym {
-            let len = read_u8(reader)?;
+            let len = read_u8(src)?;
 
             for _ in 0..len {
-                let f = read_itf8_as(reader)?;
+                let f = read_itf8_as(src)?;
                 frequencies[usize::from(sym)] = f;
                 sym += 1;
             }

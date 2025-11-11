@@ -1,36 +1,27 @@
-use std::io::{self, Read};
+use std::io;
 
 use crate::{
     codecs::rans_4x8::Order,
     io::reader::num::{read_u8, read_u32_le},
 };
 
-pub(super) fn read_header<R>(reader: &mut R) -> io::Result<(Order, usize, usize)>
-where
-    R: Read,
-{
+pub(super) fn read_header(reader: &mut &[u8]) -> io::Result<(Order, usize, usize)> {
     let order = read_order(reader)?;
     let compressed_size = read_size(reader)?;
     let uncompressed_size = read_size(reader)?;
     Ok((order, compressed_size, uncompressed_size))
 }
 
-fn read_order<R>(reader: &mut R) -> io::Result<Order>
-where
-    R: Read,
-{
-    match read_u8(reader)? {
+fn read_order(src: &mut &[u8]) -> io::Result<Order> {
+    match read_u8(src)? {
         0 => Ok(Order::Zero),
         1 => Ok(Order::One),
         _ => Err(io::Error::new(io::ErrorKind::InvalidData, "invalid order")),
     }
 }
 
-fn read_size<R>(reader: &mut R) -> io::Result<usize>
-where
-    R: Read,
-{
-    read_u32_le(reader)
+fn read_size(src: &mut &[u8]) -> io::Result<usize> {
+    read_u32_le(src)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 

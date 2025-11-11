@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use std::io;
 
 use super::{order_0, read_states, state_cumulative_frequency, state_renormalize, state_step};
 use crate::{
@@ -10,17 +10,14 @@ type Frequencies = [[u16; ALPHABET_SIZE]; ALPHABET_SIZE]; // F
 type CumulativeFrequencies = Frequencies; // C
 type CumulativeFrequenciesSymbolsTable = [[u8; 4096]; ALPHABET_SIZE];
 
-pub fn decode<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
-where
-    R: Read,
-{
-    let frequencies = read_frequencies(reader)?;
+pub fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
+    let frequencies = read_frequencies(src)?;
     let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
 
     let cumulative_frequencies_symbols_table =
         build_cumulative_frequencies_symbols_table(&cumulative_frequencies);
 
-    let mut states = read_states(reader)?;
+    let mut states = read_states(src)?;
     let mut prev_syms = [0; STATE_COUNT];
 
     let [chunk_0, chunk_1, chunk_2, chunk_3, chunk_4] = split_chunks(dst);
@@ -38,7 +35,7 @@ where
 
             let j = usize::from(sym);
             *state = state_step(*state, frequencies[i][j], cumulative_frequencies[i][j]);
-            *state = state_renormalize(*state, reader)?;
+            *state = state_renormalize(*state, src)?;
 
             *prev_sym = sym;
         }
@@ -56,7 +53,7 @@ where
 
         let j = usize::from(sym);
         state = state_step(state, frequencies[i][j], cumulative_frequencies[i][j]);
-        state = state_renormalize(state, reader)?;
+        state = state_renormalize(state, src)?;
 
         prev_sym = sym;
     }
@@ -64,30 +61,27 @@ where
     Ok(())
 }
 
-fn read_frequencies<R>(reader: &mut R) -> io::Result<Frequencies>
-where
-    R: Read,
-{
+fn read_frequencies(src: &mut &[u8]) -> io::Result<Frequencies> {
     let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
 
-    let mut sym = read_u8(reader)?;
+    let mut sym = read_u8(src)?;
     let mut prev_sym = sym;
 
     loop {
-        let f = order_0::read_frequencies(reader)?;
+        let f = order_0::read_frequencies(src)?;
         frequencies[usize::from(sym)] = f;
 
-        sym = read_u8(reader)?;
+        sym = read_u8(src)?;
 
         if sym == 0 {
             break;
         }
 
         if sym - 1 == prev_sym {
-            let len = read_u8(reader)?;
+            let len = read_u8(src)?;
 
             for _ in 0..len {
-                let f = order_0::read_frequencies(reader)?;
+                let f = order_0::read_frequencies(src)?;
                 frequencies[usize::from(sym)] = f;
                 sym += 1;
             }

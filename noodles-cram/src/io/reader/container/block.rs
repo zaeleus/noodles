@@ -41,7 +41,7 @@ impl Block<'_> {
                 lzma::decode(self.src, &mut dst)?;
                 Ok(dst)
             }
-            CompressionMethod::Rans4x8 => rans_4x8::decode(&mut &self.src[..]),
+            CompressionMethod::Rans4x8 => rans_4x8::decode(self.src),
             CompressionMethod::RansNx16 => rans_nx16::decode(self.src, self.uncompressed_size),
             CompressionMethod::AdaptiveArithmeticCoding => {
                 aac::decode(self.src, self.uncompressed_size)
