@@ -4,6 +4,10 @@
 
 ### Changed
 
+  * vcf/io/writer/record: Percent-encode period (`.`) when ambiguous.
+
+    The character `.` is always encoded, and only the string "." is encoded.
+
   * vcf/io/writer/record/info/field/value: Remove colon (`:`) from encode set
     ([#339]).
 

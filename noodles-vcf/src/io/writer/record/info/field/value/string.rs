@@ -1,13 +1,22 @@
 use std::io::{self, Write};
 
-use percent_encoding::{AsciiSet, CONTROLS, PercentEncode, utf8_percent_encode};
+use percent_encoding::{
+    AsciiSet, CONTROLS, PercentEncode, percent_encode_byte, utf8_percent_encode,
+};
+
+const MISSING: &[u8; 1] = b".";
 
 pub(super) fn write_string<W>(writer: &mut W, s: &str) -> io::Result<()>
 where
     W: Write,
 {
-    for t in percent_encode(s) {
+    if s.as_bytes() == MISSING {
+        let t = percent_encode_byte(MISSING[0]);
         writer.write_all(t.as_bytes())?;
+    } else {
+        for t in percent_encode(s) {
+            writer.write_all(t.as_bytes())?;
+        }
     }
 
     Ok(())
@@ -34,15 +43,18 @@ mod tests {
 
     #[test]
     fn test_write_string() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, s: &str, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_string(buf, s)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
         let mut buf = Vec::new();
 
-        buf.clear();
-        write_string(&mut buf, "ndls")?;
-        assert_eq!(buf, b"ndls");
-
-        buf.clear();
-        write_string(&mut buf, "n=d:ls;")?;
-        assert_eq!(buf, b"n%3Dd:ls%3B");
+        t(&mut buf, "ndls", b"ndls")?;
+        t(&mut buf, "n=d:ls.;", b"n%3Dd:ls.%3B")?;
+        t(&mut buf, ".", b"%2E")?;
 
         Ok(())
     }

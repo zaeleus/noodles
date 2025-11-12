@@ -8,7 +8,7 @@ where
 {
     // § 1.2 "Character encoding, non-printable characters and characters with special meaning"
     // (2024-10-09).
-    if c.is_ascii_control() || matches!(c, ':' | '%' | ',' | '\r' | '\n' | '\t') {
+    if c.is_ascii_control() || matches!(c, ':' | '%' | ',' | '.' | '\r' | '\n' | '\t') {
         // SAFETY: `c` is an ASCII character.
         let b = c as u8;
         let s = percent_encode_byte(b);
@@ -37,6 +37,7 @@ mod tests {
         t(&mut buf, ';', b";")?;
         t(&mut buf, '=', b"=")?;
         t(&mut buf, ':', b"%3A")?;
+        t(&mut buf, '.', b"%2E")?;
 
         Ok(())
     }
