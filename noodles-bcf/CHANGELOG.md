@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.79.0 - 2025-11-13
+
+### Changed
+
+  * bcf: Sync dependencies.
+
 ## 0.78.0 - 2025-08-25
 
 ### Changed

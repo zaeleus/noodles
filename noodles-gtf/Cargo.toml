@@ -1,6 +1,6 @@
 [package]
 name = "noodles-gtf"
-version = "0.47.0"
+version = "0.48.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -15,10 +15,10 @@ categories = ["parser-implementations", "science::bioinformatics"]
 bstr.workspace = true
 indexmap.workspace = true
 lexical-core.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.43.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.44.0" }
 noodles-core = { path = "../noodles-core", version = "0.18.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.51.0" }
-noodles-gff = { path = "../noodles-gff", version = "0.52.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.52.0" }
+noodles-gff = { path = "../noodles-gff", version = "0.53.0" }
 
 [lints]
 workspace = true

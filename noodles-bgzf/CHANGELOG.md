@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.44.0 - 2025-11-13
+
+### Changed
+
+  * bgzf: Sync dependencies.
+
 ## 0.43.0 - 2025-08-25
 
 ### Deprecated
