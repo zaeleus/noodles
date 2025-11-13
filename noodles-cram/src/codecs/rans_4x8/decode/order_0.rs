@@ -98,3 +98,35 @@ pub(super) fn build_cumulative_frequencies_symbols_table(
 
     table
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_frequencies() -> io::Result<()> {
+        let src = [
+            b'a', // symbol = 'a'
+            0x05, // frequencies['a'] = 5
+            b'b', // symbol = 'b'
+            0x02, // run length = 2
+            0x02, // frequencies['b'] = 2
+            0x01, // frequencies['c'] = 1
+            0x01, // frequencies['d'] = 1
+            b'r', // symbol = 'r'
+            0x02, // frequencies['r'] = 2
+            0x00, // EOF
+        ];
+
+        let mut expected = [0; ALPHABET_SIZE];
+        expected[usize::from(b'a')] = 5;
+        expected[usize::from(b'b')] = 2;
+        expected[usize::from(b'c')] = 1;
+        expected[usize::from(b'd')] = 1;
+        expected[usize::from(b'r')] = 2;
+
+        assert_eq!(read_frequencies(&mut &src[..])?, expected);
+
+        Ok(())
+    }
+}
