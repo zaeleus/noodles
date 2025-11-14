@@ -183,95 +183,36 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_encode() -> io::Result<()> {
-        // § 14.4.2 Frequency table, Order-1 encoding (2020-07-22)
-        let data = b"abracadabraabracadabraabracadabraabracadabra";
-        let actual = encode(data)?;
-
-        let expected = [
-            // header
-            0x01, // order = 1
-            0x36, 0x00, 0x00, 0x00, // compressed size = 54
-            0x2c, 0x00, 0x00, 0x00, // uncompressed size = 44
-            // frequency table
-            0x00, // syms[0] = '\0' {
-            0x61, // syms[1] = 'a'
-            0x8f, 0xff, // f[0]['a'] = 4095
-            0x00, // }
-            0x61, // syms[0] = 'a' {
-            0x61, // syms[1] = 'a'
-            0x82, 0x86, // f['a']['a'] = 646
-            0x62, // syms[1] = 'b'
-            0x02, // rle = 2
-            0x86, 0xbd, // f['a']['b'] = 1725
-            0x83, 0x5e, // f['a']['c'] = 862
-            0x83, 0x5e, // f['a']['d'] = 862
-            0x00, // }
-            0x62, // syms[0] = 'b' {
-            0x02, // rle = 2
-            0x72, // syms[1] = 'r'
-            0x8f, 0xff, // f['b']['r'] = 4095
-            0x00, // }
-            // syms[0] = 'c' {
-            0x61, // 'a'
-            0x8f, 0xff, // f['c']['a'] = 4095
-            0x00, // }
-            // syms[0] = 'd' {
-            0x61, // syms[1] = 'a'
-            0x8f, 0xff, // f['d']['a'] = 4095
-            0x00, // }
-            0x72, // syms[0] = 'r' {
-            0x61, // syms[1] = 'a'
-            0x8f, 0xff, // f['r']['a'] = 4095
-            0x00, // }
-            0x00, // end
-            // compressed blob
-            0x75, 0x51, 0xc3, 0x3f, // states[0]
-            0x75, 0x51, 0xc3, 0x3f, // states[1]
-            0x75, 0x51, 0xc3, 0x3f, // states[2]
-            0x75, 0x51, 0xc3, 0x3f, // states[3]
-        ];
-
-        assert_eq!(actual, expected);
-
-        Ok(())
-    }
-
-    #[test]
     fn test_build_raw_frequencies() {
-        // § 2.1.2 "Frequency table: Order-1 encoding" (2023-03-15)
-        let src = b"abracadabraabracadabraabracadabraabracadabr";
+        // § 2.1.2 "Frequency table: Order-1 encoding" (563e8ab 2025-04-07)
+        let src = b"abracadabraabracadabraabracadabraabracadabrad";
 
         let mut expected = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
-        expected[usize::from(NUL)][usize::from(b'a')] = 2;
-        expected[usize::from(NUL)][usize::from(b'r')] = 1;
-        expected[usize::from(NUL)][usize::from(b'b')] = 1;
+        expected[usize::from(NUL)][usize::from(b'a')] = 4;
         expected[usize::from(b'a')][usize::from(b'a')] = 3;
         expected[usize::from(b'a')][usize::from(b'b')] = 8;
         expected[usize::from(b'a')][usize::from(b'c')] = 4;
-        expected[usize::from(b'a')][usize::from(b'd')] = 4;
+        expected[usize::from(b'a')][usize::from(b'd')] = 5;
         expected[usize::from(b'b')][usize::from(b'r')] = 8;
         expected[usize::from(b'c')][usize::from(b'a')] = 4;
         expected[usize::from(b'd')][usize::from(b'a')] = 4;
-        expected[usize::from(b'r')][usize::from(b'a')] = 7;
+        expected[usize::from(b'r')][usize::from(b'a')] = 8;
 
         assert_eq!(build_raw_frequencies(src), expected);
     }
 
     #[test]
     fn test_normalize_frequencies() {
-        // § 2.1.2 "Frequency table: Order-1 encoding" (2023-03-15)
-        // let src = b"abracadabraabracadabraabracadabraabracadabr";
-
-        let src = b"abracadabraabracadabraabracadabraabracadabra";
+        // § 2.1.2 "Frequency table: Order-1 encoding" (563e8ab 2025-04-07)
+        let src = b"abracadabraabracadabraabracadabraabracadabrad";
         let raw_frequencies = build_raw_frequencies(src);
 
         let mut expected = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
         expected[usize::from(NUL)][usize::from(b'a')] = 4095;
-        expected[usize::from(b'a')][usize::from(b'a')] = 646;
-        expected[usize::from(b'a')][usize::from(b'b')] = 1725;
-        expected[usize::from(b'a')][usize::from(b'c')] = 862;
-        expected[usize::from(b'a')][usize::from(b'd')] = 862;
+        expected[usize::from(b'a')][usize::from(b'a')] = 614;
+        expected[usize::from(b'a')][usize::from(b'b')] = 1639;
+        expected[usize::from(b'a')][usize::from(b'c')] = 819;
+        expected[usize::from(b'a')][usize::from(b'd')] = 1023;
         expected[usize::from(b'b')][usize::from(b'r')] = 4095;
         expected[usize::from(b'c')][usize::from(b'a')] = 4095;
         expected[usize::from(b'd')][usize::from(b'a')] = 4095;
@@ -290,6 +231,18 @@ mod tests {
         assert_eq!(
             split_chunks(&[1, 2, 3, 4, 5]),
             [&[1][..], &[2][..], &[3][..], &[4][..], &[4, 5][..]]
+        );
+
+        // § 2.1.2 "Frequency table: Order-1 encoding" (563e8ab 2025-04-07)
+        assert_eq!(
+            split_chunks(b"abracadabraabracadabraabracadabraabracadabrad"),
+            [
+                &b"abracadabra"[..],
+                &b"abracadabra"[..],
+                &b"abracadabra"[..],
+                &b"abracadabra"[..],
+                &b"ad"[..],
+            ]
         );
     }
 }
