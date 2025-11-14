@@ -125,3 +125,64 @@ fn split_chunks(dst: &mut [u8]) -> [&mut [u8]; 5] {
 
     [chunk_0, chunk_1, chunk_2, chunk_3, chunk_4]
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_frequencies() -> io::Result<()> {
+        const NUL: u8 = 0x00;
+
+        // § 2.1.2 "Frequency table: Order-1 encoding" (563e8ab 2025-04-07):
+        // "abracadabraabracadabraabracadabraabracadabrad".
+        let src = [
+            0x00, // symbols[0] = '\0' {
+            b'a', //   symbols[1] = 'a'
+            0x04, //     frequencies['\0']['a'] = 4
+            0x00, // }
+            b'a', // symbols[0] = 'a' {
+            b'a', //   symbols[1] = 'a'
+            0x03, //     frequencies['a']['a'] = 3
+            b'b', //   symbols[1] = 'b'
+            0x02, //     run length = 2
+            0x08, //     frequencies['a']['b'] = 8
+            0x04, //     frequencies['a']['c'] = 4
+            0x05, //     frequencies['a']['d'] = 5
+            0x00, // }
+            b'b', // symbols[0] = 'b' {
+            0x02, //   run length = 2
+            b'r', //   symbols[1] = 'r'
+            0x08, //     frequencies['b']['r'] = 8
+            0x00, // }
+            //    // symbols[0] = 'c' {
+            b'a', //   symbols[1] = 'a'
+            0x04, //     frequencies['c']['a'] = 4
+            0x00, // }
+            //    // symbols[0] = 'd' {
+            b'a', //   symbols[1] = 'a'
+            0x04, //     frequencies['d']['a'] = 4
+            0x00, // }
+            b'r', // symbols[0] = 'r' {
+            b'a', //   symbols[1] = 'a'
+            0x08, //     frequencies['r']['a'] = 8
+            0x00, // }
+            0x00, // EOF
+        ];
+
+        let mut expected = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+        expected[usize::from(NUL)][usize::from(b'a')] = 4;
+        expected[usize::from(b'a')][usize::from(b'a')] = 3;
+        expected[usize::from(b'a')][usize::from(b'b')] = 8;
+        expected[usize::from(b'a')][usize::from(b'c')] = 4;
+        expected[usize::from(b'a')][usize::from(b'd')] = 5;
+        expected[usize::from(b'b')][usize::from(b'r')] = 8;
+        expected[usize::from(b'c')][usize::from(b'a')] = 4;
+        expected[usize::from(b'd')][usize::from(b'a')] = 4;
+        expected[usize::from(b'r')][usize::from(b'a')] = 8;
+
+        assert_eq!(read_frequencies(&mut &src[..])?, expected);
+
+        Ok(())
+    }
+}
