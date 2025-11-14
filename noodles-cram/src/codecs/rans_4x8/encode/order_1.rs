@@ -183,6 +183,63 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_write_frequencies() -> io::Result<()> {
+        // § 2.1.2 "Frequency table: Order-1 encoding" (563e8ab 2025-04-07):
+        // "abracadabraabracadabraabracadabraabracadabrad".
+        let mut frequencies = [[0; ALPHABET_SIZE]; ALPHABET_SIZE];
+        frequencies[usize::from(NUL)][usize::from(b'a')] = 4;
+        frequencies[usize::from(b'a')][usize::from(b'a')] = 3;
+        frequencies[usize::from(b'a')][usize::from(b'b')] = 8;
+        frequencies[usize::from(b'a')][usize::from(b'c')] = 4;
+        frequencies[usize::from(b'a')][usize::from(b'd')] = 5;
+        frequencies[usize::from(b'b')][usize::from(b'r')] = 8;
+        frequencies[usize::from(b'c')][usize::from(b'a')] = 4;
+        frequencies[usize::from(b'd')][usize::from(b'a')] = 4;
+        frequencies[usize::from(b'r')][usize::from(b'a')] = 8;
+
+        let mut dst = Vec::new();
+        write_frequencies(&mut dst, &frequencies)?;
+
+        let expected = [
+            0x00, // symbols[0] = '\0' {
+            b'a', //   symbols[1] = 'a'
+            0x04, //     frequencies['\0']['a'] = 4
+            0x00, // }
+            b'a', // symbols[0] = 'a' {
+            b'a', //   symbols[1] = 'a'
+            0x03, //     frequencies['a']['a'] = 3
+            b'b', //   symbols[1] = 'b'
+            0x02, //     run length = 2
+            0x08, //     frequencies['a']['b'] = 8
+            0x04, //     frequencies['a']['c'] = 4
+            0x05, //     frequencies['a']['d'] = 5
+            0x00, // }
+            b'b', // symbols[0] = 'b' {
+            0x02, //   run length = 2
+            b'r', //   symbols[1] = 'r'
+            0x08, //     frequencies['b']['r'] = 8
+            0x00, // }
+            //    // symbols[0] = 'c' {
+            b'a', //   symbols[1] = 'a'
+            0x04, //     frequencies['c']['a'] = 4
+            0x00, // }
+            //    // symbols[0] = 'd' {
+            b'a', //   symbols[1] = 'a'
+            0x04, //     frequencies['d']['a'] = 4
+            0x00, // }
+            b'r', // symbols[0] = 'r' {
+            b'a', //   symbols[1] = 'a'
+            0x08, //     frequencies['r']['a'] = 8
+            0x00, // }
+            0x00, // EOF
+        ];
+
+        assert_eq!(dst, expected);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_build_raw_frequencies() {
         // § 2.1.2 "Frequency table: Order-1 encoding" (563e8ab 2025-04-07)
         let src = b"abracadabraabracadabraabracadabraabracadabrad";
