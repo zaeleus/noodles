@@ -42,8 +42,6 @@ pub fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Re
 where
     W: Write,
 {
-    assert_eq!(frequencies.len(), ALPHABET_SIZE);
-
     const NUL: u8 = 0x00;
 
     let mut iter = frequencies.iter().enumerate();
