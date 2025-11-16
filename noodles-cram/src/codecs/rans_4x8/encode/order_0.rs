@@ -96,8 +96,6 @@ fn build_raw_frequencies(src: &[u8]) -> RawFrequencies {
 }
 
 pub(super) fn normalize_frequencies(raw_frequencies: &RawFrequencies) -> Frequencies {
-    use std::cmp::Ordering;
-
     // § 2.1 "Frequency table" (2023-03-15): "The total sum of symbol frequencies are normalised to
     // add up to 4095."
     const SCALING_FACTOR: u16 = 4095;
@@ -111,26 +109,22 @@ pub(super) fn normalize_frequencies(raw_frequencies: &RawFrequencies) -> Frequen
     let mut normalized_frequencies = [0; ALPHABET_SIZE];
     let mut normalized_sum = 0;
 
-    for (i, &f) in raw_frequencies.iter().enumerate() {
+    for (&f, g) in raw_frequencies.iter().zip(&mut normalized_frequencies) {
         if f == 0 {
             continue;
         }
 
-        let mut normalized_frequency = f * u32::from(SCALING_FACTOR) / sum;
-
-        if normalized_frequency == 0 {
-            normalized_frequency = 1;
-        }
-
+        let normalized_frequency = f * u32::from(SCALING_FACTOR) / sum;
         // SAFETY: `normalized_frequency <= SCALING_FACTOR`.
-        normalized_frequencies[i] = normalized_frequency as u16;
-        normalized_sum += normalized_frequencies[i];
+        *g = (normalized_frequency as u16).max(1);
+
+        normalized_sum += *g;
     }
 
-    match normalized_sum.cmp(&SCALING_FACTOR) {
-        Ordering::Less => normalized_frequencies[max_index] += SCALING_FACTOR - normalized_sum,
-        Ordering::Equal => {}
-        Ordering::Greater => normalized_frequencies[max_index] -= normalized_sum - SCALING_FACTOR,
+    if normalized_sum < SCALING_FACTOR {
+        normalized_frequencies[max_index] += SCALING_FACTOR - normalized_sum;
+    } else if normalized_sum > SCALING_FACTOR {
+        normalized_frequencies[max_index] -= normalized_sum - SCALING_FACTOR;
     }
 
     normalized_frequencies
