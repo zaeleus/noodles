@@ -79,17 +79,13 @@ fn write_frequencies<W>(writer: &mut W, frequencies: &Frequencies) -> io::Result
 where
     W: Write,
 {
-    let mut statuses = [false; ALPHABET_SIZE];
+    let alphabet = build_alphabet(frequencies);
 
-    for (s, f) in statuses.iter_mut().zip(frequencies) {
-        *s = !f.iter().any(|&g| g > 0);
-    }
-
-    let mut iter = frequencies.iter().zip(&statuses).enumerate();
+    let mut iter = alphabet.iter().zip(frequencies).enumerate();
     let mut prev_sym = 0;
 
-    while let Some((sym, (f, &is_empty))) = iter.next() {
-        if is_empty {
+    while let Some((sym, (&a, f))) = iter.next() {
+        if !a {
             continue;
         }
 
@@ -98,14 +94,14 @@ where
 
         if sym > 0 && sym - 1 == prev_sym {
             let i = sym + 1;
-            let len = statuses[i..].iter().position(|s| *s).unwrap_or(0);
+            let len = alphabet[i..].iter().position(|&a| !a).unwrap_or(0);
 
             // SAFETY: `len < ALPHABET_SIZE`.
             write_u8(writer, len as u8)?;
 
             order_0::write_frequencies(writer, f)?;
 
-            for (sym, (g, _)) in iter.by_ref().take(len) {
+            for (sym, (_, g)) in iter.by_ref().take(len) {
                 order_0::write_frequencies(writer, g)?;
                 prev_sym = sym;
             }
@@ -121,6 +117,16 @@ where
     write_u8(writer, NUL)?;
 
     Ok(())
+}
+
+fn build_alphabet(frequencies: &Frequencies) -> [bool; ALPHABET_SIZE] {
+    let mut alphabet = [false; ALPHABET_SIZE];
+
+    for (a, fs) in alphabet.iter_mut().zip(frequencies) {
+        *a = fs.iter().any(|&g| g > 0);
+    }
+
+    alphabet
 }
 
 fn build_raw_frequencies(src: &[u8]) -> RawFrequencies {
@@ -237,6 +243,38 @@ mod tests {
         assert_eq!(dst, expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_build_alphabet() {
+        // § 2.1.2 "Frequency table: Order-1 encoding" (563e8ab 2025-04-07)
+        let src = b"abracadabraabracadabraabracadabraabracadabrad";
+        let frequencies = build_raw_frequencies(src);
+        let frequencies = normalize_frequencies(&frequencies);
+
+        let mut expected = [false; ALPHABET_SIZE];
+        expected[usize::from(NUL)] = true;
+        expected[usize::from(b'a')] = true;
+        expected[usize::from(b'b')] = true;
+        expected[usize::from(b'c')] = true;
+        expected[usize::from(b'd')] = true;
+        expected[usize::from(b'r')] = true;
+
+        assert_eq!(build_alphabet(&frequencies), expected);
+
+        let src = b"noodles";
+        let frequencies = build_raw_frequencies(src);
+        let frequencies = normalize_frequencies(&frequencies);
+
+        let mut expected = [false; ALPHABET_SIZE];
+        expected[usize::from(NUL)] = true;
+        expected[usize::from(b'n')] = true;
+        expected[usize::from(b'o')] = true;
+        expected[usize::from(b'd')] = true;
+        expected[usize::from(b'l')] = true;
+        expected[usize::from(b'e')] = true;
+
+        assert_eq!(build_alphabet(&frequencies), expected);
     }
 
     #[test]
