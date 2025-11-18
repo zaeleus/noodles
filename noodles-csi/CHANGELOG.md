@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * csi/io/indexed_records/record: Fix parsing end position when missing.
+
+    When the end position is missing, this previously parsed the record as
+    having two bases (end = start + 1). It is now parsed as having a single
+    base (end = start).
+
 ## 0.52.0 - 2025-11-13
 
 ### Added

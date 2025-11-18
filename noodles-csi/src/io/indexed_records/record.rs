@@ -104,11 +104,7 @@ pub(crate) fn parse_record(
                     .map_err(ParseError::InvalidEndPosition)
             })?
     } else {
-        // _The Tabix index file format_: "Field `col_beg` may equal `col_end`, and in this case,
-        // the end of a region is `end=beg+1`."
         start_position
-            .checked_add(1)
-            .expect("attempt to add with overflow")
     };
 
     Ok(Record {
@@ -157,8 +153,7 @@ mod tests {
         let record = parse_record("sq0\t8".into(), 0, 1, None, CoordinateSystem::Gff)?;
         assert_eq!(record.reference_sequence_name_bounds, 0..3);
         assert_eq!(record.start_position, const { Position::new(8).unwrap() });
-        // FIXME: `end_position` = 8.
-        assert_eq!(record.end_position, const { Position::new(9).unwrap() });
+        assert_eq!(record.end_position, const { Position::new(8).unwrap() });
 
         // FIXME: `ParseError::MissingReferenceSequenceName`.
         assert!(matches!(
