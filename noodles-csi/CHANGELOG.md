@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+  * csi/io/indexed_records/record: Disallow empty input.
+
 ### Fixed
 
   * csi/io/indexed_records/record: Fix parsing end position when missing.

@@ -39,6 +39,8 @@ impl AsRef<str> for Record {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
+    Empty,
     /// The reference sequence name is missing.
     MissingReferenceSequenceName,
     /// The start position is missing.
@@ -64,6 +66,7 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Empty => write!(f, "empty input"),
             Self::MissingReferenceSequenceName => write!(f, "missing reference sequence name"),
             Self::MissingStartPosition => write!(f, "missing start position"),
             Self::InvalidStartPosition(_) => write!(f, "invalid start position"),
@@ -81,6 +84,10 @@ pub(crate) fn parse_record(
     coordinate_system: CoordinateSystem,
 ) -> Result<Record, ParseError> {
     const DELIMITER: char = '\t';
+
+    if s.is_empty() {
+        return Err(ParseError::Empty);
+    }
 
     let fields: Vec<_> = s.split(DELIMITER).collect();
 
@@ -155,10 +162,14 @@ mod tests {
         assert_eq!(record.start_position, const { Position::new(8).unwrap() });
         assert_eq!(record.end_position, const { Position::new(8).unwrap() });
 
-        // FIXME: `ParseError::MissingReferenceSequenceName`.
         assert!(matches!(
             parse_record("".into(), 0, 1, Some(2), CoordinateSystem::Gff),
-            Err(ParseError::MissingStartPosition)
+            Err(ParseError::Empty)
+        ));
+
+        assert!(matches!(
+            parse_record("8".into(), 1, 0, Some(2), CoordinateSystem::Gff),
+            Err(ParseError::MissingReferenceSequenceName)
         ));
 
         assert!(matches!(
