@@ -137,3 +137,55 @@ fn calculate_reference_sequence_name_bounds(
 
     Ok(start..end)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_record() -> Result<(), ParseError> {
+        let record = parse_record("sq0\t7\t13".into(), 0, 1, Some(2), CoordinateSystem::Bed)?;
+        assert_eq!(record.reference_sequence_name_bounds, 0..3);
+        assert_eq!(record.start_position, const { Position::new(8).unwrap() });
+        assert_eq!(record.end_position, const { Position::new(13).unwrap() });
+
+        let record = parse_record("sq0\t8\t13".into(), 0, 1, Some(2), CoordinateSystem::Gff)?;
+        assert_eq!(record.reference_sequence_name_bounds, 0..3);
+        assert_eq!(record.start_position, const { Position::new(8).unwrap() });
+        assert_eq!(record.end_position, const { Position::new(13).unwrap() });
+
+        let record = parse_record("sq0\t8".into(), 0, 1, None, CoordinateSystem::Gff)?;
+        assert_eq!(record.reference_sequence_name_bounds, 0..3);
+        assert_eq!(record.start_position, const { Position::new(8).unwrap() });
+        // FIXME: `end_position` = 8.
+        assert_eq!(record.end_position, const { Position::new(9).unwrap() });
+
+        // FIXME: `ParseError::MissingReferenceSequenceName`.
+        assert!(matches!(
+            parse_record("".into(), 0, 1, Some(2), CoordinateSystem::Gff),
+            Err(ParseError::MissingStartPosition)
+        ));
+
+        assert!(matches!(
+            parse_record("sq0".into(), 0, 1, Some(2), CoordinateSystem::Gff),
+            Err(ParseError::MissingStartPosition)
+        ));
+
+        assert!(matches!(
+            parse_record("sq0\tn".into(), 0, 1, Some(2), CoordinateSystem::Gff),
+            Err(ParseError::InvalidStartPosition(_))
+        ));
+
+        assert!(matches!(
+            parse_record("sq0\t8".into(), 0, 1, Some(2), CoordinateSystem::Gff),
+            Err(ParseError::MissingEndPosition)
+        ));
+
+        assert!(matches!(
+            parse_record("sq0\t8\tn".into(), 0, 1, Some(2), CoordinateSystem::Gff),
+            Err(ParseError::InvalidEndPosition(_))
+        ));
+
+        Ok(())
+    }
+}
