@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-use super::{state_renormalize, state_step, write_header, write_states};
+use super::{header, state_renormalize, state_step, write_header, write_states};
 use crate::{
     codecs::rans_4x8::{ALPHABET_SIZE, LOWER_BOUND, Order, STATE_COUNT},
     io::writer::num::{write_itf8, write_u8},
@@ -25,15 +25,16 @@ pub fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
         *state = state_step(*state, frequencies[j], cumulative_frequencies[j]);
     }
 
-    let mut dst = vec![0; 9];
+    let mut dst = vec![0; header::SIZE];
 
     write_frequencies(&mut dst, &frequencies)?;
     write_states(&mut dst, &states)?;
     dst.extend(buf.iter().rev());
 
-    let compressed_size = dst[9..].len();
-    let mut writer = &mut dst[..9];
-    write_header(&mut writer, Order::Zero, compressed_size, src.len())?;
+    let compressed_size = dst[header::SIZE..].len();
+    // SAFETY: `dst.len() >= header::SIZE`.
+    let header_dst = dst.first_chunk_mut().unwrap();
+    write_header(header_dst, Order::Zero, compressed_size, src.len())?;
 
     Ok(dst)
 }

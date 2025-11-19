@@ -1,43 +1,36 @@
-use std::io::{self, Write};
+use std::io;
 
-use crate::{
-    codecs::rans_4x8::Order,
-    io::writer::num::{write_u8, write_u32_le},
-};
+use crate::codecs::rans_4x8::Order;
 
-pub fn write_header<W>(
-    writer: &mut W,
+pub const SIZE: usize = 9;
+
+pub fn write_header(
+    dst: &mut [u8; SIZE],
     order: Order,
     compressed_size: usize,
     uncompressed_size: usize,
-) -> io::Result<()>
-where
-    W: Write,
-{
-    write_order(writer, order)?;
-    write_size(writer, compressed_size)?;
-    write_size(writer, uncompressed_size)?;
+) -> io::Result<()> {
+    write_order(&mut dst[0], order);
+    write_size(&mut dst[1..5], compressed_size)?;
+    write_size(&mut dst[5..SIZE], uncompressed_size)?;
     Ok(())
 }
 
-fn write_order<W>(writer: &mut W, order: Order) -> io::Result<()>
-where
-    W: Write,
-{
-    let n = match order {
-        Order::Zero => 0,
-        Order::One => 1,
-    };
+fn write_order(dst: &mut u8, order: Order) {
+    fn encode(order: Order) -> u8 {
+        match order {
+            Order::Zero => 0,
+            Order::One => 1,
+        }
+    }
 
-    write_u8(writer, n)
+    *dst = encode(order);
 }
 
-fn write_size<W>(writer: &mut W, size: usize) -> io::Result<()>
-where
-    W: Write,
-{
+fn write_size(dst: &mut [u8], size: usize) -> io::Result<()> {
     let n = u32::try_from(size).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_u32_le(writer, n)
+    dst.copy_from_slice(&n.to_le_bytes());
+    Ok(())
 }
 
 #[cfg(test)]
@@ -46,8 +39,8 @@ mod tests {
 
     #[test]
     fn test_write_header() -> io::Result<()> {
-        let mut buf = Vec::new();
-        write_header(&mut buf, Order::Zero, 8, 13)?;
+        let mut dst = [0; SIZE];
+        write_header(&mut dst, Order::Zero, 8, 13)?;
 
         let expected = [
             0x00, // order 0
@@ -55,23 +48,19 @@ mod tests {
             0x0d, 0x00, 0x00, 0x00, // uncompressed size = 13
         ];
 
-        assert_eq!(buf, expected);
+        assert_eq!(dst, expected);
 
         Ok(())
     }
 
     #[test]
-    fn test_write_order() -> io::Result<()> {
-        let mut buf = Vec::new();
+    fn test_write_order() {
+        let mut dst = 0;
 
-        buf.clear();
-        write_order(&mut buf, Order::Zero)?;
-        assert_eq!(buf, [0x00]);
+        write_order(&mut dst, Order::Zero);
+        assert_eq!(dst, 0);
 
-        buf.clear();
-        write_order(&mut buf, Order::One)?;
-        assert_eq!(buf, [0x01]);
-
-        Ok(())
+        write_order(&mut dst, Order::One);
+        assert_eq!(dst, 1);
     }
 }
