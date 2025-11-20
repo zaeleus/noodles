@@ -129,4 +129,24 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_build_cumulative_frequencies() {
+        let mut frequencies = [0; ALPHABET_SIZE];
+        frequencies[usize::from(b'a')] = 5;
+        frequencies[usize::from(b'b')] = 2;
+        frequencies[usize::from(b'c')] = 1;
+        frequencies[usize::from(b'd')] = 1;
+        frequencies[usize::from(b'r')] = 2;
+
+        let mut expected = [0; ALPHABET_SIZE];
+        expected[..usize::from(b'b')].fill(0);
+        expected[usize::from(b'b')..usize::from(b'c')].fill(5);
+        expected[usize::from(b'c')..usize::from(b'd')].fill(7);
+        expected[usize::from(b'd')..usize::from(b'e')].fill(8);
+        expected[usize::from(b'e')..usize::from(b's')].fill(9);
+        expected[usize::from(b's')..].fill(11);
+
+        assert_eq!(build_cumulative_frequencies(&frequencies), expected);
+    }
 }
