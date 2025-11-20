@@ -15,8 +15,8 @@ categories = ["parser-implementations", "science::bioinformatics"]
 async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
-bstr.workspace = true
 bit-vec = "0.8.0"
+bstr.workspace = true
 futures = { workspace = true, optional = true, features = ["std"] }
 indexmap.workspace = true
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.44.0" }
