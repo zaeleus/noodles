@@ -25,6 +25,21 @@ where
         }
     }
 
+    /// Returns a reference to the underlying reader.
+    pub fn get_ref(&self) -> &bgzf::r#async::io::Reader<R> {
+        &self.inner
+    }
+
+    /// Returns a mutable reference to the underlying reader.
+    pub fn get_mut(&mut self) -> &mut bgzf::r#async::io::Reader<R> {
+        &mut self.inner
+    }
+
+    /// Returns the underlying reader.
+    pub fn into_inner(self) -> bgzf::r#async::io::Reader<R> {
+        self.inner
+    }
+
     /// Returns the associated index.
     pub fn index(&self) -> &I {
         &self.index

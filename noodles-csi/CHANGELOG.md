@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+  * csi/async/io/indexed_reader: Add common methods to access the underlying
+    I/O: `IndexedReader::get_ref`, `IndexedReader::get_mut`, and
+    `IndexedReader::into_inner`.
+
 ### Changed
 
   * csi/io/indexed_records/record: Disallow empty input.
