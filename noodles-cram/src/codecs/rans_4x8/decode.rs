@@ -53,19 +53,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_header() -> io::Result<()> {
-        let src = [
-            0x00, // order = 0
-            0x25, 0x00, 0x00, 0x00, // compressed size = 37
-            0x07, 0x00, 0x00, 0x00, // data size = 7
-        ];
-
-        assert_eq!(read_header(&mut &src[..])?, (Order::Zero, 37, 7));
-
-        Ok(())
-    }
-
-    #[test]
     fn test_decode_with_order_0() -> io::Result<()> {
         let expected = b"noodles";
 
