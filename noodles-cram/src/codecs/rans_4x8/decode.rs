@@ -53,6 +53,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_read_states() -> io::Result<()> {
+        let src = [
+            0x05, 0x00, 0x00, 0x00, // states[0] = 5
+            0x08, 0x00, 0x00, 0x00, // states[1] = 8
+            0x0d, 0x00, 0x00, 0x00, // states[2] = 13
+            0x15, 0x00, 0x00, 0x00, // states[3] = 21
+        ];
+
+        assert_eq!(read_states(&mut &src[..])?, [5, 8, 13, 21]);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_decode_with_order_0() -> io::Result<()> {
         let expected = b"noodles";
 
