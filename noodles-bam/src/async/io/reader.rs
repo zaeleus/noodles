@@ -353,8 +353,6 @@ where
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures::TryStreamExt;
     /// use noodles_bam::{self as bam, bai};
-    /// use noodles_core::Region;
-    /// use noodles_sam as sam;
     /// use tokio::fs::File;
     ///
     /// let mut reader = File::open("sample.bam").await.map(bam::r#async::io::Reader::new)?;
