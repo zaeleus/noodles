@@ -63,17 +63,32 @@ pub(crate) fn intersects(
     reference_sequence_id: usize,
     region_interval: Interval,
 ) -> io::Result<bool> {
-    match (
-        record.reference_sequence_id(header).transpose()?,
-        record.alignment_start().transpose()?,
-        record.alignment_end().transpose()?,
-    ) {
-        (Some(id), Some(start), Some(end)) => {
-            let alignment_interval = (start..=end).into();
-            Ok(id == reference_sequence_id && region_interval.intersects(alignment_interval))
-        }
-        _ => Ok(false),
+    let Some(id) = record.reference_sequence_id(header).transpose()? else {
+        return Ok(false);
+    };
+
+    if id != reference_sequence_id {
+        return Ok(false);
     }
+
+    if interval_is_unbounded(region_interval) {
+        Ok(true)
+    } else {
+        match (
+            record.alignment_start().transpose()?,
+            record.alignment_end().transpose()?,
+        ) {
+            (Some(start), Some(end)) => {
+                let alignment_interval = (start..=end).into();
+                Ok(region_interval.intersects(alignment_interval))
+            }
+            _ => Ok(false),
+        }
+    }
+}
+
+fn interval_is_unbounded(interval: Interval) -> bool {
+    interval.start().is_none() && interval.end().is_none()
 }
 
 fn next_record<R>(
