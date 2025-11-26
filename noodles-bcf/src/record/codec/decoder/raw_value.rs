@@ -1,49 +1,35 @@
 use std::{error, fmt, mem};
 
 pub fn read_i8(src: &mut &[u8]) -> Result<i8, DecodeError> {
-    if let Some((b, rest)) = src.split_first() {
-        *src = rest;
-        Ok(*b as i8)
-    } else {
-        Err(DecodeError::UnexpectedEof)
-    }
+    let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
+    *src = rest;
+    Ok(*n as i8)
 }
 
 pub fn read_i8s(src: &mut &[u8], len: usize) -> Result<Vec<i8>, DecodeError> {
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or(DecodeError::UnexpectedEof)?;
 
-    let (buf, rest) = src.split_at(len);
-    let values = buf.iter().map(|&b| b as i8).collect();
+    let values = buf.iter().map(|&n| n as i8).collect();
+
     *src = rest;
 
     Ok(values)
 }
 
 pub fn read_i16(src: &mut &[u8]) -> Result<i16, DecodeError> {
-    if src.len() < mem::size_of::<i16>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(mem::size_of::<i16>());
-
-    // SAFETY: `buf` is 2 bytes.
-    let n = i16::from_le_bytes(buf.try_into().unwrap());
-
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
-
-    Ok(n)
+    Ok(i16::from_le_bytes(*buf))
 }
 
 pub fn read_i16s(src: &mut &[u8], len: usize) -> Result<Vec<i16>, DecodeError> {
     let len = mem::size_of::<i16>() * len;
 
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or(DecodeError::UnexpectedEof)?;
 
     let values = buf
         .chunks_exact(mem::size_of::<i16>())
@@ -59,28 +45,17 @@ pub fn read_i16s(src: &mut &[u8], len: usize) -> Result<Vec<i16>, DecodeError> {
 }
 
 pub fn read_i32(src: &mut &[u8]) -> Result<i32, DecodeError> {
-    if src.len() < mem::size_of::<i32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(mem::size_of::<i32>());
-
-    // SAFETY: `buf` is 4 bytes.
-    let n = i32::from_le_bytes(buf.try_into().unwrap());
-
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
-
-    Ok(n)
+    Ok(i32::from_le_bytes(*buf))
 }
 
 pub fn read_i32s(src: &mut &[u8], len: usize) -> Result<Vec<i32>, DecodeError> {
     let len = mem::size_of::<i32>() * len;
 
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or(DecodeError::UnexpectedEof)?;
 
     let values = buf
         .chunks_exact(mem::size_of::<i32>())
@@ -96,28 +71,17 @@ pub fn read_i32s(src: &mut &[u8], len: usize) -> Result<Vec<i32>, DecodeError> {
 }
 
 pub fn read_f32(src: &mut &[u8]) -> Result<f32, DecodeError> {
-    if src.len() < mem::size_of::<f32>() {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(mem::size_of::<f32>());
-
-    // SAFETY: `buf` is 4 bytes.
-    let n = f32::from_le_bytes(buf.try_into().unwrap());
-
+    let (buf, rest) = src.split_first_chunk().ok_or(DecodeError::UnexpectedEof)?;
     *src = rest;
-
-    Ok(n)
+    Ok(f32::from_le_bytes(*buf))
 }
 
 pub fn read_f32s(src: &mut &[u8], len: usize) -> Result<Vec<f32>, DecodeError> {
     let len = mem::size_of::<f32>() * len;
 
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
-
-    let (buf, rest) = src.split_at(len);
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or(DecodeError::UnexpectedEof)?;
 
     let values = buf
         .chunks_exact(mem::size_of::<f32>())
@@ -133,11 +97,10 @@ pub fn read_f32s(src: &mut &[u8], len: usize) -> Result<Vec<f32>, DecodeError> {
 }
 
 pub fn read_string<'a>(src: &mut &'a [u8], len: usize) -> Result<&'a [u8], DecodeError> {
-    if src.len() < len {
-        return Err(DecodeError::UnexpectedEof);
-    }
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or(DecodeError::UnexpectedEof)?;
 
-    let (buf, rest) = src.split_at(len);
     *src = rest;
 
     Ok(buf)
