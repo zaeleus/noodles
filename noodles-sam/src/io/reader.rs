@@ -354,7 +354,7 @@ where
         header: &'h Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, 'h, I, R>>
+    ) -> io::Result<Query<'r, 'h, R>>
     where
         I: BinningIndex,
     {
