@@ -12,7 +12,6 @@ pub struct Query<'r, 'h: 'r, R> {
     header: &'h Header,
     reference_sequence_id: usize,
     interval: Interval,
-    record: Record,
 }
 
 impl<'r, 'h: 'r, R> Query<'r, 'h, R>
@@ -31,8 +30,17 @@ where
             header,
             reference_sequence_id,
             interval,
-            record: Record::default(),
         }
+    }
+
+    fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        next_record(
+            &mut self.reader,
+            record,
+            self.header,
+            self.reference_sequence_id,
+            self.interval,
+        )
     }
 }
 
@@ -43,15 +51,11 @@ where
     type Item = io::Result<Record>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match next_record(
-            &mut self.reader,
-            &mut self.record,
-            self.header,
-            self.reference_sequence_id,
-            self.interval,
-        ) {
+        let mut record = Record::default();
+
+        match self.read_record(&mut record) {
             Ok(0) => None,
-            Ok(_) => Some(Ok(self.record.clone())),
+            Ok(_) => Some(Ok(record)),
             Err(e) => Some(Err(e)),
         }
     }
