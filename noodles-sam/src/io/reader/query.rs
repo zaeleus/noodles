@@ -1,9 +1,12 @@
+mod records;
+
 use std::io;
 
 use noodles_bgzf as bgzf;
 use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 
+use self::records::Records;
 use super::Reader;
 use crate::{Header, Record, alignment::Record as _};
 
@@ -42,22 +45,21 @@ where
             self.interval,
         )
     }
+
+    fn records(self) -> Records<'r, 'h, R> {
+        Records::new(self)
+    }
 }
 
-impl<R> Iterator for Query<'_, '_, R>
+impl<'r, 'h: 'r, R> IntoIterator for Query<'r, 'h, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     type Item = io::Result<Record>;
+    type IntoIter = Records<'r, 'h, R>;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let mut record = Record::default();
-
-        match self.read_record(&mut record) {
-            Ok(0) => None,
-            Ok(_) => Some(Ok(record)),
-            Err(e) => Some(Err(e)),
-        }
+    fn into_iter(self) -> Self::IntoIter {
+        self.records()
     }
 }
 

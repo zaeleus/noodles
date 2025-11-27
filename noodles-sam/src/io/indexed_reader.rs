@@ -99,7 +99,9 @@ where
         header: &'h Header,
         region: &Region,
     ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, 'h, R>> {
-        self.inner.query(header, &self.index, region)
+        self.inner
+            .query(header, &self.index, region)
+            .map(|query| query.into_iter())
     }
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.
