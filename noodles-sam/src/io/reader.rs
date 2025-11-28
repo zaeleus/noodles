@@ -16,9 +16,9 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
-pub(crate) use self::record::read_record;
 pub use self::{builder::Builder, record_bufs::RecordBufs};
-use self::{header::read_header, query::Query, record_buf::read_record_buf};
+use self::{header::read_header, record_buf::read_record_buf};
+pub(crate) use self::{query::Query, record::read_record};
 use crate::{Header, Record, alignment::RecordBuf, header::ReferenceSequences};
 
 /// A SAM reader.

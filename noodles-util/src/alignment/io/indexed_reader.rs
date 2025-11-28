@@ -126,7 +126,9 @@ where
                 let query = reader.query(header, region)?;
 
                 Box::new(
-                    query.map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+                    query
+                        .into_iter()
+                        .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
                 )
             }
             Self::Bam(reader) => {

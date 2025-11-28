@@ -9,7 +9,10 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
 pub use self::builder::Builder;
-use super::{Reader, reader::RecordBufs};
+use super::{
+    Reader,
+    reader::{Query, RecordBufs},
+};
 use crate::{Header, Record, alignment::RecordBuf};
 
 /// An indexed SAM reader.
@@ -98,10 +101,8 @@ where
         &'r mut self,
         header: &'h Header,
         region: &Region,
-    ) -> io::Result<impl Iterator<Item = io::Result<Record>> + use<'r, 'h, R>> {
-        self.inner
-            .query(header, &self.index, region)
-            .map(|query| query.into_iter())
+    ) -> io::Result<Query<'r, 'h, bgzf::io::Reader<R>>> {
+        self.inner.query(header, &self.index, region)
     }
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.
