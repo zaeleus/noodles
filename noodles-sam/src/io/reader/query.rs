@@ -10,6 +10,9 @@ use self::records::Records;
 use super::Reader;
 use crate::{Header, Record, alignment::Record as _};
 
+/// A reader over records of a SAM reader that intersects a given region.
+///
+/// This is created by calling [`Reader::query`].
 pub struct Query<'r, 'h: 'r, R> {
     reader: Reader<csi::io::Query<'r, R>>,
     header: &'h Header,
@@ -36,7 +39,34 @@ where
         }
     }
 
-    fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    /// Reads a record.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_csi as csi;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut reader = File::open("sample.sam.gz")
+    ///     .map(bgzf::io::Reader::new)
+    ///     .map(sam::io::Reader::new)?;
+    ///
+    /// let header = reader.read_header()?;
+    ///
+    /// let index = csi::fs::read("sample.sam.gz.csi")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?;
+    ///
+    /// let mut record = sam::Record::default();
+    ///
+    /// while query.read_record(&mut record)? != 0 {
+    ///     // ...
+    /// }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         next_record(
             &mut self.reader,
             record,
@@ -46,20 +76,9 @@ where
         )
     }
 
-    fn records(self) -> Records<'r, 'h, R> {
+    /// Returns an iterator over records.
+    pub fn records(self) -> Records<'r, 'h, R> {
         Records::new(self)
-    }
-}
-
-impl<'r, 'h: 'r, R> IntoIterator for Query<'r, 'h, R>
-where
-    R: bgzf::io::BufRead + bgzf::io::Seek,
-{
-    type Item = io::Result<Record>;
-    type IntoIter = Records<'r, 'h, R>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.records()
     }
 }
 

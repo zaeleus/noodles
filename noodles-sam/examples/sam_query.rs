@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let region = raw_region.parse()?;
         reader
             .query(&header, &region)
-            .map(|query| Box::new(query.into_iter()))?
+            .map(|query| Box::new(query.records()))?
     };
 
     let stdout = io::stdout().lock();

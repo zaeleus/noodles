@@ -16,9 +16,9 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
-pub use self::{builder::Builder, record_bufs::RecordBufs};
+pub(crate) use self::record::read_record;
+pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
 use self::{header::read_header, record_buf::read_record_buf};
-pub(crate) use self::{query::Query, record::read_record};
 use crate::{Header, Record, alignment::RecordBuf, header::ReferenceSequences};
 
 /// A SAM reader.
@@ -321,7 +321,7 @@ where
         Ok(self.get_ref().virtual_position())
     }
 
-    /// Returns an iterator over records that intersect the given region.
+    /// Returns a reader over records that intersect the given region.
     ///
     /// To query for unmapped records, use [`Self::query_unmapped`].
     ///
@@ -341,9 +341,9 @@ where
     ///
     /// let index = csi::fs::read("sample.sam.gz.csi")?;
     /// let region = "sq0:8-13".parse()?;
-    /// let query = reader.query(&header, &index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?;
     ///
-    /// for result in query {
+    /// for result in query.records() {
     ///     let record = result?;
     ///     // ...
     /// }

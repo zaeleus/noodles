@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/io/reader/query: Change `Query` to a reader.
+
+    `Query` is now a reader adapter, rather than an iterator. Use
+    `Query::records` for an iterator.
+
 ## 0.80.0 - 2025-11-13
 
 ### Changed
