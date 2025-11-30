@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * bcf: Remove deprecated items.
+
+    The following items are removed:
+
+      * `AsyncReader` (deprecated since 0.76.0; use `bcf::r#async::io::Reader`
+        instead) and
+      * `AsyncWriter` (0.76.0; `bcf::r#async::io::Writer`).
+
 ## 0.79.0 - 2025-11-13
 
 ### Changed
