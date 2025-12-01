@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * vcf: Remove deprecated items.
+
+    The following items are removed:
+
+      * `AsyncReader` (deprecated since 0.79.0; use `vcf::r#async::io::Reader`
+        instead) and
+      * `AsyncWriter` (0.79.0; `vcf::r#async::io::Writer`).
+
 ## 0.82.0 - 2025-11-13
 
 ### Changed
