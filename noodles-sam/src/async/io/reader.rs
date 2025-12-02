@@ -9,7 +9,8 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
-use self::{header::read_header, query::query, record::read_record, record_buf::read_record_buf};
+pub use self::query::Query;
+use self::{header::read_header, record::read_record, record_buf::read_record_buf};
 use crate::{Header, Record, alignment::RecordBuf};
 
 /// An async SAM reader.
@@ -344,7 +345,7 @@ where
     ///
     /// let index = csi::r#async::fs::read("sample.sam.gz.csi").await?;
     /// let region = "sq0:8-13".parse()?;
-    /// let mut query = reader.query(&header, &index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?.records();
     ///
     /// while let Some(record) = query.try_next().await? {
     ///     // ...
@@ -357,7 +358,7 @@ where
         header: &'h Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, 'h, I, R>>
+    ) -> io::Result<Query<'r, 'h, R>>
     where
         I: BinningIndex,
     {
@@ -366,7 +367,7 @@ where
         let reference_sequence_id = resolve_region(header.reference_sequences(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
-        Ok(query(
+        Ok(Query::new(
             self,
             chunks,
             header,
