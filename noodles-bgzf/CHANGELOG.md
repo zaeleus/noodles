@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * bgzf: Remove `fs` module.
+
+    `fs::open` was deprecated in 0.43.0. Use
+    `File::open(src).map(bgzf::io::Reader::new)` instead.
+
 ## 0.44.0 - 2025-11-13
 
 ### Changed
