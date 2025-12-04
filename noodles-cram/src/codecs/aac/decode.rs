@@ -8,17 +8,17 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
 
     let flags = read_flags(&mut src)?;
 
-    if !flags.contains(Flags::NO_SIZE) {
+    if flags.has_uncompressed_size() {
         len = read_uint7_as(&mut src)?;
     }
 
-    if flags.contains(Flags::STRIPE) {
+    if flags.is_striped() {
         return decode_stripe(&mut src, len);
     }
 
     let mut bit_pack_context = None;
 
-    if flags.contains(Flags::PACK) {
+    if flags.is_bit_packed() {
         let (ctx, new_len) = bit_pack::read_context(&mut src, len)?;
         bit_pack_context = Some(ctx);
         len = new_len;
@@ -26,20 +26,20 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
 
     let mut data = vec![0; len];
 
-    if flags.contains(Flags::CAT) {
+    if flags.is_uncompressed() {
         src.read_exact(&mut data)?;
-    } else if flags.contains(Flags::EXT) {
+    } else if flags.uses_external_codec() {
         decode_ext(&mut src, &mut data)?;
-    } else if flags.contains(Flags::RLE) {
-        if flags.contains(Flags::ORDER) {
-            decode_rle_1(&mut src, &mut data)?;
-        } else {
+    } else if flags.is_rle() {
+        if flags.order() == 0 {
             decode_rle_0(&mut src, &mut data)?;
+        } else {
+            decode_rle_1(&mut src, &mut data)?;
         }
-    } else if flags.contains(Flags::ORDER) {
-        decode_order_1(&mut src, &mut data)?;
-    } else {
+    } else if flags.order() == 0 {
         decode_order_0(&mut src, &mut data)?;
+    } else {
+        decode_order_1(&mut src, &mut data)?;
     }
 
     if let Some(ctx) = bit_pack_context {

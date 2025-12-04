@@ -21,6 +21,36 @@ bitflags::bitflags! {
     }
 }
 
+impl Flags {
+    pub(super) fn order(&self) -> u8 {
+        if self.contains(Self::ORDER) { 1 } else { 0 }
+    }
+
+    pub(super) fn uses_external_codec(&self) -> bool {
+        self.contains(Self::EXT)
+    }
+
+    pub(super) fn is_striped(&self) -> bool {
+        self.contains(Self::STRIPE)
+    }
+
+    pub(super) fn has_uncompressed_size(&self) -> bool {
+        !self.contains(Self::NO_SIZE)
+    }
+
+    pub(super) fn is_uncompressed(&self) -> bool {
+        self.contains(Self::CAT)
+    }
+
+    pub(super) fn is_rle(&self) -> bool {
+        self.contains(Self::RLE)
+    }
+
+    pub(super) fn is_bit_packed(&self) -> bool {
+        self.contains(Self::PACK)
+    }
+}
+
 impl From<u8> for Flags {
     fn from(n: u8) -> Self {
         Self::from_bits_truncate(n)
