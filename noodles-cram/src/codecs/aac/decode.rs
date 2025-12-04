@@ -6,7 +6,7 @@ use crate::io::reader::num::{read_u8, read_uint7_as};
 pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     use crate::codecs::rans_nx16::decode::bit_pack;
 
-    let flags = read_u8(&mut src).map(Flags::from)?;
+    let flags = read_flags(&mut src)?;
 
     if !flags.contains(Flags::NO_SIZE) {
         len = read_uint7_as(&mut src)?;
@@ -47,6 +47,10 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     }
 
     Ok(data)
+}
+
+fn read_flags(src: &mut &[u8]) -> io::Result<Flags> {
+    read_u8(src).map(Flags::from)
 }
 
 fn decode_stripe(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
