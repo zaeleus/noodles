@@ -1,3 +1,5 @@
+mod stripe;
+
 use std::io::{self, Read};
 
 use super::{Flags, Model, RangeCoder};
@@ -13,7 +15,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     }
 
     if flags.is_striped() {
-        return decode_stripe(&mut src, len);
+        return stripe::decode(&mut src, len);
     }
 
     let mut bit_pack_context = None;
@@ -51,44 +53,6 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
 
 fn read_flags(src: &mut &[u8]) -> io::Result<Flags> {
     read_u8(src).map(Flags::from)
-}
-
-fn decode_stripe(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
-    let n = read_u8(src).map(usize::from)?;
-    let mut clens: Vec<usize> = Vec::with_capacity(n);
-
-    for _ in 0..n {
-        let clen = read_uint7_as(src)?;
-        clens.push(clen);
-    }
-
-    let mut ulens = Vec::with_capacity(n);
-    let mut t = Vec::with_capacity(n);
-
-    for (j, clen) in clens.iter().enumerate() {
-        let mut ulen = len / n;
-
-        if len % n > j {
-            ulen += 1;
-        }
-
-        let mut buf = vec![0; *clen];
-        src.read_exact(&mut buf)?;
-        let chunk = decode(&buf, ulen)?;
-
-        ulens.push(ulen);
-        t.push(chunk);
-    }
-
-    let mut dst = vec![0; len];
-
-    for j in 0..n {
-        for i in 0..ulens[j] {
-            dst[i * n + j] = t[j][i];
-        }
-    }
-
-    Ok(dst)
 }
 
 fn decode_ext<R>(reader: &mut R, dst: &mut [u8]) -> io::Result<()>
