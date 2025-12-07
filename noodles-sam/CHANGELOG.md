@@ -9,6 +9,11 @@
     `Query` is now a reader adapter, rather than an iterator. Use
     `Query::records` for an iterator.
 
+  * sam/record/data: Replace placeholder lifetimes with record data lifetime
+    ([#359]).
+
+[#359]: https://github.com/zaeleus/noodles/issues/359
+
 ## 0.80.0 - 2025-11-13
 
 ### Changed

@@ -8,10 +8,10 @@ use self::field::parse_field;
 use crate::alignment::record::data::field::{Tag, Value};
 
 /// SAM record data.
-pub struct Data<'a>(&'a [u8]);
+pub struct Data<'r>(&'r [u8]);
 
-impl<'a> Data<'a> {
-    pub(super) fn new(buf: &'a [u8]) -> Self {
+impl<'r> Data<'r> {
+    pub(super) fn new(buf: &'r [u8]) -> Self {
         Self(buf)
     }
 
@@ -21,7 +21,7 @@ impl<'a> Data<'a> {
     }
 
     /// Returns the value for the given tag.
-    pub fn get<K>(&self, tag: &K) -> Option<io::Result<Value<'_>>>
+    pub fn get<K>(&self, tag: &K) -> Option<io::Result<Value<'r>>>
     where
         K: Borrow<[u8; 2]>,
     {
@@ -40,7 +40,7 @@ impl<'a> Data<'a> {
     }
 
     /// Returns an iterator over all tag-value pairs.
-    pub fn iter(&self) -> impl Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<(Tag, Value<'r>)>> + '_ {
         let mut src = self.0;
 
         iter::from_fn(move || {
