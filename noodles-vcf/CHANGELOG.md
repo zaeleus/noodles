@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed
+
+  * vcf/io/reader/query: Change `Query` to a reader.
+
+    `Query` is now a reader adapter, rather than an iterator. Use
+    `Query::records` for an iterator.
+
 ### Removed
 
   * vcf: Remove deprecated items.

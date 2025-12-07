@@ -326,7 +326,7 @@ impl<R> Reader<R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
-    /// Returns an iterator over records that intersects the given region.
+    /// Returns a reader over records that intersects the given region.
     ///
     /// # Examples
     ///
@@ -347,7 +347,7 @@ where
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&header, &index, &region)?;
     ///
-    /// for result in query {
+    /// for result in query.records() {
     ///     let record = result?;
     ///     println!("{:?}", record);
     /// }

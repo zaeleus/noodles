@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout().lock();
     let mut writer = vcf::io::Writer::new(BufWriter::new(stdout));
 
-    for result in query {
+    for result in query.records() {
         let record = result?;
         writer.write_variant_record(&header, &record)?;
     }
