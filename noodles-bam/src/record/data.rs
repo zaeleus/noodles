@@ -12,10 +12,10 @@ use noodles_sam::{
 use self::field::decode_field;
 
 /// BAM record data.
-pub struct Data<'a>(&'a [u8]);
+pub struct Data<'r>(&'r [u8]);
 
-impl<'a> Data<'a> {
-    pub(super) fn new(src: &'a [u8]) -> Self {
+impl<'r> Data<'r> {
+    pub(super) fn new(src: &'r [u8]) -> Self {
         Self(src)
     }
 
@@ -25,7 +25,7 @@ impl<'a> Data<'a> {
     }
 
     /// Returns the value of the given tag.
-    pub fn get<K>(&self, tag: &K) -> Option<io::Result<Value<'_>>>
+    pub fn get<K>(&self, tag: &K) -> Option<io::Result<Value<'r>>>
     where
         K: Borrow<[u8; 2]>,
     {
@@ -44,7 +44,7 @@ impl<'a> Data<'a> {
     }
 
     /// Returns an iterator over all tag-value pairs.
-    pub fn iter(&self) -> impl Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<(Tag, Value<'r>)>> + '_ {
         let mut src = self.0;
 
         iter::from_fn(move || {

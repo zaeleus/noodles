@@ -9,6 +9,8 @@
     `Query` is now a reader adapter, rather than an iterator. Use
     `Query::records` for an iterator.
 
+  * bam/record/data: Replace placeholder lifetimes with record data lifetime.
+
 [#265]: https://github.com/zaeleus/noodles/pull/265
 
 ## 0.83.0 - 2025-08-25
