@@ -40,6 +40,32 @@ where
     }
 
     /// Reads a record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_bgzf as bgzf;;
+    /// use noodles_tabix as tabix;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut reader = File::open("sample.vcf.gz")
+    ///     .map(bgzf::io::Reader::new)
+    ///     .map(vcf::io::Reader::new)?;
+    ///
+    /// let header = reader.read_header()?;
+    ///
+    /// let index = tabix::fs::read("sample.vcf.gz.tbi")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?;
+    ///
+    /// let mut record = vcf::Record::default();
+    ///
+    /// while query.read_record(&mut record)? != 0 {
+    ///     // ...
+    /// }
+    /// Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         next_record(
             &mut self.reader,
@@ -51,6 +77,31 @@ where
     }
 
     /// Returns an iterator over records.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_bgzf as bgzf;;
+    /// use noodles_tabix as tabix;
+    /// use noodles_vcf as vcf;
+    ///
+    /// let mut reader = File::open("sample.vcf.gz")
+    ///     .map(bgzf::io::Reader::new)
+    ///     .map(vcf::io::Reader::new)?;
+    ///
+    /// let header = reader.read_header()?;
+    ///
+    /// let index = tabix::fs::read("sample.vcf.gz.tbi")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let query = reader.query(&header, &index, &region)?;
+    ///
+    /// for result in query.records() {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn records(self) -> Records<'r, 'h, R> {
         Records::new(self)
     }
