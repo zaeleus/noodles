@@ -20,17 +20,17 @@ pub enum Value<'c> {
     Array(Array<'c>),
 }
 
-impl<'r: 'c, 'c: 'r> From<&'r Value<'c>> for sam::alignment::record::data::field::Value<'c> {
-    fn from(value: &'r Value<'c>) -> Self {
+impl<'c> From<Value<'c>> for sam::alignment::record::data::field::Value<'c> {
+    fn from(value: Value<'c>) -> Self {
         match value {
-            Value::Character(c) => Self::Character(*c),
-            Value::Int8(n) => Self::Int8(*n),
-            Value::UInt8(n) => Self::UInt8(*n),
-            Value::Int16(n) => Self::Int16(*n),
-            Value::UInt16(n) => Self::UInt16(*n),
-            Value::Int32(n) => Self::Int32(*n),
-            Value::UInt32(n) => Self::UInt32(*n),
-            Value::Float(n) => Self::Float(*n),
+            Value::Character(c) => Self::Character(c),
+            Value::Int8(n) => Self::Int8(n),
+            Value::UInt8(n) => Self::UInt8(n),
+            Value::Int16(n) => Self::Int16(n),
+            Value::UInt16(n) => Self::UInt16(n),
+            Value::Int32(n) => Self::Int32(n),
+            Value::UInt32(n) => Self::UInt32(n),
+            Value::Float(n) => Self::Float(n),
             Value::String(s) => Self::String(s),
             Value::Hex(s) => Self::Hex(s),
             Value::Array(array) => Self::Array(array.into()),

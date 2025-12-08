@@ -15,8 +15,8 @@ pub enum Array<'c> {
     Float(Values<'c, f32>),
 }
 
-impl<'r: 'c, 'c: 'r> From<&'r Array<'c>> for sam::alignment::record::data::field::value::Array<'c> {
-    fn from(array: &'r Array<'c>) -> Self {
+impl<'c> From<Array<'c>> for sam::alignment::record::data::field::value::Array<'c> {
+    fn from(array: Array<'c>) -> Self {
         match array {
             Array::Int8(values) => Self::Int8(Box::new(values)),
             Array::UInt8(values) => Self::UInt8(Box::new(values)),
