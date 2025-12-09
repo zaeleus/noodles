@@ -69,6 +69,26 @@ where
     }
 
     /// Returns an iterator over records.
+    ///
+    /// ```no_run
+    /// # use std::fs::File;
+    /// use noodles_bam::{self as bam, bai};
+    ///
+    /// let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
+    /// let header = reader.read_header()?;
+    ///
+    /// let index = bai::fs::read("sample.bam.bai")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let query = reader.query(&header, &index, &region)?;
+    ///
+    /// let mut record = bam::Record::default();
+    ///
+    /// for result in query.records() {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn records(self) -> Records<'r, R> {
         Records::new(self)
     }
