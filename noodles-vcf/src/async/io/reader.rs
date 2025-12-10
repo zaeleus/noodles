@@ -413,9 +413,9 @@ where
         Ok(query(
             self,
             chunks,
+            header,
             reference_sequence_name,
             region.interval(),
-            header,
         ))
     }
 }
