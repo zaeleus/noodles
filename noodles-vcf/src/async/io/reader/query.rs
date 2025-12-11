@@ -40,6 +40,36 @@ where
         }
     }
 
+    /// Reads a record.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_tabix as tabix;
+    /// use noodles_vcf as vcf;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.vcf.gz")
+    ///     .await
+    ///     .map(bgzf::r#async::io::Reader::new)
+    ///     .map(vcf::r#async::io::Reader::new)?;
+    ///
+    /// let header = reader.read_header().await?;
+    ///
+    /// let index = tabix::r#async::fs::read("sample.vcf.gz.tbi").await?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?;
+    ///
+    /// let mut record = vcf::Record::default();
+    ///
+    /// while query.read_record(&mut record).await? != 0 {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         loop {
             match self.reader.read_record(record).await? {
@@ -58,6 +88,35 @@ where
         }
     }
 
+    /// Returns a stream over records.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures::TryStreamExt;
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_tabix as tabix;
+    /// use noodles_vcf as vcf;
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.vcf.gz")
+    ///     .await
+    ///     .map(bgzf::r#async::io::Reader::new)
+    ///     .map(vcf::r#async::io::Reader::new)?;
+    ///
+    /// let header = reader.read_header().await?;
+    ///
+    /// let index = tabix::r#async::fs::read("sample.vcf.gz.tbi").await?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?.records();
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
     pub fn records(self) -> impl Stream<Item = io::Result<Record>> {
         Box::pin(stream::try_unfold(self, |mut reader| async {
             let mut record = Record::default();
