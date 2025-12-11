@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/record/data: Replace placeholder lifetimes with record data lifetime.
+
 ## 0.84.0 - 2025-11-13
 
 ### Changed
@@ -8,8 +14,6 @@
 
     `Query` is now a reader adapter, rather than an iterator. Use
     `Query::records` for an iterator.
-
-  * bam/record/data: Replace placeholder lifetimes with record data lifetime.
 
 [#265]: https://github.com/zaeleus/noodles/pull/265
 
