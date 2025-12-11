@@ -411,7 +411,7 @@ where
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
         Ok(Query::new(
-            self,
+            self.get_mut(),
             chunks,
             header,
             reference_sequence_name,
