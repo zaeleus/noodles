@@ -8,7 +8,8 @@ use noodles_core::Region;
 use noodles_csi::BinningIndex;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek};
 
-use self::{header::read_header, query::query, record::read_record};
+pub use self::query::Query;
+use self::{header::read_header, record::read_record};
 use crate::{Header, Record, io::reader::resolve_region, variant::RecordBuf};
 
 const LINE_FEED: char = '\n';
@@ -389,7 +390,7 @@ where
     ///
     /// let index = tabix::r#async::fs::read("sample.vcf.gz.tbi").await?;
     /// let region = "sq0:8-13".parse()?;
-    /// let mut query = reader.query(&header, &index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?.records();
     ///
     /// while let Some(record) = query.try_next().await? {
     ///     // ...
@@ -402,15 +403,14 @@ where
         header: &'h Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, 'h, I, R>>
+    ) -> io::Result<Query<'r, 'h, R>>
     where
         I: BinningIndex,
     {
         let (reference_sequence_id, reference_sequence_name) = resolve_region(index, region)?;
-
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
-        Ok(query(
+        Ok(Query::new(
             self,
             chunks,
             header,
