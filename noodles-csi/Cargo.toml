@@ -1,6 +1,6 @@
 [package]
 name = "noodles-csi"
-version = "0.52.0"
+version = "0.53.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -19,7 +19,7 @@ bit-vec = "0.8.0"
 bstr.workspace = true
 futures = { workspace = true, optional = true, features = ["std"] }
 indexmap.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.44.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.45.0" }
 noodles-core = { path = "../noodles-core", version = "0.18.0" }
 
 pin-project-lite = { workspace = true, optional = true }

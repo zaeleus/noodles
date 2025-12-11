@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.59.0 - 2025-12-11
+
+### Changed
+
+  * tabix: Sync dependencies.
+
 ## 0.58.0 - 2025-11-13
 
 ### Changed
