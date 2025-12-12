@@ -9,36 +9,36 @@ use std::io;
 use super::{ALPHABET_SIZE, Flags};
 use crate::io::reader::num::{read_u8, read_u32_le, read_uint7_as};
 
-pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
+pub fn decode(mut src: &[u8], mut uncompressed_size: usize) -> io::Result<Vec<u8>> {
     let flags = read_flags(&mut src)?;
 
     let state_count = flags.state_count();
 
     if flags.has_uncompressed_size() {
-        len = read_uncompressed_size(&mut src)?;
+        uncompressed_size = read_uncompressed_size(&mut src)?;
     }
 
     if flags.is_striped() {
-        return stripe::decode(&mut src, len);
+        return stripe::decode(&mut src, uncompressed_size);
     }
 
     let bit_pack_context = if flags.is_bit_packed() {
-        let (ctx, new_len) = bit_pack::read_context(&mut src, len)?;
-        len = new_len;
+        let (ctx, len) = bit_pack::read_context(&mut src, uncompressed_size)?;
+        uncompressed_size = len;
         Some(ctx)
     } else {
         None
     };
 
     let rle_context = if flags.is_rle() {
-        let (ctx, new_len) = rle::read_context(&mut src, state_count, len)?;
-        len = new_len;
+        let (ctx, len) = rle::read_context(&mut src, state_count, uncompressed_size)?;
+        uncompressed_size = len;
         Some(ctx)
     } else {
         None
     };
 
-    let mut dst = vec![0; len];
+    let mut dst = vec![0; uncompressed_size];
 
     if flags.is_uncompressed() {
         dst.copy_from_slice(src);
