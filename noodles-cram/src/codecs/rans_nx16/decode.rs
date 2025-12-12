@@ -22,21 +22,21 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
         return stripe::decode(&mut src, len);
     }
 
-    let mut bit_pack_context = None;
-
-    if flags.is_bit_packed() {
+    let bit_pack_context = if flags.is_bit_packed() {
         let (ctx, new_len) = bit_pack::read_context(&mut src, len)?;
-        bit_pack_context = Some(ctx);
         len = new_len;
-    }
+        Some(ctx)
+    } else {
+        None
+    };
 
-    let mut rle_context = None;
-
-    if flags.is_rle() {
+    let rle_context = if flags.is_rle() {
         let (ctx, new_len) = rle::read_context(&mut src, state_count, len)?;
-        rle_context = Some(ctx);
         len = new_len;
-    }
+        Some(ctx)
+    } else {
+        None
+    };
 
     let mut dst = vec![0; len];
 
