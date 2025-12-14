@@ -11,19 +11,19 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
 
     write_u8(&mut dst, u8::from(flags))?;
 
-    if !flags.contains(Flags::NO_SIZE) {
+    if flags.has_uncompressed_size() {
         let ulen =
             u32::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         write_uint7(&mut dst, ulen)?;
     }
 
-    if flags.contains(Flags::STRIPE) {
+    if flags.is_striped() {
         let buf = encode_stripe(&src)?;
         dst.extend(buf);
         return Ok(dst);
     }
 
-    if flags.contains(Flags::PACK) {
+    if flags.is_bit_packed() {
         match bit_pack::build_context(&src) {
             Ok(ctx) => {
                 src = bit_pack::encode(&src, &ctx);
@@ -39,20 +39,20 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
         }
     }
 
-    if flags.contains(Flags::CAT) {
+    if flags.is_uncompressed() {
         dst.write_all(&src)?;
-    } else if flags.contains(Flags::EXT) {
+    } else if flags.uses_external_codec() {
         encode_ext(&src, &mut dst)?;
-    } else if flags.contains(Flags::RLE) {
-        if flags.contains(Flags::ORDER) {
-            encode_rle_1(&src, &mut dst)?;
-        } else {
+    } else if flags.is_rle() {
+        if flags.order() == 0 {
             encode_rle_0(&src, &mut dst)?;
+        } else {
+            encode_rle_1(&src, &mut dst)?;
         }
-    } else if flags.contains(Flags::ORDER) {
-        encode_order_1(&src, &mut dst)?;
-    } else {
+    } else if flags.order() == 0 {
         encode_order_0(&src, &mut dst)?;
+    } else {
+        encode_order_1(&src, &mut dst)?;
     }
 
     Ok(dst)
