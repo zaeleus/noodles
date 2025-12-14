@@ -1,3 +1,5 @@
+mod records;
+
 use std::io;
 
 use noodles_bgzf as bgzf;
@@ -5,6 +7,7 @@ use noodles_core::region::Interval;
 use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
 use noodles_vcf::{self as vcf, variant::Record as _};
 
+use self::records::Records;
 use super::Reader;
 use crate::Record;
 
@@ -16,7 +19,6 @@ pub struct Query<'r, 'h, R> {
     header: &'h vcf::Header,
     reference_sequence_id: usize,
     interval: Interval,
-    record: Record,
 }
 
 impl<'r, 'h, R> Query<'r, 'h, R>
@@ -35,29 +37,29 @@ where
             header,
             reference_sequence_id,
             interval,
-            record: Record::default(),
         }
+    }
+
+    fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+        next_record(
+            &mut self.reader,
+            record,
+            self.header,
+            self.reference_sequence_id,
+            self.interval,
+        )
     }
 }
 
-impl<R> Iterator for Query<'_, '_, R>
+impl<'r, 'h: 'r, R> IntoIterator for Query<'r, 'h, R>
 where
     R: bgzf::io::BufRead + bgzf::io::Seek,
 {
     type Item = io::Result<Record>;
+    type IntoIter = Records<'r, 'h, R>;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        match next_record(
-            &mut self.reader,
-            &mut self.record,
-            self.header,
-            self.reference_sequence_id,
-            self.interval,
-        ) {
-            Ok(0) => None,
-            Ok(_) => Some(Ok(self.record.clone())),
-            Err(e) => Some(Err(e)),
-        }
+    fn into_iter(self) -> Self::IntoIter {
+        Records::new(self)
     }
 }
 
