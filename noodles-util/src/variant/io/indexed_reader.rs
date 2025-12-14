@@ -79,7 +79,7 @@ where
             Self::Bcf(reader) => Box::new(
                 reader
                     .query(header, region)?
-                    .into_iter()
+                    .records()
                     .map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
             ),
         };
