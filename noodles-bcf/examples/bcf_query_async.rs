@@ -25,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let index = csi::r#async::fs::read(src.with_extension("bcf.csi")).await?;
 
     let region = raw_region.parse()?;
-    let mut query = reader.query(&header, &index, &region)?;
+    let mut query = reader.query(&header, &index, &region)?.records();
 
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());
 

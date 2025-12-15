@@ -15,7 +15,10 @@ enum State {
     Done,
 }
 
-struct Query<'r, R>
+/// An async reader over records of an async BCF reader that intersects a given region.
+///
+/// This is created by calling [`Reader::query`].
+pub struct Query<'r, R>
 where
     R: AsyncRead + AsyncSeek,
 {
@@ -32,7 +35,7 @@ impl<'r, R> Query<'r, R>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
-    fn new(
+    pub(super) fn new(
         inner: &'r mut Reader<bgzf::r#async::io::Reader<R>>,
         chunks: Vec<Chunk>,
         reference_sequence_id: usize,
@@ -47,7 +50,7 @@ where
         }
     }
 
-    async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
+    pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         loop {
             match self.state {
                 State::Seek => {
@@ -75,27 +78,17 @@ where
             }
         }
     }
-}
 
-pub fn query<R>(
-    inner: &mut Reader<bgzf::r#async::io::Reader<R>>,
-    chunks: Vec<Chunk>,
-    chromosome_id: usize,
-    interval: Interval,
-) -> impl Stream<Item = io::Result<Record>>
-where
-    R: AsyncRead + AsyncSeek + Unpin,
-{
-    let ctx = Query::new(inner, chunks, chromosome_id, interval);
+    pub fn records(self) -> impl Stream<Item = io::Result<Record>> {
+        Box::pin(stream::try_unfold(self, |mut reader| async {
+            let mut record = Record::default();
 
-    Box::pin(stream::try_unfold(ctx, |mut ctx| async {
-        let mut record = Record::default();
-
-        match ctx.read_record(&mut record).await? {
-            0 => Ok(None),
-            _ => Ok(Some((record, ctx))),
-        }
-    }))
+            match reader.read_record(&mut record).await? {
+                0 => Ok(None),
+                _ => Ok(Some((record, reader))),
+            }
+        }))
+    }
 }
 
 fn intersects(

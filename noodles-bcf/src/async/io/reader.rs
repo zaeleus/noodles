@@ -9,7 +9,8 @@ use noodles_csi::BinningIndex;
 use noodles_vcf as vcf;
 use tokio::io::{self, AsyncRead, AsyncSeek};
 
-use self::{header::read_header, query::query, record::read_record};
+pub use self::query::Query;
+use self::{header::read_header, record::read_record};
 use crate::Record;
 
 /// An async BCF reader.
@@ -229,7 +230,7 @@ impl<R> Reader<bgzf::r#async::io::Reader<R>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
-    /// Returns a stream over records that intersect the given region.
+    /// Returns an async reader over records that intersect the given region.
     ///
     /// # Examples
     ///
@@ -247,7 +248,7 @@ where
     ///
     /// let index = csi::r#async::fs::read("sample.bcf.csi").await?;
     /// let region = "sq0:8-13".parse()?;
-    /// let mut query = reader.query(&header, &index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?.records();
     ///
     /// while let Some(record) = query.try_next().await? {
     ///     // ...
@@ -260,7 +261,7 @@ where
         header: &vcf::Header,
         index: &I,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<Record>> + use<'r, I, R>>
+    ) -> io::Result<Query<'r, R>>
     where
         I: BinningIndex,
     {
@@ -269,7 +270,7 @@ where
         let reference_sequence_id = resolve_region(header.string_maps().contigs(), region)?;
         let chunks = index.query(reference_sequence_id, region.interval())?;
 
-        Ok(query(
+        Ok(Query::new(
             self,
             chunks,
             reference_sequence_id,
