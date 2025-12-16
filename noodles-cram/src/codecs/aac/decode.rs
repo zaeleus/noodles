@@ -1,3 +1,4 @@
+mod rle;
 mod stripe;
 
 use std::io::{self, Read};
@@ -33,11 +34,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     } else if flags.uses_external_codec() {
         decode_ext(&mut src, &mut data)?;
     } else if flags.is_rle() {
-        if flags.order() == 0 {
-            decode_rle_0(&mut src, &mut data)?;
-        } else {
-            decode_rle_1(&mut src, &mut data)?;
-        }
+        rle::decode(&mut src, flags, &mut data)?;
     } else if flags.order() == 0 {
         decode_order_0(&mut src, &mut data)?;
     } else {
@@ -63,78 +60,6 @@ where
 
     let mut decoder = BzDecoder::new(reader);
     decoder.read_exact(dst)
-}
-
-fn decode_rle_0(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
-    let max_sym = read_u8(src).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
-
-    let mut model_lit = Model::new(max_sym);
-    let mut model_run = vec![Model::new(3); 258];
-
-    let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(src)?;
-
-    let mut i = 0;
-
-    while i < dst.len() {
-        let b = model_lit.decode(src, &mut range_coder)?;
-        dst[i] = b;
-
-        let mut part = model_run[usize::from(b)].decode(src, &mut range_coder)?;
-        let mut run = usize::from(part);
-        let mut rctx = 256;
-
-        while part == 3 {
-            part = model_run[rctx].decode(src, &mut range_coder)?;
-            rctx = 257;
-            run += usize::from(part);
-        }
-
-        for j in 1..=run {
-            dst[i + j] = b;
-        }
-
-        i += run + 1;
-    }
-
-    Ok(())
-}
-
-fn decode_rle_1(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
-    let max_sym = read_u8(src).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
-
-    let mut model_lit = vec![Model::new(max_sym); usize::from(max_sym) + 1];
-    let mut model_run = vec![Model::new(3); 258];
-
-    let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(src)?;
-
-    let mut i = 0;
-    let mut last = 0;
-
-    while i < dst.len() {
-        let b = model_lit[last].decode(src, &mut range_coder)?;
-        dst[i] = b;
-        last = usize::from(b);
-
-        let mut part = model_run[last].decode(src, &mut range_coder)?;
-        let mut run = usize::from(part);
-        let mut rctx = 256;
-
-        while part == 3 {
-            part = model_run[rctx].decode(src, &mut range_coder)?;
-            rctx = 257;
-            run += usize::from(part);
-        }
-
-        for j in 1..=run {
-            dst[i + j] = b;
-        }
-
-        i += run + 1;
-    }
-
-    Ok(())
 }
 
 fn decode_order_0(src: &mut &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
