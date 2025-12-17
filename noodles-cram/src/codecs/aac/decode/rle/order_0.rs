@@ -1,5 +1,6 @@
 use std::io;
 
+use super::{CONTINUE, CONTINUE_CONTEXT, INITIAL_CONTEXT, MODEL_COUNT, MODEL_MAX_SYMBOL};
 use crate::{
     codecs::aac::{Model, RangeCoder},
     io::reader::num::read_u8,
@@ -9,7 +10,7 @@ pub(super) fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
     let max_sym = read_u8(src).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
 
     let mut model_lit = Model::new(max_sym);
-    let mut model_run = vec![Model::new(3); 258];
+    let mut model_run = vec![Model::new(MODEL_MAX_SYMBOL); MODEL_COUNT];
 
     let mut range_coder = RangeCoder::default();
     range_coder.range_decode_create(src)?;
@@ -22,11 +23,11 @@ pub(super) fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
 
         let mut part = model_run[usize::from(b)].decode(src, &mut range_coder)?;
         let mut run = usize::from(part);
-        let mut rctx = 256;
+        let mut rctx = INITIAL_CONTEXT;
 
-        while part == 3 {
+        while part == CONTINUE {
             part = model_run[rctx].decode(src, &mut range_coder)?;
-            rctx = 257;
+            rctx = CONTINUE_CONTEXT;
             run += usize::from(part);
         }
 
