@@ -9,33 +9,35 @@ use crate::{
 pub(super) fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
     let max_sym = read_u8(src).map(|n| if n == 0 { u8::MAX } else { n - 1 })?;
 
-    let mut model_lit = Model::new(max_sym);
-    let mut model_run = vec![Model::new(MODEL_MAX_SYMBOL); MODEL_COUNT];
+    let mut model = Model::new(max_sym);
+    let mut rle_models = vec![Model::new(MODEL_MAX_SYMBOL); MODEL_COUNT];
 
-    let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(src)?;
+    let mut coder = RangeCoder::default();
+    coder.range_decode_create(src)?;
 
-    let mut i = 0;
+    let mut iter = dst.iter_mut();
 
-    while i < dst.len() {
-        let b = model_lit.decode(src, &mut range_coder)?;
-        dst[i] = b;
+    while let Some(d) = iter.next() {
+        let sym = model.decode(src, &mut coder)?;
 
-        let mut part = model_run[usize::from(b)].decode(src, &mut range_coder)?;
-        let mut run = usize::from(part);
-        let mut rctx = INITIAL_CONTEXT;
+        *d = sym;
 
-        while part == CONTINUE {
-            part = model_run[rctx].decode(src, &mut range_coder)?;
-            rctx = CONTINUE_CONTEXT;
-            run += usize::from(part);
+        let mut rle_model = &mut rle_models[usize::from(sym)];
+
+        let mut n = rle_model.decode(src, &mut coder)?;
+        let mut len = usize::from(n);
+
+        rle_model = &mut rle_models[INITIAL_CONTEXT];
+
+        while n == CONTINUE {
+            n = rle_model.decode(src, &mut coder)?;
+            len += usize::from(n);
+            rle_model = &mut rle_models[CONTINUE_CONTEXT];
         }
 
-        for j in 1..=run {
-            dst[i + j] = b;
+        for e in iter.by_ref().take(len) {
+            *e = sym;
         }
-
-        i += run + 1;
     }
 
     Ok(())
