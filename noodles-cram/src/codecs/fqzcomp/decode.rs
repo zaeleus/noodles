@@ -112,7 +112,7 @@ fn fqz_new_record(
 
     record.sel = sel;
 
-    let param = &mut parameters.params[x];
+    let param = &parameters.params[x];
 
     let is_fixed_len = param.flags.contains(parameter::Flags::DO_LEN);
 
