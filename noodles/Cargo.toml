@@ -1,6 +1,6 @@
 [package]
 name = "noodles"
-version = "0.103.0"
+version = "0.104.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -14,7 +14,7 @@ categories = ["science::bioinformatics"]
 
 [dependencies]
 noodles-bam = { path = "../noodles-bam", version = "0.85.0", optional = true }
-noodles-bcf = { path = "../noodles-bcf", version = "0.80.0", optional = true }
+noodles-bcf = { path = "../noodles-bcf", version = "0.81.0", optional = true }
 noodles-bed = { path = "../noodles-bed", version = "0.30.0", optional = true }
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.45.0", optional = true }
 noodles-core = { path = "../noodles-core", version = "0.18.0", optional = true }

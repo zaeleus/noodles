@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bcf"
-version = "0.80.0"
+version = "0.81.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
