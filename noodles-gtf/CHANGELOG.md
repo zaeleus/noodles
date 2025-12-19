@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gtf/record: Increase the visibility of the `attributes` module ([#360]).
+
+    This allows access to `gtf::record::attributes::field::Value`.
+
+[#360]: https://github.com/zaeleus/noodles/issues/360
+
 ## 0.49.0 - 2025-12-11
 
 ### Changed

@@ -1,4 +1,6 @@
-mod field;
+//! GTF record attributes.
+
+pub mod field;
 
 use std::{borrow::Cow, fmt, io};
 

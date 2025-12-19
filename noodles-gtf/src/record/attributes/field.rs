@@ -1,3 +1,5 @@
+//! GTF record attributes field.
+
 mod value;
 
 use std::io;

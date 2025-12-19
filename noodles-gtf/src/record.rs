@@ -1,6 +1,6 @@
 //! GTF record.
 
-mod attributes;
+pub mod attributes;
 mod fields;
 
 use std::{fmt, io};

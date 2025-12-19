@@ -3,9 +3,12 @@ use std::{borrow::Cow, io, iter};
 use bstr::BStr;
 use noodles_gff as gff;
 
+/// A GTF record attributes field value.
 #[derive(Debug, Eq, PartialEq)]
 pub enum Value<'r> {
+    /// A string.
     String(Cow<'r, BStr>),
+    /// An array.
     Array(Vec<Cow<'r, BStr>>),
 }
 
