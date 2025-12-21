@@ -1,3 +1,4 @@
+mod order_0;
 mod rle;
 mod stripe;
 
@@ -36,7 +37,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     } else if flags.is_rle() {
         rle::decode(&mut src, flags, &mut data)?;
     } else if flags.order() == 0 {
-        decode_order_0(&mut src, &mut data)?;
+        order_0::decode(&mut src, &mut data)?;
     } else {
         decode_order_1(&mut src, &mut data)?;
     }
@@ -60,21 +61,6 @@ where
 
     let mut decoder = BzDecoder::new(reader);
     decoder.read_exact(dst)
-}
-
-fn decode_order_0(src: &mut &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
-    let max_sym = read_u8(src).map(|n| n.overflowing_sub(1).0)?;
-
-    let mut model = Model::new(max_sym);
-
-    let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(src)?;
-
-    for b in dst {
-        *b = model.decode(src, &mut range_coder)?;
-    }
-
-    Ok(())
 }
 
 fn decode_order_1(src: &mut &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
