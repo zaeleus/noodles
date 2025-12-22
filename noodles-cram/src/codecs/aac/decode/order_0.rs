@@ -1,13 +1,11 @@
 use std::io;
 
-use crate::{
-    codecs::aac::{Model, RangeCoder},
-    io::reader::num::read_u8,
-};
+use super::read_symbol_count;
+use crate::codecs::aac::{Model, RangeCoder};
 
 pub(super) fn decode(src: &mut &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
-    let max_sym = read_u8(src).map(|n| n.overflowing_sub(1).0)?;
-
+    let symbol_count = read_symbol_count(src)?;
+    let max_sym = (symbol_count.get() - 1) as u8;
     let mut model = Model::new(max_sym);
 
     let mut range_coder = RangeCoder::default();

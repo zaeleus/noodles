@@ -3,7 +3,10 @@ mod order_1;
 mod rle;
 mod stripe;
 
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    num::NonZero,
+};
 
 use super::Flags;
 use crate::io::reader::num::{read_u8, read_uint7_as};
@@ -62,6 +65,11 @@ where
 
     let mut decoder = BzDecoder::new(reader);
     decoder.read_exact(dst)
+}
+
+fn read_symbol_count(src: &mut &[u8]) -> io::Result<NonZero<usize>> {
+    const ALPHABET_SIZE: NonZero<usize> = NonZero::new(256).unwrap();
+    read_u8(src).map(|n| NonZero::new(usize::from(n)).unwrap_or(ALPHABET_SIZE))
 }
 
 #[cfg(test)]
@@ -159,6 +167,26 @@ mod tests {
         ];
 
         assert_eq!(decode(&src, 0)?, b"noodles");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_symbol_count() -> io::Result<()> {
+        let src = [0x01];
+        assert_eq!(read_symbol_count(&mut &src[..])?, NonZero::<usize>::MIN);
+
+        let src = [0x00];
+        assert_eq!(
+            read_symbol_count(&mut &src[..])?,
+            const { NonZero::new(256).unwrap() }
+        );
+
+        let src = [];
+        assert!(matches!(
+            read_symbol_count(&mut &src[..]),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
 
         Ok(())
     }
