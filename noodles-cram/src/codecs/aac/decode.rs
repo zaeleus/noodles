@@ -1,10 +1,11 @@
 mod order_0;
+mod order_1;
 mod rle;
 mod stripe;
 
 use std::io::{self, Read};
 
-use super::{Flags, Model, RangeCoder};
+use super::Flags;
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
 pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
@@ -39,7 +40,7 @@ pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
     } else if flags.order() == 0 {
         order_0::decode(&mut src, &mut data)?;
     } else {
-        decode_order_1(&mut src, &mut data)?;
+        order_1::decode(&mut src, &mut data)?;
     }
 
     if let Some(ctx) = bit_pack_context {
@@ -61,24 +62,6 @@ where
 
     let mut decoder = BzDecoder::new(reader);
     decoder.read_exact(dst)
-}
-
-fn decode_order_1(src: &mut &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
-    let max_sym = read_u8(src).map(|n| n.overflowing_sub(1).0)?;
-
-    let mut models = vec![Model::new(max_sym); usize::from(max_sym) + 1];
-
-    let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(src)?;
-
-    let mut last = 0;
-
-    for b in dst {
-        *b = models[last].decode(src, &mut range_coder)?;
-        last = usize::from(*b);
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]
