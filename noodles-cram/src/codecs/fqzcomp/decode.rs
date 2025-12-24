@@ -2,8 +2,10 @@ use std::{cmp, io};
 
 use super::{
     Models,
-    parameter::{self, Parameter},
-    parameters::{self, Parameters, fqz_decode_params},
+    parameters::{
+        self, Parameters, fqz_decode_params,
+        parameter::{self, Parameter},
+    },
 };
 use crate::{codecs::aac::RangeCoder, io::reader::num::read_uint7_as};
 

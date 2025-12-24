@@ -1,6 +1,5 @@
 mod decode;
 mod encode;
-mod parameter;
 mod parameters;
 
 pub use self::{decode::decode, encode::encode};

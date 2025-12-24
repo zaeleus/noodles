@@ -1,6 +1,9 @@
 use std::io::{self, Write};
 
-use super::{Models, parameter, parameters};
+use super::{
+    Models,
+    parameters::{self, parameter},
+};
 use crate::{
     codecs::aac::RangeCoder,
     io::writer::num::{write_u8, write_u16_le, write_uint7},

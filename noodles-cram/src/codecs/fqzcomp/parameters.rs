@@ -1,10 +1,12 @@
 mod flags;
+pub mod parameter;
 
 pub use self::flags::Flags;
 
 use std::io;
 
-use super::parameter::{Parameter, fqz_decode_single_param};
+pub use self::parameter::Parameter;
+use self::parameter::fqz_decode_single_param;
 use crate::io::reader::num::read_u8;
 
 const VERSION: u8 = 5;

@@ -4,7 +4,7 @@ pub use self::flags::Flags;
 
 use std::io::{self, Read};
 
-use super::parameters::read_array;
+use super::read_array;
 use crate::io::reader::num::{read_u8, read_u16_le};
 
 pub struct Parameter {
