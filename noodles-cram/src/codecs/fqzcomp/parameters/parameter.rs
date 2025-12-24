@@ -2,7 +2,10 @@ mod flags;
 
 pub use self::flags::Flags;
 
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    num::NonZero,
+};
 
 use super::read_array;
 use crate::io::reader::num::{read_u8, read_u16_le};
@@ -10,7 +13,7 @@ use crate::io::reader::num::{read_u8, read_u16_le};
 pub struct Parameter {
     pub context: u16,
     pub flags: Flags,
-    pub max_sym: u8,
+    pub symbol_count: NonZero<usize>,
     pub q_bits: u8,
     pub q_shift: u8,
     pub q_loc: u8,
@@ -26,7 +29,7 @@ pub struct Parameter {
 pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     let context = read_u16_le(src)?;
     let flags = read_u8(src).map(Flags::from)?;
-    let max_sym = read_u8(src)?;
+    let max_symbol = read_max_symbol(src)?;
 
     let n = read_u8(src)?;
     let (q_bits, q_shift) = (n >> 4, n & 0x0f);
@@ -38,7 +41,7 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     let (p_loc, d_loc) = (n >> 4, n & 0x0f);
 
     let q_map = if flags.contains(Flags::HAVE_QMAP) {
-        let mut map = vec![0; usize::from(max_sym)];
+        let mut map = vec![0; usize::from(max_symbol)];
         src.read_exact(&mut map)?;
         Some(map)
     } else {
@@ -72,7 +75,7 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     Ok(Parameter {
         context,
         flags,
-        max_sym,
+        symbol_count: max_to_count(max_symbol),
         q_bits,
         q_shift,
         q_loc,
@@ -84,4 +87,14 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
         p_tab,
         d_tab,
     })
+}
+
+fn read_max_symbol(src: &mut &[u8]) -> io::Result<u8> {
+    read_u8(src)
+}
+
+fn max_to_count(n: u8) -> NonZero<usize> {
+    let m = usize::from(n) + 1;
+    // SAFETY: `m > 0`.
+    NonZero::new(m).unwrap()
 }

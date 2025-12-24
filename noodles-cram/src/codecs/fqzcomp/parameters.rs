@@ -50,9 +50,10 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
 
     for _ in 0..n_param {
         let param = fqz_decode_single_param(src)?;
+        let param_max_sym = (usize::from(param.symbol_count) - 1) as u8;
 
-        if param.max_sym > max_sym {
-            max_sym = param.max_sym;
+        if param_max_sym > max_sym {
+            max_sym = param_max_sym;
         }
 
         params.push(param);
