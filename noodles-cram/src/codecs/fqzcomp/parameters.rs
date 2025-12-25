@@ -1,12 +1,10 @@
 mod flags;
 pub mod parameter;
 
-pub use self::flags::Flags;
+use std::{io, num::NonZero};
 
-use std::io;
-
-pub use self::parameter::Parameter;
 use self::parameter::fqz_decode_single_param;
+pub use self::{flags::Flags, parameter::Parameter};
 use crate::io::reader::num::read_u8;
 
 const VERSION: u8 = 5;
@@ -16,7 +14,7 @@ pub struct Parameters {
     pub max_sel: u8,
     pub s_tab: Vec<u8>,
     pub params: Vec<Parameter>,
-    pub max_sym: u8,
+    pub max_symbol_count: NonZero<usize>,
 }
 
 pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
@@ -46,25 +44,20 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
     };
 
     let mut params = Vec::with_capacity(n_param);
-    let mut max_sym = 0;
 
     for _ in 0..n_param {
         let param = fqz_decode_single_param(src)?;
-        let param_max_sym = (usize::from(param.symbol_count) - 1) as u8;
-
-        if param_max_sym > max_sym {
-            max_sym = param_max_sym;
-        }
-
         params.push(param);
     }
+
+    let max_symbol_count = params.iter().map(|param| param.symbol_count).max().unwrap();
 
     Ok(Parameters {
         gflags,
         max_sel,
         s_tab,
         params,
-        max_sym,
+        max_symbol_count,
     })
 }
 
