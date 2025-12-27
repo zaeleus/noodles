@@ -3,8 +3,8 @@ pub mod parameter;
 
 use std::{io, num::NonZero};
 
-use self::parameter::fqz_decode_single_param;
 pub use self::{flags::Flags, parameter::Parameter};
+use self::{flags::read_flags, parameter::fqz_decode_single_param};
 use crate::io::reader::num::read_u8;
 
 const VERSION: u8 = 5;
@@ -27,7 +27,7 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
         ));
     }
 
-    let gflags = read_u8(src).map(Flags::from)?;
+    let gflags = read_flags(src)?;
 
     let (n_param, mut max_sel) = if gflags.contains(Flags::MULTI_PARAM) {
         let n = read_u8(src)?;
