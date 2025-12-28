@@ -20,11 +20,12 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
 
     let gflags = read_flags(src)?;
 
-    let (n_param, mut max_sel) = if gflags.contains(Flags::MULTI_PARAM) {
-        let n = read_u8(src)?;
-        (usize::from(n), n)
+    let (parameter_count, mut max_sel) = if gflags.contains(Flags::MULTI_PARAM) {
+        let n = read_parameter_count(src)?;
+        let selector_count = (usize::from(n) - 1) as u8;
+        (n, selector_count)
     } else {
-        (1, 0)
+        (NonZero::<usize>::MIN, 0)
     };
 
     let s_tab = if gflags.contains(Flags::HAVE_S_TAB) {
@@ -34,10 +35,11 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
         Vec::new()
     };
 
-    let params: Vec<_> = (0..n_param)
+    let params: Vec<_> = (0..parameter_count.get())
         .map(|_| fqz_decode_single_param(src))
         .collect::<io::Result<_>>()?;
 
+    // SAFETY: `params` is nonempty.
     let max_symbol_count = params.iter().map(|param| param.symbol_count).max().unwrap();
 
     Ok(Parameters {
@@ -59,6 +61,12 @@ fn read_version(src: &mut &[u8]) -> io::Result<()> {
             format!("invalid version: expected {VERSION}, got {n}"),
         )),
     }
+}
+
+fn read_parameter_count(src: &mut &[u8]) -> io::Result<NonZero<usize>> {
+    read_u8(src).and_then(|n| {
+        NonZero::try_from(usize::from(n)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
 pub fn read_array(src: &mut &[u8], n: usize) -> io::Result<Vec<u8>> {
