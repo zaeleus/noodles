@@ -43,12 +43,9 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
         Vec::new()
     };
 
-    let mut params = Vec::with_capacity(n_param);
-
-    for _ in 0..n_param {
-        let param = fqz_decode_single_param(src)?;
-        params.push(param);
-    }
+    let params: Vec<_> = (0..n_param)
+        .map(|_| fqz_decode_single_param(src))
+        .collect::<io::Result<_>>()?;
 
     let max_symbol_count = params.iter().map(|param| param.symbol_count).max().unwrap();
 
