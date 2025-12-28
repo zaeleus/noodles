@@ -9,10 +9,10 @@ use crate::io::reader::num::read_u8;
 
 pub struct Parameters {
     pub gflags: Flags,
-    pub max_sel: u8,
     pub s_tab: Vec<u8>,
     pub params: Vec<Parameter>,
     pub max_symbol_count: NonZero<usize>,
+    pub selector_count: Option<NonZero<usize>>,
 }
 
 pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
@@ -20,16 +20,18 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
 
     let gflags = read_flags(src)?;
 
-    let (parameter_count, mut max_sel) = if gflags.contains(Flags::MULTI_PARAM) {
+    let mut selector_count = None;
+
+    let parameter_count = if gflags.contains(Flags::MULTI_PARAM) {
         let n = read_parameter_count(src)?;
-        let selector_count = (usize::from(n) - 1) as u8;
-        (n, selector_count)
+        selector_count = Some(n.checked_add(1).expect("attempt to add with overflow"));
+        n
     } else {
-        (NonZero::<usize>::MIN, 0)
+        NonZero::<usize>::MIN
     };
 
     let s_tab = if gflags.contains(Flags::HAVE_S_TAB) {
-        max_sel = read_u8(src)?;
+        selector_count = read_selector_count(src).map(Some)?;
         read_array(src, 256)?
     } else {
         Vec::new()
@@ -44,10 +46,10 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
 
     Ok(Parameters {
         gflags,
-        max_sel,
         s_tab,
         params,
         max_symbol_count,
+        selector_count,
     })
 }
 
@@ -66,6 +68,20 @@ fn read_version(src: &mut &[u8]) -> io::Result<()> {
 fn read_parameter_count(src: &mut &[u8]) -> io::Result<NonZero<usize>> {
     read_u8(src).and_then(|n| {
         NonZero::try_from(usize::from(n)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
+}
+
+fn read_max_selector(src: &mut &[u8]) -> io::Result<NonZero<u8>> {
+    read_u8(src).and_then(|n| {
+        NonZero::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
+}
+
+fn read_selector_count(src: &mut &[u8]) -> io::Result<NonZero<usize>> {
+    read_max_selector(src).map(|n| {
+        NonZero::<usize>::from(n)
+            .checked_add(1)
+            .expect("attempt to add with overflow")
     })
 }
 
