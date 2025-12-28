@@ -7,8 +7,6 @@ pub use self::{flags::Flags, parameter::Parameter};
 use self::{flags::read_flags, parameter::fqz_decode_single_param};
 use crate::io::reader::num::read_u8;
 
-const VERSION: u8 = 5;
-
 pub struct Parameters {
     pub gflags: Flags,
     pub max_sel: u8,
@@ -18,14 +16,7 @@ pub struct Parameters {
 }
 
 pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
-    let vers = read_u8(src)?;
-
-    if vers != VERSION {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("invalid vers: expected {VERSION}, got {vers}"),
-        ));
-    }
+    read_version(src)?;
 
     let gflags = read_flags(src)?;
 
@@ -56,6 +47,18 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
         params,
         max_symbol_count,
     })
+}
+
+fn read_version(src: &mut &[u8]) -> io::Result<()> {
+    const VERSION: u8 = 5;
+
+    match read_u8(src)? {
+        VERSION => Ok(()),
+        n => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("invalid version: expected {VERSION}, got {n}"),
+        )),
+    }
 }
 
 pub fn read_array(src: &mut &[u8], n: usize) -> io::Result<Vec<u8>> {
