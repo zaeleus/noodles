@@ -26,7 +26,7 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
     fqz_encode_params(&mut dst, &parameters)?;
 
     let mut range_coder = RangeCoder::default();
-    let mut models = Models::new(parameters.max_sym, 1); // FIXME: max_sel
+    let mut models = Models::new(parameters.max_sym, Some(1)); // FIXME: max_sel
 
     let mut p = 0;
     let mut rec_num = 0;

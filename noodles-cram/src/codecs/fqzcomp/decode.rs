@@ -18,12 +18,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     range_coder.range_decode_create(&mut src)?;
 
     let max_sym = (usize::from(params.max_symbol_count) - 1) as u8;
-
-    let max_sel = params
-        .selector_count
-        .map(|n| (usize::from(n) - 1) as u8)
-        .unwrap_or(0);
-
+    let max_sel = params.selector_count.map(|n| (usize::from(n) - 1) as u8);
     let mut models = Models::new(max_sym, max_sel);
 
     let mut i = 0;
@@ -111,8 +106,8 @@ fn fqz_new_record(
     let mut sel = 0;
     let mut x = 0;
 
-    if parameters.selector_count.is_some() {
-        sel = models.sel.decode(src, range_coder)?;
+    if let Some(model) = models.sel.as_mut() {
+        sel = model.decode(src, range_coder)?;
 
         if parameters.gflags.contains(parameters::Flags::HAVE_S_TAB) {
             x = usize::from(parameters.s_tab[usize::from(sel)]);
