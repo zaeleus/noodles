@@ -1,3 +1,5 @@
+use std::num::NonZero;
+
 use crate::codecs::aac::Model;
 
 pub struct Models {
@@ -9,13 +11,13 @@ pub struct Models {
 }
 
 impl Models {
-    pub fn new(max_sym: u8, max_sel: Option<u8>) -> Models {
+    pub fn new(max_symbol_count: NonZero<usize>, selector_count: Option<NonZero<usize>>) -> Models {
         Self {
-            len: vec![Model::new(u8::MAX); 4],
-            qual: vec![Model::new(max_sym); 1 << 16],
-            dup: Model::new(1),
-            rev: Model::new(1),
-            sel: max_sel.map(Model::new),
+            len: vec![Model::new(const { NonZero::new(256).unwrap() }); 4],
+            qual: vec![Model::new(max_symbol_count); 1 << 16],
+            dup: Model::new(const { NonZero::new(2).unwrap() }),
+            rev: Model::new(const { NonZero::new(2).unwrap() }),
+            sel: selector_count.map(Model::new),
         }
     }
 }

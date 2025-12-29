@@ -1,14 +1,13 @@
 use std::io;
 
-use super::{CONTINUE, CONTINUE_CONTEXT, INITIAL_CONTEXT, MODEL_COUNT, MODEL_MAX_SYMBOL};
+use super::{CONTINUE, CONTINUE_CONTEXT, INITIAL_CONTEXT, MODEL_COUNT, MODEL_SYMBOL_COUNT};
 use crate::codecs::aac::{Model, RangeCoder, decode::read_symbol_count};
 
 pub(super) fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
     let symbol_count = read_symbol_count(src)?;
-    let max_sym = (symbol_count.get() - 1) as u8;
+    let mut model = Model::new(symbol_count);
 
-    let mut model = Model::new(max_sym);
-    let mut rle_models = vec![Model::new(MODEL_MAX_SYMBOL); MODEL_COUNT];
+    let mut rle_models = vec![Model::new(MODEL_SYMBOL_COUNT); MODEL_COUNT];
 
     let mut coder = RangeCoder::default();
     coder.range_decode_create(src)?;

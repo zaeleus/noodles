@@ -17,9 +17,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let mut range_coder = RangeCoder::default();
     range_coder.range_decode_create(&mut src)?;
 
-    let max_sym = (usize::from(params.max_symbol_count) - 1) as u8;
-    let max_sel = params.selector_count.map(|n| (usize::from(n) - 1) as u8);
-    let mut models = Models::new(max_sym, max_sel);
+    let mut models = Models::new(params.max_symbol_count, params.selector_count);
 
     let mut i = 0;
 

@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    num::NonZero,
+};
 
 use super::{
     Models,
@@ -26,7 +29,7 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
     fqz_encode_params(&mut dst, &parameters)?;
 
     let mut range_coder = RangeCoder::default();
-    let mut models = Models::new(parameters.max_sym, Some(1)); // FIXME: max_sel
+    let mut models = Models::new(parameters.symbol_count, Some(NonZero::<usize>::MIN)); // FIXME: max_sel
 
     let mut p = 0;
     let mut rec_num = 0;
@@ -103,14 +106,14 @@ struct Parameters {
     pub max_sel: u8,
     pub s_tab: Vec<u8>,
     pub params: Vec<Parameter>,
-    pub max_sym: u8,
+    pub symbol_count: NonZero<usize>,
 }
 
 struct Parameter {
     pub context: u16,
     pub flags: parameter::Flags,
 
-    pub max_sym: u8,
+    pub symbol_count: NonZero<usize>,
 
     pub q_bits: u8,
     pub q_shift: u8,
@@ -158,7 +161,7 @@ fn build_parameters(lens: &[usize], src: &[u8]) -> Parameters {
     let params = vec![Parameter {
         context: 0,
         flags,
-        max_sym: max_symbol,
+        symbol_count: NonZero::new(usize::from(max_symbol) + 1).unwrap(),
         q_bits,
         q_shift,
         q_loc: 7,
@@ -181,7 +184,7 @@ fn build_parameters(lens: &[usize], src: &[u8]) -> Parameters {
         max_sel: 0,
         s_tab,
         params,
-        max_sym: max_symbol,
+        symbol_count: NonZero::new(usize::from(max_symbol) + 1).unwrap(),
     }
 }
 
@@ -224,7 +227,7 @@ where
     let pflags = u8::from(parameter.flags);
     write_u8(writer, pflags)?;
 
-    let max_sym = parameter.max_sym;
+    let max_sym = (usize::from(parameter.symbol_count) - 1) as u8;
     write_u8(writer, max_sym)?;
 
     write_u8(writer, (parameter.q_bits << 4) | parameter.q_shift)?;

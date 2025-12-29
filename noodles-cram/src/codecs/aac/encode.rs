@@ -1,4 +1,7 @@
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    num::NonZero,
+};
 
 use super::{Flags, Model, RangeCoder};
 use crate::io::writer::num::{write_u8, write_uint7};
@@ -127,8 +130,9 @@ fn encode_rle_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
     write_u8(dst, max_sym.overflowing_add(1).0)?;
 
-    let mut model_lit = Model::new(max_sym);
-    let mut model_run = vec![Model::new(3); 258];
+    let symbol_count = NonZero::new(usize::from(max_sym) + 1).unwrap();
+    let mut model_lit = Model::new(symbol_count);
+    let mut model_run = vec![Model::new(const { NonZero::new(4).unwrap() }); 258];
 
     let mut range_coder = RangeCoder::default();
 
@@ -165,9 +169,9 @@ fn encode_rle_1(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
     write_u8(dst, max_sym.overflowing_add(1).0)?;
 
-    let model_lit_count = usize::from(max_sym) + 1;
-    let mut model_lit = vec![Model::new(max_sym); model_lit_count];
-    let mut model_run = vec![Model::new(3); 258];
+    let symbol_count = NonZero::new(usize::from(max_sym) + 1).unwrap();
+    let mut model_lit = vec![Model::new(symbol_count); symbol_count.get()];
+    let mut model_run = vec![Model::new(const { NonZero::new(4).unwrap() }); 258];
 
     let mut range_coder = RangeCoder::default();
 
@@ -206,7 +210,8 @@ fn encode_order_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
     write_u8(dst, max_sym.overflowing_add(1).0)?;
 
-    let mut model = Model::new(max_sym);
+    let symbol_count = NonZero::new(usize::from(max_sym) + 1).unwrap();
+    let mut model = Model::new(symbol_count);
     let mut range_coder = RangeCoder::default();
 
     for &sym in src {
@@ -222,8 +227,8 @@ fn encode_order_1(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let max_sym = src.iter().max().copied().unwrap_or(0);
     write_u8(dst, max_sym.overflowing_add(1).0)?;
 
-    let model_count = usize::from(max_sym) + 1;
-    let mut models = vec![Model::new(max_sym); model_count];
+    let symbol_count = NonZero::new(usize::from(max_sym) + 1).unwrap();
+    let mut models = vec![Model::new(symbol_count); symbol_count.get()];
 
     let mut range_coder = RangeCoder::default();
 

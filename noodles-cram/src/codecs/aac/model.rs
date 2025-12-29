@@ -1,30 +1,35 @@
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    num::NonZero,
+};
 
 use super::RangeCoder;
 
+const MAX_SYMBOL_COUNT: usize = 1 << 8;
+
 #[derive(Clone, Debug)]
 pub struct Model {
-    total_freq: u32,
     symbols: Vec<u8>,
     frequencies: Vec<u32>,
+    total_freq: u32,
 }
 
 impl Model {
-    pub fn new(max_sym: u8) -> Self {
-        let num_sym = usize::from(max_sym) + 1;
+    pub fn new(symbol_count: NonZero<usize>) -> Self {
+        let len = symbol_count.get();
 
-        let mut symbols = Vec::with_capacity(num_sym);
+        assert!(len <= MAX_SYMBOL_COUNT);
 
-        for i in 0..=max_sym {
-            symbols.push(i);
-        }
+        // SAFETY: `i` <= `u8::MAX`.
+        let symbols = (0..len).map(|i| i as u8).collect();
 
-        let frequencies = vec![1; num_sym];
+        let frequencies = vec![1; len];
+        let frequencies_sum = frequencies.iter().sum();
 
         Self {
-            total_freq: u32::from(max_sym) + 1,
             symbols,
             frequencies,
+            total_freq: frequencies_sum,
         }
     }
 
