@@ -1,8 +1,10 @@
 //! BAM record decoder.
 
+#![allow(missing_docs)]
+
 mod bin;
 pub(crate) mod cigar;
-pub mod data;
+pub(crate) mod data;
 mod flags;
 mod mapping_quality;
 mod name;
@@ -97,7 +99,11 @@ impl fmt::Display for DecodeError {
     }
 }
 
-pub(crate) fn decode(src: &mut &[u8], record: &mut RecordBuf) -> Result<(), DecodeError> {
+/// Decodes a BAM record from raw bytes.
+///
+/// The input slice should contain the record data after the 4-byte block size. The slice
+/// reference is advanced past the consumed bytes.
+pub fn decode(src: &mut &[u8], record: &mut RecordBuf) -> Result<(), DecodeError> {
     *record.reference_sequence_id_mut() =
         read_reference_sequence_id(src).map_err(DecodeError::InvalidReferenceSequenceId)?;
 
