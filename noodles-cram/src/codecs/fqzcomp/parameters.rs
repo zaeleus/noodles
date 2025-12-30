@@ -18,11 +18,11 @@ pub struct Parameters {
 pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
     read_version(src)?;
 
-    let gflags = read_flags(src)?;
+    let flags = read_flags(src)?;
 
     let mut selector_count = None;
 
-    let parameter_count = if gflags.contains(Flags::MULTI_PARAM) {
+    let parameter_count = if flags.has_parameter_count() {
         let n = read_parameter_count(src)?;
         selector_count = Some(n.checked_add(1).expect("attempt to add with overflow"));
         n
@@ -30,7 +30,7 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
         NonZero::<usize>::MIN
     };
 
-    let s_tab = if gflags.contains(Flags::HAVE_S_TAB) {
+    let s_tab = if flags.has_selector_table() {
         selector_count = read_selector_count(src).map(Some)?;
         read_array(src, 256)?
     } else {
@@ -45,7 +45,7 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
     let max_symbol_count = params.iter().map(|param| param.symbol_count).max().unwrap();
 
     Ok(Parameters {
-        gflags,
+        gflags: flags,
         s_tab,
         params,
         max_symbol_count,

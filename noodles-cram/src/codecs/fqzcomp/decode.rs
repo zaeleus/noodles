@@ -3,7 +3,7 @@ use std::{cmp, io};
 use super::{
     Models,
     parameters::{
-        self, Parameters, fqz_decode_params,
+        Parameters, fqz_decode_params,
         parameter::{self, Parameter},
     },
 };
@@ -73,7 +73,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
         record.pos -= 1;
     }
 
-    if params.gflags.contains(parameters::Flags::DO_REV) {
+    if params.gflags.has_reversed_values() {
         reverse_qualities(&mut dst, buf_len, &rev_len);
     }
 
@@ -107,7 +107,7 @@ fn fqz_new_record(
     if let Some(model) = models.sel.as_mut() {
         sel = model.decode(src, range_coder)?;
 
-        if parameters.gflags.contains(parameters::Flags::HAVE_S_TAB) {
+        if parameters.gflags.has_selector_table() {
             x = usize::from(parameters.s_tab[usize::from(sel)]);
         }
     }
@@ -125,7 +125,7 @@ fn fqz_new_record(
     record.rec_len = last_len;
     record.pos = record.rec_len;
 
-    if parameters.gflags.contains(parameters::Flags::DO_REV) {
+    if parameters.gflags.has_reversed_values() {
         let rev = models.rev.decode(src, range_coder).map(|n| n == 1)?;
         let len = record.rec_len;
         rev_len.push((rev, len));

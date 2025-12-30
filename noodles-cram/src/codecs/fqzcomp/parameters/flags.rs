@@ -11,6 +11,20 @@ bitflags::bitflags! {
     }
 }
 
+impl Flags {
+    pub(super) fn has_parameter_count(&self) -> bool {
+        self.contains(Self::MULTI_PARAM)
+    }
+
+    pub fn has_selector_table(&self) -> bool {
+        self.contains(Self::HAVE_S_TAB)
+    }
+
+    pub fn has_reversed_values(&self) -> bool {
+        self.contains(Self::DO_REV)
+    }
+}
+
 impl From<u8> for Flags {
     fn from(n: u8) -> Self {
         Self::from_bits_truncate(n)
