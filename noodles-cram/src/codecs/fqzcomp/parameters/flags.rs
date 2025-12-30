@@ -16,7 +16,7 @@ impl Flags {
         self.contains(Self::MULTI_PARAM)
     }
 
-    pub fn has_selector_table(&self) -> bool {
+    pub(super) fn has_selector_table(&self) -> bool {
         self.contains(Self::HAVE_S_TAB)
     }
 

@@ -107,8 +107,9 @@ fn fqz_new_record(
     if let Some(model) = models.sel.as_mut() {
         sel = model.decode(src, range_coder)?;
 
-        if parameters.gflags.has_selector_table() {
-            x = usize::from(parameters.s_tab[usize::from(sel)]);
+        if let Some(table) = parameters.selector_table() {
+            let i = usize::from(sel);
+            x = usize::from(table[i]);
         }
     }
 

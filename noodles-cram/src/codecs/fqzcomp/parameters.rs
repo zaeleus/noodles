@@ -9,10 +9,16 @@ use crate::io::reader::num::read_u8;
 
 pub struct Parameters {
     pub gflags: Flags,
-    pub s_tab: Vec<u8>,
+    selector_table: Option<Vec<u8>>,
     pub params: Vec<Parameter>,
     pub max_symbol_count: NonZero<usize>,
     pub selector_count: Option<NonZero<usize>>,
+}
+
+impl Parameters {
+    pub(super) fn selector_table(&self) -> Option<&[u8]> {
+        self.selector_table.as_deref()
+    }
 }
 
 pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
@@ -30,11 +36,11 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
         NonZero::<usize>::MIN
     };
 
-    let s_tab = if flags.has_selector_table() {
+    let selector_table = if flags.has_selector_table() {
         selector_count = read_selector_count(src).map(Some)?;
-        read_array(src, 256)?
+        read_array(src, 256).map(Some)?
     } else {
-        Vec::new()
+        None
     };
 
     let params: Vec<_> = (0..parameter_count.get())
@@ -46,7 +52,7 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
 
     Ok(Parameters {
         gflags: flags,
-        s_tab,
+        selector_table,
         params,
         max_symbol_count,
         selector_count,
