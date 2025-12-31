@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * refget: Update to reqwest 0.13.1.
+
 ## 0.9.0 - 2025-07-12
 
 ### Changed

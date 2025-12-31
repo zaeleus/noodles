@@ -14,7 +14,7 @@ categories = ["api-bindings", "science::bioinformatics"]
 [dependencies]
 bytes.workspace = true
 noodles-core = { path = "../noodles-core", version = "0.18.0" }
-reqwest.workspace = true
+reqwest = { workspace = true, features = ["query"] }
 serde.workspace = true
 url.workspace = true
 
