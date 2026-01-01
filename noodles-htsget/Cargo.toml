@@ -21,6 +21,7 @@ serde.workspace = true
 url = { workspace = true, features = ["serde"] }
 
 [dev-dependencies]
+reqwest = { workspace = true, features = ["rustls"] }
 serde_test = "1.0.137"
 tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 

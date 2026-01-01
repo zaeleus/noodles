@@ -6,6 +6,9 @@
 
   * refget: Update to reqwest 0.13.1.
 
+    noodles-refget no longer enables a TLS backend. Select one by adding
+    reqwest as a direct dependency.
+
 ## 0.8.0 - 2025-07-12
 
 ### Changed
