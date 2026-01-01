@@ -31,14 +31,9 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     let flags = read_u8(src).map(Flags::from)?;
     let max_symbol = read_max_symbol(src)?;
 
-    let n = read_u8(src)?;
-    let (q_bits, q_shift) = (n >> 4, n & 0x0f);
-
-    let n = read_u8(src)?;
-    let (q_loc, s_loc) = (n >> 4, n & 0x0f);
-
-    let n = read_u8(src)?;
-    let (p_loc, d_loc) = (n >> 4, n & 0x0f);
+    let (q_bits, q_shift) = read_u4x2(src)?;
+    let (q_loc, s_loc) = read_u4x2(src)?;
+    let (p_loc, d_loc) = read_u4x2(src)?;
 
     let q_map = if flags.contains(Flags::HAVE_QMAP) {
         let mut map = vec![0; usize::from(max_symbol)];
@@ -89,6 +84,11 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     })
 }
 
+fn read_u4x2(src: &mut &[u8]) -> io::Result<(u8, u8)> {
+    let n = read_u8(src)?;
+    Ok((n >> 4, n & 0x0f))
+}
+
 fn read_max_symbol(src: &mut &[u8]) -> io::Result<u8> {
     read_u8(src)
 }
@@ -97,4 +97,15 @@ fn max_to_count(n: u8) -> NonZero<usize> {
     let m = usize::from(n) + 1;
     // SAFETY: `m > 0`.
     NonZero::new(m).unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_u4x2() -> io::Result<()> {
+        assert_eq!(read_u4x2(&mut &[0x0f][..])?, (0x00, 0x0f));
+        Ok(())
+    }
 }
