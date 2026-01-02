@@ -2,10 +2,7 @@ mod flags;
 
 pub use self::flags::Flags;
 
-use std::{
-    io::{self, Read},
-    num::NonZero,
-};
+use std::{io, num::NonZero};
 
 use super::read_array;
 use crate::io::reader::num::{read_u8, read_u16_le};
@@ -36,9 +33,7 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     let (p_loc, d_loc) = read_u4x2(src)?;
 
     let q_map = if flags.contains(Flags::HAVE_QMAP) {
-        let mut map = vec![0; usize::from(max_symbol)];
-        src.read_exact(&mut map)?;
-        Some(map)
+        read_quality_map(src, max_symbol).map(Some)?
     } else {
         None
     };
@@ -85,6 +80,18 @@ fn read_u4x2(src: &mut &[u8]) -> io::Result<(u8, u8)> {
 
 fn read_max_symbol(src: &mut &[u8]) -> io::Result<u8> {
     read_u8(src)
+}
+
+fn read_quality_map(src: &mut &[u8], max_symbol: u8) -> io::Result<Vec<u8>> {
+    let len = usize::from(max_symbol);
+
+    let (buf, rest) = src
+        .split_at_checked(len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+    *src = rest;
+
+    Ok(buf.to_vec())
 }
 
 fn build_default_qualities_table() -> Vec<u8> {
