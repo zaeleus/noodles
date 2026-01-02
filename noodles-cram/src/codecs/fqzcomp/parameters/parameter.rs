@@ -1,11 +1,15 @@
 mod flags;
 
-pub use self::flags::Flags;
-
 use std::{io, num::NonZero};
 
+pub use self::flags::Flags;
 use super::read_array;
 use crate::io::reader::num::{read_u8, read_u16_le};
+
+// § 6.2 "FQZComp Data Stream" (2023-03-15).
+const QUALITIES_TABLE_SIZE: usize = 256;
+const POSITIONS_TABLE_SIZE: usize = 1024;
+const DELTAS_TABLE_SIZE: usize = 256;
 
 pub struct Parameter {
     pub context: u16,
@@ -39,19 +43,19 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     };
 
     let q_tab = if flags.contains(Flags::HAVE_QTAB) {
-        read_array(src, 256)?
+        read_array(src, QUALITIES_TABLE_SIZE)?
     } else {
         build_default_qualities_table()
     };
 
     let p_tab = if flags.contains(Flags::HAVE_PTAB) {
-        read_array(src, 1024).map(Some)?
+        read_array(src, POSITIONS_TABLE_SIZE).map(Some)?
     } else {
         None
     };
 
     let d_tab = if flags.contains(Flags::HAVE_DTAB) {
-        read_array(src, 256).map(Some)?
+        read_array(src, DELTAS_TABLE_SIZE).map(Some)?
     } else {
         None
     };
