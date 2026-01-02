@@ -46,13 +46,7 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     let q_tab = if flags.contains(Flags::HAVE_QTAB) {
         read_array(src, 256)?
     } else {
-        let mut tab = Vec::with_capacity(256);
-
-        for i in 0..=u8::MAX {
-            tab.push(i);
-        }
-
-        tab
+        build_default_qualities_table()
     };
 
     let p_tab = if flags.contains(Flags::HAVE_PTAB) {
@@ -91,6 +85,10 @@ fn read_u4x2(src: &mut &[u8]) -> io::Result<(u8, u8)> {
 
 fn read_max_symbol(src: &mut &[u8]) -> io::Result<u8> {
     read_u8(src)
+}
+
+fn build_default_qualities_table() -> Vec<u8> {
+    (0..=u8::MAX).collect()
 }
 
 fn max_to_count(n: u8) -> NonZero<usize> {
