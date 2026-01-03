@@ -12,6 +12,36 @@ bitflags::bitflags! {
     }
 }
 
+impl Flags {
+    pub fn has_duplicates(&self) -> bool {
+        self.contains(Self::DO_DEDUP)
+    }
+
+    pub fn is_fixed_length(&self) -> bool {
+        self.contains(Self::DO_LEN)
+    }
+
+    pub fn has_selector(&self) -> bool {
+        self.contains(Self::DO_SEL)
+    }
+
+    pub fn has_quality_map(&self) -> bool {
+        self.contains(Self::HAVE_QMAP)
+    }
+
+    pub fn has_positions_table(&self) -> bool {
+        self.contains(Self::HAVE_PTAB)
+    }
+
+    pub fn has_deltas_table(&self) -> bool {
+        self.contains(Self::HAVE_DTAB)
+    }
+
+    pub fn has_qualities_table(&self) -> bool {
+        self.contains(Self::HAVE_QTAB)
+    }
+}
+
 impl From<u8> for Flags {
     fn from(n: u8) -> Self {
         Self::from_bits_truncate(n)

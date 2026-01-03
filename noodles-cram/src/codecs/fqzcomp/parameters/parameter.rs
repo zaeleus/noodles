@@ -36,25 +36,25 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     let (q_loc, s_loc) = read_u4x2(src)?;
     let (p_loc, d_loc) = read_u4x2(src)?;
 
-    let q_map = if flags.contains(Flags::HAVE_QMAP) {
+    let q_map = if flags.has_quality_map() {
         read_quality_map(src, max_symbol).map(Some)?
     } else {
         None
     };
 
-    let q_tab = if flags.contains(Flags::HAVE_QTAB) {
+    let q_tab = if flags.has_qualities_table() {
         read_array(src, QUALITIES_TABLE_SIZE)?
     } else {
         build_default_qualities_table()
     };
 
-    let p_tab = if flags.contains(Flags::HAVE_PTAB) {
+    let p_tab = if flags.has_positions_table() {
         read_array(src, POSITIONS_TABLE_SIZE).map(Some)?
     } else {
         None
     };
 
-    let d_tab = if flags.contains(Flags::HAVE_DTAB) {
+    let d_tab = if flags.has_deltas_table() {
         read_array(src, DELTAS_TABLE_SIZE).map(Some)?
     } else {
         None

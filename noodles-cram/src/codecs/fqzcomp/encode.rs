@@ -46,19 +46,14 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
 
             x = parameters.s_tab[0];
 
-            let is_fixed_len = parameters.params[usize::from(x)]
-                .flags
-                .contains(parameter::Flags::DO_LEN);
-
+            let param = &parameters.params[usize::from(x)];
             let len = lens[rec_num];
 
-            if !is_fixed_len || rec_num == 0 {
+            if !param.flags.is_fixed_length() || rec_num == 0 {
                 encode_length(&mut dst, &mut range_coder, &mut models, len)?;
             }
 
-            let param = &parameters.params[usize::from(x)];
-
-            if param.flags.contains(parameter::Flags::DO_DEDUP) {
+            if param.flags.has_duplicates() {
                 todo!("do_dedup");
             }
 
@@ -80,15 +75,15 @@ pub fn encode(lens: &[usize], src: &[u8]) -> io::Result<Vec<u8>> {
         last = u32::from(param.context);
         last += (qlast & ((1 << param.q_bits) - 1)) << param.q_loc;
 
-        if param.flags.contains(parameter::Flags::HAVE_PTAB) {
+        if param.flags.has_positions_table() {
             last += u32::from(param.p_tab[p.min(1023)] << param.p_loc);
         }
 
-        if param.flags.contains(parameter::Flags::HAVE_DTAB) {
+        if param.flags.has_deltas_table() {
             todo!("have_dtab");
         }
 
-        if param.flags.contains(parameter::Flags::DO_SEL) {
+        if param.flags.has_selector() {
             todo!("do_sel");
         }
 
@@ -234,19 +229,19 @@ where
     write_u8(writer, (parameter.q_loc << 4) | parameter.s_loc)?;
     write_u8(writer, (parameter.p_loc << 4) | parameter.d_loc)?;
 
-    if parameter.flags.contains(parameter::Flags::HAVE_QMAP) {
+    if parameter.flags.has_quality_map() {
         todo!("have_qmap");
     }
 
-    if parameter.flags.contains(parameter::Flags::HAVE_QTAB) {
+    if parameter.flags.has_qualities_table() {
         todo!("have_qtab");
     }
 
-    if parameter.flags.contains(parameter::Flags::HAVE_PTAB) {
+    if parameter.flags.has_positions_table() {
         write_array(writer, &parameter.p_tab)?;
     }
 
-    if parameter.flags.contains(parameter::Flags::HAVE_DTAB) {
+    if parameter.flags.has_deltas_table() {
         todo!("have_dtab");
     }
 

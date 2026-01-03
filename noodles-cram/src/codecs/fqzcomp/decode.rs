@@ -2,10 +2,7 @@ use std::{cmp, io};
 
 use super::{
     Models,
-    parameters::{
-        Parameters, fqz_decode_params,
-        parameter::{self, Parameter},
-    },
+    parameters::{Parameters, fqz_decode_params, parameter::Parameter},
 };
 use crate::{codecs::aac::RangeCoder, io::reader::num::read_uint7_as};
 
@@ -117,9 +114,7 @@ fn fqz_new_record(
 
     let param = &parameters.params[x];
 
-    let is_fixed_len = param.flags.contains(parameter::Flags::DO_LEN);
-
-    if !is_fixed_len || record.rec == 0 {
+    if !param.flags.is_fixed_length() || record.rec == 0 {
         last_len = decode_length(src, range_coder, models)? as usize;
     }
 
@@ -134,7 +129,7 @@ fn fqz_new_record(
 
     record.rec += 1;
 
-    if param.flags.contains(parameter::Flags::DO_DEDUP) {
+    if param.flags.has_duplicates() {
         record.is_dup = models.dup.decode(src, range_coder)? == 1;
     }
 
@@ -146,8 +141,6 @@ fn fqz_new_record(
 }
 
 fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 {
-    use parameter::Flags;
-
     let mut ctx = u32::from(param.context);
 
     record.qctx = (record.qctx << u32::from(param.q_shift))
@@ -172,7 +165,7 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
         record.prevq = q;
     }
 
-    if param.flags.contains(Flags::DO_SEL) {
+    if param.flags.has_selector() {
         ctx += u32::from(record.sel) << param.s_loc;
     }
 
