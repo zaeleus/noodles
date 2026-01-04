@@ -7,6 +7,9 @@ pub use self::{flags::Flags, parameter::Parameter};
 use self::{flags::read_flags, parameter::fqz_decode_single_param};
 use crate::io::reader::num::read_u8;
 
+// § 6.2 "FQZComp Data Stream" (2023-03-15).
+const SELECTOR_TABLE_SIZE: usize = 256;
+
 pub struct Parameters {
     pub gflags: Flags,
     selector_table: Option<Vec<u8>>,
@@ -38,7 +41,7 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
 
     let selector_table = if flags.has_selector_table() {
         selector_count = read_selector_count(src).map(Some)?;
-        read_array(src, 256).map(Some)?
+        read_selector_table(src).map(Some)?
     } else {
         None
     };
@@ -89,6 +92,10 @@ fn read_selector_count(src: &mut &[u8]) -> io::Result<NonZero<usize>> {
             .checked_add(1)
             .expect("attempt to add with overflow")
     })
+}
+
+fn read_selector_table(src: &mut &[u8]) -> io::Result<Vec<u8>> {
+    read_array(src, SELECTOR_TABLE_SIZE)
 }
 
 pub fn read_array(src: &mut &[u8], n: usize) -> io::Result<Vec<u8>> {
