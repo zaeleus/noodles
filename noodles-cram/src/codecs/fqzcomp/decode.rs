@@ -58,7 +58,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
         let param = &mut params.params[x];
         let q = models.qual[usize::from(ctx)].decode(&mut src, &mut range_coder)?;
 
-        dst[i] = if let Some(q_map) = param.q_map.as_deref() {
+        dst[i] = if let Some(q_map) = param.quality_map.as_deref() {
             q_map[usize::from(q)]
         } else {
             q
@@ -144,17 +144,17 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
     let mut ctx = u32::from(param.context);
 
     record.qctx = (record.qctx << u32::from(param.q_shift))
-        .overflowing_add(u32::from(param.q_tab[usize::from(q)]))
+        .overflowing_add(u32::from(param.qualities_table[usize::from(q)]))
         .0;
 
     ctx += (record.qctx & ((1 << param.q_bits) - 1)) << param.q_loc;
 
-    if let Some(p_tab) = param.p_tab.as_deref() {
+    if let Some(p_tab) = param.positions_table.as_deref() {
         let p = cmp::min(record.pos, 1023);
         ctx += u32::from(p_tab[p]) << param.p_loc;
     }
 
-    if let Some(d_tab) = param.d_tab.as_deref() {
+    if let Some(d_tab) = param.deltas_table.as_deref() {
         let d = cmp::min(record.delta, 255) as usize;
         ctx += u32::from(d_tab[d]) << param.d_loc;
 

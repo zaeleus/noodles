@@ -21,10 +21,10 @@ pub struct Parameter {
     pub s_loc: u8,
     pub p_loc: u8,
     pub d_loc: u8,
-    pub q_map: Option<Vec<u8>>,
-    pub q_tab: Vec<u8>,
-    pub p_tab: Option<Vec<u8>>,
-    pub d_tab: Option<Vec<u8>>,
+    pub quality_map: Option<Vec<u8>>,
+    pub qualities_table: Vec<u8>,
+    pub positions_table: Option<Vec<u8>>,
+    pub deltas_table: Option<Vec<u8>>,
 }
 
 pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
@@ -36,26 +36,26 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     let (q_loc, s_loc) = read_u4x2(src)?;
     let (p_loc, d_loc) = read_u4x2(src)?;
 
-    let q_map = if flags.has_quality_map() {
+    let quality_map = if flags.has_quality_map() {
         read_quality_map(src, max_symbol).map(Some)?
     } else {
         None
     };
 
-    let q_tab = if flags.has_qualities_table() {
-        read_array(src, QUALITIES_TABLE_SIZE)?
+    let qualities_table = if flags.has_qualities_table() {
+        read_qualities_table(src)?
     } else {
         build_default_qualities_table()
     };
 
-    let p_tab = if flags.has_positions_table() {
-        read_array(src, POSITIONS_TABLE_SIZE).map(Some)?
+    let positions_table = if flags.has_positions_table() {
+        read_positions_table(src).map(Some)?
     } else {
         None
     };
 
-    let d_tab = if flags.has_deltas_table() {
-        read_array(src, DELTAS_TABLE_SIZE).map(Some)?
+    let deltas_table = if flags.has_deltas_table() {
+        read_deltas_table(src).map(Some)?
     } else {
         None
     };
@@ -70,10 +70,10 @@ pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
         s_loc,
         p_loc,
         d_loc,
-        q_map,
-        q_tab,
-        p_tab,
-        d_tab,
+        quality_map,
+        qualities_table,
+        positions_table,
+        deltas_table,
     })
 }
 
@@ -98,8 +98,20 @@ fn read_quality_map(src: &mut &[u8], max_symbol: u8) -> io::Result<Vec<u8>> {
     Ok(buf.to_vec())
 }
 
+fn read_qualities_table(src: &mut &[u8]) -> io::Result<Vec<u8>> {
+    read_array(src, QUALITIES_TABLE_SIZE)
+}
+
 fn build_default_qualities_table() -> Vec<u8> {
     (0..=u8::MAX).collect()
+}
+
+fn read_positions_table(src: &mut &[u8]) -> io::Result<Vec<u8>> {
+    read_array(src, POSITIONS_TABLE_SIZE)
+}
+
+fn read_deltas_table(src: &mut &[u8]) -> io::Result<Vec<u8>> {
+    read_array(src, DELTAS_TABLE_SIZE)
 }
 
 fn max_to_count(n: u8) -> NonZero<usize> {
