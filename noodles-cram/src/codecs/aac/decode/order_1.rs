@@ -7,8 +7,7 @@ pub(super) fn decode(src: &mut &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let symbol_count = read_symbol_count(src)?;
     let mut models = vec![Model::new(symbol_count); symbol_count.get()];
 
-    let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(src)?;
+    let mut range_coder = RangeCoder::new(src)?;
 
     let mut last = 0;
 

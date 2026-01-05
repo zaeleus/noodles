@@ -14,15 +14,16 @@ pub struct RangeCoder {
 }
 
 impl RangeCoder {
-    pub fn range_decode_create(&mut self, src: &mut &[u8]) -> io::Result<()> {
-        for _ in 0..=4 {
-            let b = read_u8(src).map(u32::from)?;
-            self.code = (self.code << 8) | b;
-        }
+    pub fn new(src: &mut &[u8]) -> io::Result<Self> {
+        // Discard first byte.
+        read_u8(src)?;
 
-        self.code &= u32::MAX;
+        let code = read_u32_be(src)?;
 
-        Ok(())
+        Ok(Self {
+            code,
+            ..Default::default()
+        })
     }
 
     pub fn range_get_freq(&mut self, tot_freq: u32) -> u32 {
@@ -128,5 +129,34 @@ impl Default for RangeCoder {
             cache: 0,
             ff_num: 0,
         }
+    }
+}
+
+fn read_u32_be(src: &mut &[u8]) -> io::Result<u32> {
+    let (buf, rest) = src
+        .split_first_chunk()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+    *src = rest;
+
+    Ok(u32::from_be_bytes(*buf))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new() -> io::Result<()> {
+        let src = [0x0d, 0x00, 0x00, 0x00, 0x08];
+        let coder = RangeCoder::new(&mut &src[..])?;
+        assert_eq!(coder.code, 8);
+
+        assert!(matches!(
+            RangeCoder::new(&mut &[][..]),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        Ok(())
     }
 }

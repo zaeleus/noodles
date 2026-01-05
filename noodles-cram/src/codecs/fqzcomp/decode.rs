@@ -11,10 +11,8 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut params = fqz_decode_params(&mut src)?;
 
-    let mut range_coder = RangeCoder::default();
-    range_coder.range_decode_create(&mut src)?;
-
     let mut models = Models::new(params.max_symbol_count, params.selector_count);
+    let mut range_coder = RangeCoder::new(&mut src)?;
 
     let mut i = 0;
 

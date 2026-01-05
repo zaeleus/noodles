@@ -9,8 +9,7 @@ pub(super) fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
 
     let mut rle_models = vec![Model::new(MODEL_SYMBOL_COUNT); MODEL_COUNT];
 
-    let mut coder = RangeCoder::default();
-    coder.range_decode_create(src)?;
+    let mut coder = RangeCoder::new(src)?;
 
     let mut iter = dst.iter_mut();
     let mut prev_sym = 0;
