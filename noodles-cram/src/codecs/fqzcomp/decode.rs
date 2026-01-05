@@ -112,7 +112,7 @@ fn fqz_new_record(
     let param = &parameters.params[x];
 
     if !param.flags().is_fixed_length() || record.rec == 0 {
-        last_len = decode_length(src, range_coder, models)? as usize;
+        last_len = read_length(src, range_coder, models)?;
     }
 
     record.rec_len = last_len;
@@ -170,17 +170,19 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
     (ctx & 0xffff) as u16
 }
 
-fn decode_length(
+fn read_length(
     src: &mut &[u8],
     range_coder: &mut RangeCoder,
     models: &mut Models,
-) -> io::Result<u32> {
-    let b0 = models.len[0].decode(src, range_coder).map(u32::from)?;
-    let b1 = models.len[1].decode(src, range_coder).map(u32::from)?;
-    let b2 = models.len[2].decode(src, range_coder).map(u32::from)?;
-    let b3 = models.len[3].decode(src, range_coder).map(u32::from)?;
+) -> io::Result<usize> {
+    let mut buf = [0; 4];
 
-    Ok((b3 << 24) | (b2 << 16) | (b1 << 8) | b0)
+    for (d, model) in buf.iter_mut().zip(&mut models.len) {
+        *d = model.decode(src, range_coder)?;
+    }
+
+    usize::try_from(u32::from_le_bytes(buf))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 fn reverse_qualities(qual: &mut [u8], qual_len: usize, rev_len: &[(bool, usize)]) {
