@@ -11,28 +11,28 @@ use std::{
 use super::Flags;
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
-pub fn decode(mut src: &[u8], mut len: usize) -> io::Result<Vec<u8>> {
+pub fn decode(mut src: &[u8], mut uncompressed_size: usize) -> io::Result<Vec<u8>> {
     use crate::codecs::rans_nx16::decode::bit_pack;
 
     let flags = read_flags(&mut src)?;
 
     if flags.has_uncompressed_size() {
-        len = read_uint7_as(&mut src)?;
+        uncompressed_size = read_uint7_as(&mut src)?;
     }
 
     if flags.is_striped() {
-        return stripe::decode(&mut src, len);
+        return stripe::decode(&mut src, uncompressed_size);
     }
 
     let bit_pack_context = if flags.is_bit_packed() {
-        let (ctx, new_len) = bit_pack::read_context(&mut src, len)?;
-        len = new_len;
+        let (ctx, len) = bit_pack::read_context(&mut src, uncompressed_size)?;
+        uncompressed_size = len;
         Some(ctx)
     } else {
         None
     };
 
-    let mut data = vec![0; len];
+    let mut data = vec![0; uncompressed_size];
 
     if flags.is_uncompressed() {
         src.read_exact(&mut data)?;
