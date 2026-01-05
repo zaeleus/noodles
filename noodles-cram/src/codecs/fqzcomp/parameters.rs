@@ -51,7 +51,11 @@ pub fn fqz_decode_params(src: &mut &[u8]) -> io::Result<Parameters> {
         .collect::<io::Result<_>>()?;
 
     // SAFETY: `params` is nonempty.
-    let max_symbol_count = params.iter().map(|param| param.symbol_count).max().unwrap();
+    let max_symbol_count = params
+        .iter()
+        .map(|param| param.symbol_count())
+        .max()
+        .unwrap();
 
     Ok(Parameters {
         gflags: flags,

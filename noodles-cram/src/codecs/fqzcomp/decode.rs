@@ -58,11 +58,8 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
         let param = &mut params.params[x];
         let q = models.qual[usize::from(ctx)].decode(&mut src, &mut range_coder)?;
 
-        dst[i] = if let Some(q_map) = param.quality_map.as_deref() {
-            q_map[usize::from(q)]
-        } else {
-            q
-        };
+        let j = usize::from(q);
+        dst[i] = param.quality_map().map(|map| map[j]).unwrap_or(q);
 
         ctx = fqz_update_context(param, q, &mut record);
 
@@ -114,7 +111,7 @@ fn fqz_new_record(
 
     let param = &parameters.params[x];
 
-    if !param.flags.is_fixed_length() || record.rec == 0 {
+    if !param.flags().is_fixed_length() || record.rec == 0 {
         last_len = decode_length(src, range_coder, models)? as usize;
     }
 
@@ -129,7 +126,7 @@ fn fqz_new_record(
 
     record.rec += 1;
 
-    if param.flags.has_duplicates() {
+    if param.flags().has_duplicates() {
         record.is_dup = models.dup.decode(src, range_coder)? == 1;
     }
 
@@ -143,20 +140,21 @@ fn fqz_new_record(
 fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 {
     let mut ctx = u32::from(param.context);
 
+    let qualities_table = param.qualities_table();
     record.qctx = (record.qctx << u32::from(param.q_shift))
-        .overflowing_add(u32::from(param.qualities_table[usize::from(q)]))
+        .overflowing_add(u32::from(qualities_table[usize::from(q)]))
         .0;
 
     ctx += (record.qctx & ((1 << param.q_bits) - 1)) << param.q_loc;
 
-    if let Some(p_tab) = param.positions_table.as_deref() {
+    if let Some(table) = param.positions_table() {
         let p = cmp::min(record.pos, 1023);
-        ctx += u32::from(p_tab[p]) << param.p_loc;
+        ctx += u32::from(table[p]) << param.p_loc;
     }
 
-    if let Some(d_tab) = param.deltas_table.as_deref() {
+    if let Some(table) = param.deltas_table() {
         let d = cmp::min(record.delta, 255) as usize;
-        ctx += u32::from(d_tab[d]) << param.d_loc;
+        ctx += u32::from(table[d]) << param.d_loc;
 
         if record.prevq != q {
             record.delta += 1;
@@ -165,7 +163,7 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
         record.prevq = q;
     }
 
-    if param.flags.has_selector() {
+    if param.flags().has_selector() {
         ctx += u32::from(record.sel) << param.s_loc;
     }
 

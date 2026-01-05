@@ -13,18 +13,44 @@ const DELTAS_TABLE_SIZE: usize = 256;
 
 pub struct Parameter {
     pub context: u16,
-    pub flags: Flags,
-    pub symbol_count: NonZero<usize>,
+    flags: Flags,
+    symbol_count: NonZero<usize>,
     pub q_bits: u8,
     pub q_shift: u8,
     pub q_loc: u8,
     pub s_loc: u8,
     pub p_loc: u8,
     pub d_loc: u8,
-    pub quality_map: Option<Vec<u8>>,
-    pub qualities_table: Vec<u8>,
-    pub positions_table: Option<Vec<u8>>,
-    pub deltas_table: Option<Vec<u8>>,
+    quality_map: Option<Vec<u8>>,
+    qualities_table: Vec<u8>,
+    positions_table: Option<Vec<u8>>,
+    deltas_table: Option<Vec<u8>>,
+}
+
+impl Parameter {
+    pub fn flags(&self) -> Flags {
+        self.flags
+    }
+
+    pub fn symbol_count(&self) -> NonZero<usize> {
+        self.symbol_count
+    }
+
+    pub fn quality_map(&self) -> Option<&[u8]> {
+        self.quality_map.as_deref()
+    }
+
+    pub fn qualities_table(&self) -> &[u8] {
+        &self.qualities_table
+    }
+
+    pub fn positions_table(&self) -> Option<&[u8]> {
+        self.positions_table.as_deref()
+    }
+
+    pub fn deltas_table(&self) -> Option<&[u8]> {
+        self.deltas_table.as_deref()
+    }
 }
 
 pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
