@@ -32,25 +32,25 @@ pub fn decode(mut src: &[u8], mut uncompressed_size: usize) -> io::Result<Vec<u8
         None
     };
 
-    let mut data = vec![0; uncompressed_size];
+    let mut dst = vec![0; uncompressed_size];
 
     if flags.is_uncompressed() {
-        data.copy_from_slice(src);
+        dst.copy_from_slice(src);
     } else if flags.uses_external_codec() {
-        decode_ext(&mut src, &mut data)?;
+        decode_ext(&mut src, &mut dst)?;
     } else if flags.is_rle() {
-        rle::decode(&mut src, flags, &mut data)?;
+        rle::decode(&mut src, flags, &mut dst)?;
     } else if flags.order() == 0 {
-        order_0::decode(&mut src, &mut data)?;
+        order_0::decode(&mut src, &mut dst)?;
     } else {
-        order_1::decode(&mut src, &mut data)?;
+        order_1::decode(&mut src, &mut dst)?;
     }
 
     if let Some(ctx) = bit_pack_context {
-        data = bit_pack::decode(&data, &ctx)?;
+        dst = bit_pack::decode(&dst, &ctx)?;
     }
 
-    Ok(data)
+    Ok(dst)
 }
 
 fn read_flags(src: &mut &[u8]) -> io::Result<Flags> {
