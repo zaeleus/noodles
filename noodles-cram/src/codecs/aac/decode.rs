@@ -35,7 +35,7 @@ pub fn decode(mut src: &[u8], mut uncompressed_size: usize) -> io::Result<Vec<u8
     let mut data = vec![0; uncompressed_size];
 
     if flags.is_uncompressed() {
-        src.read_exact(&mut data)?;
+        data.copy_from_slice(src);
     } else if flags.uses_external_codec() {
         decode_ext(&mut src, &mut data)?;
     } else if flags.is_rle() {
