@@ -1,8 +1,10 @@
 use std::io;
 
+use bitflags::bitflags;
+
 use crate::io::reader::num::read_u8;
 
-bitflags::bitflags! {
+bitflags! {
     #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
     pub struct Flags: u8 {
         const MULTI_PARAM = 0x01;
