@@ -1,4 +1,10 @@
-bitflags::bitflags! {
+use std::io;
+
+use bitflags::bitflags;
+
+use crate::io::reader::num::read_u8;
+
+bitflags! {
     #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
     pub struct Flags: u8 {
         const RESERVED = 0x01;
@@ -52,4 +58,8 @@ impl From<Flags> for u8 {
     fn from(flags: Flags) -> Self {
         flags.bits()
     }
+}
+
+pub(super) fn read_flags(src: &mut &[u8]) -> io::Result<Flags> {
+    read_u8(src).map(Flags::from)
 }

@@ -3,6 +3,7 @@ mod flags;
 use std::{io, num::NonZero};
 
 pub use self::flags::Flags;
+use self::flags::read_flags;
 use super::read_array;
 use crate::io::reader::num::{read_u8, read_u16_le};
 
@@ -55,7 +56,7 @@ impl Parameter {
 
 pub fn fqz_decode_single_param(src: &mut &[u8]) -> io::Result<Parameter> {
     let context = read_u16_le(src)?;
-    let flags = read_u8(src).map(Flags::from)?;
+    let flags = read_flags(src)?;
     let max_symbol = read_max_symbol(src)?;
 
     let (q_bits, q_shift) = read_u4x2(src)?;
