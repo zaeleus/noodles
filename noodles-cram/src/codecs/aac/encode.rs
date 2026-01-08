@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     io::{self, Write},
     num::NonZero,
 };
@@ -9,7 +10,7 @@ use crate::io::writer::num::{write_u8, write_uint7};
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     use crate::codecs::rans_nx16::encode::bit_pack;
 
-    let mut src = src.to_vec();
+    let mut src = Cow::from(src);
     let mut dst = Vec::new();
 
     write_flags(&mut dst, flags)?;
@@ -27,7 +28,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     if flags.is_bit_packed() {
         match bit_pack::build_context(&src) {
             Ok(ctx) => {
-                src = bit_pack::encode(&src, &ctx);
+                src = Cow::from(bit_pack::encode(&src, &ctx));
                 bit_pack::write_context(&mut dst, &ctx, src.len())?;
             }
             Err(
