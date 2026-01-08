@@ -15,9 +15,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     write_flags(&mut dst, flags)?;
 
     if flags.has_uncompressed_size() {
-        let ulen =
-            u32::try_from(src.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-        write_uint7(&mut dst, ulen)?;
+        write_uncompressed_size(&mut dst, src.len())?;
     }
 
     if flags.is_striped() {
@@ -63,6 +61,13 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
 
 fn write_flags(dst: &mut Vec<u8>, flags: Flags) -> io::Result<()> {
     write_u8(dst, u8::from(flags))
+}
+
+fn write_uncompressed_size(dst: &mut Vec<u8>, uncompressed_size: usize) -> io::Result<()> {
+    let n = u32::try_from(uncompressed_size)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    write_uint7(dst, n)
 }
 
 fn encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
