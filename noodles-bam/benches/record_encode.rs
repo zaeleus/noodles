@@ -3,10 +3,13 @@
 //! This module benchmarks the performance of various BAM record encoding strategies,
 //! comparing baseline implementations against optimized versions.
 
+use std::io;
+
 use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
 
-use noodles_bam::record::codec::encoder::{
-    encode_record_buf, encode_with_prealloc, estimate_record_size,
+use noodles_bam::{
+    self as bam,
+    record::codec::encoder::{encode_record_buf, encode_with_prealloc, estimate_record_size},
 };
 use noodles_sam::{
     self as sam,
@@ -220,6 +223,48 @@ fn bench_batch_encode_comparison(c: &mut Criterion) {
     group.finish();
 }
 
+fn bench_writer_methods(c: &mut Criterion) {
+    use sam::alignment::io::Write as _;
+
+    let header = sam::Header::default();
+
+    let mut group = c.benchmark_group("writer_methods");
+
+    // Create a batch of records
+    let batch_size = 1000;
+    let records: Vec<RecordBuf> = (0..batch_size)
+        .map(|i| create_test_record(100 + (i % 100)))
+        .collect();
+
+    let total_seq_len: usize = records.iter().map(|r| r.sequence().len()).sum();
+
+    group.throughput(Throughput::Bytes(total_seq_len as u64));
+
+    // Writer with generic write_alignment_record
+    group.bench_function("write_alignment_record", |b| {
+        b.iter(|| {
+            let mut writer = bam::io::Writer::from(io::sink());
+            for record in &records {
+                writer
+                    .write_alignment_record(&header, black_box(record))
+                    .unwrap();
+            }
+        });
+    });
+
+    // Writer with optimized write_record_buf
+    group.bench_function("write_record_buf", |b| {
+        b.iter(|| {
+            let mut writer = bam::io::Writer::from(io::sink());
+            for record in &records {
+                writer.write_record_buf(&header, black_box(record)).unwrap();
+            }
+        });
+    });
+
+    group.finish();
+}
+
 criterion_group!(
     benches,
     bench_encode_record,
@@ -227,6 +272,7 @@ criterion_group!(
     bench_batch_encode,
     bench_encode_record_buf_vs_generic,
     bench_batch_encode_comparison,
+    bench_writer_methods,
 );
 
 criterion_main!(benches);
