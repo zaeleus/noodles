@@ -215,6 +215,18 @@ where
     /// when writing `RecordBuf` instances by using optimized bulk encoding that
     /// bypasses trait-based iteration.
     ///
+    /// # When to Use
+    ///
+    /// Use `write_record_buf` when:
+    /// - You have `RecordBuf` instances (not lazy `Record` types)
+    /// - You're writing many records in a batch and need maximum throughput
+    /// - You're building a high-performance pipeline
+    ///
+    /// Use `write_alignment_record` when:
+    /// - You have generic `&dyn Record` types or lazy records
+    /// - You're writing mixed record types
+    /// - Performance is not critical
+    ///
     /// # Performance
     ///
     /// This method is approximately 4-5x faster than the generic
@@ -222,9 +234,6 @@ where
     ///
     /// - Generic path: ~170 MiB/s
     /// - Optimized path: ~760 MiB/s
-    ///
-    /// Use this method when you have `RecordBuf` instances and need maximum
-    /// write throughput.
     ///
     /// # Examples
     ///

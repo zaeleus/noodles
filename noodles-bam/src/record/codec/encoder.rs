@@ -559,6 +559,54 @@ mod tests {
     }
 
     #[test]
+    fn test_encode_record_buf_with_oversized_cigar() -> Result<(), Box<dyn std::error::Error>> {
+        use sam::alignment::{
+            record::{
+                Flags,
+                cigar::{Op, op::Kind},
+                data::field::Tag,
+            },
+            record_buf::{Cigar, Sequence, data::field::Value},
+        };
+
+        const BASE_COUNT: usize = 65536;
+
+        let header = sam::Header::builder()
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(131072).unwrap() }),
+            )
+            .build();
+
+        let cigar = Cigar::from(vec![Op::new(Kind::Match, 1); BASE_COUNT]);
+        let sequence = Sequence::from(vec![b'A'; BASE_COUNT]);
+
+        let record = RecordBuf::builder()
+            .set_flags(Flags::empty())
+            .set_reference_sequence_id(0)
+            .set_alignment_start(Position::MIN)
+            .set_cigar(cigar)
+            .set_sequence(sequence)
+            .set_data(
+                [(Tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
+                    .into_iter()
+                    .collect(),
+            )
+            .build();
+
+        // Verify encode_record_buf produces identical output to encode
+        let mut buf_generic = Vec::new();
+        let mut buf_optimized = Vec::new();
+
+        encode(&mut buf_generic, &header, &record)?;
+        encode_record_buf(&mut buf_optimized, &header, &record)?;
+
+        assert_eq!(buf_generic, buf_optimized);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_estimate_record_size() {
         use sam::alignment::record_buf::Sequence;
 
