@@ -1,0 +1,139 @@
+//! Benchmarks for BAM record encoding.
+//!
+//! This module benchmarks the performance of various BAM record encoding strategies,
+//! comparing baseline implementations against optimized versions.
+
+use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
+
+use noodles_bam::record::codec::encoder::{encode_with_prealloc, estimate_record_size};
+use noodles_sam::{
+    self as sam,
+    alignment::{
+        RecordBuf,
+        record::{
+            Flags, MappingQuality,
+            cigar::{Op, op::Kind},
+        },
+        record_buf::{QualityScores, Sequence},
+    },
+};
+
+/// Creates a realistic test record with the specified sequence length.
+fn create_test_record(seq_len: usize) -> RecordBuf {
+    let sequence: Vec<u8> = (0..seq_len)
+        .map(|i| match i % 4 {
+            0 => b'A',
+            1 => b'C',
+            2 => b'G',
+            _ => b'T',
+        })
+        .collect();
+
+    let quality_scores: Vec<u8> = (0..seq_len).map(|i| ((i % 42) + 10) as u8).collect();
+
+    RecordBuf::builder()
+        .set_name("test_read_with_longer_name")
+        .set_flags(Flags::SEGMENTED | Flags::FIRST_SEGMENT)
+        .set_mapping_quality(MappingQuality::new(30).expect("valid mapping quality"))
+        .set_cigar([Op::new(Kind::Match, seq_len)].into_iter().collect())
+        .set_sequence(Sequence::from(sequence))
+        .set_quality_scores(QualityScores::from(quality_scores))
+        .build()
+}
+
+fn bench_encode_record(c: &mut Criterion) {
+    let header = sam::Header::default();
+
+    let mut group = c.benchmark_group("encode_record");
+
+    // Test various sequence lengths
+    for seq_len in [100, 150, 300, 500, 1000] {
+        let record = create_test_record(seq_len);
+
+        group.throughput(Throughput::Elements(1));
+
+        // Benchmark with fresh buffer each time (simulates worst case)
+        group.bench_with_input(
+            BenchmarkId::new("fresh_buffer", seq_len),
+            &seq_len,
+            |b, _| {
+                b.iter(|| {
+                    let mut buf = Vec::new();
+                    encode_with_prealloc(&mut buf, &header, black_box(&record)).unwrap();
+                    black_box(buf)
+                });
+            },
+        );
+
+        // Benchmark with reused buffer (simulates typical batch encoding)
+        group.bench_with_input(
+            BenchmarkId::new("reused_buffer", seq_len),
+            &seq_len,
+            |b, _| {
+                let mut buf = Vec::with_capacity(1024);
+                b.iter(|| {
+                    buf.clear();
+                    encode_with_prealloc(&mut buf, &header, black_box(&record)).unwrap();
+                    buf.len()
+                });
+                black_box(&buf);
+            },
+        );
+    }
+
+    group.finish();
+}
+
+fn bench_estimate_record_size(c: &mut Criterion) {
+    let mut group = c.benchmark_group("estimate_record_size");
+
+    for seq_len in [100, 150, 300, 500, 1000] {
+        let record = create_test_record(seq_len);
+
+        group.bench_with_input(BenchmarkId::new("estimate", seq_len), &seq_len, |b, _| {
+            b.iter(|| black_box(estimate_record_size(black_box(&record))));
+        });
+    }
+
+    group.finish();
+}
+
+fn bench_batch_encode(c: &mut Criterion) {
+    let header = sam::Header::default();
+
+    let mut group = c.benchmark_group("batch_encode");
+
+    // Create a batch of records
+    let batch_size = 1000;
+    let records: Vec<RecordBuf> = (0..batch_size)
+        .map(|i| create_test_record(100 + (i % 100)))
+        .collect();
+
+    let total_seq_len: usize = records.iter().map(|r| r.sequence().len()).sum();
+
+    group.throughput(Throughput::Bytes(total_seq_len as u64));
+
+    // Benchmark batch encoding with pre-allocation
+    group.bench_function("with_prealloc", |b| {
+        let mut buf = Vec::new();
+        b.iter(|| {
+            buf.clear();
+            for record in &records {
+                encode_with_prealloc(&mut buf, &header, black_box(record)).unwrap();
+            }
+            buf.len()
+        });
+        black_box(&buf);
+    });
+
+    group.finish();
+}
+
+criterion_group!(
+    benches,
+    bench_encode_record,
+    bench_estimate_record_size,
+    bench_batch_encode,
+);
+
+criterion_main!(benches);
