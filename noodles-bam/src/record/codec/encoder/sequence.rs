@@ -97,7 +97,6 @@ fn encode_base(n: u8) -> u8 {
 /// # Errors
 ///
 /// Returns an error if `read_length > 0` and doesn't match `bases.len()`.
-#[allow(dead_code)] // Used in later commit (encode_record_buf)
 #[inline]
 pub(super) fn write_sequence_from_slice(
     dst: &mut Vec<u8>,

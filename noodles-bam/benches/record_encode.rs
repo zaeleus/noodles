@@ -5,7 +5,9 @@
 
 use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
 
-use noodles_bam::record::codec::encoder::{encode_with_prealloc, estimate_record_size};
+use noodles_bam::record::codec::encoder::{
+    encode_record_buf, encode_with_prealloc, estimate_record_size,
+};
 use noodles_sam::{
     self as sam,
     alignment::{
@@ -129,11 +131,102 @@ fn bench_batch_encode(c: &mut Criterion) {
     group.finish();
 }
 
+fn bench_encode_record_buf_vs_generic(c: &mut Criterion) {
+    let header = sam::Header::default();
+
+    let mut group = c.benchmark_group("encode_comparison");
+
+    // Test typical read lengths
+    for seq_len in [100, 150, 300] {
+        let record = create_test_record(seq_len);
+
+        group.throughput(Throughput::Elements(1));
+
+        // Generic encoder with prealloc
+        group.bench_with_input(
+            BenchmarkId::new("generic_prealloc", seq_len),
+            &seq_len,
+            |b, _| {
+                let mut buf = Vec::with_capacity(1024);
+                b.iter(|| {
+                    buf.clear();
+                    encode_with_prealloc(&mut buf, &header, black_box(&record)).unwrap();
+                    buf.len()
+                });
+                black_box(&buf);
+            },
+        );
+
+        // Optimized RecordBuf encoder
+        group.bench_with_input(
+            BenchmarkId::new("record_buf_optimized", seq_len),
+            &seq_len,
+            |b, _| {
+                let mut buf = Vec::with_capacity(1024);
+                b.iter(|| {
+                    buf.clear();
+                    encode_record_buf(&mut buf, &header, black_box(&record)).unwrap();
+                    buf.len()
+                });
+                black_box(&buf);
+            },
+        );
+    }
+
+    group.finish();
+}
+
+fn bench_batch_encode_comparison(c: &mut Criterion) {
+    let header = sam::Header::default();
+
+    let mut group = c.benchmark_group("batch_encode_comparison");
+
+    // Create a batch of records
+    let batch_size = 1000;
+    let records: Vec<RecordBuf> = (0..batch_size)
+        .map(|i| create_test_record(100 + (i % 100)))
+        .collect();
+
+    let total_seq_len: usize = records.iter().map(|r| r.sequence().len()).sum();
+
+    group.throughput(Throughput::Bytes(total_seq_len as u64));
+
+    // Batch encoding with generic encoder
+    group.bench_function("generic_prealloc", |b| {
+        let mut buf = Vec::new();
+        b.iter(|| {
+            buf.clear();
+            for record in &records {
+                encode_with_prealloc(&mut buf, &header, black_box(record)).unwrap();
+            }
+            buf.len()
+        });
+        black_box(&buf);
+    });
+
+    // Batch encoding with optimized encoder
+    group.bench_function("record_buf_optimized", |b| {
+        let mut buf = Vec::new();
+        b.iter(|| {
+            buf.clear();
+            for record in &records {
+                encode_record_buf(&mut buf, &header, black_box(record)).unwrap();
+            }
+            buf.len()
+        });
+        black_box(&buf);
+    });
+
+    group.finish();
+}
+
 criterion_group!(
     benches,
     bench_encode_record,
     bench_estimate_record_size,
     bench_batch_encode,
+    bench_encode_record_buf_vs_generic,
+    bench_batch_encode_comparison,
 );
 
 criterion_main!(benches);

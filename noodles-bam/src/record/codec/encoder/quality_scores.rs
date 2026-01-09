@@ -72,7 +72,6 @@ fn is_valid_score(score: u8) -> bool {
 /// Returns an error if:
 /// - Any score is greater than 93
 /// - `scores.len()` doesn't match `base_count` (unless `scores` is empty)
-#[allow(dead_code)] // Used in later commit (encode_record_buf)
 #[inline]
 pub(super) fn write_quality_scores_from_slice(
     dst: &mut Vec<u8>,
