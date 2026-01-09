@@ -1,3 +1,5 @@
+mod stripe;
+
 use std::{
     borrow::Cow,
     io::{self, Write},
@@ -20,7 +22,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     }
 
     if flags.is_striped() {
-        let buf = encode_stripe(&src)?;
+        let buf = stripe::encode(&src)?;
         dst.extend(buf);
         return Ok(dst);
     }
@@ -69,61 +71,6 @@ fn write_uncompressed_size(dst: &mut Vec<u8>, uncompressed_size: usize) -> io::R
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     write_uint7(dst, n)
-}
-
-fn encode_stripe(src: &[u8]) -> io::Result<Vec<u8>> {
-    const N: usize = 4;
-
-    let mut ulens = Vec::with_capacity(N);
-    let mut t = Vec::with_capacity(N);
-
-    for j in 0..N {
-        let mut ulen = src.len() / N;
-
-        if src.len() % N > j {
-            ulen += 1;
-        }
-
-        let chunk = vec![0; ulen];
-
-        ulens.push(ulen);
-        t.push(chunk);
-    }
-
-    let mut x = 0;
-    let mut i = 0;
-
-    while i < src.len() {
-        for j in 0..N {
-            if x < ulens[j] {
-                t[j][x] = src[i + j];
-            }
-        }
-
-        x += 1;
-        i += N;
-    }
-
-    let mut chunks = vec![Vec::new(); N];
-
-    for (chunk, s) in chunks.iter_mut().zip(t.iter()) {
-        *chunk = encode(Flags::empty(), s)?;
-    }
-
-    let mut dst = Vec::new();
-
-    write_u8(&mut dst, N as u8)?;
-
-    for chunk in &chunks {
-        let clen = chunk.len() as u32;
-        write_uint7(&mut dst, clen)?;
-    }
-
-    for chunk in &chunks {
-        dst.write_all(chunk)?;
-    }
-
-    Ok(dst)
 }
 
 fn encode_ext(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
