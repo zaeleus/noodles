@@ -1,7 +1,10 @@
 use std::io;
 
-use super::{CONTINUE, CONTINUE_CONTEXT, INITIAL_CONTEXT, MODEL_COUNT, MODEL_SYMBOL_COUNT};
-use crate::codecs::aac::{Model, RangeCoder, decode::read_symbol_count};
+use crate::codecs::aac::{
+    Model, RangeCoder,
+    decode::read_symbol_count,
+    rle::{CONTINUE, CONTINUE_CONTEXT, INITIAL_CONTEXT, MODEL_COUNT, MODEL_SYMBOL_COUNT},
+};
 
 pub(super) fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
     let symbol_count = read_symbol_count(src)?;
