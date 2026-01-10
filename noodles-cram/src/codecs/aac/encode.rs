@@ -1,3 +1,4 @@
+mod order_0;
 mod rle;
 mod stripe;
 
@@ -51,7 +52,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     } else if flags.is_rle() {
         rle::encode(&src, flags, &mut dst)?;
     } else if flags.order() == 0 {
-        encode_order_0(&src, &mut dst)?;
+        order_0::encode(&src, &mut dst)?;
     } else {
         encode_order_1(&src, &mut dst)?;
     }
@@ -76,23 +77,6 @@ fn encode_ext(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let mut encoder = BzEncoder::new(dst, Default::default());
     encoder.write_all(src)?;
     encoder.finish()?;
-
-    Ok(())
-}
-
-fn encode_order_0(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
-    let max_sym = src.iter().max().copied().unwrap_or(0);
-    write_u8(dst, max_sym.overflowing_add(1).0)?;
-
-    let symbol_count = NonZero::new(usize::from(max_sym) + 1).unwrap();
-    let mut model = Model::new(symbol_count);
-    let mut range_coder = RangeCoder::default();
-
-    for &sym in src {
-        model.encode(dst, &mut range_coder, sym)?;
-    }
-
-    range_coder.range_encode_end(dst)?;
 
     Ok(())
 }
