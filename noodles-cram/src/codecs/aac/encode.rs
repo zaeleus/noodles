@@ -1,14 +1,14 @@
 mod order_0;
+mod order_1;
 mod rle;
 mod stripe;
 
 use std::{
     borrow::Cow,
     io::{self, Write},
-    num::NonZero,
 };
 
-use super::{Flags, Model, RangeCoder};
+use super::Flags;
 use crate::io::writer::num::{write_u8, write_uint7};
 
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
@@ -54,7 +54,7 @@ pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     } else if flags.order() == 0 {
         order_0::encode(&src, &mut dst)?;
     } else {
-        encode_order_1(&src, &mut dst)?;
+        order_1::encode(&src, &mut dst)?;
     }
 
     Ok(dst)
@@ -77,28 +77,6 @@ fn encode_ext(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     let mut encoder = BzEncoder::new(dst, Default::default());
     encoder.write_all(src)?;
     encoder.finish()?;
-
-    Ok(())
-}
-
-fn encode_order_1(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
-    let max_sym = src.iter().max().copied().unwrap_or(0);
-    write_u8(dst, max_sym.overflowing_add(1).0)?;
-
-    let symbol_count = NonZero::new(usize::from(max_sym) + 1).unwrap();
-    let mut models = vec![Model::new(symbol_count); symbol_count.get()];
-
-    let mut range_coder = RangeCoder::default();
-
-    models[0].encode(dst, &mut range_coder, src[0])?;
-
-    for window in src.windows(2) {
-        let sym_0 = usize::from(window[0]);
-        let sym_1 = window[1];
-        models[sym_0].encode(dst, &mut range_coder, sym_1)?;
-    }
-
-    range_coder.range_encode_end(dst)?;
 
     Ok(())
 }
