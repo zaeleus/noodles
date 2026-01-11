@@ -6,6 +6,7 @@ mod stripe;
 use std::{
     borrow::Cow,
     io::{self, Write},
+    num::NonZero,
 };
 
 use super::Flags;
@@ -69,6 +70,13 @@ fn write_uncompressed_size(dst: &mut Vec<u8>, uncompressed_size: usize) -> io::R
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     write_uint7(dst, n)
+}
+
+fn write_symbol_count(dst: &mut Vec<u8>, symbol_count: NonZero<usize>) -> io::Result<()> {
+    let n = u8::try_from(usize::from(symbol_count))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    write_u8(dst, n)
 }
 
 fn encode_ext(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
