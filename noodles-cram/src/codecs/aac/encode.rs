@@ -72,6 +72,18 @@ fn write_uncompressed_size(dst: &mut Vec<u8>, uncompressed_size: usize) -> io::R
     write_uint7(dst, n)
 }
 
+fn count_symbols(src: &[u8]) -> NonZero<usize> {
+    assert!(!src.is_empty());
+
+    // SAFETY: `src` is nonempty.
+    let max_symbol = src.iter().max().copied().unwrap();
+
+    let n = usize::from(max_symbol) + 1;
+
+    // SAFETY: `n > 0`.
+    NonZero::new(n).unwrap()
+}
+
 fn write_symbol_count(dst: &mut Vec<u8>, symbol_count: NonZero<usize>) -> io::Result<()> {
     let n = u8::try_from(usize::from(symbol_count))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -198,5 +210,16 @@ mod tests {
         assert_eq!(actual, expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_count_symbols() {
+        fn t(src: &[u8], expected: NonZero<usize>) {
+            assert_eq!(count_symbols(src), expected);
+        }
+
+        t(&[0x00], NonZero::<usize>::MIN);
+        t(&[0xff], const { NonZero::new(256).unwrap() });
+        t(b"range_coder", const { NonZero::new(115).unwrap() });
     }
 }

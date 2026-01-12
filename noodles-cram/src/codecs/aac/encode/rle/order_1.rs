@@ -1,10 +1,12 @@
 use std::{io, num::NonZero};
 
-use crate::codecs::aac::{Model, RangeCoder, encode::write_symbol_count};
+use crate::codecs::aac::{
+    Model, RangeCoder,
+    encode::{count_symbols, write_symbol_count},
+};
 
 pub(super) fn encode(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
-    let max_sym = src.iter().max().copied().unwrap_or(0);
-    let symbol_count = NonZero::new(usize::from(max_sym) + 1).unwrap();
+    let symbol_count = count_symbols(src);
     write_symbol_count(dst, symbol_count)?;
 
     let mut model_lit = vec![Model::new(symbol_count); symbol_count.get()];
