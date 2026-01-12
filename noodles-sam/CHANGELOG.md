@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/record/data/field/value/base_modifications: Change input to byte
+    string.
+
+    This changes the raw input from `&str` to `&[u8]`.
+
 ## 0.81.0 - 2025-12-11
 
 ### Changed

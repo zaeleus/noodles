@@ -29,12 +29,11 @@ impl fmt::Display for ParseError {
 }
 
 pub(super) fn parse(
-    s: &str,
+    mut src: &[u8],
     is_reverse_complemented: bool,
     sequence: &Sequence,
 ) -> Result<BaseModifications, ParseError> {
     let mut groups = Vec::new();
-    let mut src = s.as_bytes();
 
     while !src.is_empty() {
         let group = parse_group(&mut src, is_reverse_complemented, sequence)
@@ -59,7 +58,7 @@ mod tests {
 
         let is_reverse_complemented = false;
         let sequence = Sequence::from(b"CACCCGATGACCGGCT");
-        let actual = parse("C+m,1,3,0;G-o,2;", is_reverse_complemented, &sequence);
+        let actual = parse(b"C+m,1,3,0;G-o,2;", is_reverse_complemented, &sequence);
 
         let expected = BaseModifications(vec![
             Group::new(

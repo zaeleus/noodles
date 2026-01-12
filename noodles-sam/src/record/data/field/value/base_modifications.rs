@@ -31,7 +31,7 @@ impl BaseModifications {
     /// let is_reverse_complemented = false;
     /// let sequence = Sequence::from(b"CACCCGATGACCGGCT");
     /// let base_modifications = BaseModifications::parse(
-    ///     "C+m,1,3,0;",
+    ///     b"C+m,1,3,0;",
     ///     is_reverse_complemented,
     ///     &sequence,
     /// )?;
@@ -48,11 +48,11 @@ impl BaseModifications {
     /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn parse(
-        s: &str,
+        src: &[u8],
         is_reverse_complemented: bool,
         sequence: &Sequence,
     ) -> Result<Self, parser::ParseError> {
-        parser::parse(s, is_reverse_complemented, sequence)
+        parser::parse(src, is_reverse_complemented, sequence)
     }
 }
 
