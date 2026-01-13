@@ -1,8 +1,9 @@
-use std::{io, num::NonZero};
+use std::io;
 
 use crate::codecs::aac::{
     Model, RangeCoder,
     encode::{count_symbols, write_symbol_count},
+    rle::{CONTINUE, CONTINUE_CONTEXT, INITIAL_CONTEXT, MODEL_COUNT, MODEL_SYMBOL_COUNT},
 };
 
 pub(super) fn encode(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
@@ -10,7 +11,7 @@ pub(super) fn encode(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     write_symbol_count(dst, symbol_count)?;
 
     let mut model_lit = Model::new(symbol_count);
-    let mut model_run = vec![Model::new(const { NonZero::new(4).unwrap() }); 258];
+    let mut model_run = vec![Model::new(MODEL_SYMBOL_COUNT); MODEL_COUNT];
 
     let mut range_coder = RangeCoder::default();
 
@@ -25,15 +26,15 @@ pub(super) fn encode(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
 
         let mut rctx = usize::from(sym);
 
-        let mut part = run.min(3);
+        let mut part = run.min(CONTINUE);
         model_run[rctx].encode(dst, &mut range_coder, part as u8)?;
-        rctx = 256;
+        rctx = INITIAL_CONTEXT;
         run -= part;
 
-        while part == 3 {
-            part = run.min(3);
+        while part == CONTINUE {
+            part = run.min(CONTINUE);
             model_run[rctx].encode(dst, &mut range_coder, part as u8)?;
-            rctx = 257;
+            rctx = CONTINUE_CONTEXT;
             run -= part;
         }
     }
