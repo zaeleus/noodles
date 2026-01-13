@@ -24,14 +24,14 @@ pub(super) fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
 
         let mut rle_model = &mut rle_models[usize::from(sym)];
 
-        let mut n = rle_model.decode(src, &mut coder)?;
-        let mut len = usize::from(n);
+        let mut n = rle_model.decode(src, &mut coder).map(usize::from)?;
+        let mut len = n;
 
         rle_model = &mut rle_models[INITIAL_CONTEXT];
 
         while n == CONTINUE {
-            n = rle_model.decode(src, &mut coder)?;
-            len += usize::from(n);
+            n = rle_model.decode(src, &mut coder).map(usize::from)?;
+            len += n;
             rle_model = &mut rle_models[CONTINUE_CONTEXT];
         }
 
