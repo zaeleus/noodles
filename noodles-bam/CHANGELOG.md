@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam/record/codec: `decode` and `encode` functions are now public.
+
+  * bam/record/codec: Re-export `DecodeError` from the decoder module.
+
 ## 0.85.0 - 2025-12-11
 
 ### Changed

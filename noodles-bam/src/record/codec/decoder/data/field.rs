@@ -11,6 +11,7 @@ use self::{tag::read_tag, ty::read_type};
 
 /// An error when a raw BAM record data field fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[allow(clippy::enum_variant_names)]
 pub enum DecodeError {
     /// The tag is invalid.
     InvalidTag(tag::DecodeError),

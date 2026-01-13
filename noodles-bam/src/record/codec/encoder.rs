@@ -1,5 +1,7 @@
 //! BAM record encoder.
 
+#![allow(missing_docs)]
+
 mod bin;
 mod cigar;
 pub mod data;
@@ -62,7 +64,10 @@ impl fmt::Display for EncodeError {
     }
 }
 
-pub(crate) fn encode<R>(dst: &mut Vec<u8>, header: &sam::Header, record: &R) -> io::Result<()>
+/// Encodes a record as raw BAM record data.
+///
+/// The record is encoded without the leading 4-byte block size.
+pub fn encode<R>(dst: &mut Vec<u8>, header: &sam::Header, record: &R) -> io::Result<()>
 where
     R: Record + ?Sized,
 {
