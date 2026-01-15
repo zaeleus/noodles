@@ -117,7 +117,7 @@ fn fqz_new_record(
     record.pos = record.rec_len;
 
     if parameters.gflags.has_reversed_values() {
-        let rev = models.rev.decode(src, range_coder).map(|n| n == 1)?;
+        let rev = models.rev.decode(src, range_coder).map(decode_bool)?;
         let len = record.rec_len;
         rev_len.push((rev, len));
     }
@@ -125,7 +125,7 @@ fn fqz_new_record(
     record.rec += 1;
 
     if param.flags().has_duplicates() {
-        record.is_dup = models.dup.decode(src, range_coder)? == 1;
+        record.is_dup = models.dup.decode(src, range_coder).map(decode_bool)?;
     }
 
     record.qctx = 0;
@@ -206,6 +206,10 @@ fn reverse_qualities(qual: &mut [u8], qual_len: usize, rev_len: &[(bool, usize)]
     }
 }
 
+fn decode_bool(n: u8) -> bool {
+    n != 0
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -240,5 +244,13 @@ mod tests {
         reverse_qualities(&mut data, len, &rev_len);
 
         assert_eq!(data, b"ndlssldnndls");
+    }
+
+    #[test]
+    fn test_decode_bool() {
+        assert!(!decode_bool(0));
+        assert!(decode_bool(1));
+        assert!(decode_bool(2));
+        assert!(decode_bool(255));
     }
 }
