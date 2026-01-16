@@ -7,7 +7,7 @@ use super::{
 use crate::{codecs::aac::RangeCoder, io::reader::num::read_uint7_as};
 
 pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
-    let buf_len = read_uint7_as(&mut src)?;
+    let uncompressed_size = read_uncompressed_size(&mut src)?;
 
     let mut params = fqz_decode_params(&mut src)?;
 
@@ -17,7 +17,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let mut i = 0;
 
     let mut record = Record::default();
-    let mut dst = vec![0; buf_len];
+    let mut dst = vec![0; uncompressed_size];
 
     let mut x = 0;
     let mut ctx = 0;
@@ -25,7 +25,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let mut last_len = 0;
     let mut rev_len = Vec::new();
 
-    while i < buf_len {
+    while i < uncompressed_size {
         if record.pos == 0 {
             x = fqz_new_record(
                 &mut src,
@@ -66,10 +66,14 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     }
 
     if params.gflags.has_reversed_values() {
-        reverse_qualities(&mut dst, buf_len, &rev_len);
+        reverse_qualities(&mut dst, uncompressed_size, &rev_len);
     }
 
     Ok(dst)
+}
+
+fn read_uncompressed_size(src: &mut &[u8]) -> io::Result<usize> {
+    read_uint7_as(src)
 }
 
 #[derive(Debug, Default)]
