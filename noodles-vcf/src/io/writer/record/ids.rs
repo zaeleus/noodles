@@ -1,9 +1,39 @@
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
 
 use super::MISSING;
 use crate::variant::record::Ids;
 
-pub(super) fn write_ids<W, I>(writer: &mut W, ids: I) -> io::Result<()>
+/// An error returns when IDs fails to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    /// An ID is invalid.
+    InvalidId(String),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidId(_) => None,
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidId(s) => write!(f, "invalid ID: {s}"),
+        }
+    }
+}
+
+pub(super) fn write_ids<W, I>(writer: &mut W, ids: I) -> Result<(), WriteError>
 where
     W: Write,
     I: Ids,
@@ -11,17 +41,17 @@ where
     const DELIMITER: &[u8] = b";";
 
     if ids.is_empty() {
-        writer.write_all(MISSING)?;
+        writer.write_all(MISSING).map_err(WriteError::Io)?;
     } else {
         for (i, id) in ids.iter().enumerate() {
             if i > 0 {
-                writer.write_all(DELIMITER)?;
+                writer.write_all(DELIMITER).map_err(WriteError::Io)?;
             }
 
             if is_valid(id) {
-                writer.write_all(id.as_bytes())?;
+                writer.write_all(id.as_bytes()).map_err(WriteError::Io)?;
             } else {
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid ID"));
+                return Err(WriteError::InvalidId(id.into()));
             }
         }
     }
@@ -44,8 +74,8 @@ mod tests {
     use crate::variant::record_buf::Ids as IdsBuf;
 
     #[test]
-    fn test_write_ids() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, ids: &IdsBuf, expected: &[u8]) -> io::Result<()> {
+    fn test_write_ids() -> Result<(), WriteError> {
+        fn t(buf: &mut Vec<u8>, ids: &IdsBuf, expected: &[u8]) -> Result<(), WriteError> {
             buf.clear();
             write_ids(buf, ids)?;
             assert_eq!(buf, expected);
@@ -69,7 +99,7 @@ mod tests {
         let ids = [String::from("id 0")].into_iter().collect();
         assert!(matches!(
             write_ids(&mut buf, &ids),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            Err(WriteError::InvalidId(s)) if s == "id 0"
         ));
 
         Ok(())

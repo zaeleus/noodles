@@ -36,7 +36,7 @@ where
     write_position(writer, position)?;
 
     writer.write_all(DELIMITER)?;
-    write_ids(writer, record.ids())?;
+    write_ids(writer, record.ids()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     writer.write_all(DELIMITER)?;
     write_reference_bases(writer, record.reference_bases())?;
