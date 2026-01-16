@@ -40,9 +40,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
             last_len = record.rec_len;
 
             if record.is_dup {
-                for j in 0..record.rec_len {
-                    dst[i + j] = dst[i + j - record.rec_len];
-                }
+                copy_record(&mut dst, i, record.rec_len);
 
                 i += record.rec_len;
                 record.pos = 0;
@@ -214,6 +212,13 @@ fn decode_bool(n: u8) -> bool {
     n != 0
 }
 
+fn copy_record(buf: &mut [u8], pos: usize, prev_len: usize) {
+    let (src, dst) = buf.split_at_mut(pos);
+    let start = src.len() - prev_len;
+    let prev_record = &src[start..];
+    dst[..prev_len].copy_from_slice(prev_record);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -256,5 +261,12 @@ mod tests {
         assert!(decode_bool(1));
         assert!(decode_bool(2));
         assert!(decode_bool(255));
+    }
+
+    #[test]
+    fn test_copy_record() {
+        let mut buf = *b"ndls\0\0\0\0";
+        copy_record(&mut buf[..], 4, 2);
+        assert_eq!(buf, *b"ndlsls\0\0");
     }
 }
