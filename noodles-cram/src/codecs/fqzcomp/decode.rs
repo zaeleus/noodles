@@ -37,12 +37,12 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
                 &mut rev_len,
             )?;
 
-            last_len = record.rec_len;
+            last_len = record.len;
 
-            if record.is_dup {
-                copy_record(&mut dst, i, record.rec_len);
+            if record.is_duplicate {
+                copy_record(&mut dst, i, record.len);
 
-                i += record.rec_len;
+                i += record.len;
                 record.pos = 0;
 
                 continue;
@@ -76,14 +76,14 @@ fn read_uncompressed_size(src: &mut &[u8]) -> io::Result<usize> {
 
 #[derive(Debug, Default)]
 struct Record {
-    rec: usize,
-    sel: u8,
-    rec_len: usize,
+    rec_no: usize,
+    selector: u8,
+    len: usize,
     pos: usize,
-    is_dup: bool,
-    qctx: u32,
+    is_duplicate: bool,
+    q_ctx: u32,
     delta: u32,
-    prevq: u8,
+    prev_q: u8,
 }
 
 fn fqz_new_record(
@@ -95,44 +95,40 @@ fn fqz_new_record(
     mut last_len: usize,
     rev_len: &mut Vec<(bool, usize)>,
 ) -> io::Result<usize> {
-    let mut sel = 0;
     let mut x = 0;
 
     if let Some(model) = models.sel.as_mut() {
-        sel = model.decode(src, range_coder)?;
+        record.selector = model.decode(src, range_coder)?;
 
         if let Some(table) = parameters.selector_table() {
-            let i = usize::from(sel);
+            let i = usize::from(record.selector);
             x = usize::from(table[i]);
         }
     }
 
-    record.sel = sel;
-
     let param = &parameters.params[x];
 
-    if !param.flags().is_fixed_length() || record.rec == 0 {
+    if !param.flags().is_fixed_length() || record.rec_no == 0 {
         last_len = read_length(src, range_coder, models)?;
     }
 
-    record.rec_len = last_len;
-    record.pos = record.rec_len;
+    record.len = last_len;
 
     if parameters.gflags.has_reversed_values() {
         let rev = models.rev.decode(src, range_coder).map(decode_bool)?;
-        let len = record.rec_len;
+        let len = record.len;
         rev_len.push((rev, len));
     }
 
-    record.rec += 1;
-
     if param.flags().has_duplicates() {
-        record.is_dup = models.dup.decode(src, range_coder).map(decode_bool)?;
+        record.is_duplicate = models.dup.decode(src, range_coder).map(decode_bool)?;
     }
 
-    record.qctx = 0;
+    record.rec_no += 1;
+    record.pos = record.len;
+    record.q_ctx = 0;
     record.delta = 0;
-    record.prevq = 0;
+    record.prev_q = 0;
 
     Ok(x)
 }
@@ -141,11 +137,11 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
     let mut ctx = u32::from(param.context);
 
     let qualities_table = param.qualities_table();
-    record.qctx = (record.qctx << u32::from(param.q_shift))
+    record.q_ctx = (record.q_ctx << u32::from(param.q_shift))
         .overflowing_add(u32::from(qualities_table[usize::from(q)]))
         .0;
 
-    ctx += (record.qctx & ((1 << param.q_bits) - 1)) << param.q_loc;
+    ctx += (record.q_ctx & ((1 << param.q_bits) - 1)) << param.q_loc;
 
     if let Some(table) = param.positions_table() {
         let p = cmp::min(record.pos, 1023);
@@ -156,15 +152,15 @@ fn fqz_update_context(param: &mut Parameter, q: u8, record: &mut Record) -> u16 
         let d = cmp::min(record.delta, 255) as usize;
         ctx += u32::from(table[d]) << param.d_loc;
 
-        if record.prevq != q {
+        if record.prev_q != q {
             record.delta += 1;
         }
 
-        record.prevq = q;
+        record.prev_q = q;
     }
 
     if param.flags().has_selector() {
-        ctx += u32::from(record.sel) << param.s_loc;
+        ctx += u32::from(record.selector) << param.s_loc;
     }
 
     (ctx & 0xffff) as u16
