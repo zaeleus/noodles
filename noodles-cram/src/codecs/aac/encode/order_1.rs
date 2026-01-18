@@ -10,18 +10,16 @@ pub(super) fn encode(src: &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
     write_symbol_count(dst, symbol_count)?;
 
     let mut models = vec![Model::new(symbol_count); symbol_count.get()];
+    let mut coder = RangeCoder::default();
 
-    let mut range_coder = RangeCoder::default();
+    models[0].encode(dst, &mut coder, src[0])?;
 
-    models[0].encode(dst, &mut range_coder, src[0])?;
-
-    for window in src.windows(CONTEXT_SIZE) {
-        let sym_0 = usize::from(window[0]);
-        let sym_1 = window[1];
-        models[sym_0].encode(dst, &mut range_coder, sym_1)?;
+    for syms in src.windows(CONTEXT_SIZE) {
+        let (prev_sym, sym) = (usize::from(syms[0]), syms[1]);
+        models[prev_sym].encode(dst, &mut coder, sym)?;
     }
 
-    range_coder.range_encode_end(dst)?;
+    coder.range_encode_end(dst)?;
 
     Ok(())
 }
