@@ -15,8 +15,8 @@ pub enum WriteError {
 impl error::Error for WriteError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            WriteError::Io(e) => Some(e),
-            WriteError::InvalidReferenceSequenceName(_) => None,
+            Self::Io(e) => Some(e),
+            Self::InvalidReferenceSequenceName(_) => None,
         }
     }
 }
@@ -24,8 +24,8 @@ impl error::Error for WriteError {
 impl fmt::Display for WriteError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            WriteError::Io(_) => write!(f, "I/O error"),
-            WriteError::InvalidReferenceSequenceName(s) => {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidReferenceSequenceName(s) => {
                 write!(f, "invalid reference sequence name: {s}")
             }
         }
