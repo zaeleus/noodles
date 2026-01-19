@@ -49,7 +49,8 @@ where
     write_quality_score(writer, quality_score)?;
 
     writer.write_all(DELIMITER)?;
-    write_filters(writer, header, record.filters())?;
+    write_filters(writer, header, record.filters())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     writer.write_all(DELIMITER)?;
     write_info(writer, header, record.info())?;
