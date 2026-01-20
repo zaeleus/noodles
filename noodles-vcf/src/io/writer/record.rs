@@ -42,7 +42,8 @@ where
     write_reference_bases(writer, record.reference_bases())?;
 
     writer.write_all(DELIMITER)?;
-    write_alternate_bases(writer, record.alternate_bases())?;
+    write_alternate_bases(writer, record.alternate_bases())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     writer.write_all(DELIMITER)?;
     let quality_score = record.quality_score().transpose()?;
