@@ -70,7 +70,7 @@ const fn build_codes() -> [u8; 256] {
         // SAFETY: `i < BASES.len() <= u8::MAX`.
         let code = i as u8;
 
-        // SAFETY: `base <= codes.len() <= u8::MAX`.
+        // SAFETY: `base <= b'Y' < b'y' < codes.len() == 256`.
         codes[base as usize] = code;
         codes[base.to_ascii_lowercase() as usize] = code;
 
