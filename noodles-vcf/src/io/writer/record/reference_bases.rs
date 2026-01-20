@@ -1,15 +1,53 @@
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
 
 use crate::variant::record::ReferenceBases;
 
-pub(super) fn write_reference_bases<W, B>(writer: &mut W, reference_bases: B) -> io::Result<()>
+/// An error returns when reference bases fail to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    /// A reference base is invalid.
+    InvalidReferenceBase(u8),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidReferenceBase(_) => None,
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidReferenceBase(b) => {
+                write!(f, "invalid reference base: {}", char::from(*b))
+            }
+        }
+    }
+}
+
+pub(super) fn write_reference_bases<W, B>(
+    writer: &mut W,
+    reference_bases: B,
+) -> Result<(), WriteError>
 where
     W: Write,
     B: ReferenceBases,
 {
     for result in reference_bases.iter() {
-        let base = result.and_then(resolve_base)?;
-        writer.write_all(&[base])?;
+        let base = result
+            .map_err(WriteError::Io)
+            .and_then(|b| resolve_base(b).ok_or(WriteError::InvalidReferenceBase(b)))?;
+
+        writer.write_all(&[base]).map_err(WriteError::Io)?;
     }
 
     Ok(())
@@ -20,24 +58,21 @@ where
 // specification (such as R = A/G), the ambiguous reference base must be reduced to a concrete base
 // by using the one that is first alphabetically (thus R as a reference base is converted to A in
 // VCF.)"
-fn resolve_base(b: u8) -> io::Result<u8> {
+fn resolve_base(b: u8) -> Option<u8> {
     match b {
-        b'A' | b'W' | b'M' | b'R' | b'D' | b'H' | b'V' => Ok(b'A'),
-        b'C' | b'S' | b'Y' | b'B' => Ok(b'C'),
-        b'G' | b'K' => Ok(b'G'),
-        b'T' => Ok(b'T'),
-        b'N' => Ok(b'N'),
+        b'A' | b'W' | b'M' | b'R' | b'D' | b'H' | b'V' => Some(b'A'),
+        b'C' | b'S' | b'Y' | b'B' => Some(b'C'),
+        b'G' | b'K' => Some(b'G'),
+        b'T' => Some(b'T'),
+        b'N' => Some(b'N'),
 
-        b'a' | b'w' | b'm' | b'r' | b'd' | b'h' | b'v' => Ok(b'a'),
-        b'c' | b's' | b'y' | b'b' => Ok(b'c'),
-        b'g' | b'k' => Ok(b'g'),
-        b't' => Ok(b't'),
-        b'n' => Ok(b'n'),
+        b'a' | b'w' | b'm' | b'r' | b'd' | b'h' | b'v' => Some(b'a'),
+        b'c' | b's' | b'y' | b'b' => Some(b'c'),
+        b'g' | b'k' => Some(b'g'),
+        b't' => Some(b't'),
+        b'n' => Some(b'n'),
 
-        _ => Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "invalid reference base",
-        )),
+        _ => None,
     }
 }
 
@@ -46,7 +81,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_reference_bases() -> io::Result<()> {
+    fn test_write_reference_bases() -> Result<(), WriteError> {
         let mut buf = Vec::new();
 
         buf.clear();
@@ -64,14 +99,14 @@ mod tests {
         buf.clear();
         assert!(matches!(
             write_reference_bases(&mut buf, "Z"),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            Err(WriteError::InvalidReferenceBase(b'Z'))
         ));
 
         Ok(())
     }
 
     #[test]
-    fn test_resolve_base() -> io::Result<()> {
+    fn test_resolve_base() {
         let bases = [
             (b'A', b'A'),
             (b'C', b'C'),
@@ -91,13 +126,13 @@ mod tests {
         ];
 
         for &(base, resolved_base) in &bases {
-            assert_eq!(resolve_base(base)?, resolved_base);
+            assert_eq!(resolve_base(base), Some(resolved_base));
             assert_eq!(
-                resolve_base(base.to_ascii_lowercase())?,
-                resolved_base.to_ascii_lowercase()
+                resolve_base(base.to_ascii_lowercase()),
+                Some(resolved_base.to_ascii_lowercase())
             );
         }
 
-        Ok(())
+        assert!(resolve_base(b'Z').is_none());
     }
 }
