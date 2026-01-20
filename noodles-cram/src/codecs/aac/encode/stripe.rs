@@ -24,7 +24,7 @@ pub(super) fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     let t = transpose(src, &ulens);
 
     for (chunk, s) in chunks.iter_mut().zip(t.iter()) {
-        *chunk = super::encode(Flags::empty(), s)?;
+        *chunk = super::encode(Flags::NO_SIZE, s)?;
     }
 
     let mut dst = Vec::new();
