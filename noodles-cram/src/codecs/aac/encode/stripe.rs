@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io;
 
 use crate::{
     codecs::aac::Flags,
@@ -30,10 +30,7 @@ pub(super) fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = Vec::new();
     write_chunk_count(&mut dst, chunks.len())?;
     write_compressed_sizes(&mut dst, &chunks)?;
-
-    for chunk in &chunks {
-        dst.write_all(chunk)?;
-    }
+    dst.extend(chunks.into_iter().flatten());
 
     Ok(dst)
 }
