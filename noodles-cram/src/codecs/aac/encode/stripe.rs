@@ -5,22 +5,22 @@ use crate::{
     io::writer::num::{write_u8, write_uint7},
 };
 
+const CHUNK_COUNT: usize = 4;
+
 pub(super) fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
-    const N: usize = 4;
+    let mut ulens = Vec::with_capacity(CHUNK_COUNT);
 
-    let mut ulens = Vec::with_capacity(N);
+    for j in 0..CHUNK_COUNT {
+        let mut ulen = src.len() / CHUNK_COUNT;
 
-    for j in 0..N {
-        let mut ulen = src.len() / N;
-
-        if src.len() % N > j {
+        if src.len() % CHUNK_COUNT > j {
             ulen += 1;
         }
 
         ulens.push(ulen);
     }
 
-    let mut chunks = vec![Vec::new(); N];
+    let mut chunks = vec![Vec::new(); CHUNK_COUNT];
     let t = transpose(src, &ulens);
 
     for (chunk, s) in chunks.iter_mut().zip(t.iter()) {
@@ -29,7 +29,7 @@ pub(super) fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut dst = Vec::new();
 
-    write_u8(&mut dst, N as u8)?;
+    write_u8(&mut dst, CHUNK_COUNT as u8)?;
 
     for chunk in &chunks {
         let clen = chunk.len() as u32;
