@@ -11,16 +11,15 @@ pub(super) fn encode(src: &[u8]) -> io::Result<Vec<u8>> {
     let uncompressed_sizes = build_uncompressed_sizes(src.len(), CHUNK_COUNT);
     let uncompressed_chunks = transpose(src, &uncompressed_sizes);
 
-    let mut chunks = vec![Vec::new(); CHUNK_COUNT.get()];
-
-    for (chunk, s) in chunks.iter_mut().zip(uncompressed_chunks.iter()) {
-        *chunk = super::encode(Flags::NO_SIZE, s)?;
-    }
+    let compressed_chunks: Vec<_> = uncompressed_chunks
+        .into_iter()
+        .map(|chunk| super::encode(Flags::NO_SIZE, &chunk))
+        .collect::<io::Result<_>>()?;
 
     let mut dst = Vec::new();
     write_chunk_count(&mut dst, CHUNK_COUNT)?;
-    write_compressed_sizes(&mut dst, &chunks)?;
-    dst.extend(chunks.into_iter().flatten());
+    write_compressed_sizes(&mut dst, &compressed_chunks)?;
+    dst.extend(compressed_chunks.into_iter().flatten());
 
     Ok(dst)
 }
