@@ -1,9 +1,39 @@
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
 
 use super::{write_character, write_float, write_integer, write_string};
 use crate::{io::writer::record::MISSING, variant::record::info::field::value::Array};
 
-pub(super) fn write_array<W>(writer: &mut W, array: &Array) -> io::Result<()>
+/// An error returns when an info field array value fails to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    /// An integer is invalid.
+    InvalidInteger(super::integer::WriteError),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidInteger(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidInteger(_) => write!(f, "invalid integer"),
+        }
+    }
+}
+
+pub(super) fn write_array<W>(writer: &mut W, array: &Array) -> Result<(), WriteError>
 where
     W: Write,
 {
@@ -11,14 +41,13 @@ where
         Array::Integer(values) => {
             for (i, result) in values.iter().enumerate() {
                 if i > 0 {
-                    write_separator(writer)?;
+                    write_separator(writer).map_err(WriteError::Io)?;
                 }
 
-                if let Some(n) = result? {
-                    write_integer(writer, n)
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+                if let Some(n) = result.map_err(WriteError::Io)? {
+                    write_integer(writer, n).map_err(WriteError::InvalidInteger)?;
                 } else {
-                    writer.write_all(MISSING)?;
+                    writer.write_all(MISSING).map_err(WriteError::Io)?;
                 }
             }
 
@@ -27,13 +56,13 @@ where
         Array::Float(values) => {
             for (i, result) in values.iter().enumerate() {
                 if i > 0 {
-                    write_separator(writer)?;
+                    write_separator(writer).map_err(WriteError::Io)?;
                 }
 
-                if let Some(n) = result? {
-                    write_float(writer, n)?;
+                if let Some(n) = result.map_err(WriteError::Io)? {
+                    write_float(writer, n).map_err(WriteError::Io)?;
                 } else {
-                    writer.write_all(MISSING)?;
+                    writer.write_all(MISSING).map_err(WriteError::Io)?;
                 }
             }
 
@@ -42,13 +71,13 @@ where
         Array::Character(values) => {
             for (i, result) in values.iter().enumerate() {
                 if i > 0 {
-                    write_separator(writer)?;
+                    write_separator(writer).map_err(WriteError::Io)?;
                 }
 
-                if let Some(c) = result? {
-                    write_character(writer, c)?;
+                if let Some(c) = result.map_err(WriteError::Io)? {
+                    write_character(writer, c).map_err(WriteError::Io)?;
                 } else {
-                    writer.write_all(MISSING)?;
+                    writer.write_all(MISSING).map_err(WriteError::Io)?;
                 }
             }
 
@@ -57,13 +86,13 @@ where
         Array::String(values) => {
             for (i, result) in values.iter().enumerate() {
                 if i > 0 {
-                    write_separator(writer)?;
+                    write_separator(writer).map_err(WriteError::Io)?;
                 }
 
-                if let Some(s) = result? {
-                    write_string(writer, &s)?;
+                if let Some(s) = result.map_err(WriteError::Io)? {
+                    write_string(writer, &s).map_err(WriteError::Io)?;
                 } else {
-                    writer.write_all(MISSING)?;
+                    writer.write_all(MISSING).map_err(WriteError::Io)?;
                 }
             }
 
@@ -86,8 +115,8 @@ mod tests {
     use crate::variant::record_buf::info::field::value::Array as ArrayBuf;
 
     #[test]
-    fn test_write_array() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, array: &ArrayBuf, expected: &[u8]) -> io::Result<()> {
+    fn test_write_array() -> Result<(), WriteError> {
+        fn t(buf: &mut Vec<u8>, array: &ArrayBuf, expected: &[u8]) -> Result<(), WriteError> {
             buf.clear();
             write_array(buf, &array.into())?;
             assert_eq!(buf, expected);

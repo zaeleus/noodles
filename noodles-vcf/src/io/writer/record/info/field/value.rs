@@ -24,7 +24,9 @@ where
         Value::Flag => Ok(()),
         Value::Character(c) => write_character(writer, *c),
         Value::String(s) => write_string(writer, s),
-        Value::Array(array) => write_array(writer, array),
+        Value::Array(array) => {
+            write_array(writer, array).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        }
     }
 }
 
