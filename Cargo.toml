@@ -24,7 +24,7 @@ resolver = "3"
 [workspace.package]
 license = "MIT"
 edition = "2024"
-rust-version = "1.85.0"
+rust-version = "1.87.0"
 
 [workspace.dependencies]
 bitflags = "2.0.2"

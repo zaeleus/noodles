@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * refget: Raise minimum supported Rust version (MSRV) to 1.87.0.
+
   * refget: Update to reqwest 0.13.1.
 
     noodles-refget no longer enables a TLS backend. Select one by adding

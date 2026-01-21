@@ -20,7 +20,7 @@ pub(super) fn write_hex(dst: &mut Vec<u8>, s: &BStr) -> io::Result<()> {
 
 fn is_valid(s: &BStr) -> bool {
     fn is_even(n: usize) -> bool {
-        n % 2 == 0
+        n.is_multiple_of(2)
     }
 
     // § 1.5 "The alignment section: optional fields" (2024-11-06): "`([0-9A-F][0-9A-F])*`".

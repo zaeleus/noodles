@@ -14,7 +14,7 @@ where
 // § 1.5 "The alignment section: optional fields" (2024-11-06): "`([0-9A-F][0-9A-F])*`".
 fn is_valid(buf: &[u8]) -> bool {
     fn is_even(n: usize) -> bool {
-        n % 2 == 0
+        n.is_multiple_of(2)
     }
 
     fn is_hexdigit(b: u8) -> bool {

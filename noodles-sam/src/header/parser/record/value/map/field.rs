@@ -4,7 +4,6 @@ pub mod value;
 use std::{error, fmt};
 
 pub use self::{tag::parse_tag, value::parse_value};
-use crate::header::parser::record::split_off_first;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
@@ -30,7 +29,7 @@ impl fmt::Display for ParseError {
 pub(super) fn consume_delimiter(src: &mut &[u8]) -> Result<(), ParseError> {
     const DELIMITER: u8 = b'\t';
 
-    match split_off_first(src) {
+    match src.split_off_first() {
         Some(&DELIMITER) => Ok(()),
         Some(_) => Err(ParseError::InvalidDelimiter),
         None => Err(ParseError::MissingDelimiter),
@@ -40,7 +39,7 @@ pub(super) fn consume_delimiter(src: &mut &[u8]) -> Result<(), ParseError> {
 pub(super) fn consume_separator(src: &mut &[u8]) -> Result<(), ParseError> {
     const SEPARATOR: u8 = b':';
 
-    match split_off_first(src) {
+    match src.split_off_first() {
         Some(&SEPARATOR) => Ok(()),
         Some(_) => Err(ParseError::InvalidSeparator),
         None => Err(ParseError::MissingSeparator),

@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * gtf: Raise minimum supported Rust version (MSRV) to 1.87.0.
+
   * gtf/record: Increase the visibility of the `attributes` module ([#360]).
 
     This allows access to `gtf::record::attributes::field::Value`.

@@ -104,7 +104,7 @@ fn parse_string(src: &[u8]) -> Result<Value, ParseError> {
 
 fn parse_hex(src: &[u8]) -> Result<Value, ParseError> {
     fn is_even(n: usize) -> bool {
-        n % 2 == 0
+        n.is_multiple_of(2)
     }
 
     fn is_upper_ascii_hexdigit(n: u8) -> bool {

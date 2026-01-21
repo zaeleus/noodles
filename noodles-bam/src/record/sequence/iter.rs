@@ -16,7 +16,7 @@ impl<'a> Iter<'a> {
         let j = end.div_ceil(2);
         let mut iter = bases[i..j].iter();
 
-        let front = if start % 2 == 0 {
+        let front = if start.is_multiple_of(2) {
             None
         } else {
             iter.next().map(|&n| discard_front_decoded_bases(n))

@@ -48,18 +48,11 @@ pub(super) fn parse_record(mut src: &[u8], ctx: &Context) -> Result<Record, Pars
 fn consume_prefix(src: &mut &[u8]) -> Result<(), ParseError> {
     const PREFIX: u8 = b'@';
 
-    if let Some(&PREFIX) = split_off_first(src) {
+    if let Some(&PREFIX) = src.split_off_first() {
         Ok(())
     } else {
         Err(ParseError::MissingPrefix)
     }
-}
-
-// TODO: Use `slice::split_off_first` when the MSRV >= 1.87.0.
-fn split_off_first<'a>(src: &mut &'a [u8]) -> Option<&'a u8> {
-    let (n, rest) = src.split_first()?;
-    *src = rest;
-    Some(n)
 }
 
 #[cfg(test)]

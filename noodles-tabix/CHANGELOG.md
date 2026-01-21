@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * tabix: Raise minimum supported Rust version (MSRV) to 1.87.0.
+
 ## 0.59.0 - 2025-12-11
 
 ### Changed

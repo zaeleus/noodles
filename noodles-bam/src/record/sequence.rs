@@ -38,7 +38,7 @@ impl<'a> Sequence<'a> {
             let j = i / 2;
             let b = self.src[j];
 
-            if i % 2 == 0 {
+            if i.is_multiple_of(2) {
                 Some(decode_base(b >> 4))
             } else {
                 Some(decode_base(b))
