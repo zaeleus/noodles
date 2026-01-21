@@ -1,16 +1,43 @@
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
 
-pub(super) fn write_integer<W>(writer: &mut W, n: i32) -> io::Result<()>
+/// An error returns when an info field integer value fails to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    /// The input is invalid.
+    Invalid(i32),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::Invalid(_) => None,
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::Invalid(n) => write!(f, "invalid input: expected (-2^31 + 7) < {n} < 2^31"),
+        }
+    }
+}
+
+pub(super) fn write_integer<W>(writer: &mut W, n: i32) -> Result<(), WriteError>
 where
     W: Write,
 {
     if is_valid(n) {
-        write!(writer, "{n}")
+        write!(writer, "{n}").map_err(WriteError::Io)
     } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "invalid integer",
-        ))
+        Err(WriteError::Invalid(n))
     }
 }
 
@@ -26,8 +53,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_integer() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, n: i32, expected: &[u8]) -> io::Result<()> {
+    fn test_write_integer() -> Result<(), WriteError> {
+        fn t(buf: &mut Vec<u8>, n: i32, expected: &[u8]) -> Result<(), WriteError> {
             buf.clear();
             write_integer(buf, n)?;
             assert_eq!(buf, expected);
@@ -43,7 +70,7 @@ mod tests {
         buf.clear();
         assert!(matches!(
             write_integer(&mut buf, i32::MIN),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            Err(WriteError::Invalid(i32::MIN))
         ));
 
         Ok(())

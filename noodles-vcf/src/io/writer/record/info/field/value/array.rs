@@ -15,7 +15,8 @@ where
                 }
 
                 if let Some(n) = result? {
-                    write_integer(writer, n)?;
+                    write_integer(writer, n)
+                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
                 } else {
                     writer.write_all(MISSING)?;
                 }
