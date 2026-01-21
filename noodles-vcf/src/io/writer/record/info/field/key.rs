@@ -1,16 +1,43 @@
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
 
-pub(super) fn write_key<W>(writer: &mut W, key: &str) -> io::Result<()>
+/// An error returns when an info field key fails to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    /// The input is invalid.
+    Invalid(String),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::Invalid(_) => None,
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::Invalid(s) => write!(f, "invalid input: {s}"),
+        }
+    }
+}
+
+pub(super) fn write_key<W>(writer: &mut W, key: &str) -> Result<(), WriteError>
 where
     W: Write,
 {
     if is_valid(key) {
-        writer.write_all(key.as_bytes())
+        writer.write_all(key.as_bytes()).map_err(WriteError::Io)
     } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "invalid info field key",
-        ))
+        Err(WriteError::Invalid(key.into()))
     }
 }
 
@@ -37,7 +64,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_key() -> io::Result<()> {
+    fn test_write_key() -> Result<(), WriteError> {
         let mut buf = Vec::new();
 
         buf.clear();
@@ -46,7 +73,7 @@ mod tests {
 
         assert!(matches!(
             write_key(&mut buf, "A A"),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            Err(WriteError::Invalid(s)) if s == "A A"
         ));
 
         Ok(())

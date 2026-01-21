@@ -12,7 +12,7 @@ where
 {
     const SEPARATOR: &[u8] = b"=";
 
-    write_key(writer, key)?;
+    write_key(writer, key).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     match value {
         Some(Value::Flag) => {}
