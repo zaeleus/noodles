@@ -4,7 +4,10 @@ mod float;
 mod integer;
 mod string;
 
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
 
 use self::{
     array::write_array, character::write_character, float::write_float, integer::write_integer,
@@ -12,21 +15,48 @@ use self::{
 };
 use crate::variant::record::info::field::Value;
 
-pub(super) fn write_value<W>(writer: &mut W, value: &Value) -> io::Result<()>
+/// An error returns when an info field value fails to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    /// The integer is invalid.
+    InvalidInteger(integer::WriteError),
+    /// The array is invalid.
+    InvalidArray(array::WriteError),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidInteger(e) => Some(e),
+            Self::InvalidArray(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidInteger(_) => write!(f, "invalid integer"),
+            Self::InvalidArray(_) => write!(f, "invalid array"),
+        }
+    }
+}
+
+pub(super) fn write_value<W>(writer: &mut W, value: &Value) -> Result<(), WriteError>
 where
     W: Write,
 {
     match value {
-        Value::Integer(n) => {
-            write_integer(writer, *n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        }
-        Value::Float(n) => write_float(writer, *n),
+        Value::Integer(n) => write_integer(writer, *n).map_err(WriteError::InvalidInteger),
+        Value::Float(n) => write_float(writer, *n).map_err(WriteError::Io),
         Value::Flag => Ok(()),
-        Value::Character(c) => write_character(writer, *c),
-        Value::String(s) => write_string(writer, s),
-        Value::Array(array) => {
-            write_array(writer, array).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        }
+        Value::Character(c) => write_character(writer, *c).map_err(WriteError::Io),
+        Value::String(s) => write_string(writer, s).map_err(WriteError::Io),
+        Value::Array(array) => write_array(writer, array).map_err(WriteError::InvalidArray),
     }
 }
 
@@ -35,10 +65,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_value() -> io::Result<()> {
+    fn test_write_value() -> Result<(), WriteError> {
         use crate::variant::record_buf::info::field::Value as ValueBuf;
 
-        fn t(buf: &mut Vec<u8>, value: &ValueBuf, expected: &[u8]) -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, value: &ValueBuf, expected: &[u8]) -> Result<(), WriteError> {
             buf.clear();
             write_value(buf, &Value::from(value))?;
             assert_eq!(buf, expected);

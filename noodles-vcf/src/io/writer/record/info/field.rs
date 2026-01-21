@@ -18,7 +18,7 @@ where
         Some(Value::Flag) => {}
         Some(v) => {
             writer.write_all(SEPARATOR)?;
-            write_value(writer, v)?;
+            write_value(writer, v).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         }
         None => {
             writer.write_all(SEPARATOR)?;
