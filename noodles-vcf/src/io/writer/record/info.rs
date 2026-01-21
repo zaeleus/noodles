@@ -23,7 +23,8 @@ where
                 writer.write_all(DELIMITER)?;
             }
 
-            write_field(writer, key, value.as_ref())?;
+            write_field(writer, key, value.as_ref())
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
         }
     }
 
