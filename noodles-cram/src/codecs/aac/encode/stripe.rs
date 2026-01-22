@@ -73,6 +73,25 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_encode() -> io::Result<()> {
+        let src = b"ndls";
+        let actual = encode(src)?;
+
+        let expected = [
+            0x04, // chunk count = 4
+            0x07, 0x07, 0x07, 0x07, // compressed sizes = [7, 7, 7, 7]
+            0x10, 0x6f, 0x00, 0xfd, 0xb1, 0x95, 0xe2, // chunks[0]
+            0x10, 0x65, 0x00, 0xfd, 0x77, 0x20, 0xb0, // chunks[1]
+            0x10, 0x6d, 0x00, 0xfd, 0xa6, 0xc0, 0x4c, // chunks[2]
+            0x10, 0x74, 0x00, 0xfd, 0xcb, 0x08, 0xc4, // chunks[3]
+        ];
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_build_uncompressed_sizes() {
         assert_eq!(
             build_uncompressed_sizes(13, const { NonZero::new(3).unwrap() }),
