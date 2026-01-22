@@ -64,6 +64,12 @@ where
     }
 }
 
+impl Extend<u8> for QualityScores {
+    fn extend<T: IntoIterator<Item = u8>>(&mut self, iter: T) {
+        self.0.extend(iter);
+    }
+}
+
 impl FromIterator<u8> for QualityScores {
     fn from_iter<T: IntoIterator<Item = u8>>(iter: T) -> Self {
         Self(iter.into_iter().collect())
