@@ -72,7 +72,7 @@ mod tests {
         t(&[], &QualityScores::default())?;
         t(
             &[0x2d, 0x23, 0x2b, 0x32],
-            &QualityScores::from(vec![45, 35, 43, 50]),
+            &[45, 35, 43, 50].into_iter().collect(),
         )?;
 
         Ok(())

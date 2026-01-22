@@ -71,17 +71,17 @@ mod tests {
         t(&mut buf, 0, &QualityScoresBuf::default(), b"*")?;
         t(&mut buf, 4, &QualityScoresBuf::default(), b"*")?;
 
-        let quality_scores = QualityScoresBuf::from(vec![45, 35, 43, 50]);
+        let quality_scores = [45, 35, 43, 50].into_iter().collect();
         t(&mut buf, 4, &quality_scores, b"NDLS")?;
 
-        let quality_scores = QualityScoresBuf::from(vec![45, 35, 43, 50]);
+        let quality_scores = [45, 35, 43, 50].into_iter().collect();
         buf.clear();
         assert!(matches!(
             write_quality_scores(&mut buf, 3, &quality_scores),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
-        let quality_scores = QualityScoresBuf::from(vec![255]);
+        let quality_scores = [255].into_iter().collect();
         buf.clear();
         assert!(matches!(
             write_quality_scores(&mut buf, 1, &quality_scores),

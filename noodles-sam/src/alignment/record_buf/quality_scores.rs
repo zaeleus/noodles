@@ -64,6 +64,12 @@ where
     }
 }
 
+impl FromIterator<u8> for QualityScores {
+    fn from_iter<T: IntoIterator<Item = u8>>(iter: T) -> Self {
+        Self(iter.into_iter().collect())
+    }
+}
+
 impl From<QualityScores> for Vec<u8> {
     fn from(quality_scores: QualityScores) -> Self {
         quality_scores.0

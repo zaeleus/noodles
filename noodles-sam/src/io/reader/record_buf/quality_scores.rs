@@ -72,7 +72,7 @@ mod tests {
 
         quality_scores.as_mut().clear();
         parse_quality_scores(b"NDLS", 4, &mut quality_scores)?;
-        let expected = QualityScores::from(vec![45, 35, 43, 50]);
+        let expected = [45, 35, 43, 50].into_iter().collect();
         assert_eq!(quality_scores, expected);
 
         quality_scores.as_mut().clear();

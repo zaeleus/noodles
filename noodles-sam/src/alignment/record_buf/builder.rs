@@ -224,7 +224,7 @@ impl Builder {
     /// ```
     /// use noodles_sam::{self as sam, alignment::record_buf::QualityScores};
     ///
-    /// let quality_scores = QualityScores::from(vec![45, 35, 43, 50]);
+    /// let quality_scores: QualityScores = [45, 35, 43, 50].into_iter().collect();
     ///
     /// let record = sam::alignment::RecordBuf::builder()
     ///     .set_quality_scores(quality_scores.clone())

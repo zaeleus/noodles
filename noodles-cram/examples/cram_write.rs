@@ -16,7 +16,7 @@ use noodles_sam::{
         RecordBuf,
         io::Write,
         record::cigar::{Op, op::Kind},
-        record_buf::{QualityScores, Sequence},
+        record_buf::Sequence,
     },
     header::record::value::{
         Map,
@@ -81,7 +81,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .set_alignment_start(Position::MIN)
         .set_cigar([Op::new(Kind::Match, 4)].into_iter().collect())
         .set_sequence(Sequence::from(b"TTCA"))
-        .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
+        .set_quality_scores([45, 35, 43, 50].into_iter().collect())
         .build();
 
     writer.write_alignment_record(&header, &record)?;

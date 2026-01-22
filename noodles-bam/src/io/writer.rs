@@ -206,11 +206,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use sam::alignment::{
-        RecordBuf,
-        record::Flags,
-        record_buf::{QualityScores, Sequence},
-    };
+    use sam::alignment::{RecordBuf, record::Flags, record_buf::Sequence};
 
     use super::*;
     use crate::io::Reader;
@@ -252,11 +248,10 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = RecordBuf::builder()
+        let record = RecordBuf::builder()
             .set_sequence(Sequence::from(b"AT"))
+            .set_quality_scores([45, 35, 43, 50].into_iter().collect())
             .build();
-
-        *record.quality_scores_mut() = QualityScores::from(vec![45, 35, 43, 50]);
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
 
@@ -270,11 +265,10 @@ mod tests {
 
         let header = sam::Header::default();
 
-        let mut record = RecordBuf::builder()
+        let record = RecordBuf::builder()
             .set_sequence(Sequence::from(b"ATCG"))
+            .set_quality_scores([45, 35].into_iter().collect())
             .build();
-
-        *record.quality_scores_mut() = QualityScores::from(vec![45, 35]);
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
 
@@ -287,8 +281,10 @@ mod tests {
         let mut writer = Writer::new(Vec::new());
 
         let header = sam::Header::default();
-        let mut record = RecordBuf::default();
-        *record.quality_scores_mut() = QualityScores::from(vec![45, 35, 43, 50]);
+
+        let record = RecordBuf::builder()
+            .set_quality_scores([45, 35, 43, 50].into_iter().collect())
+            .build();
 
         assert!(writer.write_alignment_record(&header, &record).is_err());
 
@@ -330,7 +326,7 @@ mod tests {
         let header = sam::Header::default();
         let sam_record = RecordBuf::builder()
             .set_sequence(Sequence::from(b"ATCG"))
-            .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
+            .set_quality_scores([45, 35, 43, 50].into_iter().collect())
             .build();
 
         writer.write_alignment_record(&header, &sam_record)?;

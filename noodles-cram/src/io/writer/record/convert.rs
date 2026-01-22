@@ -30,12 +30,7 @@ impl Record {
                 cram_flags.insert(Flags::QUALITY_SCORES_ARE_STORED_AS_ARRAY);
             }
 
-            QualityScores::from(
-                record
-                    .quality_scores()
-                    .iter()
-                    .collect::<io::Result<Vec<_>>>()?,
-            )
+            record.quality_scores().iter().collect::<io::Result<_>>()?
         };
 
         let features = cigar_to_features(
@@ -255,7 +250,7 @@ mod tests {
 
         let cigar: Cigar = [Op::new(Kind::Match, 1)].into_iter().collect();
         let sequence = Sequence::from(b"A");
-        let quality_scores = QualityScores::from(vec![45]);
+        let quality_scores = [45].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![Feature::ReadBase {
             position: Position::try_from(1)?,
@@ -266,7 +261,7 @@ mod tests {
 
         let cigar: Cigar = [Op::new(Kind::Match, 2)].into_iter().collect();
         let sequence = Sequence::from(b"AC");
-        let quality_scores = QualityScores::from(vec![45, 35]);
+        let quality_scores = [45, 35].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::Bases {
@@ -284,7 +279,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"AC");
-        let quality_scores = QualityScores::from(vec![45, 35]);
+        let quality_scores = [45, 35].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::InsertBase {
@@ -307,7 +302,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"ACG");
-        let quality_scores = QualityScores::from(vec![45, 35, 43]);
+        let quality_scores = [45, 35, 43].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::Insertion {
@@ -330,7 +325,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"AC");
-        let quality_scores = QualityScores::from(vec![45, 35]);
+        let quality_scores = [45, 35].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::Deletion {
@@ -352,7 +347,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"A");
-        let quality_scores = QualityScores::from(vec![45]);
+        let quality_scores = [45].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::ReferenceSkip {
@@ -371,7 +366,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"AC");
-        let quality_scores = QualityScores::from(vec![45, 35]);
+        let quality_scores = [45, 35].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::SoftClip {
@@ -394,7 +389,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"ACG");
-        let quality_scores = QualityScores::from(vec![45, 35, 43]);
+        let quality_scores = [45, 35, 43].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::SoftClip {
@@ -417,7 +412,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"A");
-        let quality_scores = QualityScores::from(vec![45]);
+        let quality_scores = [45].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::HardClip {
@@ -436,7 +431,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"A");
-        let quality_scores = QualityScores::from(vec![45]);
+        let quality_scores = [45].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::Padding {
@@ -461,7 +456,7 @@ mod tests {
 
         let cigar: Cigar = [Op::new(Kind::Match, 1)].into_iter().collect();
         let sequence = Sequence::from(b"A");
-        let quality_scores = QualityScores::from(vec![45]);
+        let quality_scores = [45].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![Feature::ReadBase {
             position: Position::try_from(1)?,
@@ -472,7 +467,7 @@ mod tests {
 
         let cigar: Cigar = [Op::new(Kind::Match, 2)].into_iter().collect();
         let sequence = Sequence::from(b"AC");
-        let quality_scores = QualityScores::from(vec![45, 35]);
+        let quality_scores = [45, 35].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![Feature::Bases {
             position: Position::try_from(1)?,
@@ -484,7 +479,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"AC");
-        let quality_scores = QualityScores::from(vec![45, 35]);
+        let quality_scores = [45, 35].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::InsertBase {
@@ -503,7 +498,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"ACG");
-        let quality_scores = QualityScores::from(vec![45, 35, 43]);
+        let quality_scores = [45, 35, 43].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::Insertion {
@@ -522,7 +517,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"AC");
-        let quality_scores = QualityScores::from(vec![45, 35]);
+        let quality_scores = [45, 35].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::Deletion {
@@ -540,7 +535,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"A");
-        let quality_scores = QualityScores::from(vec![45]);
+        let quality_scores = [45].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::ReferenceSkip {
@@ -559,7 +554,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"AC");
-        let quality_scores = QualityScores::from(vec![45, 35]);
+        let quality_scores = [45, 35].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::SoftClip {
@@ -578,7 +573,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"ACG");
-        let quality_scores = QualityScores::from(vec![45, 35, 43]);
+        let quality_scores = [45, 35, 43].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::SoftClip {
@@ -597,7 +592,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"A");
-        let quality_scores = QualityScores::from(vec![45]);
+        let quality_scores = [45].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::HardClip {
@@ -616,7 +611,7 @@ mod tests {
             .into_iter()
             .collect();
         let sequence = Sequence::from(b"A");
-        let quality_scores = QualityScores::from(vec![45]);
+        let quality_scores = [45].into_iter().collect();
         let actual = cigar_to_features(&cigar, flags, &sequence, &quality_scores)?;
         let expected = vec![
             Feature::Padding {

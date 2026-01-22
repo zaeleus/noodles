@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/alignment/record/quality_scores: Implement `FromIterator<u8>` for
+    `QualityScores`.
+
 ### Changed
 
   * sam: Raise minimum supported Rust version (MSRV) to 1.87.0.

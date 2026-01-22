@@ -188,7 +188,7 @@ mod tests {
                 cigar::{Op, op::Kind},
                 data::field::Tag,
             },
-            record_buf::{QualityScores, Sequence, data::field::Value},
+            record_buf::{Sequence, data::field::Value},
         };
 
         let mut buf = Vec::new();
@@ -219,7 +219,7 @@ mod tests {
             .set_mate_alignment_start(Position::try_from(22)?)
             .set_template_length(144)
             .set_sequence(Sequence::from(b"ACGT"))
-            .set_quality_scores(QualityScores::from(vec![45, 35, 43, 50]))
+            .set_quality_scores([45, 35, 43, 50].into_iter().collect())
             .set_data(
                 [(Tag::ALIGNMENT_HIT_COUNT, Value::from(1))]
                     .into_iter()

@@ -77,10 +77,10 @@ mod tests {
             &[0xff, 0xff, 0xff, 0xff],
         )?;
 
-        let quality_scores = QualityScoresBuf::from(vec![45, 35, 43, 50]);
+        let quality_scores = [45, 35, 43, 50].into_iter().collect();
         t(&mut buf, 4, &quality_scores, &[0x2d, 0x23, 0x2b, 0x32])?;
 
-        let quality_scores = QualityScoresBuf::from(vec![45, 35, 43, 50]);
+        let quality_scores = [45, 35, 43, 50].into_iter().collect();
         buf.clear();
         assert!(matches!(
             write_quality_scores(&mut buf, 3, &quality_scores),
