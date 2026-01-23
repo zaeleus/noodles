@@ -8,10 +8,10 @@
 //! ## Read all records
 //!
 //! ```no_run
-//! # use std::io;
+//! # use std::{fs::File, io};
 //! use noodles_bam as bam;
 //!
-//! let mut reader = bam::io::reader::Builder::default().build_from_path("sample.bam")?;
+//! let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
 //! let header = reader.read_header()?;
 //!
 //! for result in reader.records() {
