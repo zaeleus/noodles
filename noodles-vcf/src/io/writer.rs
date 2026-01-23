@@ -149,6 +149,7 @@ where
     /// ```
     pub fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
         write_record(&mut self.inner, header, record)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
     }
 }
 
@@ -166,6 +167,7 @@ where
         record: &dyn crate::variant::Record,
     ) -> io::Result<()> {
         write_record(&mut self.inner, header, record)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
     }
 }
 
