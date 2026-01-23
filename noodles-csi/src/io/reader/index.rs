@@ -72,10 +72,7 @@ where
     read_magic(reader)?;
 
     let min_shift = read_min_shift(reader)?;
-
-    let depth = read_i32_le(reader)
-        .map_err(ReadError::Io)
-        .and_then(|n| u8::try_from(n).map_err(ReadError::InvalidDepth))?;
+    let depth = read_depth(reader)?;
 
     let header = read_aux(reader).map_err(ReadError::InvalidHeader)?;
 
@@ -122,6 +119,14 @@ where
 {
     let n = read_i32_le(reader)?;
     u8::try_from(n).map_err(ReadError::InvalidMinShift)
+}
+
+fn read_depth<R>(reader: &mut R) -> Result<u8, ReadError>
+where
+    R: Read,
+{
+    let n = read_i32_le(reader)?;
+    u8::try_from(n).map_err(ReadError::InvalidDepth)
 }
 
 fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> Result<Option<u64>, ReadError>
@@ -185,6 +190,26 @@ mod tests {
         assert!(matches!(
             read_min_shift(&mut &src[..]),
             Err(ReadError::InvalidMinShift(_))
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_depth() -> Result<(), ReadError> {
+        let src = [0x05, 0x00, 0x00, 0x00]; // depth = 5
+        assert_eq!(read_depth(&mut &src[..])?, 5);
+
+        let src = [0xff, 0xff, 0xff, 0xff]; // depth = -1
+        assert!(matches!(
+            read_depth(&mut &src[..]),
+            Err(ReadError::InvalidDepth(_))
+        ));
+
+        let src = [0x00, 0x01, 0x00, 0x00]; // depth = 256
+        assert!(matches!(
+            read_depth(&mut &src[..]),
+            Err(ReadError::InvalidDepth(_))
         ));
 
         Ok(())
