@@ -16,14 +16,14 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
 
     let mut b = decode_token_byte_streams(&mut src, use_arith, n_names)?;
 
-    let mut names = vec![String::new(); n_names];
+    let mut names = vec![Vec::new(); n_names];
     let mut tokens = vec![vec![None; 128]; n_names];
 
     let mut dst = Vec::with_capacity(ulen);
 
     for i in 0..n_names {
         let name = decode_single_name(&mut b, &mut names, &mut tokens, i)?;
-        dst.write_all(name.as_bytes())?;
+        dst.write_all(&name)?;
         write_u8(&mut dst, NUL)?;
     }
 
@@ -49,8 +49,8 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum Token {
-    Char(char),
-    String(String),
+    Char(u8),
+    String(Vec<u8>),
     Digits(u32),
     PaddedDigits(u32, u8),
     Nop,
@@ -135,18 +135,14 @@ impl TokenReader {
     fn read_token(&mut self, prev_token: Option<&Token>) -> io::Result<Option<Token>> {
         match self.read_type()? {
             Type::Char => {
-                let c = read_u8(&mut self.char_reader).map(char::from)?;
+                let c = read_u8(&mut self.char_reader)?;
                 Ok(Some(Token::Char(c)))
             }
             Type::String => {
                 let mut buf = Vec::new();
                 self.string_reader.read_until(0x00, &mut buf)?;
                 buf.pop();
-
-                let s = String::from_utf8(buf)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-                Ok(Some(Token::String(s)))
+                Ok(Some(Token::String(buf)))
             }
             Type::Digits => {
                 let d = read_u32_le(&mut self.digits_reader)?;
@@ -254,10 +250,10 @@ where
 
 fn decode_single_name(
     b: &mut [TokenReader],
-    names: &mut [String],
+    names: &mut [Vec<u8>],
     tokens: &mut [Vec<Option<Token>>],
     n: usize,
-) -> io::Result<String> {
+) -> io::Result<Vec<u8>> {
     let ty = b[0].read_type()?;
     let dist = b[0].read_distance(ty)?;
 
@@ -278,11 +274,10 @@ fn decode_single_name(
         if let Some(token) = b[t].read_token(prev_token)? {
             match &token {
                 Token::Char(c) => names[n].push(*c),
-                Token::String(s) => names[n].push_str(s),
-                Token::Digits(d) => names[n].push_str(&d.to_string()),
+                Token::String(s) => names[n].extend(s),
+                Token::Digits(d) => write!(names[n], "{d}")?,
                 Token::PaddedDigits(d, l) => {
-                    let s = format!("{:0width$}", d, width = usize::from(*l));
-                    names[n].push_str(&s);
+                    write!(names[n], "{:0width$}", d, width = usize::from(*l))?
                 }
                 Token::Nop => {}
             }
