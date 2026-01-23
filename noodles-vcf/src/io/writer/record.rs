@@ -79,8 +79,6 @@ where
     W: Write,
     R: Record + ?Sized,
 {
-    const DELIMITER: &[u8] = b"\t";
-
     let reference_sequence_name = record
         .reference_sequence_name(header)
         .map_err(WriteError::Io)?;
@@ -88,41 +86,49 @@ where
     write_reference_sequence_name(writer, reference_sequence_name)
         .map_err(WriteError::InvalidReferenceSequenceName)?;
 
-    writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+    write_separator(writer)?;
     let position = record.variant_start().transpose().map_err(WriteError::Io)?;
     write_position(writer, position).map_err(WriteError::Io)?;
 
-    writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+    write_separator(writer)?;
     write_ids(writer, record.ids()).map_err(WriteError::InvalidIds)?;
 
-    writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+    write_separator(writer)?;
     write_reference_bases(writer, record.reference_bases())
         .map_err(WriteError::InvalidReferenceBases)?;
 
-    writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+    write_separator(writer)?;
     write_alternate_bases(writer, record.alternate_bases())
         .map_err(WriteError::InvalidAlternateBases)?;
 
-    writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+    write_separator(writer)?;
     let quality_score = record.quality_score().transpose().map_err(WriteError::Io)?;
     write_quality_score(writer, quality_score).map_err(WriteError::Io)?;
 
-    writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+    write_separator(writer)?;
     write_filters(writer, header, record.filters()).map_err(WriteError::InvalidFilters)?;
 
-    writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+    write_separator(writer)?;
     write_info(writer, header, record.info()).map_err(WriteError::InvalidInfo)?;
 
     let samples = record.samples().map_err(WriteError::Io)?;
 
     if !samples.is_empty() {
-        writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+        write_separator(writer)?;
         write_samples(writer, header, samples).map_err(WriteError::Io)?;
     }
 
     writer.write_all(b"\n").map_err(WriteError::Io)?;
 
     Ok(())
+}
+
+fn write_separator<W>(writer: &mut W) -> Result<(), WriteError>
+where
+    W: Write,
+{
+    const SEPARATOR: &[u8] = b"\t";
+    writer.write_all(SEPARATOR).map_err(WriteError::Io)
 }
 
 #[cfg(test)]
