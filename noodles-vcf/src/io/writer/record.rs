@@ -55,7 +55,8 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     writer.write_all(DELIMITER)?;
-    write_info(writer, header, record.info())?;
+    write_info(writer, header, record.info())
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     let samples = record.samples()?;
 

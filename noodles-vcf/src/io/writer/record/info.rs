@@ -1,12 +1,42 @@
 mod field;
 
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
 
 use self::field::write_field;
 use super::MISSING;
 use crate::{Header, variant::record::Info};
 
-pub(super) fn write_info<W, I>(writer: &mut W, header: &Header, info: I) -> io::Result<()>
+/// An error returns when info fields fail to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    /// A field is invalid.
+    InvalidField(field::WriteError),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidField(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidField(_) => write!(f, "invalid field"),
+        }
+    }
+}
+
+pub(super) fn write_info<W, I>(writer: &mut W, header: &Header, info: I) -> Result<(), WriteError>
 where
     W: Write,
     I: Info,
@@ -14,17 +44,16 @@ where
     const DELIMITER: &[u8] = b";";
 
     if info.is_empty() {
-        writer.write_all(MISSING)?;
+        writer.write_all(MISSING).map_err(WriteError::Io)?;
     } else {
         for (i, result) in info.iter(header).enumerate() {
-            let (key, value) = result?;
+            let (key, value) = result.map_err(WriteError::Io)?;
 
             if i > 0 {
-                writer.write_all(DELIMITER)?;
+                writer.write_all(DELIMITER).map_err(WriteError::Io)?;
             }
 
-            write_field(writer, key, value.as_ref())
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            write_field(writer, key, value.as_ref()).map_err(WriteError::InvalidField)?;
         }
     }
 
@@ -36,7 +65,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_info() -> io::Result<()> {
+    fn test_write_info() -> Result<(), WriteError> {
         use crate::variant::{
             record::info::field::key,
             record_buf::{Info as InfoBuf, info::field::Value as ValueBuf},
@@ -47,7 +76,7 @@ mod tests {
             header: &Header,
             info: &InfoBuf,
             expected: &[u8],
-        ) -> io::Result<()> {
+        ) -> Result<(), WriteError> {
             buf.clear();
             write_info(buf, header, info)?;
             assert_eq!(buf, expected);
