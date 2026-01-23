@@ -71,9 +71,7 @@ where
 {
     read_magic(reader)?;
 
-    let min_shift = read_i32_le(reader)
-        .map_err(ReadError::Io)
-        .and_then(|n| u8::try_from(n).map_err(ReadError::InvalidMinShift))?;
+    let min_shift = read_min_shift(reader)?;
 
     let depth = read_i32_le(reader)
         .map_err(ReadError::Io)
@@ -116,6 +114,14 @@ where
     } else {
         Err(ReadError::InvalidMagicNumber(magic))
     }
+}
+
+fn read_min_shift<R>(reader: &mut R) -> Result<u8, ReadError>
+where
+    R: Read,
+{
+    let n = read_i32_le(reader)?;
+    u8::try_from(n).map_err(ReadError::InvalidMinShift)
 }
 
 fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> Result<Option<u64>, ReadError>
@@ -162,6 +168,26 @@ mod tests {
             read_magic(&mut reader),
             Err(ReadError::InvalidMagicNumber([b'M', b'T', b'h', b'd']))
         ));
+    }
+
+    #[test]
+    fn test_read_min_shift() -> Result<(), ReadError> {
+        let src = [0x0e, 0x00, 0x00, 0x00]; // min shift = 14
+        assert_eq!(read_min_shift(&mut &src[..])?, 14);
+
+        let src = [0xff, 0xff, 0xff, 0xff]; // min shift = -1
+        assert!(matches!(
+            read_min_shift(&mut &src[..]),
+            Err(ReadError::InvalidMinShift(_))
+        ));
+
+        let src = [0x00, 0x01, 0x00, 0x00]; // min shift = 256
+        assert!(matches!(
+            read_min_shift(&mut &src[..]),
+            Err(ReadError::InvalidMinShift(_))
+        ));
+
+        Ok(())
     }
 
     #[test]
