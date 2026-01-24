@@ -12,9 +12,14 @@ pub mod writer;
 
 pub(crate) use self::block::Block;
 pub use self::{
-    buf_read::BufRead, indexed_reader::IndexedReader, multithreaded_reader::MultithreadedReader,
+    buf_read::BufRead,
+    indexed_reader::IndexedReader,
+    multithreaded_reader::MultithreadedReader,
     multithreaded_writer::{BlockInfo, BlockInfoRx, MultithreadedWriter},
-    read::Read, reader::Reader, seek::Seek, writer::Writer,
+    read::Read,
+    reader::Reader,
+    seek::Seek,
+    writer::Writer,
 };
 
 #[cfg(test)]
