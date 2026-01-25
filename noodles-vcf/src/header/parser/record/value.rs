@@ -227,14 +227,14 @@ fn validate_format_definition(
 ) -> Result<(), ParseError> {
     use crate::header::record::value::map::format::definition::definition;
 
-    if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
-        if actual_number != expected_number || actual_type != expected_type {
-            return Err(ParseError::FormatDefinitionMismatch {
-                id: id.into(),
-                actual: (actual_number, actual_type),
-                expected: (expected_number, expected_type),
-            });
-        }
+    if let Some((expected_number, expected_type, _)) = definition(file_format, id)
+        && (actual_number != expected_number || actual_type != expected_type)
+    {
+        return Err(ParseError::FormatDefinitionMismatch {
+            id: id.into(),
+            actual: (actual_number, actual_type),
+            expected: (expected_number, expected_type),
+        });
     }
 
     Ok(())
@@ -248,14 +248,14 @@ fn validate_info_definition(
 ) -> Result<(), ParseError> {
     use crate::header::record::value::map::info::definition::definition;
 
-    if let Some((expected_number, expected_type, _)) = definition(file_format, id) {
-        if actual_number != expected_number || actual_type != expected_type {
-            return Err(ParseError::InfoDefinitionMismatch {
-                id: id.into(),
-                actual: (actual_number, actual_type),
-                expected: (expected_number, expected_type),
-            });
-        }
+    if let Some((expected_number, expected_type, _)) = definition(file_format, id)
+        && (actual_number != expected_number || actual_type != expected_type)
+    {
+        return Err(ParseError::InfoDefinitionMismatch {
+            id: id.into(),
+            actual: (actual_number, actual_type),
+            expected: (expected_number, expected_type),
+        });
     }
 
     Ok(())

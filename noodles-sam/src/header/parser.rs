@@ -88,10 +88,10 @@ impl Parser {
     /// # Ok::<_, sam::header::ParseError>(())
     /// ```
     pub fn parse_partial(&mut self, src: &[u8]) -> Result<(), ParseError> {
-        if self.is_empty() {
-            if let Some(version) = extract_version(src) {
-                self.ctx = Context::from(version);
-            }
+        if self.is_empty()
+            && let Some(version) = extract_version(src)
+        {
+            self.ctx = Context::from(version);
         }
 
         let record = parse_record(src, &self.ctx).map_err(ParseError::InvalidRecord)?;

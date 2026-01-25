@@ -65,11 +65,11 @@ impl Bin {
 
     /// Adds or merges a chunk.
     pub fn add_chunk(&mut self, chunk: Chunk) {
-        if let Some(last_chunk) = self.chunks.last_mut() {
-            if chunk.start() <= last_chunk.end() {
-                *last_chunk = Chunk::new(last_chunk.start(), chunk.end());
-                return;
-            }
+        if let Some(last_chunk) = self.chunks.last_mut()
+            && chunk.start() <= last_chunk.end()
+        {
+            *last_chunk = Chunk::new(last_chunk.start(), chunk.end());
+            return;
         }
 
         self.chunks.push(chunk);

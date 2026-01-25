@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * fasta: Raise minimum supported Rust version (MSRV) to 1.87.0.
+  * fasta: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
 ## 0.58.0 - 2025-12-11
 

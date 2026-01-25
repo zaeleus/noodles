@@ -295,16 +295,16 @@ fn parse_delta(prev_token: &Token, s: &str) -> Option<(u32, u8)> {
 }
 
 fn parse_delta0(prev_s: &str, prev_token: &Token, s: &str) -> Option<(u32, u8)> {
-    if let Token::PaddedDigits(n, _) | Token::Delta0(n, _) = prev_token {
-        if s.len() == prev_s.len() {
-            let m = s.parse().ok()?;
+    if let Token::PaddedDigits(n, _) | Token::Delta0(n, _) = prev_token
+        && s.len() == prev_s.len()
+    {
+        let m = s.parse().ok()?;
 
-            if m >= *n {
-                let delta = m - n;
+        if m >= *n {
+            let delta = m - n;
 
-                if delta <= u32::from(u8::MAX) {
-                    return Some((m, delta as u8));
-                }
+            if delta <= u32::from(u8::MAX) {
+                return Some((m, delta as u8));
             }
         }
     }

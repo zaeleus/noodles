@@ -164,10 +164,10 @@ where
 
     let src = reader.fill_buf()?;
 
-    if let Some(buf) = src.get(..GZIP_MAGIC_NUMBER.len()) {
-        if buf == GZIP_MAGIC_NUMBER {
-            return Ok(Some(CompressionMethod::Bgzf));
-        }
+    if let Some(buf) = src.get(..GZIP_MAGIC_NUMBER.len())
+        && buf == GZIP_MAGIC_NUMBER
+    {
+        return Ok(Some(CompressionMethod::Bgzf));
     }
 
     Ok(None)

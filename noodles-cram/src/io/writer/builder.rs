@@ -138,10 +138,10 @@ pub fn uses_cram_3_1_codecs(block_content_encoder_map: &BlockContentEncoderMap) 
         )
     }
 
-    if let Some(encoder) = block_content_encoder_map.core_data_encoder() {
-        if is_cram_3_1_codec(encoder) {
-            return true;
-        }
+    if let Some(encoder) = block_content_encoder_map.core_data_encoder()
+        && is_cram_3_1_codec(encoder)
+    {
+        return true;
     }
 
     block_content_encoder_map

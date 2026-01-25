@@ -60,10 +60,10 @@ fn main() -> io::Result<()> {
     for result in reader.records() {
         let record = result?;
 
-        if let Some(name) = record.name() {
-            if names.contains(name) {
-                writer.write_record(&header, &record)?;
-            }
+        if let Some(name) = record.name()
+            && names.contains(name)
+        {
+            writer.write_record(&header, &record)?;
         }
     }
 

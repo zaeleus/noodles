@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * htsget: Raise minimum supported Rust version (MSRV) to 1.87.0.
+  * htsget: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
   * htsget: Update to reqwest 0.13.1.
 

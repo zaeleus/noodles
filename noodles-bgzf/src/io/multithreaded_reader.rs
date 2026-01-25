@@ -350,10 +350,10 @@ where
 }
 
 fn recv_buffer(read_rx: &ReadRx) -> io::Result<Option<Buffer>> {
-    if let Ok(buffered_rx) = read_rx.recv() {
-        if let Ok(buffer) = buffered_rx.recv() {
-            return buffer.map(Some);
-        }
+    if let Ok(buffered_rx) = read_rx.recv()
+        && let Ok(buffer) = buffered_rx.recv()
+    {
+        return buffer.map(Some);
     }
 
     Ok(None)

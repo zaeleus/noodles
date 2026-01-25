@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * csi: Raise minimum supported Rust version (MSRV) to 1.87.0.
+  * csi: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
 ## 0.53.0 - 2025-12-11
 

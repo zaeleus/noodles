@@ -125,10 +125,10 @@ where
 
     let src = reader.fill_buf()?;
 
-    if let Some(buf) = src.get(..GZIP_MAGIC_NUMBER.len()) {
-        if buf == GZIP_MAGIC_NUMBER {
-            return Ok(Some(CompressionMethod::Bgzf));
-        }
+    if let Some(buf) = src.get(..GZIP_MAGIC_NUMBER.len())
+        && buf == GZIP_MAGIC_NUMBER
+    {
+        return Ok(Some(CompressionMethod::Bgzf));
     }
 
     Ok(None)
@@ -157,10 +157,10 @@ where
                 return Ok(Format::Bcf);
             }
         }
-    } else if let Some(buf) = src.get(..BCF_MAGIC_NUMBER.len()) {
-        if buf == BCF_MAGIC_NUMBER {
-            return Ok(Format::Bcf);
-        }
+    } else if let Some(buf) = src.get(..BCF_MAGIC_NUMBER.len())
+        && buf == BCF_MAGIC_NUMBER
+    {
+        return Ok(Format::Bcf);
     }
 
     Ok(Format::Vcf)

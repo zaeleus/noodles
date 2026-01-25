@@ -9,7 +9,7 @@
 
 ### Changed
 
-  * sam: Raise minimum supported Rust version (MSRV) to 1.87.0.
+  * sam: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
   * sam/record/data/field/value/base_modifications: Change input to byte
     string.

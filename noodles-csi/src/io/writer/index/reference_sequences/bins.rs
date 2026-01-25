@@ -66,11 +66,11 @@ where
 fn first_record_start_position(index: &BinnedIndex, mut id: usize) -> bgzf::VirtualPosition {
     let mut min_position = index.get(&id).copied().unwrap_or_default();
 
-    while let Some(pid) = parent_id(id) {
-        if let Some(position) = index.get(&pid) {
-            if *position < min_position {
-                min_position = *position;
-            }
+    while let Some(pid) = parent_id(id)
+        && let Some(position) = index.get(&pid)
+    {
+        if *position < min_position {
+            min_position = *position;
         }
 
         id = pid;

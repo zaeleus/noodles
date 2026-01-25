@@ -78,10 +78,10 @@ impl<'a> Values<'a, char> for &'a str {
                         .and_then(|t| {
                             let mut chars = t.chars();
 
-                            if let Some(c) = chars.next() {
-                                if chars.next().is_none() {
-                                    return Ok(Some(c));
-                                }
+                            if let Some(c) = chars.next()
+                                && chars.next().is_none()
+                            {
+                                return Ok(Some(c));
                             }
 
                             Err(io::Error::new(

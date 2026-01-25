@@ -111,10 +111,10 @@ fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
 fn parse_raw_char(s: &str) -> Result<char, ParseError> {
     let mut chars = s.chars();
 
-    if let Some(c) = chars.next() {
-        if chars.next().is_none() {
-            return Ok(c);
-        }
+    if let Some(c) = chars.next()
+        && chars.next().is_none()
+    {
+        return Ok(c);
     }
 
     Err(ParseError::InvalidCharacter)

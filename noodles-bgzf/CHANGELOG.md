@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * bgzf: Raise minimum supported Rust version (MSRV) to 1.87.0.
+  * bgzf: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
 ## 0.45.0 - 2025-12-11
 

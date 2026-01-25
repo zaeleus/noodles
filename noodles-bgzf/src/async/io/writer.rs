@@ -82,10 +82,10 @@ where
         cx: &mut Context<'_>,
         buf: &[u8],
     ) -> Poll<io::Result<usize>> {
-        if !self.has_remaining() {
-            if let Err(e) = ready!(self.as_mut().poll_flush(cx)) {
-                return Poll::Ready(Err(e));
-            }
+        if !self.has_remaining()
+            && let Err(e) = ready!(self.as_mut().poll_flush(cx))
+        {
+            return Poll::Ready(Err(e));
         }
 
         let amt = self.remaining().min(buf.len());

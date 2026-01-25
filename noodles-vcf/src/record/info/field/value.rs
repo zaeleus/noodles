@@ -48,10 +48,10 @@ fn parse_character_value(src: &str) -> io::Result<Value<'_>> {
     let s = percent_decode(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
     let mut chars = s.chars();
 
-    if let Some(c) = chars.next() {
-        if chars.next().is_none() {
-            return Ok(Value::Character(c));
-        }
+    if let Some(c) = chars.next()
+        && chars.next().is_none()
+    {
+        return Ok(Value::Character(c));
     }
 
     Err(io::Error::new(

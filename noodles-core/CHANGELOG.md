@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * core: Raise minimum supported Rust version (MSRV) to 1.87.0.
+  * core: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
 ## 0.18.0 - 2025-07-12
 

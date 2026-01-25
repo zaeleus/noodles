@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * bam: Raise minimum supported Rust version (MSRV) to 1.87.0.
+  * bam: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
 ## 0.85.0 - 2025-12-11
 

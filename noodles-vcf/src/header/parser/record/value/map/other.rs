@@ -227,17 +227,15 @@ fn parse_values(
 
     let is_delimited = src.first().map(|&b| b == PREFIX).unwrap_or_default();
 
-    if is_delimited {
-        if let Some(i) = memchr(SUFFIX, src) {
-            let (buf, rest) = src.split_at(i + 1);
+    if is_delimited && let Some(i) = memchr(SUFFIX, src) {
+        let (buf, rest) = src.split_at(i + 1);
 
-            let s = str::from_utf8(buf)
-                .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValues(e)))?;
+        let s = str::from_utf8(buf)
+            .map_err(|e| ParseError::new(id.clone(), ParseErrorKind::InvalidValues(e)))?;
 
-            *src = rest;
+        *src = rest;
 
-            return Ok(s.into());
-        }
+        return Ok(s.into());
     }
 
     parse_other_value(src, id, tag)
