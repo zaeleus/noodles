@@ -6,7 +6,7 @@ use super::num::write_u8;
 
 const MIN_LENGTH: usize = 1;
 const MAX_LENGTH: usize = 254;
-pub(super) const MISSING: &[u8] = b"*";
+const MISSING: &[u8] = b"*";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EncodeError {
