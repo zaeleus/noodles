@@ -4,6 +4,7 @@ use bstr::{BStr, BString};
 
 use super::num::write_u8;
 
+const MIN_LENGTH: usize = 1;
 const MAX_LENGTH: usize = 254;
 pub(super) const MISSING: &[u8] = b"*";
 
@@ -22,7 +23,7 @@ impl fmt::Display for EncodeError {
         match self {
             Self::InvalidLength(n) => write!(
                 f,
-                "invalid length: expected 1 <= n <= {MAX_LENGTH}, got {n}"
+                "invalid length: expected {MIN_LENGTH} <= n <= {MAX_LENGTH}, got {n}"
             ),
             Self::Invalid(buf) => write!(f, "invalid name: {buf}"),
         }
@@ -60,7 +61,7 @@ pub(super) fn write_name(dst: &mut Vec<u8>, name: Option<&BStr>) -> Result<(), E
 }
 
 fn is_valid(buf: &[u8]) -> bool {
-    (1..=MAX_LENGTH).contains(&buf.len())
+    (MIN_LENGTH..=MAX_LENGTH).contains(&buf.len())
         && buf != MISSING
         && buf.iter().all(|&b| b.is_ascii_graphic() && b != b'@')
 }
