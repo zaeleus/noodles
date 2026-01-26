@@ -5,13 +5,8 @@ use super::num::read_itf8_as;
 pub(super) fn read_array<'a>(src: &mut &'a [u8]) -> io::Result<&'a [u8]> {
     let len = read_itf8_as(src)?;
 
-    let (buf, rest) = src
-        .split_at_checked(len)
-        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
-
-    *src = rest;
-
-    Ok(buf)
+    src.split_off(..len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
 pub(super) fn read_map<'a>(src: &mut &'a [u8]) -> io::Result<(&'a [u8], usize)> {
