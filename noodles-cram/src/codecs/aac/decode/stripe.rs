@@ -11,7 +11,6 @@ pub(super) fn decode(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
         clens.push(clen);
     }
 
-    let mut ulens = Vec::with_capacity(n);
     let mut t = Vec::with_capacity(n);
 
     for (j, clen) in clens.iter().enumerate() {
@@ -25,17 +24,36 @@ pub(super) fn decode(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
         src.read_exact(&mut buf)?;
         let chunk = super::decode(&buf, ulen)?;
 
-        ulens.push(ulen);
         t.push(chunk);
     }
 
-    let mut dst = vec![0; len];
+    Ok(transpose(&t, len))
+}
 
-    for j in 0..n {
-        for i in 0..ulens[j] {
-            dst[i * n + j] = t[j][i];
+fn transpose<T>(chunks: &[T], uncompressed_size: usize) -> Vec<u8>
+where
+    T: AsRef<[u8]>,
+{
+    let mut dst = vec![0; uncompressed_size];
+
+    for (i, chunk) in chunks.iter().enumerate() {
+        for (j, s) in chunk.as_ref().iter().enumerate() {
+            dst[j * chunks.len() + i] = *s;
         }
     }
 
-    Ok(dst)
+    dst
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_transpose() {
+        let chunks = [&b"abcde"[..], &b"ABCD"[..], &b"1234"[..]];
+        let actual = transpose(&chunks, 13);
+        let expected = b"aA1bB2cC3dD4e";
+        assert_eq!(actual, expected);
+    }
 }
