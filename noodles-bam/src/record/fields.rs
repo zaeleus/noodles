@@ -77,20 +77,18 @@ impl Fields {
         const SKIP: u8 = 3;
         const SOFT_CLIP: u8 = 4;
 
-        fn decode_op(buf: &[u8]) -> (u8, usize) {
-            // SAFETY: `buf` is 4 bytes.
-            let n = u32::from_le_bytes(buf.try_into().unwrap());
+        fn decode_op(buf: &[u8; 4]) -> (u8, usize) {
+            let n = u32::from_le_bytes(*buf);
             ((n & 0x0f) as u8, usize::try_from(n >> 4).unwrap())
         }
 
         let src = &self.buf[self.bounds.cigar_range()];
 
-        if src.len() == 2 * mem::size_of::<u32>() {
+        if let ([chunk_0, chunk_1], []) = src.as_chunks() {
             let k = self.sequence().len();
 
-            // SAFETY: `src` is 8 bytes.
-            let op_1 = decode_op(&src[0..4]);
-            let op_2 = decode_op(&src[4..8]);
+            let op_1 = decode_op(chunk_0);
+            let op_2 = decode_op(chunk_1);
 
             if op_1 == (SOFT_CLIP, k) && matches!(op_2, (SKIP, _)) {
                 let mut data_src = &self.buf[self.bounds.data_range()];
