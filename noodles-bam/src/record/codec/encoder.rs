@@ -36,6 +36,8 @@ pub enum EncodeError {
     InvalidMateReferenceSequenceId(reference_sequence_id::EncodeError),
     /// The mate alignment start is invalid.
     InvalidMateAlignmentStart(position::EncodeError),
+    /// The name is invalid.
+    InvalidName(name::EncodeError),
 }
 
 impl error::Error for EncodeError {
@@ -45,6 +47,7 @@ impl error::Error for EncodeError {
             Self::InvalidAlignmentStart(e) => Some(e),
             Self::InvalidMateReferenceSequenceId(e) => Some(e),
             Self::InvalidMateAlignmentStart(e) => Some(e),
+            Self::InvalidName(e) => Some(e),
         }
     }
 }
@@ -58,6 +61,7 @@ impl fmt::Display for EncodeError {
                 write!(f, "invalid mate reference sequence ID")
             }
             Self::InvalidMateAlignmentStart(_) => write!(f, "invalid mate alignment start"),
+            Self::InvalidName(_) => write!(f, "invalid name"),
         }
     }
 }
@@ -78,7 +82,9 @@ where
         .map_err(EncodeError::InvalidAlignmentStart)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    name::write_length(dst, record.name())?;
+    name::write_length(dst, record.name())
+        .map_err(EncodeError::InvalidName)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     // mapq
     let mapping_quality = record.mapping_quality().transpose()?;
@@ -115,7 +121,9 @@ where
     write_template_length(dst, template_length);
 
     // read_name
-    write_name(dst, record.name())?;
+    write_name(dst, record.name())
+        .map_err(EncodeError::InvalidName)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     if let Some(cigar) = &cigar {
         write_cigar(dst, cigar)?;

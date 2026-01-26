@@ -1,30 +1,52 @@
-use std::{io, mem};
+use std::{error, fmt, mem};
 
-use bstr::BStr;
+use bstr::{BStr, BString};
 
 use super::num::write_u8;
 
 const MAX_LENGTH: usize = 254;
 pub(super) const MISSING: &[u8] = b"*";
 
-pub(super) fn write_length(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum EncodeError {
+    /// The name length is invalid.
+    InvalidLength(usize),
+    /// The name is invalid.
+    Invalid(BString),
+}
+
+impl error::Error for EncodeError {}
+
+impl fmt::Display for EncodeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::InvalidLength(n) => write!(
+                f,
+                "invalid length: expected 1 <= n <= {MAX_LENGTH}, got {n}"
+            ),
+            Self::Invalid(buf) => write!(f, "invalid name: {buf}"),
+        }
+    }
+}
+
+pub(super) fn write_length(dst: &mut Vec<u8>, name: Option<&BStr>) -> Result<(), EncodeError> {
     let mut len = name.map(|s| s.len()).unwrap_or(MISSING.len());
 
     // + NUL terminator
     len += mem::size_of::<u8>();
 
-    let n = u8::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let n = u8::try_from(len).map_err(|_| EncodeError::InvalidLength(len))?;
     write_u8(dst, n);
 
     Ok(())
 }
 
-pub(super) fn write_name(dst: &mut Vec<u8>, name: Option<&BStr>) -> io::Result<()> {
+pub(super) fn write_name(dst: &mut Vec<u8>, name: Option<&BStr>) -> Result<(), EncodeError> {
     const NUL: u8 = 0x00;
 
     if let Some(name) = name {
         if !is_valid(name) {
-            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+            return Err(EncodeError::Invalid(name.into()));
         }
 
         dst.extend_from_slice(name.as_ref());
@@ -50,7 +72,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_length() -> io::Result<()> {
+    fn test_write_length() -> Result<(), EncodeError> {
         let mut buf = Vec::new();
 
         buf.clear();
@@ -65,15 +87,15 @@ mod tests {
         let name = vec![b'n'; 255];
         assert!(matches!(
             write_length(&mut buf, Some(name.as_bstr())),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            Err(EncodeError::InvalidLength(256))
         ));
 
         Ok(())
     }
 
     #[test]
-    fn test_write_name() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, name: Option<&[u8]>, expected: &[u8]) -> io::Result<()> {
+    fn test_write_name() -> Result<(), EncodeError> {
+        fn t(buf: &mut Vec<u8>, name: Option<&[u8]>, expected: &[u8]) -> Result<(), EncodeError> {
             buf.clear();
             write_name(buf, name.map(|buf| buf.as_bstr()))?;
             assert_eq!(buf, expected);
@@ -85,26 +107,25 @@ mod tests {
         t(&mut buf, None, &[b'*', 0x00])?;
         t(&mut buf, Some(b"r0"), &[b'r', b'0', 0x00])?;
 
+        buf.clear();
+        assert!(matches!(
+            write_name(&mut buf, Some(MISSING.as_bstr())),
+            Err(EncodeError::Invalid(_))
+        ));
+
         Ok(())
     }
 
     #[test]
-    fn test_put_name_with_invalid_name() {
-        fn t(raw_name: &[u8]) {
-            let mut buf = Vec::new();
+    fn test_is_valid() {
+        assert!(is_valid(b"r0"));
 
-            assert!(matches!(
-                write_name(&mut buf, Some(raw_name.as_bstr())),
-                Err(e) if e.kind() == io::ErrorKind::InvalidInput
-            ));
-        }
-
-        t(b"");
-        t(b"*");
-        t(b"r 0");
-        t(b"@r0");
+        assert!(!is_valid(b""));
+        assert!(!is_valid(b"*"));
+        assert!(!is_valid(b"r 0"));
+        assert!(!is_valid(b"@r0"));
 
         let s = vec![b'n'; MAX_LENGTH + 1];
-        t(&s);
+        assert!(!is_valid(&s));
     }
 }
