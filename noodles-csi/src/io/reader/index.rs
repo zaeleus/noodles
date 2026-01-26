@@ -79,7 +79,7 @@ where
     let reference_sequences =
         read_reference_sequences(reader, depth).map_err(ReadError::InvalidReferenceSequences)?;
 
-    let n_no_coor = read_unplaced_unmapped_record_count(reader)?;
+    let unplaced_unmapped_record_count = read_unplaced_unmapped_record_count(reader)?;
 
     let mut builder = Index::builder()
         .set_min_shift(min_shift)
@@ -90,8 +90,8 @@ where
         builder = builder.set_header(hdr);
     }
 
-    if let Some(n_no_coor) = n_no_coor {
-        builder = builder.set_unplaced_unmapped_record_count(n_no_coor);
+    if let Some(n) = unplaced_unmapped_record_count {
+        builder = builder.set_unplaced_unmapped_record_count(n);
     }
 
     Ok(builder.build())
