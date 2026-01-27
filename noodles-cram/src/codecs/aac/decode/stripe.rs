@@ -6,20 +6,15 @@ pub(super) fn decode(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
     let chunk_count = read_chunk_count(src)?;
 
     let compressed_sizes = read_compressed_sizes(src, chunk_count)?;
+    let uncompressed_sizes = build_uncompressed_sizes(len, chunk_count);
 
     let mut t = Vec::with_capacity(chunk_count);
 
-    for (j, clen) in compressed_sizes.iter().enumerate() {
-        let mut ulen = len / chunk_count;
-
-        if len % chunk_count > j {
-            ulen += 1;
-        }
-
-        let mut buf = vec![0; *clen];
+    for (compressed_size, uncompressed_size) in compressed_sizes.into_iter().zip(uncompressed_sizes)
+    {
+        let mut buf = vec![0; compressed_size];
         src.read_exact(&mut buf)?;
-        let chunk = super::decode(&buf, ulen)?;
-
+        let chunk = super::decode(&buf, uncompressed_size)?;
         t.push(chunk);
     }
 
@@ -32,6 +27,15 @@ fn read_chunk_count(src: &mut &[u8]) -> io::Result<usize> {
 
 fn read_compressed_sizes(src: &mut &[u8], chunk_count: usize) -> io::Result<Vec<usize>> {
     (0..chunk_count).map(|_| read_uint7_as(src)).collect()
+}
+
+fn build_uncompressed_sizes(len: usize, chunk_count: usize) -> Vec<usize> {
+    (0..chunk_count)
+        .map(|i| {
+            let (q, r) = (len / chunk_count, len % chunk_count);
+            if r > i { q + 1 } else { q }
+        })
+        .collect()
 }
 
 fn transpose<T>(chunks: &[T], uncompressed_size: usize) -> Vec<u8>
@@ -52,6 +56,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_build_uncompressed_sizes() {
+        assert_eq!(build_uncompressed_sizes(13, 3), [5, 4, 4]);
+    }
 
     #[test]
     fn test_transpose() {
