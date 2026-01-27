@@ -1,8 +1,44 @@
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
 
 use crate::variant::record::samples::keys::key;
 
-pub(super) fn write_keys<'a, W, I>(writer: &mut W, keys: I) -> io::Result<()>
+/// An error returns when record samples keys fail to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    // The genotype (GT) key is not first.
+    InvalidGenotypePosition(usize),
+    // A key is invalid.
+    InvalidKey(String),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidGenotypePosition(_) => None,
+            Self::InvalidKey(_) => None,
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidGenotypePosition(i) => {
+                write!(f, "invalid genotype (GT) position: expected 0, got {i}")
+            }
+            Self::InvalidKey(s) => write!(f, "invalid key: {s}"),
+        }
+    }
+}
+
+pub(super) fn write_keys<'a, W, I>(writer: &mut W, keys: I) -> Result<(), WriteError>
 where
     W: Write,
     I: Iterator<Item = io::Result<&'a str>>,
@@ -10,17 +46,14 @@ where
     const DELIMITER: &[u8] = b":";
 
     for (i, result) in keys.enumerate() {
-        let key = result?;
+        let key = result.map_err(WriteError::Io)?;
 
         if i > 0 {
             if key == key::GENOTYPE {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "GT must be first series",
-                ));
+                return Err(WriteError::InvalidGenotypePosition(i));
             }
 
-            writer.write_all(DELIMITER)?;
+            writer.write_all(DELIMITER).map_err(WriteError::Io)?;
         }
 
         write_key(writer, key)?;
@@ -29,17 +62,14 @@ where
     Ok(())
 }
 
-fn write_key<W>(writer: &mut W, key: &str) -> io::Result<()>
+fn write_key<W>(writer: &mut W, key: &str) -> Result<(), WriteError>
 where
     W: Write,
 {
     if is_valid(key) {
-        writer.write_all(key.as_bytes())
+        writer.write_all(key.as_bytes()).map_err(WriteError::Io)
     } else {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "invalid genotype field key",
-        ))
+        Err(WriteError::InvalidKey(key.into()))
     }
 }
 
@@ -64,7 +94,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_keys() -> io::Result<()> {
+    fn test_write_keys() -> Result<(), WriteError> {
         let mut buf = Vec::new();
 
         buf.clear();
@@ -86,7 +116,7 @@ mod tests {
         let keys = [Ok("GQ"), Ok("GT")];
         assert!(matches!(
             write_keys(&mut buf, keys.into_iter()),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            Err(WriteError::InvalidGenotypePosition(1))
         ));
 
         Ok(())

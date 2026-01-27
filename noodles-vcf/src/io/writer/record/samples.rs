@@ -13,7 +13,8 @@ where
 {
     const DELIMITER: &[u8] = b"\t";
 
-    write_keys(writer, samples.column_names(header))?;
+    write_keys(writer, samples.column_names(header))
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     for sample in samples.iter() {
         writer.write_all(DELIMITER)?;
