@@ -8,17 +8,17 @@ pub(super) fn decode(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
     let compressed_sizes = read_compressed_sizes(src, chunk_count)?;
     let uncompressed_sizes = build_uncompressed_sizes(len, chunk_count);
 
-    let mut t = Vec::with_capacity(chunk_count);
+    let chunks: Vec<_> = compressed_sizes
+        .into_iter()
+        .zip(uncompressed_sizes)
+        .map(|(compressed_size, uncompressed_size)| {
+            let mut buf = vec![0; compressed_size];
+            src.read_exact(&mut buf)?;
+            super::decode(&buf, uncompressed_size)
+        })
+        .collect::<io::Result<_>>()?;
 
-    for (compressed_size, uncompressed_size) in compressed_sizes.into_iter().zip(uncompressed_sizes)
-    {
-        let mut buf = vec![0; compressed_size];
-        src.read_exact(&mut buf)?;
-        let chunk = super::decode(&buf, uncompressed_size)?;
-        t.push(chunk);
-    }
-
-    Ok(transpose(&t, len))
+    Ok(transpose(&chunks, len))
 }
 
 fn read_chunk_count(src: &mut &[u8]) -> io::Result<usize> {
