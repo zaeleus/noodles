@@ -1,7 +1,4 @@
-use std::{
-    io::{self, Read},
-    num::NonZero,
-};
+use std::{io, num::NonZero};
 
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
@@ -15,9 +12,8 @@ pub(super) fn decode(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
         .into_iter()
         .zip(uncompressed_sizes)
         .map(|(compressed_size, uncompressed_size)| {
-            let mut buf = vec![0; compressed_size];
-            src.read_exact(&mut buf)?;
-            super::decode(&buf, uncompressed_size)
+            let buf = split_off(src, compressed_size)?;
+            super::decode(buf, uncompressed_size)
         })
         .collect::<io::Result<_>>()?;
 
@@ -59,6 +55,11 @@ where
     }
 
     dst
+}
+
+fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
+    src.split_off(..len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
 #[cfg(test)]
