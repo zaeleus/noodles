@@ -1,4 +1,7 @@
-use std::io::{self, Read};
+use std::{
+    io::{self, Read},
+    num::NonZero,
+};
 
 use crate::io::reader::num::{read_u8, read_uint7_as};
 
@@ -21,18 +24,23 @@ pub(super) fn decode(src: &mut &[u8], len: usize) -> io::Result<Vec<u8>> {
     Ok(transpose(&chunks, len))
 }
 
-fn read_chunk_count(src: &mut &[u8]) -> io::Result<usize> {
-    read_u8(src).map(usize::from)
+fn read_chunk_count(src: &mut &[u8]) -> io::Result<NonZero<usize>> {
+    read_u8(src).and_then(|n| {
+        NonZero::try_from(usize::from(n)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
-fn read_compressed_sizes(src: &mut &[u8], chunk_count: usize) -> io::Result<Vec<usize>> {
-    (0..chunk_count).map(|_| read_uint7_as(src)).collect()
+fn read_compressed_sizes(src: &mut &[u8], chunk_count: NonZero<usize>) -> io::Result<Vec<usize>> {
+    (0..chunk_count.get()).map(|_| read_uint7_as(src)).collect()
 }
 
-fn build_uncompressed_sizes(len: usize, chunk_count: usize) -> Vec<usize> {
-    (0..chunk_count)
+fn build_uncompressed_sizes(len: usize, chunk_count: NonZero<usize>) -> Vec<usize> {
+    let n = chunk_count.get();
+
+    (0..n)
         .map(|i| {
-            let (q, r) = (len / chunk_count, len % chunk_count);
+            // SAFETY: `n` > 0.
+            let (q, r) = (len / n, len % n);
             if r > i { q + 1 } else { q }
         })
         .collect()
@@ -59,7 +67,10 @@ mod tests {
 
     #[test]
     fn test_build_uncompressed_sizes() {
-        assert_eq!(build_uncompressed_sizes(13, 3), [5, 4, 4]);
+        assert_eq!(
+            build_uncompressed_sizes(13, const { NonZero::new(3).unwrap() }),
+            [5, 4, 4]
+        );
     }
 
     #[test]
