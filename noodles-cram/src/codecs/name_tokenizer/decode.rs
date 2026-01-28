@@ -1,5 +1,8 @@
+mod header;
+
 use std::io::{self, BufRead, Cursor, Read, Write};
 
+use self::header::read_header;
 use super::Type;
 use crate::{
     codecs::{aac, rans_nx16},
@@ -28,23 +31,6 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     }
 
     Ok(dst)
-}
-
-fn read_header<R>(reader: &mut R) -> io::Result<(usize, usize, bool)>
-where
-    R: Read,
-{
-    let ulen = read_u32_le(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let n_names = read_u32_le(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
-    let use_arith = read_u8(reader)? == 1;
-
-    Ok((ulen, n_names, use_arith))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
