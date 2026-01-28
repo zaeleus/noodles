@@ -2,7 +2,7 @@ mod header;
 
 use std::io::{self, BufRead, Cursor, Read, Write};
 
-use self::header::read_header;
+use self::header::{CompressionMethod, read_header};
 use super::Type;
 use crate::{
     codecs::{aac, rans_nx16},
@@ -15,9 +15,9 @@ use crate::{
 pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     const NUL: u8 = 0x00;
 
-    let (ulen, n_names, use_arith) = read_header(&mut src)?;
+    let (ulen, n_names, compression_method) = read_header(&mut src)?;
 
-    let mut b = decode_token_byte_streams(&mut src, use_arith, n_names)?;
+    let mut b = decode_token_byte_streams(&mut src, compression_method, n_names)?;
 
     let mut names = vec![Vec::new(); n_names];
     let mut tokens = vec![vec![None; 128]; n_names];
@@ -172,7 +172,7 @@ impl TokenReader {
 
 fn decode_token_byte_streams<R>(
     reader: &mut R,
-    use_arith: bool,
+    compression_method: CompressionMethod,
     n_names: usize,
 ) -> io::Result<Vec<TokenReader>>
 where
@@ -221,10 +221,9 @@ where
             let mut data = vec![0; clen];
             reader.read_exact(&mut data)?;
 
-            let buf = if use_arith {
-                aac::decode(&data, 0)?
-            } else {
-                rans_nx16::decode(&data, 0)?
+            let buf = match compression_method {
+                CompressionMethod::RansNx16 => rans_nx16::decode(&data, 0)?,
+                CompressionMethod::AdaptiveArithmeticCoder => aac::decode(&data, 0)?,
             };
 
             b[t as usize].set(ty, buf);
