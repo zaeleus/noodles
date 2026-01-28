@@ -6,6 +6,11 @@
 
   * bam: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
+  * bam/record/data/field/value/array: Return unexpected EOF for out-of-bounds
+    length.
+
+    This previously panicked when the length was about out-of-bounds.
+
 ## 0.85.0 - 2025-12-11
 
 ### Changed

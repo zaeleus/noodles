@@ -44,11 +44,8 @@ pub(crate) fn decode_raw_array<'a>(src: &mut &'a [u8], subtype: Subtype) -> io::
         Subtype::Float => n * mem::size_of::<f32>(),
     };
 
-    let (buf, rest) = src.split_at(len);
-
-    *src = rest;
-
-    Ok(buf)
+    src.split_off(..len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
 #[cfg(test)]
@@ -77,6 +74,16 @@ mod tests {
 
         let src = [b'f', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
         assert!(matches!(decode_array(&mut &src[..])?, Array::Float(_)));
+
+        let src = [
+            b'c', // subtype = i8
+            0x08, 0x00, 0x00, 0x00, // len = 8
+            0x00, // values = [0]
+        ];
+        assert!(matches!(
+            decode_array(&mut &src[..]),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
 
         Ok(())
     }
