@@ -178,12 +178,8 @@ fn decode_token_byte_streams(
     let mut b = Vec::new();
     let mut t = -1;
 
-    loop {
-        let ttype = match read_u8(src) {
-            Ok(n) => n,
-            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => break,
-            Err(e) => return Err(e),
-        };
+    while !src.is_empty() {
+        let ttype = read_u8(src)?;
 
         let tok_new = ttype & 0x80 != 0;
         let tok_dup = ttype & 0x40 != 0;
