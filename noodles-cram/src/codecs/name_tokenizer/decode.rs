@@ -15,14 +15,14 @@ use crate::{
 pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     const NUL: u8 = 0x00;
 
-    let (ulen, n_names, compression_method) = read_header(&mut src)?;
+    let (uncompressed_size, n_names, compression_method) = read_header(&mut src)?;
 
     let mut b = decode_token_byte_streams(&mut src, compression_method, n_names)?;
 
     let mut names = vec![Vec::new(); n_names];
     let mut tokens = vec![vec![None; 128]; n_names];
 
-    let mut dst = Vec::with_capacity(ulen);
+    let mut dst = Vec::with_capacity(uncompressed_size);
 
     for i in 0..n_names {
         let name = decode_single_name(&mut b, &mut names, &mut tokens, i)?;
