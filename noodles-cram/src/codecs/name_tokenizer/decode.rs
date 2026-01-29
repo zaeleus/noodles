@@ -1,6 +1,6 @@
 mod header;
 
-use std::io::{self, BufRead, Cursor, Read, Write};
+use std::io::{self, BufRead, Cursor, Write};
 
 use self::header::{CompressionMethod, read_header};
 use super::Type;
@@ -213,14 +213,12 @@ fn decode_token_byte_streams(
             let buf = b[dup_pos].get(dup_type).get_ref().clone();
             b[t as usize].set(ty, buf);
         } else {
-            let clen = read_uint7_as(src)?;
-
-            let mut data = vec![0; clen];
-            src.read_exact(&mut data)?;
+            let compressed_size = read_uint7_as(src)?;
+            let buf = split_off(src, compressed_size)?;
 
             let buf = match compression_method {
-                CompressionMethod::RansNx16 => rans_nx16::decode(&data, 0)?,
-                CompressionMethod::AdaptiveArithmeticCoder => aac::decode(&data, 0)?,
+                CompressionMethod::RansNx16 => rans_nx16::decode(buf, 0)?,
+                CompressionMethod::AdaptiveArithmeticCoder => aac::decode(buf, 0)?,
             };
 
             b[t as usize].set(ty, buf);
@@ -273,6 +271,11 @@ fn decode_single_name(
     }
 
     Ok(names[n].clone())
+}
+
+fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
+    src.split_off(..len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
 #[cfg(test)]
