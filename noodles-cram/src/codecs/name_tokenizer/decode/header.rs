@@ -9,18 +9,18 @@ pub(super) enum CompressionMethod {
 }
 
 pub(super) fn read_header(src: &mut &[u8]) -> io::Result<(usize, usize, CompressionMethod)> {
-    let ulen = read_uncompressed_size(src)?;
-
-    let n_names = read_u32_le(src).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
-
+    let uncompressed_size = read_uncompressed_size(src)?;
+    let name_count = read_name_count(src)?;
     let compression_method = read_compression_method(src)?;
-
-    Ok((ulen, n_names, compression_method))
+    Ok((uncompressed_size, name_count, compression_method))
 }
 
 fn read_uncompressed_size(src: &mut &[u8]) -> io::Result<usize> {
+    read_u32_le(src)
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+}
+
+fn read_name_count(src: &mut &[u8]) -> io::Result<usize> {
     read_u32_le(src)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
