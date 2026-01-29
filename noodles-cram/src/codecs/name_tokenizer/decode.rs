@@ -170,19 +170,16 @@ impl TokenReader {
     }
 }
 
-fn decode_token_byte_streams<R>(
-    reader: &mut R,
+fn decode_token_byte_streams(
+    src: &mut &[u8],
     compression_method: CompressionMethod,
     n_names: usize,
-) -> io::Result<Vec<TokenReader>>
-where
-    R: Read,
-{
+) -> io::Result<Vec<TokenReader>> {
     let mut b = Vec::new();
     let mut t = -1;
 
     loop {
-        let ttype = match read_u8(reader) {
+        let ttype = match read_u8(src) {
             Ok(n) => n,
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => break,
             Err(e) => return Err(e),
@@ -207,19 +204,19 @@ where
         }
 
         if tok_dup {
-            let dup_pos = read_u8(reader).map(usize::from)?;
+            let dup_pos = read_u8(src).map(usize::from)?;
 
-            let dup_type = read_u8(reader).and_then(|n| {
+            let dup_type = read_u8(src).and_then(|n| {
                 Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })?;
 
             let buf = b[dup_pos].get(dup_type).get_ref().clone();
             b[t as usize].set(ty, buf);
         } else {
-            let clen = read_uint7_as(reader)?;
+            let clen = read_uint7_as(src)?;
 
             let mut data = vec![0; clen];
-            reader.read_exact(&mut data)?;
+            src.read_exact(&mut data)?;
 
             let buf = match compression_method {
                 CompressionMethod::RansNx16 => rans_nx16::decode(&data, 0)?,
