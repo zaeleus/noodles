@@ -18,7 +18,9 @@ where
     W: Write,
 {
     match value {
-        Value::Integer(n) => write_integer(writer, *n),
+        Value::Integer(n) => {
+            write_integer(writer, *n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        }
         Value::Float(n) => write_float(writer, *n),
         Value::Character(c) => write_character(writer, *c),
         Value::String(s) => write_string(writer, s),
