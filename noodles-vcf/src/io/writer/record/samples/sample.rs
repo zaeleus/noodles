@@ -20,7 +20,8 @@ where
         }
 
         match value {
-            Some(v) => write_value(writer, header, &v)?,
+            Some(v) => write_value(writer, header, &v)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
             None => writer.write_all(MISSING)?,
         }
     }
