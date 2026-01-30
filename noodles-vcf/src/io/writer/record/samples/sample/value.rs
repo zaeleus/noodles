@@ -25,7 +25,9 @@ where
         Value::Character(c) => write_character(writer, *c),
         Value::String(s) => write_string(writer, s),
         Value::Genotype(genotype) => write_genotype(writer, header, genotype.as_ref()),
-        Value::Array(array) => write_array(writer, array),
+        Value::Array(array) => {
+            write_array(writer, array).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        }
     }
 }
 
