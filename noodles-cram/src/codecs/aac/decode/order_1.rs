@@ -9,11 +9,11 @@ pub(super) fn decode(src: &mut &[u8], dst: &mut Vec<u8>) -> io::Result<()> {
 
     let mut range_coder = RangeCoder::new(src)?;
 
-    let mut last = 0;
+    let mut prev_sym = 0;
 
-    for b in dst {
-        *b = models[last].decode(src, &mut range_coder)?;
-        last = usize::from(*b);
+    for d in dst {
+        *d = models[usize::from(prev_sym)].decode(src, &mut range_coder)?;
+        prev_sym = *d;
     }
 
     Ok(())
