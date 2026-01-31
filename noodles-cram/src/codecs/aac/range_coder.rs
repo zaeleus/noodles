@@ -8,7 +8,7 @@ pub struct RangeCoder {
     code: u32,
 
     low: u32,
-    carry: u32,
+    carry: bool,
     cache: u32,
     ff_num: u32,
 }
@@ -61,7 +61,7 @@ impl RangeCoder {
         self.range *= sym_freq;
 
         if self.low < old_low {
-            self.carry = 1;
+            self.carry = true;
         }
 
         while self.range < (1 << 24) {
@@ -76,8 +76,8 @@ impl RangeCoder {
     where
         W: Write,
     {
-        if self.low < 0xff000000 || self.carry != 0 {
-            if self.carry == 0 {
+        if self.low < 0xff000000 || self.carry {
+            if !self.carry {
                 let b = (self.cache & 0xff) as u8;
                 write_u8(writer, b)?;
 
@@ -96,7 +96,7 @@ impl RangeCoder {
             }
 
             self.cache = self.low >> 24;
-            self.carry = 0;
+            self.carry = false;
         } else {
             self.ff_num += 1;
         }
@@ -125,7 +125,7 @@ impl Default for RangeCoder {
             code: 0,
 
             low: 0,
-            carry: 0,
+            carry: false,
             cache: 0,
             ff_num: 0,
         }
