@@ -61,3 +61,47 @@ where
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::variant::{
+        record::samples::keys::key,
+        record_buf::samples::{Sample as SampleBuf, sample::Value},
+    };
+
+    #[test]
+    fn test_write_sample() -> Result<(), WriteError> {
+        fn t(
+            buf: &mut Vec<u8>,
+            header: &Header,
+            sample: SampleBuf,
+            expected: &[u8],
+        ) -> Result<(), WriteError> {
+            buf.clear();
+            write_sample(buf, header, sample)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let header = Header::default();
+        let mut buf = Vec::new();
+
+        let keys = [String::from(key::GENOTYPE)].into_iter().collect();
+        let values = [Some(Value::from("0|0"))];
+        let sample = SampleBuf::new(&keys, &values);
+        t(&mut buf, &header, sample, b"0|0")?;
+
+        let keys = [
+            String::from(key::GENOTYPE),
+            String::from(key::CONDITIONAL_GENOTYPE_QUALITY),
+        ]
+        .into_iter()
+        .collect();
+        let values = [Some(Value::from("0|0")), Some(Value::from(8))];
+        let sample = SampleBuf::new(&keys, &values);
+        t(&mut buf, &header, sample, b"0|0:8")?;
+
+        Ok(())
+    }
+}
