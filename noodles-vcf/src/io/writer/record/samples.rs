@@ -18,7 +18,8 @@ where
 
     for sample in samples.iter() {
         writer.write_all(DELIMITER)?;
-        write_sample(writer, header, sample)?;
+        write_sample(writer, header, sample)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     }
 
     Ok(())
