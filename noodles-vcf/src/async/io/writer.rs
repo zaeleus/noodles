@@ -8,6 +8,7 @@ use crate::{Header, Record, variant::io::Write};
 /// dropped.
 pub struct Writer<W> {
     inner: W,
+    buf: Vec<u8>,
 }
 
 impl<W> Writer<W>
@@ -23,7 +24,10 @@ where
     /// let writer = vcf::r#async::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: Vec::new(),
+        }
     }
 
     /// Returns a reference to the underlying writer.
@@ -103,9 +107,10 @@ where
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &Header) -> io::Result<()> {
-        let mut writer = crate::io::Writer::new(Vec::new());
+        self.buf.clear();
+        let mut writer = crate::io::Writer::new(&mut self.buf);
         writer.write_header(header)?;
-        self.inner.write_all(writer.get_ref()).await
+        self.inner.write_all(&self.buf).await
     }
 
     /// Writes a VCF record.
@@ -127,9 +132,10 @@ where
     /// # }
     /// ```
     pub async fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {
-        let mut writer = crate::io::Writer::new(Vec::new());
+        self.buf.clear();
+        let mut writer = crate::io::Writer::new(&mut self.buf);
         writer.write_record(header, record)?;
-        self.inner.write_all(writer.get_ref()).await?;
+        self.inner.write_all(&self.buf).await?;
         Ok(())
     }
 
