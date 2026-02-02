@@ -37,11 +37,11 @@ mod tests {
         fn t(
             buf: &mut Vec<u8>,
             header: &Header,
-            genotypes: &SamplesBuf,
+            samples: &SamplesBuf,
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
-            write_samples(buf, header, genotypes)?;
+            write_samples(buf, header, samples)?;
             assert_eq!(buf, expected);
             Ok(())
         }
