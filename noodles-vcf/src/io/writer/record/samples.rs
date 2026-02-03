@@ -49,16 +49,22 @@ where
     W: Write,
     S: Samples,
 {
-    const DELIMITER: &[u8] = b"\t";
-
     write_keys(writer, samples.column_names(header)).map_err(WriteError::InvalidKeys)?;
 
     for sample in samples.iter() {
-        writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+        write_separator(writer)?;
         write_sample(writer, header, sample).map_err(WriteError::InvalidSample)?;
     }
 
     Ok(())
+}
+
+fn write_separator<W>(writer: &mut W) -> Result<(), WriteError>
+where
+    W: Write,
+{
+    const SEPARATOR: &[u8] = b"\t";
+    writer.write_all(SEPARATOR).map_err(WriteError::Io)
 }
 
 #[cfg(test)]
