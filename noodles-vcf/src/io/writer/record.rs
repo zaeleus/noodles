@@ -40,6 +40,8 @@ pub enum WriteError {
     InvalidFilters(filters::WriteError),
     // The info fields are invalid.
     InvalidInfo(info::WriteError),
+    // The samples are invalid.
+    InvalidSamples(samples::WriteError),
 }
 
 impl error::Error for WriteError {
@@ -52,6 +54,7 @@ impl error::Error for WriteError {
             Self::InvalidAlternateBases(e) => Some(e),
             Self::InvalidFilters(e) => Some(e),
             Self::InvalidInfo(e) => Some(e),
+            Self::InvalidSamples(e) => Some(e),
         }
     }
 }
@@ -66,6 +69,7 @@ impl fmt::Display for WriteError {
             Self::InvalidAlternateBases(_) => write!(f, "invalid alternate bases"),
             Self::InvalidFilters(_) => write!(f, "invalid filters"),
             Self::InvalidInfo(_) => write!(f, "invalid info"),
+            Self::InvalidSamples(_) => write!(f, "invalid samples"),
         }
     }
 }
@@ -115,7 +119,7 @@ where
 
     if !samples.is_empty() {
         write_separator(writer)?;
-        write_samples(writer, header, samples).map_err(WriteError::Io)?;
+        write_samples(writer, header, samples).map_err(WriteError::InvalidSamples)?;
     }
 
     writer.write_all(b"\n").map_err(WriteError::Io)?;

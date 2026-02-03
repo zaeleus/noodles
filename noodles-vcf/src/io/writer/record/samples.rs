@@ -1,25 +1,61 @@
 mod keys;
 mod sample;
 
-use std::io::{self, Write};
+use std::{
+    error, fmt,
+    io::{self, Write},
+};
 
 use self::{keys::write_keys, sample::write_sample};
 use crate::{Header, variant::record::Samples};
 
-pub(super) fn write_samples<W, S>(writer: &mut W, header: &Header, samples: S) -> io::Result<()>
+/// An error returns when samples fail to write.
+#[derive(Debug)]
+pub enum WriteError {
+    // I/O error.
+    Io(io::Error),
+    /// The keys are invalid.
+    InvalidKeys(keys::WriteError),
+    /// A sample is invalid.
+    InvalidSample(sample::WriteError),
+}
+
+impl error::Error for WriteError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidKeys(e) => Some(e),
+            Self::InvalidSample(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for WriteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidKeys(_) => write!(f, "invalid keys"),
+            Self::InvalidSample(_) => write!(f, "invalid sample"),
+        }
+    }
+}
+
+pub(super) fn write_samples<W, S>(
+    writer: &mut W,
+    header: &Header,
+    samples: S,
+) -> Result<(), WriteError>
 where
     W: Write,
     S: Samples,
 {
     const DELIMITER: &[u8] = b"\t";
 
-    write_keys(writer, samples.column_names(header))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_keys(writer, samples.column_names(header)).map_err(WriteError::InvalidKeys)?;
 
     for sample in samples.iter() {
-        writer.write_all(DELIMITER)?;
-        write_sample(writer, header, sample)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        writer.write_all(DELIMITER).map_err(WriteError::Io)?;
+        write_sample(writer, header, sample).map_err(WriteError::InvalidSample)?;
     }
 
     Ok(())
@@ -31,7 +67,7 @@ mod tests {
     use crate::variant::record_buf::Samples as SamplesBuf;
 
     #[test]
-    fn test_write_samples() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_samples() -> Result<(), WriteError> {
         use crate::variant::{record::samples::keys::key, record_buf::samples::sample::Value};
 
         fn t(
@@ -39,7 +75,7 @@ mod tests {
             header: &Header,
             samples: &SamplesBuf,
             expected: &[u8],
-        ) -> io::Result<()> {
+        ) -> Result<(), WriteError> {
             buf.clear();
             write_samples(buf, header, samples)?;
             assert_eq!(buf, expected);
