@@ -11,9 +11,9 @@ use crate::{Header, io::writer::record::MISSING, variant::record::samples::Sampl
 /// An error returns when a record sample fail to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
-    // A value is invalid.
+    /// A value is invalid.
     InvalidValue(value::WriteError),
 }
 

@@ -9,7 +9,7 @@ use crate::{Header, variant::record::Filters};
 /// An error returns when filters fail to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// A filter is invalid.
     InvalidFilter(String),

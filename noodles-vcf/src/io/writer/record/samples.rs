@@ -12,7 +12,7 @@ use crate::{Header, variant::record::Samples};
 /// An error returns when samples fail to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// The keys are invalid.
     InvalidKeys(keys::WriteError),

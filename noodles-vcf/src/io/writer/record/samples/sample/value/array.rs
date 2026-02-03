@@ -9,7 +9,7 @@ use crate::{io::writer::record::MISSING, variant::record::samples::series::value
 /// An error returns when a sample array value fails to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// An integer is invalid.
     InvalidInteger(super::integer::WriteError),

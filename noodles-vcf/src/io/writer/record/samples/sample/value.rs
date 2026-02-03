@@ -19,7 +19,7 @@ use crate::{Header, variant::record::samples::series::Value};
 /// An error returns when a sample value fails to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// The integer is invalid.
     InvalidInteger(integer::WriteError),

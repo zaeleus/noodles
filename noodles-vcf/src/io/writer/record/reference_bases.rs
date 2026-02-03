@@ -8,7 +8,7 @@ use crate::variant::record::ReferenceBases;
 /// An error returns when reference bases fail to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// A reference base is invalid.
     InvalidReferenceBase(u8),

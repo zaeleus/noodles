@@ -9,7 +9,7 @@ use crate::variant::record::AlternateBases;
 /// An error returns when alternate bases fail to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// An alternate base(s) is invalid.
     InvalidAlternateBases(String),

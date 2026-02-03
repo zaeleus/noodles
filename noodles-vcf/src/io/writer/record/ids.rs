@@ -9,7 +9,7 @@ use crate::variant::record::Ids;
 /// An error returns when IDs fails to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// An ID is invalid.
     InvalidId(String),

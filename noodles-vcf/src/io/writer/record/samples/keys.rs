@@ -8,11 +8,11 @@ use crate::variant::record::samples::keys::key;
 /// An error returns when record samples keys fail to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
-    // The genotype (GT) key is not first.
+    /// The genotype (GT) key is not first.
     InvalidGenotypePosition(usize),
-    // A key is invalid.
+    /// A key is invalid.
     InvalidKey(String),
 }
 

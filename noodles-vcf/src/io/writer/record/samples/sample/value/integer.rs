@@ -6,7 +6,7 @@ use std::{
 /// An error returns when a sample integer value fails to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// The input is invalid.
     Invalid(i32),

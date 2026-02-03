@@ -6,7 +6,7 @@ use std::{
 /// An error returns when a reference sequence name fails to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// The reference sequence name is invalid.
     InvalidReferenceSequenceName(String),

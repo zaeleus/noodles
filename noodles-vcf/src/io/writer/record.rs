@@ -26,21 +26,21 @@ const MISSING: &[u8] = b".";
 /// An error returns when a record fails to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
-    // The reference sequence name is invalid.
+    /// The reference sequence name is invalid.
     InvalidReferenceSequenceName(reference_sequence_name::WriteError),
-    // The IDs are invalid.
+    /// The IDs are invalid.
     InvalidIds(ids::WriteError),
-    // The reference bases are invalid.
+    /// The reference bases are invalid.
     InvalidReferenceBases(reference_bases::WriteError),
-    // The alternate bases are invalid.
+    /// The alternate bases are invalid.
     InvalidAlternateBases(alternate_bases::WriteError),
-    // The filters are invalid.
+    /// The filters are invalid.
     InvalidFilters(filters::WriteError),
-    // The info fields are invalid.
+    /// The info fields are invalid.
     InvalidInfo(info::WriteError),
-    // The samples are invalid.
+    /// The samples are invalid.
     InvalidSamples(samples::WriteError),
 }
 
