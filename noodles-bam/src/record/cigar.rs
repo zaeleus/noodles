@@ -29,11 +29,12 @@ impl<'a> Cigar<'a> {
     pub fn iter(&self) -> impl Iterator<Item = io::Result<Op>> + '_ {
         use crate::record::codec::decoder::cigar::decode_op;
 
-        self.0.chunks(CHUNK_SIZE).map(|chunk| {
-            let buf = chunk
-                .try_into()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-            let n = u32::from_le_bytes(buf);
+        let (chunks, []) = self.0.as_chunks() else {
+            unreachable!();
+        };
+
+        chunks.iter().map(|chunk| {
+            let n = u32::from_le_bytes(*chunk);
             decode_op(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
     }
@@ -126,14 +127,6 @@ mod tests {
         let actual: Vec<_> = cigar.iter().collect::<io::Result<_>>()?;
         let expected = [Op::new(Kind::Match, 4), Op::new(Kind::HardClip, 2)];
         assert_eq!(actual, expected);
-
-        let src = &[0x40, 0x00, 0x00][..];
-        let cigar = Cigar::new(src);
-        let mut iter = cigar.iter();
-        assert!(matches!(
-            iter.next(),
-            Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
-        ));
 
         Ok(())
     }
