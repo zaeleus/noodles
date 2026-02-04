@@ -16,14 +16,9 @@ pub(super) fn read_reference_sequences<R>(
 where
     R: Read,
 {
-    let mut reference_sequences = Vec::with_capacity(reference_sequence_count);
-
-    for _ in 0..reference_sequence_count {
-        let reference_sequence = read_reference_sequence(reader)?;
-        reference_sequences.push(reference_sequence);
-    }
-
-    Ok(reference_sequences)
+    (0..reference_sequence_count)
+        .map(|_| read_reference_sequence(reader))
+        .collect()
 }
 
 fn read_reference_sequence<R>(reader: &mut R) -> io::Result<ReferenceSequence<LinearIndex>>
