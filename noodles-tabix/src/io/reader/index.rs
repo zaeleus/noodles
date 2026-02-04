@@ -58,13 +58,11 @@ mod tests {
 
     #[test]
     fn test_read_unplaced_unmapped_record_count() -> io::Result<()> {
-        let data = [];
-        let mut reader = &data[..];
-        assert_eq!(read_unplaced_unmapped_record_count(&mut reader)?, None);
+        let src = [];
+        assert_eq!(read_unplaced_unmapped_record_count(&mut &src[..])?, None);
 
-        let data = [0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
-        let mut reader = &data[..];
-        assert_eq!(read_unplaced_unmapped_record_count(&mut reader)?, Some(8));
+        let src = [0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+        assert_eq!(read_unplaced_unmapped_record_count(&mut &src[..])?, Some(8));
 
         Ok(())
     }
