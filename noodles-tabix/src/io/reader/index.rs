@@ -15,9 +15,7 @@ where
 
     read_magic_number(reader)?;
 
-    let reference_sequence_count = read_i32_le(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let reference_sequence_count = read_reference_sequence_count(reader)?;
 
     let header = read_header(reader).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
@@ -33,6 +31,14 @@ where
     }
 
     Ok(builder.build())
+}
+
+fn read_reference_sequence_count<R>(reader: &mut R) -> io::Result<usize>
+where
+    R: Read,
+{
+    read_i32_le(reader)
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
 fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> io::Result<Option<u64>>
