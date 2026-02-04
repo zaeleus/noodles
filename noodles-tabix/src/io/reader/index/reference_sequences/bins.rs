@@ -15,14 +15,12 @@ where
 
     const METADATA_ID: usize = Bin::metadata_id(DEPTH);
 
-    let n_bin = read_i32_le(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let bin_count = read_bin_count(reader)?;
 
-    let mut bins = IndexMap::with_capacity(n_bin);
+    let mut bins = IndexMap::with_capacity(bin_count);
     let mut metadata = None;
 
-    for _ in 0..n_bin {
+    for _ in 0..bin_count {
         let id = read_u32_le(reader).and_then(|n| {
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })?;
@@ -50,6 +48,14 @@ where
     }
 
     Ok((bins, metadata))
+}
+
+fn read_bin_count<R>(reader: &mut R) -> io::Result<usize>
+where
+    R: Read,
+{
+    read_i32_le(reader)
+        .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
 #[cfg(test)]
