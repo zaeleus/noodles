@@ -73,17 +73,15 @@ pub(super) fn read_bins<R>(
 where
     R: Read,
 {
-    let n_bin = read_i32_le(reader)
-        .map_err(ReadError::Io)
-        .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidBinCount))?;
+    let bin_count = read_bin_count(reader)?;
 
-    let mut bins = IndexMap::with_capacity(n_bin);
-    let mut index = BinnedIndex::with_capacity(n_bin);
+    let mut bins = IndexMap::with_capacity(bin_count);
+    let mut index = BinnedIndex::with_capacity(bin_count);
 
     let metadata_id = Bin::metadata_id(depth);
     let mut metadata = None;
 
-    for _ in 0..n_bin {
+    for _ in 0..bin_count {
         let id = read_u32_le(reader)
             .map_err(ReadError::Io)
             .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidBinId))?;
@@ -109,6 +107,14 @@ where
     }
 
     Ok((bins, index, metadata))
+}
+
+fn read_bin_count<R>(reader: &mut R) -> Result<usize, ReadError>
+where
+    R: Read,
+{
+    let n = read_i32_le(reader)?;
+    usize::try_from(n).map_err(ReadError::InvalidBinCount)
 }
 
 #[cfg(test)]
