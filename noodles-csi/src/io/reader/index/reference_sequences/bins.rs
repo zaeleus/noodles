@@ -88,21 +88,19 @@ where
 
         let loffset = read_u64_le(reader).map(bgzf::VirtualPosition::from)?;
 
-        if id == metadata_id {
+        let is_duplicate = if id == metadata_id {
             let m = read_metadata(reader).map_err(ReadError::InvalidMetadata)?;
-
-            if metadata.replace(m).is_some() {
-                return Err(ReadError::DuplicateBin(id));
-            }
+            metadata.replace(m).is_some()
         } else {
+            index.insert(id, loffset);
+
             let chunks = read_chunks(reader).map_err(ReadError::InvalidChunks)?;
             let bin = Bin::new(chunks);
+            bins.insert(id, bin).is_some()
+        };
 
-            if bins.insert(id, bin).is_some() {
-                return Err(ReadError::DuplicateBin(id));
-            }
-
-            index.insert(id, loffset);
+        if is_duplicate {
+            return Err(ReadError::DuplicateBin(id));
         }
     }
 
