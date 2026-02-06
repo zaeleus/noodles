@@ -71,13 +71,8 @@ where
 }
 
 fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
-    let (buf, rest) = src
-        .split_at_checked(len)
-        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
-
-    *src = rest;
-
-    Ok(buf)
+    src.split_off(..len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
 #[cfg(test)]
