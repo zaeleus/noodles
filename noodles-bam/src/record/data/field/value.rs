@@ -26,13 +26,9 @@ pub(crate) fn decode_value<'a>(src: &mut &'a [u8], ty: Type) -> io::Result<Value
 }
 
 fn read_u8(src: &mut &[u8]) -> io::Result<u8> {
-    let Some((n, rest)) = src.split_first() else {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    };
-
-    *src = rest;
-
-    Ok(*n)
+    src.split_off_first()
+        .copied()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
 fn read_u16_le(src: &mut &[u8]) -> io::Result<u16> {
