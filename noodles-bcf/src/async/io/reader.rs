@@ -167,8 +167,7 @@ where
         read_record(&mut self.inner, record).await
     }
 
-    /// Returns an (async) stream over lazy records starting from the current (input) stream
-    /// position.
+    /// Returns an (async) stream over records starting from the current (input) stream position.
     ///
     /// The (input) stream is expected to be directly after the header or at the start of another
     /// record.

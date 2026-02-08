@@ -214,7 +214,7 @@ where
         RecordBufs::new(self, header)
     }
 
-    /// Returns an iterator over lazy records starting from the current stream position.
+    /// Returns an iterator over records starting from the current stream position.
     ///
     /// The stream is expected to be directly after the header or at the start of another record.
     ///

@@ -66,7 +66,7 @@ where
         self.inner.record_bufs(header)
     }
 
-    /// Returns an iterator over lazy records starting from the current stream position.
+    /// Returns an iterator over records starting from the current stream position.
     pub fn records(&mut self) -> impl Iterator<Item = io::Result<Record>> {
         self.inner.records()
     }
