@@ -366,9 +366,6 @@ where
 {
     /// Returns a stream over records that intersects the given region.
     ///
-    /// The position of the (input) stream is expected to after the header or at the start of
-    /// another record.
-    ///
     /// # Examples
     ///
     /// ```no_run
