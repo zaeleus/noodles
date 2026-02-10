@@ -28,7 +28,10 @@ where
     write_tag(dst, Tag::CIGAR);
     write_type(dst, Type::Array);
     value::array::write_header(dst, Subtype::UInt32, cigar.len())?;
-    crate::record::codec::encoder::write_cigar(dst, cigar)?;
+
+    crate::record::codec::encoder::write_cigar(dst, cigar)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
     Ok(())
 }
 

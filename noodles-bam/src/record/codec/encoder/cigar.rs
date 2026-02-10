@@ -1,6 +1,6 @@
 mod op;
 
-use std::io;
+use std::{error, fmt, io};
 
 use noodles_sam::{
     self as sam,
@@ -12,6 +12,30 @@ use noodles_sam::{
 
 use self::op::encode_op;
 use super::num::{write_u16_le, write_u32_le};
+
+#[derive(Debug)]
+pub enum EncodeError {
+    Io(io::Error),
+    InvalidOp(op::EncodeError),
+}
+
+impl error::Error for EncodeError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self {
+            Self::Io(e) => Some(e),
+            Self::InvalidOp(e) => Some(e),
+        }
+    }
+}
+
+impl fmt::Display for EncodeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Io(_) => write!(f, "I/O error"),
+            Self::InvalidOp(_) => write!(f, "invalid op"),
+        }
+    }
+}
 
 // § 4.2.2 "N_CIGAR_OP field" (2023-11-16): "For an alignment with more [than 65535] CIGAR
 // operations, BAM [...] sets `CIGAR` to `kSmN` as a placeholder, where `k` equals `l_seq`, `m` is
@@ -43,13 +67,13 @@ where
     }
 }
 
-pub(super) fn write_cigar<C>(dst: &mut Vec<u8>, cigar: &C) -> io::Result<()>
+pub(super) fn write_cigar<C>(dst: &mut Vec<u8>, cigar: &C) -> Result<(), EncodeError>
 where
     C: Cigar,
 {
     for result in cigar.iter() {
-        let op = result?;
-        let n = encode_op(op).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        let op = result.map_err(EncodeError::Io)?;
+        let n = encode_op(op).map_err(EncodeError::InvalidOp)?;
         write_u32_le(dst, n);
     }
 
@@ -93,8 +117,8 @@ mod tests {
     }
 
     #[test]
-    fn test_write_cigar() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(buf: &mut Vec<u8>, cigar: &CigarBuf, expected: &[u8]) -> io::Result<()> {
+    fn test_write_cigar() -> Result<(), EncodeError> {
+        fn t(buf: &mut Vec<u8>, cigar: &CigarBuf, expected: &[u8]) -> Result<(), EncodeError> {
             buf.clear();
             write_cigar(buf, cigar)?;
             assert_eq!(buf, expected);

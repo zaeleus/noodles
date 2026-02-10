@@ -126,9 +126,10 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
     if let Some(cigar) = &cigar {
-        write_cigar(dst, cigar)?;
+        write_cigar(dst, cigar).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     } else {
-        write_cigar(dst, &record.cigar())?;
+        write_cigar(dst, &record.cigar())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     }
 
     let sequence = record.sequence();
