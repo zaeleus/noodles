@@ -44,6 +44,6 @@ pub fn write<P>(dst: P, index: &[Record]) -> std::io::Result<()>
 where
     P: AsRef<Path>,
 {
-    let mut writer = File::open(dst).map(Writer::new)?;
+    let mut writer = File::create(dst).map(Writer::new)?;
     writer.write_index(index)
 }
