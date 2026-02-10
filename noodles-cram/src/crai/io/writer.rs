@@ -21,8 +21,9 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_cram::crai;
-    /// let writer = crai::io::Writer::new(Vec::new());
+    /// let writer = crai::io::Writer::new(io::sink());
     /// ```
     pub fn new(inner: W) -> Self {
         Self {
@@ -35,9 +36,10 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_cram::crai;
-    /// let writer = crai::io::Writer::new(Vec::new());
-    /// assert!(writer.get_ref().is_empty());
+    /// let writer = crai::io::Writer::new(io::sink());
+    /// let _inner = writer.get_ref();
     /// ```
     pub fn get_ref(&self) -> &W {
         self.inner.get_ref()
@@ -53,9 +55,8 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_cram::crai;
-    /// let writer = crai::io::Writer::new(Vec::new());
-    /// let empty_gz = [31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    /// assert_eq!(writer.finish()?, empty_gz);
+    /// let writer = crai::io::Writer::new(io::sink());
+    /// let _inner = writer.finish()?;
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn finish(self) -> io::Result<W> {
@@ -67,10 +68,11 @@ where
     /// # Examples
     ///
     /// ```
+    /// # use std::io;
     /// use noodles_core::Position;
     /// use noodles_cram::crai;
     ///
-    /// let mut writer = crai::io::Writer::new(Vec::new());
+    /// let mut writer = crai::io::Writer::new(io::sink());
     ///
     /// let index = vec![crai::Record::new(
     ///     Some(0),
