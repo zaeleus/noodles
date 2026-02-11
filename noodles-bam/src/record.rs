@@ -28,6 +28,22 @@ impl Record {
         &mut self.0
     }
 
+    /// Consumes the record, returning the raw BAM record bytes.
+    ///
+    /// The returned bytes contain the BAM record data without the leading 4-byte block size.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    /// let record = bam::Record::default();
+    /// let raw_bytes: Vec<u8> = record.into_inner();
+    /// assert!(!raw_bytes.is_empty());
+    /// ```
+    pub fn into_inner(self) -> Vec<u8> {
+        self.0.buf
+    }
+
     /// Returns the reference sequence ID.
     ///
     /// # Examples
@@ -213,6 +229,35 @@ impl fmt::Debug for Record {
             .field("quality_scores", &self.quality_scores())
             .field("data", &self.data())
             .finish()
+    }
+}
+
+impl AsRef<[u8]> for Record {
+    fn as_ref(&self) -> &[u8] {
+        &self.0.buf
+    }
+}
+
+impl TryFrom<Vec<u8>> for Record {
+    type Error = io::Error;
+
+    /// Creates a BAM record from raw bytes.
+    ///
+    /// The input bytes should contain the BAM record data without the leading 4-byte block size.
+    /// The buffer is validated and indexed upon construction.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam as bam;
+    ///
+    /// let record = bam::Record::default();
+    /// let raw = record.into_inner();
+    /// let record = bam::Record::try_from(raw)?;
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    fn try_from(buf: Vec<u8>) -> Result<Self, Self::Error> {
+        Fields::try_from(buf).map(Self)
     }
 }
 
