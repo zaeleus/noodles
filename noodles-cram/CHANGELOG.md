@@ -6,6 +6,12 @@
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
+### Fixed
+
+  * cram/crai/fs: Fix creating destination ([#372]).
+
+[#372]: https://github.com/zaeleus/noodles/pull/372
+
 ## 0.88.0 - 2025-12-11
 
 ### Changed
