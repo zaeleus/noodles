@@ -54,13 +54,20 @@ pub(super) fn read_reference_sequences<R>(
 where
     R: Read,
 {
-    let n_ref = read_i32_le(reader)
-        .map_err(ReadError::Io)
-        .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidReferenceSequenceCount))?;
+    let reference_sequence_count = read_reference_sequence_count(reader)?;
 
-    (0..n_ref)
+    (0..reference_sequence_count)
         .map(|_| read_reference_sequence(reader, depth))
         .collect()
+}
+
+fn read_reference_sequence_count<R>(reader: &mut R) -> Result<usize, ReadError>
+where
+    R: Read,
+{
+    read_i32_le(reader)
+        .map_err(ReadError::Io)
+        .and_then(|n| usize::try_from(n).map_err(ReadError::InvalidReferenceSequenceCount))
 }
 
 fn read_reference_sequence<R>(
