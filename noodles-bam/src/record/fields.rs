@@ -44,6 +44,13 @@ impl Fields {
         u16::from_le_bytes(src.try_into().unwrap())
     }
 
+    fn read_length(&self) -> usize {
+        let src = &self.buf[bounds::READ_LENGTH_RANGE];
+        // SAFETY: `src` is 4 bytes.
+        let n = u32::from_le_bytes(src.try_into().unwrap());
+        usize::try_from(n).unwrap()
+    }
+
     pub(super) fn mate_reference_sequence_id(&self) -> Option<i32> {
         let src = &self.buf[bounds::MATE_REFERENCE_SEQUENCE_ID_RANGE];
         // SAFETY: `src` is 4 bytes.
@@ -104,12 +111,7 @@ impl Fields {
 
     pub(super) fn sequence(&self) -> Sequence<'_> {
         let src = &self.buf[self.bounds.sequence_range()];
-
-        let buf = &self.buf[bounds::READ_LENGTH_RANGE];
-        // SAFETY: `buf.len() == 4`.
-        let n = u32::from_le_bytes(buf.try_into().unwrap());
-        let base_count = usize::try_from(n).unwrap();
-
+        let base_count = self.read_length();
         Sequence::new(src, base_count)
     }
 
