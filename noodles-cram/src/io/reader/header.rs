@@ -240,8 +240,8 @@ mod tests {
         let mut reader = &src[..];
         let actual = read_file_definition(&mut reader)?;
 
-        let file_id = <[u8; 20]>::try_from(&src[6..])?;
-        let expected = FileDefinition::new(Version::new(3, 0), file_id);
+        let (_, file_id) = src.split_last_chunk().unwrap();
+        let expected = FileDefinition::new(Version::new(3, 0), *file_id);
 
         assert_eq!(actual, expected);
 
