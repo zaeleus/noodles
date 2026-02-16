@@ -46,8 +46,9 @@ where
         buf: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
         let this = self.project();
+        let prev_filled = buf.filled().len();
         ready!(this.inner.poll_read(cx, buf))?;
-        this.crc.update(buf.filled());
+        this.crc.update(&buf.filled()[prev_filled..]);
         Poll::Ready(Ok(()))
     }
 }

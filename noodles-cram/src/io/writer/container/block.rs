@@ -12,7 +12,8 @@ use self::{compression_method::write_compression_method, content_type::write_con
 use crate::{
     codecs::Encoder,
     container::block::{CompressionMethod, ContentId, ContentType},
-    io::writer::num::{write_itf8, write_u32_le},
+    file_definition::Version,
+    io::writer::num::{int_size_of, write_int, write_u32_le},
 };
 
 pub struct Block {
@@ -60,7 +61,12 @@ impl Block {
                 CompressionMethod::NameTokenizer,
                 name_tokenizer::encode(src)?,
             ),
-            Some(Encoder::Fqzcomp) => unimplemented!(),
+            Some(Encoder::Fqzcomp) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::Unsupported,
+                    "fqzcomp requires record lengths; use the slice-level encoder instead",
+                ));
+            }
         };
 
         Ok(Self {
@@ -72,73 +78,66 @@ impl Block {
         })
     }
 
-    pub fn size(&self) -> io::Result<usize> {
+    pub fn size(&self, version: Version) -> io::Result<usize> {
         let compressed_size = i32::try_from(self.src.len())
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let uncompressed_size = i32::try_from(self.uncompressed_size)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        Ok(
-            mem::size_of::<u8>() // method
-                + mem::size_of::<u8>() // block content type ID
-                + itf8_size_of(self.content_id)
-                + itf8_size_of(compressed_size)
-                + itf8_size_of(uncompressed_size)
-                + self.src.len()
-                + mem::size_of::<u32>(), // CRC32
-        )
+        let mut size = mem::size_of::<u8>() // method
+            + mem::size_of::<u8>() // block content type ID
+            + int_size_of(version, self.content_id)
+            + int_size_of(version, compressed_size)
+            + int_size_of(version, uncompressed_size)
+            + self.src.len();
+
+        if version.has_crc32() {
+            size += mem::size_of::<u32>();
+        }
+
+        Ok(size)
     }
 }
 
-pub fn write_block<W>(writer: &mut W, block: &Block) -> io::Result<()>
+pub fn write_block<W>(writer: &mut W, block: &Block, version: Version) -> io::Result<()>
 where
     W: Write,
 {
-    let mut crc_writer = CrcWriter::new(writer);
-    write_block_inner(&mut crc_writer, block)
+    if version.has_crc32() {
+        let mut crc_writer = CrcWriter::new(writer);
+        write_block_body(&mut crc_writer, block, version)?;
+        let crc32 = crc_writer.crc().sum();
+        write_u32_le(crc_writer.get_mut(), crc32)?;
+        Ok(())
+    } else {
+        write_block_body(writer, block, version)
+    }
 }
 
-fn write_block_inner<W>(writer: &mut CrcWriter<W>, block: &Block) -> io::Result<()>
+fn write_block_body<W>(writer: &mut W, block: &Block, version: Version) -> io::Result<()>
 where
     W: Write,
 {
     write_compression_method(writer, block.compression_method)?;
 
     write_content_type(writer, block.content_type)?;
-    write_itf8(writer, block.content_id)?;
+    write_int(writer, version, block.content_id)?;
 
-    write_size(writer, block.src.len())?; // compressed size
-    write_size(writer, block.uncompressed_size)?;
+    write_size(writer, block.src.len(), version)?; // compressed size
+    write_size(writer, block.uncompressed_size, version)?;
 
     writer.write_all(&block.src)?;
-
-    let crc32 = writer.crc().sum();
-    write_u32_le(writer.get_mut(), crc32)?;
 
     Ok(())
 }
 
-fn write_size<W>(writer: &mut W, size: usize) -> io::Result<()>
+fn write_size<W>(writer: &mut W, size: usize, version: Version) -> io::Result<()>
 where
     W: Write,
 {
     let n = i32::try_from(size).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_itf8(writer, n)
-}
-
-pub fn itf8_size_of(n: i32) -> usize {
-    if n >> (8 - 1) == 0 {
-        1
-    } else if n >> (16 - 2) == 0 {
-        2
-    } else if n >> (24 - 3) == 0 {
-        3
-    } else if n >> (32 - 4) == 0 {
-        4
-    } else {
-        5
-    }
+    write_int(writer, version, n)
 }
 
 #[cfg(test)]
@@ -157,7 +156,7 @@ mod tests {
         };
 
         let mut buf = Vec::new();
-        write_block(&mut buf, &block)?;
+        write_block(&mut buf, &block, Version::default())?;
 
         let expected = [
             0x00, // compression method = none
@@ -175,12 +174,22 @@ mod tests {
     }
 
     #[test]
-    fn test_itf8_size_of() {
-        assert_eq!(itf8_size_of(0), 1);
-        assert_eq!(itf8_size_of(1877), 2);
-        assert_eq!(itf8_size_of(480665), 3);
-        assert_eq!(itf8_size_of(123050342), 4);
-        assert_eq!(itf8_size_of(1968805474), 5);
-        assert_eq!(itf8_size_of(-1), 5);
+    fn test_int_size_of() {
+        // ITF8 sizes (default version is 3.0)
+        let v3 = Version::default();
+        assert_eq!(int_size_of(v3, 0), 1);
+        assert_eq!(int_size_of(v3, 1877), 2);
+        assert_eq!(int_size_of(v3, 480665), 3);
+        assert_eq!(int_size_of(v3, 123050342), 4);
+        assert_eq!(int_size_of(v3, 1968805474), 5);
+        assert_eq!(int_size_of(v3, -1), 5);
+
+        // VLQ (uint7) sizes for CRAM 4.0
+        let v4 = Version::new(4, 0);
+        assert_eq!(int_size_of(v4, 0), 1);
+        assert_eq!(int_size_of(v4, 127), 1);
+        assert_eq!(int_size_of(v4, 128), 2);
+        assert_eq!(int_size_of(v4, 16383), 2);
+        assert_eq!(int_size_of(v4, 16384), 3);
     }
 }

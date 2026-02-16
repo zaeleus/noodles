@@ -12,19 +12,26 @@ use self::{
     container::write_container, file_id::write_file_id, format_version::write_format_version,
     magic_number::write_magic_number,
 };
-use crate::{FileDefinition, calculate_normalized_sequence_digest};
+use crate::{FileDefinition, calculate_normalized_sequence_digest, file_definition::Version};
 
 pub fn write_header<W>(
     writer: &mut W,
     reference_sequence_repository: &fasta::Repository,
     file_definition: &FileDefinition,
     header: &sam::Header,
+    reference_required: bool,
 ) -> io::Result<()>
 where
     W: Write,
 {
     write_file_definition(writer, file_definition)?;
-    write_file_header(writer, reference_sequence_repository, header)?;
+    write_file_header(
+        writer,
+        reference_sequence_repository,
+        header,
+        file_definition.version(),
+        reference_required,
+    )?;
     Ok(())
 }
 
@@ -42,6 +49,8 @@ pub fn write_file_header<W>(
     writer: &mut W,
     reference_sequence_repository: &fasta::Repository,
     header: &sam::Header,
+    version: Version,
+    reference_required: bool,
 ) -> io::Result<()>
 where
     W: Write,
@@ -51,14 +60,16 @@ where
     add_missing_reference_sequence_checksums(
         reference_sequence_repository,
         header.reference_sequences_mut(),
+        reference_required,
     )?;
 
-    write_container(writer, &header)
+    write_container(writer, &header, version)
 }
 
 pub(crate) fn add_missing_reference_sequence_checksums(
     reference_sequence_repository: &fasta::Repository,
     reference_sequences: &mut ReferenceSequences,
+    reference_required: bool,
 ) -> io::Result<()> {
     use indexmap::map::Entry;
     use noodles_sam::header::record::value::map::reference_sequence::{Md5Checksum, tag};
@@ -68,14 +79,25 @@ pub(crate) fn add_missing_reference_sequence_checksums(
             .other_fields_mut()
             .entry(tag::MD5_CHECKSUM)
         {
-            let sequence = reference_sequence_repository
-                .get(name)
-                .transpose()?
-                .expect("missing reference sequence");
-
-            let checksum = calculate_normalized_sequence_digest(&sequence[..]);
-
-            entry.insert(Md5Checksum::from(checksum).to_string().into());
+            match reference_sequence_repository.get(name).transpose()? {
+                Some(sequence) => {
+                    let checksum = calculate_normalized_sequence_digest(&sequence[..]);
+                    entry.insert(Md5Checksum::from(checksum).to_string().into());
+                }
+                None if !reference_required => {
+                    let checksum = [0u8; 16];
+                    entry.insert(Md5Checksum::from(checksum).to_string().into());
+                }
+                None => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!(
+                            "missing reference sequence: {}",
+                            String::from_utf8_lossy(name)
+                        ),
+                    ));
+                }
+            }
         }
     }
 
@@ -128,7 +150,11 @@ mod tests {
             )
             .build();
 
-        add_missing_reference_sequence_checksums(&repository, header.reference_sequences_mut())?;
+        add_missing_reference_sequence_checksums(
+            &repository,
+            header.reference_sequences_mut(),
+            true,
+        )?;
 
         let sq0 = header.reference_sequences().get(&b"sq0"[..]);
         assert_eq!(
@@ -140,6 +166,57 @@ mod tests {
         assert_eq!(
             sq1.and_then(|rs| rs.other_fields().get(&tag::MD5_CHECKSUM)),
             Some(&sq1_md5_checksum)
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_add_missing_reference_sequence_checksums_without_reference()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use std::num::NonZero;
+
+        use sam::header::record::value::{
+            Map,
+            map::{ReferenceSequence, reference_sequence::tag},
+        };
+
+        let repository = fasta::Repository::default();
+
+        let mut header = sam::Header::builder()
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
+            .build();
+
+        // reference_required=true should fail when reference is missing
+        let result = add_missing_reference_sequence_checksums(
+            &repository,
+            header.reference_sequences_mut(),
+            true,
+        );
+        assert!(result.is_err());
+
+        // Ensure the MD5 field is vacant for the next call
+        let sq0 = header
+            .reference_sequences_mut()
+            .get_mut(&b"sq0"[..])
+            .unwrap();
+        sq0.other_fields_mut().shift_remove(&tag::MD5_CHECKSUM);
+
+        // reference_required=false should succeed and write a zero checksum
+        add_missing_reference_sequence_checksums(
+            &repository,
+            header.reference_sequences_mut(),
+            false,
+        )?;
+
+        let zero_md5 = BString::from("00000000000000000000000000000000");
+        let sq0 = header.reference_sequences().get(&b"sq0"[..]);
+        assert_eq!(
+            sq0.and_then(|rs| rs.other_fields().get(&tag::MD5_CHECKSUM)),
+            Some(&zero_md5)
         );
 
         Ok(())

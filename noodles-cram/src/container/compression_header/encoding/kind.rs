@@ -10,4 +10,9 @@ pub enum Kind {
     Subexp,
     GolombRice,
     Gamma,
+    // CRAM 4.0 codecs
+    VarintUnsigned,
+    VarintSigned,
+    ConstByte,
+    ConstInt,
 }

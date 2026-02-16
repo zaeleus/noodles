@@ -7,6 +7,7 @@ use tokio::{
 };
 
 use super::Reader;
+use crate::file_definition::Version;
 
 /// An async CRAM reader builder.
 #[derive(Default)]
@@ -73,6 +74,7 @@ impl Builder {
         Reader {
             inner: reader,
             reference_sequence_repository: self.reference_sequence_repository,
+            version: Version::default(),
         }
     }
 }

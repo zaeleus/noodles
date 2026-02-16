@@ -19,6 +19,7 @@ use crate::{
         block::{self, ContentType},
         slice::Header,
     },
+    file_definition::Version,
     io::BitReader,
     record::Feature,
 };
@@ -30,6 +31,7 @@ use crate::{
 pub struct Slice<'c> {
     header: Header,
     src: &'c [u8],
+    version: Version,
 }
 
 impl<'c> Slice<'c> {
@@ -43,13 +45,13 @@ impl<'c> Slice<'c> {
     ) -> io::Result<(Cow<'c, [u8]>, Vec<(block::ContentId, Cow<'c, [u8]>)>)> {
         let mut src = self.src;
 
-        let block = read_block_as(&mut src, ContentType::CoreData)?;
+        let block = read_block_as(&mut src, ContentType::CoreData, self.version)?;
         let core_data_src = block.decode()?;
 
         let external_data_block_count = self.header.block_count() - 1;
         let external_data_srcs = (0..external_data_block_count)
             .map(|_| {
-                let block = read_block_as(&mut src, ContentType::ExternalData)?;
+                let block = read_block_as(&mut src, ContentType::ExternalData, self.version)?;
                 block.decode().map(|src| (block.content_id, src))
             })
             .collect::<io::Result<_>>()?;
@@ -128,7 +130,9 @@ impl<'c> Slice<'c> {
             external_data_srcs,
         )?;
 
-        let substitution_matrix = compression_header.preservation_map().substitution_matrix();
+        let preservation_map = compression_header.preservation_map();
+        let substitution_matrix = preservation_map.substitution_matrix();
+        let qs_seq_orient = preservation_map.qs_seq_orient();
 
         let mut records = vec![Record::default(); self.header.record_count()];
 
@@ -136,6 +140,15 @@ impl<'c> Slice<'c> {
             reader.read_record(record)?;
 
             record.header = Some(header);
+
+            // CRAM 4.0 (QO=0): quality scores are in original/sequencing orientation;
+            // reverse for reverse-strand reads to match BAM alignment convention.
+            if !qs_seq_orient
+                && record.bam_flags.is_reverse_complemented()
+                && !record.quality_scores.is_empty()
+            {
+                record.quality_scores.to_mut().reverse();
+            }
 
             if !record.bam_flags.is_unmapped() && !record.cram_flags.sequence_is_missing() {
                 record.reference_sequence = if reference_sequence_context.is_many() {
@@ -154,9 +167,13 @@ impl<'c> Slice<'c> {
     }
 }
 
-pub fn read_slice<'c>(src: &mut &'c [u8]) -> io::Result<Slice<'c>> {
-    let header = read_header(src)?;
-    Ok(Slice { header, src })
+pub fn read_slice<'c>(src: &mut &'c [u8], version: Version) -> io::Result<Slice<'c>> {
+    let header = read_header(src, version)?;
+    Ok(Slice {
+        header,
+        src,
+        version,
+    })
 }
 
 fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
@@ -230,7 +247,7 @@ fn set_mate(record: &mut Record, mate: &mut Record) {
     );
 }
 
-fn calculate_template_length(record: &Record, mate: &Record) -> i32 {
+fn calculate_template_length(record: &Record, mate: &Record) -> i64 {
     calculate_template_length_chunk(
         record.alignment_start,
         record.read_length,
@@ -269,7 +286,7 @@ fn calculate_template_length_chunk(
     mate_alignment_start: Option<Position>,
     mate_read_length: usize,
     mate_features: &[Feature],
-) -> i32 {
+) -> i64 {
     use crate::record::calculate_alignment_span;
 
     fn alignment_end(
@@ -308,7 +325,7 @@ fn calculate_template_length_chunk(
         end - start + 1
     };
 
-    i32::try_from(len).expect("invalid template length")
+    i64::try_from(len).expect("invalid template length")
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -347,12 +364,28 @@ fn get_slice_reference_sequence<'c>(
             .reference_sequences()
             .get_index(context.reference_sequence_id())
             .map(|(name, _)| name)
-            .expect("invalid slice reference sequence ID");
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "invalid slice reference sequence ID: {}",
+                        context.reference_sequence_id()
+                    ),
+                )
+            })?;
 
         let sequence = reference_sequence_repository
             .get(reference_sequence_name)
             .transpose()?
-            .expect("invalid slice reference sequence name");
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "missing reference sequence: {}",
+                        String::from_utf8_lossy(reference_sequence_name)
+                    ),
+                )
+            })?;
 
         // § 8.5 "Slice header block" (2024-09-04): "MD5sums should not be validated if the stored
         // checksum is all-zero."
@@ -368,7 +401,12 @@ fn get_slice_reference_sequence<'c>(
             .iter()
             .find(|(id, _)| *id == block_content_id)
             .map(|(_, src)| src)
-            .expect("invalid block content ID");
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("missing embedded reference block with content ID: {block_content_id}"),
+                )
+            })?;
 
         Ok(Some(ReferenceSequence::Embedded {
             reference_start: context.alignment_start(),
@@ -394,12 +432,14 @@ fn get_record_reference_sequence<'c>(
         .map(|(name, _)| name)
         .expect("invalid reference sequence ID");
 
-    let sequence = reference_sequence_repository
+    if let Some(sequence) = reference_sequence_repository
         .get(reference_sequence_name)
         .transpose()?
-        .expect("invalid reference sequence name");
-
-    Ok(Some(ReferenceSequence::External { sequence }))
+    {
+        Ok(Some(ReferenceSequence::External { sequence }))
+    } else {
+        Ok(None)
+    }
 }
 
 fn validate_sequence(sequence: &[u8], expected_checksum: &[u8; 16]) -> io::Result<()> {

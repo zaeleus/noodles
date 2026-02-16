@@ -1,26 +1,24 @@
-use std::{io, ops::Range};
+use std::{io, mem, ops::Range};
 
-use bstr::{BStr, ByteSlice};
-use noodles_sam::alignment::record::data::field::Type;
-
-use crate::record::data::field::{
-    Value,
-    value::{Array, array::Values},
+use bstr::BString;
+use noodles_sam::{
+    self as sam,
+    alignment::{record::data::field::Type, record_buf::data::field::Value as ValueBuf},
 };
 
-pub(super) fn read_value(src: &[u8], ty: Type) -> io::Result<Value<'_>> {
+pub(super) fn read_value_buf(src: &[u8], ty: Type) -> io::Result<ValueBuf> {
     match ty {
-        Type::Character => read_u8(src).map(Value::Character),
-        Type::Int8 => read_u8(src).map(|n| Value::Int8(n as i8)),
-        Type::UInt8 => read_u8(src).map(Value::UInt8),
-        Type::Int16 => read_u16_le(src).map(|n| Value::Int16(n as i16)),
-        Type::UInt16 => read_u16_le(src).map(Value::UInt16),
-        Type::Int32 => read_u32_le(src).map(|n| Value::Int32(n as i32)),
-        Type::UInt32 => read_u32_le(src).map(Value::UInt32),
-        Type::Float => read_f32_le(src).map(Value::Float),
-        Type::String => read_string(src).map(Value::String),
-        Type::Hex => read_string(src).map(Value::Hex),
-        Type::Array => read_array(src).map(Value::Array),
+        Type::Character => read_u8(src).map(ValueBuf::Character),
+        Type::Int8 => read_u8(src).map(|n| ValueBuf::Int8(n as i8)),
+        Type::UInt8 => read_u8(src).map(ValueBuf::UInt8),
+        Type::Int16 => read_u16_le(src).map(|n| ValueBuf::Int16(n as i16)),
+        Type::UInt16 => read_u16_le(src).map(ValueBuf::UInt16),
+        Type::Int32 => read_u32_le(src).map(|n| ValueBuf::Int32(n as i32)),
+        Type::UInt32 => read_u32_le(src).map(ValueBuf::UInt32),
+        Type::Float => read_f32_le(src).map(ValueBuf::Float),
+        Type::String => read_string_owned(src).map(ValueBuf::String),
+        Type::Hex => read_string_owned(src).map(ValueBuf::Hex),
+        Type::Array => read_array_buf(src),
     }
 }
 
@@ -49,15 +47,18 @@ fn read_f32_le(src: &[u8]) -> io::Result<f32> {
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
-fn read_string(src: &[u8]) -> io::Result<&BStr> {
+fn read_string_owned(src: &[u8]) -> io::Result<BString> {
     const NUL: u8 = 0x00;
 
     src.strip_suffix(&[NUL])
-        .map(|s| s.as_bstr())
+        .map(BString::from)
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing NUL terminator"))
 }
 
-fn read_array(src: &[u8]) -> io::Result<Array<'_>> {
+fn read_array_buf(src: &[u8]) -> io::Result<ValueBuf> {
+    use sam::alignment::record_buf::data::field::value::Array as ArrayBuf;
+
+    const OFFSET: usize = 5;
     const LENGTH_RANGE: Range<usize> = 1..5;
 
     let subtype = src
@@ -70,17 +71,73 @@ fn read_array(src: &[u8]) -> io::Result<Array<'_>> {
     let n = u32::from_le_bytes(buf.try_into().unwrap());
     let len = usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
+    let data = &src[OFFSET..];
+
+    let element_size = match subtype {
+        b'c' | b'C' => 1,
+        b's' | b'S' => mem::size_of::<i16>(),
+        b'i' | b'I' => mem::size_of::<i32>(),
+        b'f' => mem::size_of::<f32>(),
+        _ => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid subtype",
+            ));
+        }
+    };
+
+    let expected = len
+        .checked_mul(element_size)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "array length overflow"))?;
+
+    if data.len() < expected {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
     match subtype {
-        b'c' => Ok(Array::Int8(Values::new(src, len))),
-        b'C' => Ok(Array::UInt8(Values::new(src, len))),
-        b's' => Ok(Array::Int16(Values::new(src, len))),
-        b'S' => Ok(Array::UInt16(Values::new(src, len))),
-        b'i' => Ok(Array::Int32(Values::new(src, len))),
-        b'I' => Ok(Array::UInt32(Values::new(src, len))),
-        b'f' => Ok(Array::Float(Values::new(src, len))),
-        _ => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "invalid subtype",
-        )),
+        b'c' => {
+            let values: Vec<i8> = data[..len].iter().map(|&b| b as i8).collect();
+            Ok(ValueBuf::Array(ArrayBuf::Int8(values)))
+        }
+        b'C' => {
+            let values: Vec<u8> = data[..len].to_vec();
+            Ok(ValueBuf::Array(ArrayBuf::UInt8(values)))
+        }
+        b's' => {
+            let values: Vec<i16> = data[..expected]
+                .chunks_exact(mem::size_of::<i16>())
+                .map(|buf| i16::from_le_bytes(buf.try_into().unwrap()))
+                .collect();
+            Ok(ValueBuf::Array(ArrayBuf::Int16(values)))
+        }
+        b'S' => {
+            let values: Vec<u16> = data[..expected]
+                .chunks_exact(mem::size_of::<u16>())
+                .map(|buf| u16::from_le_bytes(buf.try_into().unwrap()))
+                .collect();
+            Ok(ValueBuf::Array(ArrayBuf::UInt16(values)))
+        }
+        b'i' => {
+            let values: Vec<i32> = data[..expected]
+                .chunks_exact(mem::size_of::<i32>())
+                .map(|buf| i32::from_le_bytes(buf.try_into().unwrap()))
+                .collect();
+            Ok(ValueBuf::Array(ArrayBuf::Int32(values)))
+        }
+        b'I' => {
+            let values: Vec<u32> = data[..expected]
+                .chunks_exact(mem::size_of::<u32>())
+                .map(|buf| u32::from_le_bytes(buf.try_into().unwrap()))
+                .collect();
+            Ok(ValueBuf::Array(ArrayBuf::UInt32(values)))
+        }
+        b'f' => {
+            let values: Vec<f32> = data[..expected]
+                .chunks_exact(mem::size_of::<f32>())
+                .map(|buf| f32::from_le_bytes(buf.try_into().unwrap()))
+                .collect();
+            Ok(ValueBuf::Array(ArrayBuf::Float(values)))
+        }
+        _ => unreachable!(),
     }
 }

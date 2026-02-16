@@ -81,6 +81,8 @@ impl Iterator for Iter<'_, '_> {
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+
     use super::*;
 
     #[test]
@@ -96,7 +98,7 @@ mod tests {
 
         let features = [Feature::SoftClip {
             position: Position::try_from(1)?,
-            bases: b"AT",
+            bases: Cow::Borrowed(b"AT"),
         }];
         t(
             &features,
@@ -106,7 +108,7 @@ mod tests {
 
         let features = [Feature::SoftClip {
             position: Position::try_from(4)?,
-            bases: b"G",
+            bases: Cow::Borrowed(b"G"),
         }];
         t(
             &features,
@@ -127,7 +129,7 @@ mod tests {
         let features = [
             Feature::SoftClip {
                 position: Position::try_from(1)?,
-                bases: b"A",
+                bases: Cow::Borrowed(b"A"),
             },
             Feature::Substitution {
                 position: Position::try_from(3)?,

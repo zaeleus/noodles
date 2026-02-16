@@ -10,4 +10,9 @@ pub(crate) mod slice;
 pub use self::{
     block_content_encoder_map::BlockContentEncoderMap, compression_header::CompressionHeader,
 };
-pub(crate) use self::{header::Header, reference_sequence_context::ReferenceSequenceContext};
+pub(crate) use self::{
+    header::Header,
+    reference_sequence_context::{
+        Context as ReferenceSequenceContextInner, ReferenceSequenceContext,
+    },
+};

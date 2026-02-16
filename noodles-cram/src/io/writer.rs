@@ -11,7 +11,7 @@ pub(crate) mod record;
 use std::io::{self, Write};
 
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, alignment::io::Write as _};
+use noodles_sam as sam;
 
 pub use self::builder::Builder;
 use self::{
@@ -20,11 +20,6 @@ use self::{
 };
 pub(crate) use self::{options::Options, record::Record};
 use crate::FileDefinition;
-
-const DEFAULT_SLICES_PER_CONTAINER: usize = 1;
-const DEFAULT_RECORDS_PER_SLICE: usize = 10240;
-pub(crate) const RECORDS_PER_CONTAINER: usize =
-    DEFAULT_SLICES_PER_CONTAINER * DEFAULT_RECORDS_PER_SLICE;
 
 /// A CRAM writer.
 ///
@@ -139,7 +134,7 @@ where
     pub fn try_finish(&mut self, header: &sam::Header) -> io::Result<()> {
         use self::container::write_eof_container;
         self.flush(header)?;
-        write_eof_container(&mut self.inner)
+        write_eof_container(&mut self.inner, self.options.version)
     }
 
     /// Writes a CRAM file definition.
@@ -184,7 +179,13 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        write_file_header(&mut self.inner, &self.reference_sequence_repository, header)
+        write_file_header(
+            &mut self.inner,
+            &self.reference_sequence_repository,
+            header,
+            self.options.version,
+            self.options.reference_required,
+        )
     }
 
     /// Writes a SAM header.
@@ -211,6 +212,7 @@ where
             &self.reference_sequence_repository,
             &file_definition,
             header,
+            self.options.reference_required,
         )
     }
 
@@ -239,7 +241,8 @@ where
         header: &sam::Header,
         record: &crate::Record<'_>,
     ) -> io::Result<()> {
-        self.write_alignment_record(header, record)
+        let writer_record = Record::from_cram_record(record, self.options.strip_md_nm)?;
+        self.add_record(header, writer_record)
     }
 
     fn add_record(&mut self, header: &sam::Header, record: Record) -> io::Result<()> {
@@ -285,7 +288,11 @@ where
         header: &sam::Header,
         record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        let record = Record::try_from_alignment_record(header, record)?;
+        let record = Record::try_from_alignment_record_with_options(
+            header,
+            record,
+            self.options.strip_md_nm,
+        )?;
         self.add_record(header, record)
     }
 

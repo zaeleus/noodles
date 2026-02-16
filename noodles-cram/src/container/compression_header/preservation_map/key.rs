@@ -7,6 +7,8 @@ pub enum Key {
     ExternalReferenceSequenceIsRequired,
     SubstitutionMatrix,
     TagSets,
+    // CRAM 4.0: quality score orientation (0 = original/sequencing, 1 = alignment)
+    QualityScoreOrientation,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -30,6 +32,7 @@ impl TryFrom<[u8; 2]> for Key {
             [b'R', b'R'] => Ok(Self::ExternalReferenceSequenceIsRequired),
             [b'S', b'M'] => Ok(Self::SubstitutionMatrix),
             [b'T', b'D'] => Ok(Self::TagSets),
+            [b'Q', b'O'] => Ok(Self::QualityScoreOrientation),
             _ => Err(TryFromByteArrayError(b)),
         }
     }
@@ -43,6 +46,7 @@ impl From<Key> for [u8; 2] {
             Key::ExternalReferenceSequenceIsRequired => [b'R', b'R'],
             Key::SubstitutionMatrix => [b'S', b'M'],
             Key::TagSets => [b'T', b'D'],
+            Key::QualityScoreOrientation => [b'Q', b'O'],
         }
     }
 }
@@ -64,6 +68,10 @@ mod tests {
         );
         assert_eq!(Key::try_from([b'S', b'M']), Ok(Key::SubstitutionMatrix));
         assert_eq!(Key::try_from([b'T', b'D']), Ok(Key::TagSets));
+        assert_eq!(
+            Key::try_from([b'Q', b'O']),
+            Ok(Key::QualityScoreOrientation)
+        );
 
         assert_eq!(
             Key::try_from([b'Z', b'Z']),
@@ -81,5 +89,6 @@ mod tests {
         );
         assert_eq!(<[u8; 2]>::from(Key::SubstitutionMatrix), [b'S', b'M']);
         assert_eq!(<[u8; 2]>::from(Key::TagSets), [b'T', b'D']);
+        assert_eq!(<[u8; 2]>::from(Key::QualityScoreOrientation), [b'Q', b'O']);
     }
 }

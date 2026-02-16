@@ -1,22 +1,24 @@
-pub mod field;
 mod iter;
 
 use std::io;
 
-use noodles_sam::{self as sam, alignment::record::data::field::Tag};
+use noodles_sam::{
+    self as sam,
+    alignment::{record::data::field::Tag, record_buf::data::field::Value as ValueBuf},
+};
 
-use self::{field::Value, iter::Iter};
+use self::iter::Iter;
 
 pub struct Data<'r, 'c: 'r> {
     header: &'c sam::Header,
-    fields: &'r [(Tag, Value<'c>)],
+    fields: &'r [(Tag, ValueBuf)],
     read_group_id: Option<usize>,
 }
 
 impl<'r, 'c: 'r> Data<'r, 'c> {
     pub(super) fn new(
         header: &'c sam::Header,
-        fields: &'r [(Tag, Value<'c>)],
+        fields: &'r [(Tag, ValueBuf)],
         read_group_id: Option<usize>,
     ) -> Self {
         Self {

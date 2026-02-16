@@ -1,5 +1,3 @@
-use std::num;
-
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 pub async fn read_itf8<R>(reader: &mut R) -> io::Result<i32>
@@ -29,17 +27,6 @@ where
         let b4 = read_u8_as_i32(reader).await?;
         Ok(((b0 & 0x0f) << 28) | (b1 << 20) | (b2 << 12) | (b3 << 4) | b4 & 0x0f)
     }
-}
-
-pub async fn read_itf8_as<R, N>(reader: &mut R) -> io::Result<N>
-where
-    R: AsyncRead + Unpin,
-    N: TryFrom<i32, Error = num::TryFromIntError>,
-{
-    read_itf8(reader).await.and_then(|n| {
-        n.try_into()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })
 }
 
 async fn read_u8_as_i32<R>(reader: &mut R) -> io::Result<i32>

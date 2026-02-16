@@ -14,9 +14,9 @@ use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
+use self::container::read_container;
 pub use self::{builder::Builder, container::Container, query::Query, records::Records};
-use self::{container::read_container, header::read_header};
-use crate::{FileDefinition, crai};
+use crate::{FileDefinition, crai, file_definition::Version};
 
 /// A CRAM reader.
 ///
@@ -43,6 +43,7 @@ use crate::{FileDefinition, crai};
 pub struct Reader<R> {
     inner: R,
     reference_sequence_repository: fasta::Repository,
+    version: Version,
 }
 
 impl<R> Reader<R> {
@@ -159,7 +160,10 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
-        header::read_file_definition(&mut self.inner)
+        let file_definition = header::read_file_definition(&mut self.inner)?;
+        self.version = file_definition.version();
+        self.version.validate()?;
+        Ok(file_definition)
     }
 
     /// Reads the SAM header.
@@ -180,7 +184,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_file_header(&mut self) -> io::Result<sam::Header> {
-        header::read_file_header(&mut self.inner)
+        header::read_file_header(&mut self.inner, self.version)
     }
 
     /// Reads the SAM header.
@@ -200,7 +204,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
-        read_header(&mut self.inner)
+        self.read_file_definition()?;
+        self.read_file_header()
     }
 
     /// Reads a container.
@@ -225,7 +230,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_container(&mut self, container: &mut Container) -> io::Result<usize> {
-        read_container(&mut self.inner, container)
+        read_container(&mut self.inner, container, self.version)
     }
 
     /// Returns a iterator over records starting from the current stream position.
@@ -250,6 +255,57 @@ where
     /// ```
     pub fn records<'r, 'h: 'r>(&'r mut self, header: &'h sam::Header) -> Records<'r, 'h, R> {
         Records::new(self, header)
+    }
+
+    /// Calls `f` for each record, avoiding intermediate `RecordBuf` conversion.
+    ///
+    /// This is useful when writing CRAM records directly to another format (e.g., BAM), as it
+    /// passes each decoded `cram::Record` as `&dyn sam::alignment::Record` without first
+    /// converting to `RecordBuf`.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram as cram;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    /// let header = reader.read_header()?;
+    ///
+    /// reader.for_each_record(&header, |record| {
+    ///     // record is &dyn sam::alignment::Record
+    ///     Ok(())
+    /// })?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn for_each_record<F>(&mut self, header: &sam::Header, mut f: F) -> io::Result<()>
+    where
+        F: FnMut(&dyn sam::alignment::Record) -> io::Result<()>,
+    {
+        let mut container = Container::default();
+
+        while self.read_container(&mut container)? != 0 {
+            let compression_header = container.compression_header()?;
+
+            for result in container.slices() {
+                let slice = result?;
+                let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
+
+                let records = slice.records(
+                    self.reference_sequence_repository.clone(),
+                    header,
+                    &compression_header,
+                    &core_data_src,
+                    &external_data_srcs,
+                )?;
+
+                for record in &records {
+                    f(record)?;
+                }
+            }
+        }
+
+        Ok(())
     }
 }
 
@@ -335,6 +391,52 @@ where
             reference_sequence_id,
             region.interval(),
         ))
+    }
+
+    /// Returns an iterator over unmapped records.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram::{self as cram, crai};
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    /// let header = reader.read_header()?;
+    /// let index = crai::fs::read("sample.cram.crai")?;
+    ///
+    /// let query = reader.query_unmapped(&header, &index)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn query_unmapped<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &crai::Index,
+    ) -> io::Result<impl Iterator<Item = io::Result<sam::alignment::RecordBuf>> + use<'r, 'h, R>>
+    {
+        let offset = index
+            .iter()
+            .filter(|record| record.reference_sequence_id().is_none())
+            .map(|record| record.offset())
+            .min();
+
+        if let Some(offset) = offset {
+            self.seek(SeekFrom::Start(offset))?;
+        } else {
+            self.seek(SeekFrom::End(0))?;
+        }
+
+        Ok(self.records(header).filter(|result| {
+            result
+                .as_ref()
+                .map(|record| record.flags().is_unmapped())
+                .unwrap_or(true)
+        }))
     }
 }
 

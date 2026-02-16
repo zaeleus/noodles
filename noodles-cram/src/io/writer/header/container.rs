@@ -9,10 +9,15 @@ use noodles_sam as sam;
 use crate::{
     codecs::Encoder,
     container::{Header, block::ContentType},
+    file_definition::Version,
     io::writer::container::{Block, write_block, write_header},
 };
 
-pub(super) fn write_container<W>(writer: &mut W, header: &sam::Header) -> io::Result<()>
+pub(super) fn write_container<W>(
+    writer: &mut W,
+    header: &sam::Header,
+    version: Version,
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -24,10 +29,10 @@ where
     let block = Block::encode(ContentType::FileHeader, 0, Some(&ENCODER), &buf)?;
 
     let header = build_header();
-    let len = block.size()?;
-    write_header(writer, &header, len)?;
+    let len = block.size(version)?;
+    write_header(writer, &header, len, version)?;
 
-    write_block(writer, &block)?;
+    write_block(writer, &block, version)?;
 
     Ok(())
 }
@@ -78,7 +83,7 @@ fn build_header() -> Header {
 
 #[cfg(test)]
 mod tests {
-    use crate::io::writer::num::write_i32_le;
+    use crate::io::writer::num::{write_i32_le, write_itf8};
 
     use super::*;
 
@@ -87,16 +92,16 @@ mod tests {
         use flate2::CrcWriter;
         use sam::header::record::value::{
             Map,
-            map::{self, header::Version},
+            map::{self, header::Version as HdrVersion},
         };
 
-        use crate::{codecs::gzip, io::writer::num::write_itf8};
+        use crate::codecs::gzip;
 
-        let header_header = Map::<map::Header>::new(Version::new(1, 6));
+        let header_header = Map::<map::Header>::new(HdrVersion::new(1, 6));
         let header = sam::Header::builder().set_header(header_header).build();
 
         let mut buf = Vec::new();
-        write_container(&mut buf, &header)?;
+        write_container(&mut buf, &header, Version::default())?;
 
         let header_data = b"@HD\tVN:1.6\n";
         let header_data_len = i32::try_from(header_data.len())?;

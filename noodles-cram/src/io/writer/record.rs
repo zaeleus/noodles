@@ -26,7 +26,7 @@ pub struct Record {
     pub(crate) mate_flags: MateFlags,
     pub(crate) mate_reference_sequence_id: Option<usize>,
     pub(crate) mate_alignment_start: Option<Position>,
-    pub(crate) template_length: i32,
+    pub(crate) template_length: i64,
     pub(crate) mate_distance: Option<usize>,
     pub(crate) data: Vec<(Tag, Value)>,
     pub(crate) features: Vec<Feature>,

@@ -1,4 +1,4 @@
-use std::io;
+use std::{borrow::Cow, io};
 
 use crate::{
     container::{
@@ -18,6 +18,7 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+#[allow(clippy::large_enum_variant)]
 pub enum ByteArray {
     ByteArrayLength {
         len_encoding: Encoding<Integer>,
@@ -30,7 +31,7 @@ pub enum ByteArray {
 }
 
 impl<'de> Decode<'de> for ByteArray {
-    type Value = &'de [u8];
+    type Value = Cow<'de, [u8]>;
 
     fn decode(
         &self,
@@ -76,7 +77,7 @@ impl<'de> Decode<'de> for ByteArray {
                 let (buf, rest) = src.split_at(i);
                 *src = &rest[1..];
 
-                Ok(buf)
+                Ok(Cow::Borrowed(buf))
             }
         }
     }
@@ -96,7 +97,7 @@ impl<'en> Encode<'en> for ByteArray {
                 len_encoding,
                 value_encoding,
             } => {
-                let len = i32::try_from(value.len())
+                let len = i64::try_from(value.len())
                     .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
                 len_encoding.encode(core_data_writer, external_data_writers, len)?;
 
@@ -147,7 +148,7 @@ mod tests {
 
             let actual = encoding.decode(&mut core_data_reader, &mut external_data_readers)?;
 
-            assert_eq!(expected, actual);
+            assert_eq!(expected, &*actual);
 
             Ok(())
         }

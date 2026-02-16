@@ -88,11 +88,11 @@ impl ReferenceSequenceContext {
     }
 }
 
-impl TryFrom<(i32, i32, i32)> for ReferenceSequenceContext {
+impl TryFrom<(i32, i64, i64)> for ReferenceSequenceContext {
     type Error = io::Error;
 
     fn try_from(
-        (raw_reference_sequence_id, raw_alignment_start, raw_alignment_span): (i32, i32, i32),
+        (raw_reference_sequence_id, raw_alignment_start, raw_alignment_span): (i32, i64, i64),
     ) -> Result<Self, Self::Error> {
         const UNMAPPED: i32 = -1;
         const MULTIREF: i32 = -2;
@@ -173,29 +173,29 @@ mod tests {
     }
 
     #[test]
-    fn test_try_from_i32_i32_i32_for_reference_sequence_context()
+    fn test_try_from_i32_i64_i64_for_reference_sequence_context()
     -> Result<(), Box<dyn std::error::Error>> {
         assert_eq!(
-            ReferenceSequenceContext::try_from((0, 5, 8))?,
+            ReferenceSequenceContext::try_from((0, 5i64, 8i64))?,
             ReferenceSequenceContext::some(0, Position::try_from(5)?, Position::try_from(12)?)
         );
 
         assert_eq!(
-            ReferenceSequenceContext::try_from((-1, 0, 0))?,
+            ReferenceSequenceContext::try_from((-1, 0i64, 0i64))?,
             ReferenceSequenceContext::None
         );
 
         assert_eq!(
-            ReferenceSequenceContext::try_from((-2, 0, 0))?,
+            ReferenceSequenceContext::try_from((-2, 0i64, 0i64))?,
             ReferenceSequenceContext::Many
         );
 
         for triplet in [
-            (-3, 0, 0), // invalid reference sequence ID
-            (0, -1, 1), // invalid alignment start
-            (0, 0, 1),  // invalid alignment start
-            (0, 1, -1), // invalid alignment span
-            (0, 1, 0),  // invalid alignment span
+            (-3, 0i64, 0i64), // invalid reference sequence ID
+            (0, -1i64, 1i64), // invalid alignment start
+            (0, 0i64, 1i64),  // invalid alignment start
+            (0, 1i64, -1i64), // invalid alignment span
+            (0, 1i64, 0i64),  // invalid alignment span
         ] {
             assert!(matches!(
                 ReferenceSequenceContext::try_from(triplet),

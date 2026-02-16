@@ -8,7 +8,8 @@ use flate2::Crc;
 use self::{compression_method::read_compression_method, content_type::read_content_type};
 use crate::{
     container::block::{CompressionMethod, ContentId, ContentType},
-    io::reader::num::{read_itf8, read_itf8_as, read_u32_le},
+    file_definition::Version,
+    io::reader::num::{read_u32_le, read_unsigned_int, read_unsigned_int_as},
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -54,16 +55,16 @@ impl<'c> Block<'c> {
     }
 }
 
-fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
+fn read_block<'c>(src: &mut &'c [u8], version: Version) -> io::Result<Block<'c>> {
     let original_src = *src;
 
     let mut compression_method = read_compression_method(src)?;
 
     let content_type = read_content_type(src)?;
-    let content_id = read_itf8(src)?;
+    let content_id = read_unsigned_int(src, version)?;
 
-    let compressed_size = read_itf8_as(src)?;
-    let uncompressed_size = read_itf8_as(src)?;
+    let compressed_size: usize = read_unsigned_int_as(src, version)?;
+    let uncompressed_size: usize = read_unsigned_int_as(src, version)?;
 
     let (data, rest) = src
         .split_at_checked(compressed_size)
@@ -71,18 +72,20 @@ fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
 
     *src = rest;
 
-    let end = original_src.len() - src.len();
-    let actual_crc32 = crc32(&original_src[..end]);
+    if version.has_crc32() {
+        let end = original_src.len() - src.len();
+        let actual_crc32 = crc32(&original_src[..end]);
 
-    let expected_crc32 = read_u32_le(src)?;
+        let expected_crc32 = read_u32_le(src)?;
 
-    if actual_crc32 != expected_crc32 {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!(
-                "container block checksum mismatch: expected {expected_crc32:08x}, got {actual_crc32:08x}"
-            ),
-        ));
+        if actual_crc32 != expected_crc32 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!(
+                    "container block checksum mismatch: expected {expected_crc32:08x}, got {actual_crc32:08x}"
+                ),
+            ));
+        }
     }
 
     // § 8 "Block structure" (2024-09-04): "Blocks with a raw (uncompressed) size of zero are
@@ -100,8 +103,12 @@ fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     })
 }
 
-pub fn read_block_as<'c>(src: &mut &'c [u8], content_type: ContentType) -> io::Result<Block<'c>> {
-    let block = read_block(src)?;
+pub fn read_block_as<'c>(
+    src: &mut &'c [u8],
+    content_type: ContentType,
+    version: Version,
+) -> io::Result<Block<'c>> {
+    let block = read_block(src, version)?;
     validate_content_type(block.content_type, content_type)?;
     Ok(block)
 }
@@ -139,7 +146,7 @@ mod tests {
             0xd7, 0x12, 0x46, 0x3e, // CRC32 = 3e4612d7
         ];
 
-        let actual = read_block(&mut &src[..])?;
+        let actual = read_block(&mut &src[..], Version::V3_0)?;
 
         let expected = Block {
             compression_method: CompressionMethod::None,
@@ -166,7 +173,7 @@ mod tests {
             0xbd, 0xac, 0x02, 0xbd, // CRC32 = bd02acbd
         ];
 
-        let actual = read_block(&mut &src[..])?;
+        let actual = read_block(&mut &src[..], Version::V3_0)?;
 
         let expected = Block {
             compression_method: CompressionMethod::None,
@@ -174,6 +181,33 @@ mod tests {
             content_id: ContentId::from(1),
             uncompressed_size: 0,
             src: &[],
+        };
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_block_without_crc32() -> io::Result<()> {
+        // CRAM 2.x blocks have no CRC32
+        let src = [
+            0x00, // compression method = none (0)
+            0x04, // content type = external data (4)
+            0x01, // block content ID = 1
+            0x04, // size in bytes = 4 bytes
+            0x04, // raw size in bytes = 4 bytes
+            0x6e, 0x64, 0x6c, 0x73, // data = b"ndls",
+        ];
+
+        let actual = read_block(&mut &src[..], Version::V2_0)?;
+
+        let expected = Block {
+            compression_method: CompressionMethod::None,
+            content_type: ContentType::ExternalData,
+            content_id: ContentId::from(1),
+            uncompressed_size: 4,
+            src: b"ndls",
         };
 
         assert_eq!(actual, expected);

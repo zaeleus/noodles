@@ -78,6 +78,8 @@ impl<'r, 'c: 'r> Iterator for WithPositions<'r, 'c> {
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+
     use super::*;
 
     #[test]
@@ -85,11 +87,11 @@ mod tests {
         let features = [
             Feature::Bases {
                 position: Position::MIN,
-                bases: b"AC",
+                bases: Cow::Borrowed(b"AC"),
             },
             Feature::Scores {
                 position: Position::MIN,
-                quality_scores: &[0, 0],
+                quality_scores: Cow::Borrowed(&[0, 0]),
             },
         ];
 

@@ -13,6 +13,9 @@ pub(crate) struct PreservationMap {
     pub(crate) external_reference_sequence_is_required: bool,
     pub(crate) substitution_matrix: SubstitutionMatrix,
     pub(crate) tag_sets: TagSets,
+    // CRAM 4.0: false = original/sequencing orientation (need reversal for rev-strand),
+    //           true  = alignment orientation (no reversal needed).
+    pub(crate) qs_seq_orient: bool,
 }
 
 impl PreservationMap {
@@ -29,6 +32,7 @@ impl PreservationMap {
             external_reference_sequence_is_required,
             substitution_matrix,
             tag_sets,
+            qs_seq_orient: true,
         }
     }
 
@@ -51,6 +55,10 @@ impl PreservationMap {
     pub fn tag_sets(&self) -> &TagSets {
         &self.tag_sets
     }
+
+    pub fn qs_seq_orient(&self) -> bool {
+        self.qs_seq_orient
+    }
 }
 
 impl Default for PreservationMap {
@@ -61,6 +69,7 @@ impl Default for PreservationMap {
             external_reference_sequence_is_required: true,
             substitution_matrix: SubstitutionMatrix::default(),
             tag_sets: TagSets::default(),
+            qs_seq_orient: true,
         }
     }
 }
