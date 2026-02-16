@@ -52,9 +52,9 @@ impl FileDefinition {
     /// ```
     /// use noodles_cram::{file_definition::Version, FileDefinition};
     /// let file_definition = FileDefinition::new(Version::new(3, 0), [0; 20]);
-    /// assert_eq!(file_definition.file_id(), [0; 20]);
+    /// assert_eq!(file_definition.file_id(), &[0; 20]);
     /// ```
-    pub fn file_id(&self) -> &[u8] {
+    pub fn file_id(&self) -> &[u8; 20] {
         &self.file_id
     }
 }

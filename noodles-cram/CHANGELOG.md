@@ -6,6 +6,11 @@
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.88.0.
 
+  * cram/file_definition: Return an array reference (`&[u8; 20]`) from
+    `FileDefinition::file_id`.
+
+    This previously returned a slice (`&[u8]`).
+
 ### Fixed
 
   * cram/crai/fs: Fix creating destination ([#372]).
