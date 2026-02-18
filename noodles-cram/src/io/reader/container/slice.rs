@@ -5,7 +5,7 @@ use std::{borrow::Cow, io};
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam};
+use noodles_sam::{self as sam, alignment::Record as _};
 
 use self::{
     header::read_header,
