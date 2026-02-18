@@ -238,7 +238,6 @@ where
     /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use futures::TryStreamExt;
     /// use noodles_bcf as bcf;
-    /// use noodles_core::Region;
     /// use noodles_csi as csi;
     /// use tokio::fs::File;
     ///

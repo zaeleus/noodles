@@ -273,7 +273,6 @@ where
     /// ```no_run
     /// # use std::fs::File;
     /// use noodles_bcf as bcf;
-    /// use noodles_core::Region;
     /// use noodles_csi as csi;
     ///
     /// let mut reader = File::open("sample.bcf").map(bcf::io::Reader::new)?;
