@@ -5,7 +5,7 @@ use std::{borrow::Cow, io};
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
-use noodles_sam::{self as sam, alignment::Record as _};
+use noodles_sam::{self as sam};
 
 use self::{
     header::read_header,
@@ -132,8 +132,8 @@ impl<'c> Slice<'c> {
 
         // Cache for multi-ref slices: avoids cloning the full chromosome Vec<u8>
         // per record by sharing via Arc.
-        let mut multi_ref_cache: std::collections::HashMap<usize, ReferenceSequence<'c>>
-            = std::collections::HashMap::new();
+        let mut multi_ref_cache: std::collections::HashMap<usize, ReferenceSequence<'c>> =
+            std::collections::HashMap::new();
 
         for record in &mut records {
             reader.read_record(record)?;
@@ -142,23 +142,26 @@ impl<'c> Slice<'c> {
 
             if !record.bam_flags.is_unmapped() && !record.cram_flags.sequence_is_missing() {
                 record.reference_sequence = if reference_sequence_context.is_many() {
-                    record.reference_sequence_id.map(|ref_id| multi_ref_cache.entry(ref_id)
-                        .or_insert_with(|| {
-                            let name = header
-                                .reference_sequences()
-                                .get_index(ref_id)
-                                .map(|(name, _)| name)
-                                .expect("invalid reference sequence ID");
-                            let sequence = reference_sequence_repository
-                                .get(name)
-                                .transpose()
-                                .expect("failed to get reference sequence")
-                                .expect("invalid reference sequence name");
-                            ReferenceSequence::External {
-                                sequence: std::sync::Arc::new(sequence),
-                            }
-                        })
-                        .clone())
+                    record.reference_sequence_id.map(|ref_id| {
+                        multi_ref_cache
+                            .entry(ref_id)
+                            .or_insert_with(|| {
+                                let name = header
+                                    .reference_sequences()
+                                    .get_index(ref_id)
+                                    .map(|(name, _)| name)
+                                    .expect("invalid reference sequence ID");
+                                let sequence = reference_sequence_repository
+                                    .get(name)
+                                    .transpose()
+                                    .expect("failed to get reference sequence")
+                                    .expect("invalid reference sequence name");
+                                ReferenceSequence::External {
+                                    sequence: std::sync::Arc::new(sequence),
+                                }
+                            })
+                            .clone()
+                    })
                 } else {
                     slice_reference_sequence.clone()
                 };
@@ -381,7 +384,9 @@ fn get_slice_reference_sequence<'c>(
             validate_sequence(subsequence, expected_md5)?;
         }
 
-        Ok(Some(ReferenceSequence::External { sequence: std::sync::Arc::new(sequence) }))
+        Ok(Some(ReferenceSequence::External {
+            sequence: std::sync::Arc::new(sequence),
+        }))
     } else if let Some(block_content_id) = embedded_reference_bases_block_content_id {
         let sequence = external_data_srcs
             .iter()
