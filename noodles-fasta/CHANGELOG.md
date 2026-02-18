@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/repository: Reference count sequences in cache ([#376]).
+
+    This previously would clone the `Sequence` but may not be ideal when
+    repeated lookups are required. `Repository::get` now returns an
+    `Arc<Sequence>`.
+
+[#376]: https://github.com/zaeleus/noodles/pull/376
+
 ## 0.59.0 - 2026-02-18
 
 ### Changed

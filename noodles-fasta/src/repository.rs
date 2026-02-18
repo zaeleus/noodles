@@ -15,7 +15,7 @@ use super::record::Sequence;
 
 struct AdapterCache {
     adapter: Box<dyn Adapter>,
-    cache: HashMap<Vec<u8>, Sequence>,
+    cache: HashMap<Vec<u8>, Arc<Sequence>>,
 }
 
 /// A caching sequence repository.
@@ -34,12 +34,12 @@ impl Repository {
     }
 
     /// Returns the sequence of the given name.
-    pub fn get(&self, name: &[u8]) -> Option<io::Result<Sequence>> {
+    pub fn get(&self, name: &[u8]) -> Option<io::Result<Arc<Sequence>>> {
         {
             let lock = self.0.read().unwrap();
 
             if let Some(sequence) = lock.cache.get(name) {
-                return Some(Ok(sequence.clone()));
+                return Some(Ok(Arc::clone(sequence)));
             }
         }
 
@@ -50,11 +50,12 @@ impl Repository {
             Err(e) => return Some(Err(e)),
         };
 
-        lock.cache
+        let s = lock
+            .cache
             .entry(name.into())
-            .or_insert_with(|| record.sequence().clone());
+            .or_insert_with(|| Arc::new(record.sequence().clone()));
 
-        Some(Ok(record.sequence().clone()))
+        Some(Ok(Arc::clone(s)))
     }
 
     /// Returns the number of cached sequences.
@@ -111,7 +112,7 @@ mod tests {
 
         assert_eq!(
             repository.get(b"sq0").transpose()?,
-            Some(sq0.sequence().clone())
+            Some(Arc::new(sq0.sequence().clone()))
         );
         assert_eq!(repository.get(b"sq1").transpose()?, None);
 

@@ -1,7 +1,7 @@
 mod header;
 pub mod records;
 
-use std::{borrow::Cow, io};
+use std::{borrow::Cow, io, sync::Arc};
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
@@ -316,7 +316,7 @@ pub(crate) enum ReferenceSequence<'c> {
         sequence: &'c [u8],
     },
     External {
-        sequence: fasta::record::Sequence,
+        sequence: Arc<fasta::record::Sequence>,
     },
 }
 

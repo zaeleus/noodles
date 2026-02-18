@@ -27,7 +27,7 @@ fn main() -> io::Result<()> {
     let stdout = io::stdout().lock();
     let mut writer = fasta::io::Writer::new(stdout);
 
-    let record = fasta::Record::new(Definition::new(name, None), sequence);
+    let record = fasta::Record::new(Definition::new(name, None), (*sequence).clone());
     writer.write_record(&record)?;
 
     Ok(())
