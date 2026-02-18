@@ -142,27 +142,23 @@ impl<'c> Slice<'c> {
 
             if !record.bam_flags.is_unmapped() && !record.cram_flags.sequence_is_missing() {
                 record.reference_sequence = if reference_sequence_context.is_many() {
-                    if let Some(ref_id) = record.reference_sequence_id {
-                        Some(multi_ref_cache.entry(ref_id)
-                            .or_insert_with(|| {
-                                let name = header
-                                    .reference_sequences()
-                                    .get_index(ref_id)
-                                    .map(|(name, _)| name)
-                                    .expect("invalid reference sequence ID");
-                                let sequence = reference_sequence_repository
-                                    .get(name)
-                                    .transpose()
-                                    .expect("failed to get reference sequence")
-                                    .expect("invalid reference sequence name");
-                                ReferenceSequence::External {
-                                    sequence: std::sync::Arc::new(sequence),
-                                }
-                            })
-                            .clone())
-                    } else {
-                        None
-                    }
+                    record.reference_sequence_id.map(|ref_id| multi_ref_cache.entry(ref_id)
+                        .or_insert_with(|| {
+                            let name = header
+                                .reference_sequences()
+                                .get_index(ref_id)
+                                .map(|(name, _)| name)
+                                .expect("invalid reference sequence ID");
+                            let sequence = reference_sequence_repository
+                                .get(name)
+                                .transpose()
+                                .expect("failed to get reference sequence")
+                                .expect("invalid reference sequence name");
+                            ReferenceSequence::External {
+                                sequence: std::sync::Arc::new(sequence),
+                            }
+                        })
+                        .clone())
                 } else {
                     slice_reference_sequence.clone()
                 };
@@ -400,29 +396,6 @@ fn get_slice_reference_sequence<'c>(
     } else {
         Ok(None)
     }
-}
-
-fn get_record_reference_sequence<'c>(
-    reference_sequence_repository: &fasta::Repository,
-    header: &sam::Header,
-    record: &Record<'c>,
-) -> io::Result<Option<ReferenceSequence<'c>>> {
-    if record.bam_flags.is_unmapped() {
-        return Ok(None);
-    }
-
-    let reference_sequence_name = record
-        .reference_sequence(header)
-        .transpose()?
-        .map(|(name, _)| name)
-        .expect("invalid reference sequence ID");
-
-    let sequence = reference_sequence_repository
-        .get(reference_sequence_name)
-        .transpose()?
-        .expect("invalid reference sequence name");
-
-    Ok(Some(ReferenceSequence::External { sequence: std::sync::Arc::new(sequence) }))
 }
 
 fn validate_sequence(sequence: &[u8], expected_checksum: &[u8; 16]) -> io::Result<()> {
