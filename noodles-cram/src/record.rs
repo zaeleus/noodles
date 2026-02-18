@@ -159,7 +159,7 @@ impl sam::alignment::Record for Record<'_> {
                     (Some(*sequence), offset_alignment_start)
                 }
                 Some(ReferenceSequence::External { sequence, .. }) => {
-                    (Some(sequence.as_ref()), self.alignment_start.unwrap())
+                    (Some((**sequence).as_ref()), self.alignment_start.unwrap())
                 }
                 None => (None, Position::MIN),
             };
