@@ -1,6 +1,6 @@
 [package]
 name = "noodles-bcf"
-version = "0.81.0"
+version = "0.82.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -24,10 +24,10 @@ async = [
 [dependencies]
 indexmap.workspace = true
 memchr.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.45.0" }
-noodles-core = { path = "../noodles-core", version = "0.18.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.53.0" }
-noodles-vcf = { path = "../noodles-vcf", version = "0.83.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.46.0" }
+noodles-core = { path = "../noodles-core", version = "0.19.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.54.0" }
+noodles-vcf = { path = "../noodles-vcf", version = "0.84.0" }
 
 futures = { workspace = true, optional = true, features = ["std"] }
 pin-project-lite = { workspace = true, optional = true }
