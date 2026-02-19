@@ -8,7 +8,7 @@ use crate::{
     container::{Header, ReferenceSequenceContext},
 };
 
-pub async fn read_header<R>(reader: &mut R, header: &mut Header) -> io::Result<usize>
+pub(super) async fn read_header<R>(reader: &mut R, header: &mut Header) -> io::Result<usize>
 where
     R: AsyncRead + Unpin,
 {
@@ -16,10 +16,7 @@ where
     read_header_inner(&mut crc_reader, header).await
 }
 
-pub async fn read_header_inner<R>(
-    reader: &mut CrcReader<R>,
-    header: &mut Header,
-) -> io::Result<usize>
+async fn read_header_inner<R>(reader: &mut CrcReader<R>, header: &mut Header) -> io::Result<usize>
 where
     R: AsyncRead + Unpin,
 {

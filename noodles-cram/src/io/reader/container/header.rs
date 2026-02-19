@@ -14,7 +14,7 @@ const EOF_ALIGNMENT_START: i32 = 4_542_278;
 const EOF_BLOCK_COUNT: usize = 1;
 const EOF_CRC32: u32 = 0x4f_d9_bd_05;
 
-pub fn read_header<R>(reader: &mut R, header: &mut Header) -> io::Result<usize>
+pub(super) fn read_header<R>(reader: &mut R, header: &mut Header) -> io::Result<usize>
 where
     R: Read,
 {
@@ -22,7 +22,7 @@ where
     read_header_inner(&mut crc_reader, header)
 }
 
-pub fn read_header_inner<R>(reader: &mut CrcReader<R>, header: &mut Header) -> io::Result<usize>
+fn read_header_inner<R>(reader: &mut CrcReader<R>, header: &mut Header) -> io::Result<usize>
 where
     R: Read,
 {
