@@ -38,7 +38,9 @@ impl<'c> Slice<'c> {
     }
 
     #[allow(clippy::type_complexity)]
-    pub fn decode_blocks(&self) -> io::Result<(Vec<u8>, Vec<(block::ContentId, Vec<u8>)>)> {
+    pub fn decode_blocks(
+        &self,
+    ) -> io::Result<(Cow<'c, [u8]>, Vec<(block::ContentId, Cow<'c, [u8]>)>)> {
         let mut src = self.src;
 
         let block = read_block_as(&mut src, ContentType::CoreData)?;
@@ -97,7 +99,7 @@ impl<'c> Slice<'c> {
         header: &'h sam::Header,
         compression_header: &'ch CompressionHeader,
         core_data_src: &'c [u8],
-        external_data_srcs: &'c [(block::ContentId, Vec<u8>)],
+        external_data_srcs: &'c [(block::ContentId, Cow<'c, [u8]>)],
     ) -> io::Result<Vec<Record<'c>>> {
         let core_data_reader = BitReader::new(core_data_src);
 
@@ -325,7 +327,7 @@ fn get_slice_reference_sequence<'c>(
     header: &sam::Header,
     compression_header: &CompressionHeader,
     slice_header: &Header,
-    external_data_srcs: &'c [(block::ContentId, Vec<u8>)],
+    external_data_srcs: &'c [(block::ContentId, Cow<'c, [u8]>)],
 ) -> io::Result<Option<ReferenceSequence<'c>>> {
     let reference_sequence_context = slice_header.reference_sequence_context();
 

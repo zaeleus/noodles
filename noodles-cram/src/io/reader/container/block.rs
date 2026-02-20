@@ -1,7 +1,7 @@
 pub(crate) mod compression_method;
 pub(crate) mod content_type;
 
-use std::io;
+use std::{borrow::Cow, io};
 
 use flate2::Crc;
 
@@ -20,34 +20,36 @@ pub struct Block<'c> {
     pub src: &'c [u8],
 }
 
-impl Block<'_> {
-    pub fn decode(&self) -> io::Result<Vec<u8>> {
+impl<'c> Block<'c> {
+    pub fn decode(&self) -> io::Result<Cow<'c, [u8]>> {
         use crate::codecs::{aac, bzip2, fqzcomp, gzip, lzma, name_tokenizer, rans_4x8, rans_nx16};
 
         match self.compression_method {
-            CompressionMethod::None => Ok(self.src.to_vec()),
+            CompressionMethod::None => Ok(Cow::from(self.src)),
             CompressionMethod::Gzip => {
                 let mut dst = vec![0; self.uncompressed_size];
                 gzip::decode(self.src, &mut dst)?;
-                Ok(dst)
+                Ok(Cow::from(dst))
             }
             CompressionMethod::Bzip2 => {
                 let mut dst = vec![0; self.uncompressed_size];
                 bzip2::decode(self.src, &mut dst)?;
-                Ok(dst)
+                Ok(Cow::from(dst))
             }
             CompressionMethod::Lzma => {
                 let mut dst = vec![0; self.uncompressed_size];
                 lzma::decode(self.src, &mut dst)?;
-                Ok(dst)
+                Ok(Cow::from(dst))
             }
-            CompressionMethod::Rans4x8 => rans_4x8::decode(self.src),
-            CompressionMethod::RansNx16 => rans_nx16::decode(self.src, self.uncompressed_size),
+            CompressionMethod::Rans4x8 => rans_4x8::decode(self.src).map(Cow::from),
+            CompressionMethod::RansNx16 => {
+                rans_nx16::decode(self.src, self.uncompressed_size).map(Cow::from)
+            }
             CompressionMethod::AdaptiveArithmeticCoding => {
-                aac::decode(self.src, self.uncompressed_size)
+                aac::decode(self.src, self.uncompressed_size).map(Cow::from)
             }
-            CompressionMethod::Fqzcomp => fqzcomp::decode(self.src),
-            CompressionMethod::NameTokenizer => name_tokenizer::decode(self.src),
+            CompressionMethod::Fqzcomp => fqzcomp::decode(self.src).map(Cow::from),
+            CompressionMethod::NameTokenizer => name_tokenizer::decode(self.src).map(Cow::from),
         }
     }
 }

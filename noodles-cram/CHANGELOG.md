@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram/io/reader/container/slice: Return clone-on-write buffers (`Cow<'c,
+    [u8]>`) from blocks decoder (`Slice::decode_blocks`).
+
+    This avoids cloning block data that is already uncompressed, i.e.,
+    `CompressionMethod::None`.
+
 ## 0.89.0 - 2026-02-18
 
 ### Changed
