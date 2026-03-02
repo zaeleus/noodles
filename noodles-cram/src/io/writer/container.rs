@@ -94,9 +94,11 @@ fn build_container(
 
     let mut container_size = compression_header_block.size()?;
     let mut blocks = vec![compression_header_block];
-    let mut landmarks = Vec::with_capacity(slices.len());
 
-    for slice in slices {
+    let slice_count = slices.len();
+    let mut landmarks = vec![container_size];
+
+    for (i, slice) in slices.into_iter().enumerate() {
         buf.clear();
 
         slice::write_header(&mut buf, &slice.header)?;
@@ -114,11 +116,11 @@ fn build_container(
 
         blocks.extend(slice.external_data_blocks);
 
-        let last_landmark = landmarks.last().copied().unwrap_or(0);
-        let landmark = last_landmark + slice_size;
-        landmarks.push(landmark);
-
         container_size += slice_size;
+
+        if i < slice_count - 1 {
+            landmarks.push(container_size);
+        }
     }
 
     let header = Header {

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * cram/io/writer/container: Fix building landmarks.
+
+    This previously missed setting the first landmark to denote the compression
+    header bounds. Note that some implementations don't seem to use this.
+
 ## 0.90.0 - 2026-02-24
 
 ### Changed
