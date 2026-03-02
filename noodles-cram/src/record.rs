@@ -5,6 +5,8 @@ pub(crate) mod data;
 pub(crate) mod feature;
 mod flags;
 mod mate_flags;
+/// MD/NM tag computation from CRAM features.
+pub mod md_nm;
 mod quality_scores;
 mod sequence;
 
@@ -14,15 +16,13 @@ use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
 use noodles_sam::{
     self as sam,
-    alignment::record::{MappingQuality, data::field::Tag},
+    alignment::{
+        record::{MappingQuality, data::field::Tag},
+        record_buf::data::field::Value as ValueBuf,
+    },
 };
 
-use self::{
-    cigar::Cigar,
-    data::{Data, field::Value},
-    quality_scores::QualityScores,
-    sequence::Sequence,
-};
+use self::{cigar::Cigar, data::Data, quality_scores::QualityScores, sequence::Sequence};
 pub(crate) use self::{feature::Feature, flags::Flags, mate_flags::MateFlags};
 use crate::{
     container::compression_header::preservation_map::SubstitutionMatrix,
@@ -46,13 +46,13 @@ pub struct Record<'c> {
     pub(crate) mate_flags: MateFlags,
     pub(crate) mate_reference_sequence_id: Option<usize>,
     pub(crate) mate_alignment_start: Option<Position>,
-    pub(crate) template_length: i32,
+    pub(crate) template_length: i64,
     pub(crate) mate_distance: Option<usize>,
-    pub(crate) data: Vec<(Tag, Value<'c>)>,
-    pub(crate) sequence: &'c [u8],
+    pub(crate) data: Vec<(Tag, ValueBuf)>,
+    pub(crate) sequence: Cow<'c, [u8]>,
     pub(crate) features: Vec<Feature<'c>>,
     pub(crate) mapping_quality: Option<MappingQuality>,
-    pub(crate) quality_scores: &'c [u8],
+    pub(crate) quality_scores: Cow<'c, [u8]>,
 }
 
 impl Record<'_> {
@@ -88,10 +88,10 @@ impl Default for Record<'_> {
             template_length: 0,
             mate_distance: None,
             data: Vec::new(),
-            sequence: &[],
+            sequence: Cow::Borrowed(&[]),
             features: Vec::new(),
             mapping_quality: None,
-            quality_scores: &[],
+            quality_scores: Cow::Borrowed(&[]),
         }
     }
 }
@@ -140,12 +140,13 @@ impl sam::alignment::Record for Record<'_> {
     }
 
     fn template_length(&self) -> io::Result<i32> {
-        Ok(self.template_length)
+        i32::try_from(self.template_length)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     fn sequence(&self) -> Box<dyn sam::alignment::record::Sequence + '_> {
         if self.bam_flags.is_unmapped() || self.cram_flags.sequence_is_missing() {
-            Box::new(Bases(self.sequence))
+            Box::new(Bases(&self.sequence))
         } else {
             let (reference_sequence, alignment_start) = match self.reference_sequence.as_ref() {
                 Some(ReferenceSequence::Embedded {
@@ -176,7 +177,7 @@ impl sam::alignment::Record for Record<'_> {
 
     fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
         if self.bam_flags.is_unmapped() || self.cram_flags.quality_scores_are_stored_as_array() {
-            Box::new(Scores(self.quality_scores))
+            Box::new(Scores(&self.quality_scores))
         } else {
             Box::new(QualityScores::new(&self.features, self.read_length))
         }
@@ -216,12 +217,17 @@ impl sam::alignment::record::Sequence for Bases<'_> {
 
     fn split_at_checked(
         &self,
-        _mid: usize,
+        mid: usize,
     ) -> Option<(
         Box<dyn sam::alignment::record::Sequence + '_>,
         Box<dyn sam::alignment::record::Sequence + '_>,
     )> {
-        todo!()
+        if mid <= self.0.len() {
+            let (left, right) = self.0.split_at(mid);
+            Some((Box::new(Bases(left)), Box::new(Bases(right))))
+        } else {
+            None
+        }
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = u8> + '_> {
@@ -276,7 +282,7 @@ mod tests {
         let features = [
             Feature::Insertion {
                 position: Position::try_from(1)?,
-                bases: b"AC",
+                bases: Cow::Borrowed(b"AC"),
             },
             Feature::InsertBase {
                 position: Position::try_from(4)?,
@@ -292,7 +298,7 @@ mod tests {
             },
             Feature::SoftClip {
                 position: Position::try_from(16)?,
-                bases: b"ACGT",
+                bases: Cow::Borrowed(b"ACGT"),
             },
         ];
         assert_eq!(calculate_alignment_span(20, &features), 21);

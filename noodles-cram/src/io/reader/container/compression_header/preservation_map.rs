@@ -6,20 +6,29 @@ use std::io;
 use self::{substitution_matrix::read_substitution_matrix, tag_sets::read_tag_sets};
 use crate::{
     container::compression_header::{PreservationMap, preservation_map::Key},
+    file_definition::Version,
     io::reader::collections::read_map,
 };
 
-pub(super) fn read_preservation_map(src: &mut &[u8]) -> io::Result<PreservationMap> {
-    let (mut buf, len) = read_map(src)?;
-    read_preservation_map_inner(&mut buf, len)
+pub(super) fn read_preservation_map(
+    src: &mut &[u8],
+    version: Version,
+) -> io::Result<PreservationMap> {
+    let (mut buf, len) = read_map(src, version)?;
+    read_preservation_map_inner(&mut buf, len, version)
 }
 
-fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<PreservationMap> {
+fn read_preservation_map_inner(
+    src: &mut &[u8],
+    len: usize,
+    version: Version,
+) -> io::Result<PreservationMap> {
     let mut records_have_names = true;
     let mut alignment_starts_are_deltas = true;
     let mut external_reference_sequence_is_required = true;
     let mut substitution_matrix = None;
     let mut tag_sets = None;
+    let mut qs_seq_orient = true;
 
     for _ in 0..len {
         let key = read_key(src)?;
@@ -33,11 +42,12 @@ fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<Preser
             Key::SubstitutionMatrix => {
                 substitution_matrix = read_substitution_matrix(src).map(Some)?
             }
-            Key::TagSets => tag_sets = read_tag_sets(src).map(Some)?,
+            Key::TagSets => tag_sets = read_tag_sets(src, version).map(Some)?,
+            Key::QualityScoreOrientation => qs_seq_orient = read_quality_score_orientation(src)?,
         }
     }
 
-    Ok(PreservationMap::new(
+    let mut map = PreservationMap::new(
         records_have_names,
         alignment_starts_are_deltas,
         external_reference_sequence_is_required,
@@ -47,7 +57,11 @@ fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<Preser
         tag_sets.ok_or_else(|| {
             io::Error::new(io::ErrorKind::InvalidData, "missing tag IDs dictionary")
         })?,
-    ))
+    );
+
+    map.qs_seq_orient = qs_seq_orient;
+
+    Ok(map)
 }
 
 fn read_key(src: &mut &[u8]) -> io::Result<Key> {
@@ -58,6 +72,20 @@ fn read_key(src: &mut &[u8]) -> io::Result<Key> {
     *src = rest;
 
     Key::try_from(*buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+// CRAM 4.0: Quality score orientation (QO). A single byte:
+// 0 = original/sequencing orientation, 1 = alignment orientation.
+// Intentionally lenient (any non-zero = true) to match htslib behavior,
+// rather than strict 0x00/0x01 validation used by read_bool.
+fn read_quality_score_orientation(src: &mut &[u8]) -> io::Result<bool> {
+    let (&n, rest) = src
+        .split_first()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+    *src = rest;
+
+    Ok(n != 0)
 }
 
 // § 2.3 "Writing bytes to a byte stream" (2024-09-04): "Boolean is written as 1-byte with 0x0
@@ -107,7 +135,7 @@ mod tests {
             0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
         ];
 
-        let actual = read_preservation_map(&mut &src[..])?;
+        let actual = read_preservation_map(&mut &src[..], Version::V3_0)?;
 
         let expected = PreservationMap::new(
             false,
@@ -132,7 +160,7 @@ mod tests {
         ];
 
         assert!(matches!(
-            read_preservation_map(&mut &src[..]),
+            read_preservation_map(&mut &src[..], Version::V3_0),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
     }
@@ -148,7 +176,7 @@ mod tests {
         ];
 
         assert!(matches!(
-            read_preservation_map(&mut &src[..]),
+            read_preservation_map(&mut &src[..], Version::V3_0),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
     }

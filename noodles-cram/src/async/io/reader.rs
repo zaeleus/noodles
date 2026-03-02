@@ -15,13 +15,14 @@ use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 
 pub use self::builder::Builder;
-use self::{container::read_container, crc_reader::CrcReader, header::read_header};
-use crate::{FileDefinition, crai, io::reader::Container};
+use self::{container::read_container, crc_reader::CrcReader};
+use crate::{FileDefinition, crai, file_definition::Version, io::reader::Container};
 
 /// An async CRAM reader.
 pub struct Reader<R> {
     inner: R,
     reference_sequence_repository: fasta::Repository,
+    version: Version,
 }
 
 impl<R> Reader<R> {
@@ -141,7 +142,10 @@ where
     /// # }
     /// ```
     pub async fn read_file_definition(&mut self) -> io::Result<FileDefinition> {
-        header::read_file_definition(&mut self.inner).await
+        let file_definition = header::read_file_definition(&mut self.inner).await?;
+        self.version = file_definition.version();
+        self.version.validate()?;
+        Ok(file_definition)
     }
 
     /// Reads the SAM header.
@@ -165,7 +169,7 @@ where
     /// # }
     /// ```
     pub async fn read_file_header(&mut self) -> io::Result<sam::Header> {
-        header::read_file_header(&mut self.inner).await
+        header::read_file_header(&mut self.inner, self.version).await
     }
 
     /// Reads the SAM header.
@@ -188,7 +192,8 @@ where
     /// # }
     /// ```
     pub async fn read_header(&mut self) -> io::Result<sam::Header> {
-        read_header(&mut self.inner).await
+        self.read_file_definition().await?;
+        self.read_file_header().await
     }
 
     /// Reads a container.
@@ -216,7 +221,7 @@ where
     /// # }
     /// ```
     pub async fn read_container(&mut self, container: &mut Container) -> io::Result<usize> {
-        read_container(&mut self.inner, container).await
+        read_container(&mut self.inner, container, self.version).await
     }
 
     /// Returns an (async) stream over records starting from the current (input) stream position.

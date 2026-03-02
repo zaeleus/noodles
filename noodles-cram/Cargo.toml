@@ -14,6 +14,7 @@ categories = ["parser-implementations", "science::bioinformatics"]
 [features]
 async = ["dep:async-compression", "dep:futures", "dep:pin-project-lite", "dep:tokio"]
 libdeflate = ["dep:libdeflater"]
+parallel = ["dep:rayon"]
 
 [dependencies]
 bitflags.workspace = true
@@ -36,6 +37,8 @@ tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 libdeflater = { workspace = true, optional = true }
 
+rayon = { version = "1.10", optional = true }
+
 [dev-dependencies]
 noodles-sam = { path = "../noodles-sam", version = "0.82.0", features = ["async"] }
 tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
@@ -44,7 +47,7 @@ tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 workspace = true
 
 [package.metadata.docs.rs]
-features = ["async"]
+features = ["async", "parallel"]
 
 [[example]]
 name = "cram_count_async"

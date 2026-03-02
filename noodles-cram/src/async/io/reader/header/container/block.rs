@@ -8,11 +8,12 @@ use pin_project_lite::pin_project;
 use tokio::io::{self, AsyncRead, AsyncReadExt, BufReader, ReadBuf, Take};
 
 use crate::{
-    r#async::io::reader::num::{read_itf8, read_itf8_as},
+    r#async::io::reader::num::{read_signed_int, read_unsigned_int_as},
     container::block::{CompressionMethod, ContentType},
+    file_definition::Version,
 };
 
-pub(super) async fn read_block<R>(reader: &mut R) -> io::Result<Decoder<&mut R>>
+pub(super) async fn read_block<R>(reader: &mut R, version: Version) -> io::Result<Decoder<&mut R>>
 where
     R: AsyncRead + Unpin,
 {
@@ -21,9 +22,9 @@ where
     let content_type = read_content_type(reader).await?;
     validate_content_type(content_type)?;
 
-    let _content_type_id = read_itf8(reader).await?;
-    let compressed_size = read_itf8_as(reader).await?;
-    let uncompressed_size = read_itf8_as(reader).await?;
+    let _content_type_id = read_signed_int(reader, version).await?;
+    let compressed_size: u64 = read_unsigned_int_as(reader, version).await?;
+    let uncompressed_size: u64 = read_unsigned_int_as(reader, version).await?;
 
     let decoder = match compression_method {
         CompressionMethod::None => Decoder::None {
@@ -45,7 +46,7 @@ where
         }
     };
 
-    // Skip CRC32.
+    // CRC32 bytes (if present for version >= 3.0) are consumed by the container's Take limit.
 
     Ok(decoder)
 }

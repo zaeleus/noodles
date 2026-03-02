@@ -131,7 +131,7 @@ pub fn read_array(src: &mut &[u8], n: usize) -> io::Result<Vec<u8>> {
 
     let mut a = vec![0; n];
 
-    let mut i = 0;
+    let mut i: u16 = 0;
     j = 0;
     z = 0;
 
@@ -149,7 +149,13 @@ pub fn read_array(src: &mut &[u8], n: usize) -> io::Result<Vec<u8>> {
         }
 
         for _ in 0..run_len {
-            a[z] = i;
+            let value = u8::try_from(i).map_err(|_| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("run-length array index overflow: i = {i}"),
+                )
+            })?;
+            a[z] = value;
             z += 1;
         }
 

@@ -1,18 +1,18 @@
-use std::io;
+use std::{borrow::Cow, io};
 
 use crate::{
     container::{
         block,
         compression_header::encoding::{Decode, Encode},
     },
-    huffman::CanonicalHuffmanDecoder,
+    huffman::{CanonicalHuffmanDecoder, CanonicalHuffmanEncoder},
     io::{
         BitReader, BitWriter, reader::container::slice::records::ExternalDataReaders,
         writer::container::slice::records::ExternalDataWriters,
     },
 };
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum Byte {
     External {
         block_content_id: block::ContentId,
@@ -20,16 +20,66 @@ pub enum Byte {
     Huffman {
         alphabet: Vec<i32>,
         bit_lens: Vec<u32>,
+        decoder: CanonicalHuffmanDecoder,
+        encoder: CanonicalHuffmanEncoder,
+    },
+    // CRAM 4.0 codec
+    Constant {
+        value: u8,
     },
 }
 
 impl Byte {
+    pub fn huffman(alphabet: Vec<i32>, bit_lens: Vec<u32>) -> Self {
+        let decoder = CanonicalHuffmanDecoder::new(&alphabet, &bit_lens);
+        let encoder = CanonicalHuffmanEncoder::new(&alphabet, &bit_lens);
+        Self::Huffman {
+            alphabet,
+            bit_lens,
+            decoder,
+            encoder,
+        }
+    }
+}
+
+impl PartialEq for Byte {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                Self::External {
+                    block_content_id: a,
+                },
+                Self::External {
+                    block_content_id: b,
+                },
+            ) => a == b,
+            (
+                Self::Huffman {
+                    alphabet: a1,
+                    bit_lens: a2,
+                    ..
+                },
+                Self::Huffman {
+                    alphabet: b1,
+                    bit_lens: b2,
+                    ..
+                },
+            ) => a1 == b1 && a2 == b2,
+            (Self::Constant { value: a }, Self::Constant { value: b }) => a == b,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for Byte {}
+
+impl Byte {
     pub fn decode_take<'de>(
         &self,
-        _core_data_reader: &mut BitReader<'de>,
+        core_data_reader: &mut BitReader<'de>,
         external_data_readers: &mut ExternalDataReaders<'de>,
         len: usize,
-    ) -> io::Result<&'de [u8]> {
+    ) -> io::Result<Cow<'de, [u8]>> {
         match self {
             Self::External { block_content_id } => {
                 let src = external_data_readers
@@ -47,15 +97,31 @@ impl Byte {
 
                 *src = rest;
 
-                Ok(buf)
+                Ok(Cow::Borrowed(buf))
             }
-            Self::Huffman { .. } => todo!(),
+            Self::Huffman {
+                alphabet, decoder, ..
+            } => {
+                if alphabet.len() == 1 {
+                    Ok(Cow::Owned(vec![alphabet[0] as u8; len]))
+                } else {
+                    let mut buf = Vec::with_capacity(len);
+
+                    for _ in 0..len {
+                        let value = decoder.decode(core_data_reader)?;
+                        buf.push(value as u8);
+                    }
+
+                    Ok(Cow::Owned(buf))
+                }
+            }
+            Self::Constant { value } => Ok(Cow::Owned(vec![*value; len])),
         }
     }
 
     pub fn encode_extend(
         &self,
-        _core_data_writer: &mut BitWriter,
+        core_data_writer: &mut BitWriter,
         external_data_writers: &mut ExternalDataWriters,
         src: &[u8],
     ) -> io::Result<()> {
@@ -74,7 +140,20 @@ impl Byte {
 
                 Ok(())
             }
-            Self::Huffman { .. } => todo!(),
+            Self::Huffman {
+                alphabet, encoder, ..
+            } => {
+                if alphabet.len() == 1 {
+                    Ok(())
+                } else {
+                    for &b in src {
+                        encoder.encode(core_data_writer, b as i32)?;
+                    }
+
+                    Ok(())
+                }
+            }
+            Self::Constant { .. } => Ok(()),
         }
     }
 }
@@ -106,14 +185,16 @@ impl<'de> Decode<'de> for Byte {
 
                 Ok(*n)
             }
-            Self::Huffman { alphabet, bit_lens } => {
+            Self::Huffman {
+                alphabet, decoder, ..
+            } => {
                 if alphabet.len() == 1 {
                     Ok(alphabet[0] as u8)
                 } else {
-                    let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
                     decoder.decode(core_data_reader).map(|i| i as u8)
                 }
             }
+            Self::Constant { value } => Ok(*value),
         }
     }
 }
@@ -123,7 +204,7 @@ impl Encode<'_> for Byte {
 
     fn encode(
         &self,
-        _core_data_writer: &mut BitWriter,
+        core_data_writer: &mut BitWriter,
         external_data_writers: &mut ExternalDataWriters,
         value: Self::Value,
     ) -> io::Result<()> {
@@ -142,7 +223,16 @@ impl Encode<'_> for Byte {
 
                 Ok(())
             }
-            _ => todo!("encode_byte: {:?}", self),
+            Self::Huffman {
+                alphabet, encoder, ..
+            } => {
+                if alphabet.len() == 1 {
+                    Ok(())
+                } else {
+                    encoder.encode(core_data_writer, value as i32)
+                }
+            }
+            Self::Constant { .. } => Ok(()),
         }
     }
 }
@@ -166,7 +256,7 @@ mod tests {
         };
         let dst = codec.decode_take(&mut core_data_reader, &mut external_data_readers, 4)?;
 
-        assert_eq!(dst, external_data);
+        assert_eq!(&*dst, &external_data[..]);
 
         Ok(())
     }
@@ -194,13 +284,8 @@ mod tests {
             }),
             0x0d,
         )?;
-        t(
-            &Encoding::new(Byte::Huffman {
-                alphabet: vec![0x4e],
-                bit_lens: vec![0],
-            }),
-            0x4e,
-        )?;
+        t(&Encoding::new(Byte::huffman(vec![0x4e], vec![0])), 0x4e)?;
+        t(&Encoding::new(Byte::Constant { value: 0xff }), 0xff)?;
 
         Ok(())
     }

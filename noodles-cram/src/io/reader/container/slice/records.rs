@@ -134,7 +134,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
     }
 
     fn read_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {
-        const UNMAPPED: i32 = -1;
+        const UNMAPPED: i64 = -1;
 
         self.compression_header
             .data_series_encodings()
@@ -174,7 +174,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
 
         let alignment_start = if alignment_starts_are_deltas {
-            let prev_alignment_start = i32::try_from(
+            let prev_alignment_start = i64::try_from(
                 self.prev_alignment_start
                     .map(usize::from)
                     .unwrap_or_default(),
@@ -193,7 +193,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
 
     fn read_read_group_id(&mut self) -> io::Result<Option<usize>> {
         // § 10.2 "CRAM positional data" (2021-10-15): "-1 for no group".
-        const MISSING: i32 = -1;
+        const MISSING: i64 = -1;
 
         self.compression_header
             .data_series_encodings()
@@ -227,10 +227,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .names()
             .ok_or_else(|| missing_data_series_encoding_error(DataSeries::Names))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
-            .map(|buf| match buf {
-                MISSING => None,
-                _ => Some(Cow::from(buf)),
-            })
+            .map(|buf| if *buf == *MISSING { None } else { Some(buf) })
     }
 
     fn read_mate(&mut self, record: &mut Record<'c>) -> io::Result<()> {
@@ -275,7 +272,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
     }
 
     fn read_mate_reference_sequence_id(&mut self) -> io::Result<Option<usize>> {
-        const UNMAPPED: i32 = -1;
+        const UNMAPPED: i64 = -1;
 
         self.compression_header
             .data_series_encodings()
@@ -304,7 +301,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .map(Position::new)
     }
 
-    fn read_template_length(&mut self) -> io::Result<i32> {
+    fn read_template_length(&mut self) -> io::Result<i64> {
         self.compression_header
             .data_series_encodings()
             .template_lengths()
@@ -338,7 +335,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         for &key in tag_set {
             let id = block::ContentId::from(key);
 
-            let value = self
+            let src = self
                 .compression_header
                 .tag_encodings()
                 .get(&id)
@@ -348,8 +345,9 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
                         ReadRecordError::MissingTagEncoding(key),
                     )
                 })?
-                .decode(&mut self.core_data_reader, &mut self.external_data_readers)
-                .and_then(|src| self::data::read_value(src, key.ty()))?;
+                .decode(&mut self.core_data_reader, &mut self.external_data_readers)?;
+
+            let value = self::data::read_value_buf(&src, key.ty())?;
 
             record.data.push((key.tag(), value));
         }
@@ -497,7 +495,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             })
     }
 
-    fn read_stretches_of_bases(&mut self) -> io::Result<&'c [u8]> {
+    fn read_stretches_of_bases(&mut self) -> io::Result<Cow<'c, [u8]>> {
         self.compression_header
             .data_series_encodings()
             .stretches_of_bases()
@@ -505,7 +503,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
-    fn read_stretches_of_quality_scores(&mut self) -> io::Result<&'c [u8]> {
+    fn read_stretches_of_quality_scores(&mut self) -> io::Result<Cow<'c, [u8]>> {
         self.compression_header
             .data_series_encodings()
             .stretches_of_quality_scores()
@@ -539,7 +537,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
-    fn read_insertion_bases(&mut self) -> io::Result<&'c [u8]> {
+    fn read_insertion_bases(&mut self) -> io::Result<Cow<'c, [u8]>> {
         self.compression_header
             .data_series_encodings()
             .insertion_bases()
@@ -569,7 +567,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             })
     }
 
-    fn read_soft_clip_bases(&mut self) -> io::Result<&'c [u8]> {
+    fn read_soft_clip_bases(&mut self) -> io::Result<Cow<'c, [u8]>> {
         self.compression_header
             .data_series_encodings()
             .soft_clip_bases()
@@ -623,7 +621,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         Ok(())
     }
 
-    fn read_sequence(&mut self, read_length: usize) -> io::Result<&'c [u8]> {
+    fn read_sequence(&mut self, read_length: usize) -> io::Result<Cow<'c, [u8]>> {
         let encoding = self
             .compression_header
             .data_series_encodings()
@@ -637,7 +635,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         )
     }
 
-    fn read_quality_scores(&mut self, read_length: usize) -> io::Result<&'c [u8]> {
+    fn read_quality_scores(&mut self, read_length: usize) -> io::Result<Cow<'c, [u8]>> {
         const MISSING: u8 = 0xff;
 
         let encoding = self
@@ -653,7 +651,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         )?;
 
         if src.iter().all(|&n| n == MISSING) {
-            Ok(&[])
+            Ok(Cow::Borrowed(&[]))
         } else {
             Ok(src)
         }

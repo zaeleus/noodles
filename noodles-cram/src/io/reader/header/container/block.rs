@@ -4,10 +4,11 @@ use flate2::read::GzDecoder;
 
 use crate::{
     container::block::{CompressionMethod, ContentType},
-    io::reader::num::{read_itf8, read_itf8_as, read_u8},
+    file_definition::Version,
+    io::reader::num::{read_signed_int, read_u8, read_unsigned_int_as},
 };
 
-pub(super) fn read_block<R>(reader: &mut R) -> io::Result<Box<dyn Read + '_>>
+pub(super) fn read_block<R>(reader: &mut R, version: Version) -> io::Result<Box<dyn Read + '_>>
 where
     R: Read,
 {
@@ -16,9 +17,9 @@ where
     let content_type = read_content_type(reader)?;
     validate_content_type(content_type)?;
 
-    let _content_type_id = read_itf8(reader)?;
-    let compressed_size = read_itf8_as(reader)?;
-    let uncompressed_size = read_itf8_as(reader)?;
+    let _content_type_id = read_signed_int(reader, version)?;
+    let compressed_size: u64 = read_unsigned_int_as(reader, version)?;
+    let uncompressed_size: u64 = read_unsigned_int_as(reader, version)?;
 
     let reader: Box<dyn Read + '_> = match compression_method {
         CompressionMethod::None => Box::new(reader.take(uncompressed_size)),
@@ -36,7 +37,7 @@ where
         }
     };
 
-    // Skip CRC32.
+    // CRC32 bytes (if present for version >= 3.0) are consumed by the container's Take limit.
 
     Ok(reader)
 }

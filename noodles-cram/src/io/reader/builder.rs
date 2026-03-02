@@ -7,6 +7,7 @@ use std::{
 use noodles_fasta as fasta;
 
 use super::Reader;
+use crate::file_definition::Version;
 
 /// A CRAM reader builder.
 #[derive(Debug, Default)]
@@ -69,6 +70,7 @@ impl Builder {
         Reader {
             inner: reader,
             reference_sequence_repository: self.reference_sequence_repository,
+            version: Version::default(),
         }
     }
 }

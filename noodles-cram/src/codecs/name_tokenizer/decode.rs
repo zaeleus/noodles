@@ -57,51 +57,64 @@ struct TokenReader {
 }
 
 impl TokenReader {
-    fn get(&self, ty: Type) -> &Cursor<Vec<u8>> {
+    fn get(&self, ty: Type) -> io::Result<&Cursor<Vec<u8>>> {
         match ty {
-            Type::Type => &self.type_reader,
-            Type::String => &self.string_reader,
-            Type::Char => &self.char_reader,
-            Type::Digits0 => &self.digits0_reader,
-            Type::Dup => &self.dup_reader,
-            Type::Diff => &self.diff_reader,
-            Type::Digits => &self.digits_reader,
-            Type::Delta => &self.delta_reader,
-            Type::Delta0 => &self.delta0_reader,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
+            Type::Type => Ok(&self.type_reader),
+            Type::String => Ok(&self.string_reader),
+            Type::Char => Ok(&self.char_reader),
+            Type::Digits0 => Ok(&self.digits0_reader),
+            Type::DZLen => Ok(&self.dz_len_reader),
+            Type::Dup => Ok(&self.dup_reader),
+            Type::Diff => Ok(&self.diff_reader),
+            Type::Digits => Ok(&self.digits_reader),
+            Type::Delta => Ok(&self.delta_reader),
+            Type::Delta0 => Ok(&self.delta0_reader),
+            _ => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("control token type {ty:?} has no byte stream"),
+            )),
         }
     }
 
-    fn get_mut(&mut self, ty: Type) -> &mut Cursor<Vec<u8>> {
+    fn get_mut(&mut self, ty: Type) -> io::Result<&mut Cursor<Vec<u8>>> {
         match ty {
-            Type::Type => &mut self.type_reader,
-            Type::String => &mut self.string_reader,
-            Type::Char => &mut self.char_reader,
-            Type::Digits0 => &mut self.digits0_reader,
-            Type::Dup => &mut self.dup_reader,
-            Type::Diff => &mut self.diff_reader,
-            Type::DZLen => &mut self.dz_len_reader,
-            Type::Digits => &mut self.digits_reader,
-            Type::Delta => &mut self.delta_reader,
-            Type::Delta0 => &mut self.delta0_reader,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
+            Type::Type => Ok(&mut self.type_reader),
+            Type::String => Ok(&mut self.string_reader),
+            Type::Char => Ok(&mut self.char_reader),
+            Type::Digits0 => Ok(&mut self.digits0_reader),
+            Type::DZLen => Ok(&mut self.dz_len_reader),
+            Type::Dup => Ok(&mut self.dup_reader),
+            Type::Diff => Ok(&mut self.diff_reader),
+            Type::Digits => Ok(&mut self.digits_reader),
+            Type::Delta => Ok(&mut self.delta_reader),
+            Type::Delta0 => Ok(&mut self.delta0_reader),
+            _ => Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("control token type {ty:?} has no byte stream"),
+            )),
         }
     }
 
-    fn set(&mut self, ty: Type, buf: Vec<u8>) {
+    fn set(&mut self, ty: Type, buf: Vec<u8>) -> io::Result<()> {
         match ty {
             Type::Type => *self.type_reader.get_mut() = buf,
             Type::String => *self.string_reader.get_mut() = buf,
             Type::Char => *self.char_reader.get_mut() = buf,
             Type::Digits0 => *self.digits0_reader.get_mut() = buf,
+            Type::DZLen => *self.dz_len_reader.get_mut() = buf,
             Type::Dup => *self.dup_reader.get_mut() = buf,
             Type::Diff => *self.diff_reader.get_mut() = buf,
-            Type::DZLen => *self.dz_len_reader.get_mut() = buf,
             Type::Digits => *self.digits_reader.get_mut() = buf,
             Type::Delta => *self.delta_reader.get_mut() = buf,
             Type::Delta0 => *self.delta0_reader.get_mut() = buf,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("control token type {ty:?} has no byte stream"),
+                ));
+            }
         }
+        Ok(())
     }
 
     fn read_type(&mut self) -> io::Result<Type> {
@@ -111,9 +124,14 @@ impl TokenReader {
     }
 
     fn read_distance(&mut self, ty: Type) -> io::Result<usize> {
-        assert!(matches!(ty, Type::Dup | Type::Diff));
+        if !matches!(ty, Type::Dup | Type::Diff) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("expected Dup or Diff type for distance, got {ty:?}"),
+            ));
+        }
 
-        read_u32_le(self.get_mut(ty)).and_then(|n| {
+        read_u32_le(self.get_mut(ty)?).and_then(|n| {
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
     }
@@ -195,7 +213,7 @@ fn decode_token_byte_streams(
             if ty != Type::Type {
                 let mut buf = vec![u8::from(Type::Match); n_names];
                 buf[0] = u8::from(ty);
-                b[t as usize].set(Type::Type, buf);
+                b[t as usize].set(Type::Type, buf)?;
             }
         }
 
@@ -206,8 +224,8 @@ fn decode_token_byte_streams(
                 Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })?;
 
-            let buf = b[dup_pos].get(dup_type).get_ref().clone();
-            b[t as usize].set(ty, buf);
+            let buf = b[dup_pos].get(dup_type)?.get_ref().clone();
+            b[t as usize].set(ty, buf)?;
         } else {
             let compressed_size = read_uint7_as(src)?;
             let buf = split_off(src, compressed_size)?;
@@ -217,7 +235,7 @@ fn decode_token_byte_streams(
                 CompressionMethod::AdaptiveArithmeticCoder => aac::decode(buf, 0)?,
             };
 
-            b[t as usize].set(ty, buf);
+            b[t as usize].set(ty, buf)?;
         }
     }
 

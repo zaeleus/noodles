@@ -8,16 +8,19 @@ use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
 
 const NUL: u8 = 0x00;
 
-pub fn encode(mut src: &[u8]) -> io::Result<Vec<u8>> {
-    let mut dst = Vec::new();
+/// Compression method for name tokenizer token byte streams.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum CompressionMethod {
+    RansNx16,
+    Aac,
+}
 
+pub fn encode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     if let Some(buf) = src.strip_suffix(&[NUL]) {
         src = buf;
     }
 
     let names: Vec<_> = src.split(|&b| b == NUL).collect();
-
-    write_header(&mut dst, src.len(), names.len())?;
 
     let mut names_indices = HashMap::new();
     let mut diffs = Vec::with_capacity(names.len());
@@ -36,39 +39,77 @@ pub fn encode(mut src: &[u8]) -> io::Result<Vec<u8>> {
         diffs.push(diff);
     }
 
-    let mut token_writer = TokenWriter::default();
+    // Build token writers (one for mode stream, one per token position)
+    let mut token_writers = Vec::with_capacity(max_token_count + 1);
 
+    let mut mode_writer = TokenWriter::default();
     for diff in &diffs {
         let token = match diff.mode {
             Mode::Dup(delta) => Token::Dup(delta),
             Mode::Diff(delta) => Token::Diff(delta),
         };
-
-        token_writer.write_token(&token)?;
+        mode_writer.write_token(&token)?;
     }
-
-    encode_token_byte_streams(&mut dst, &token_writer)?;
+    token_writers.push(mode_writer);
 
     for i in 0..max_token_count {
-        let mut token_writer = TokenWriter::default();
-
+        let mut tw = TokenWriter::default();
         for diff in &diffs {
             if diff.is_dup() {
                 continue;
             }
-
             if let Some(token) = diff.tokens.get(i) {
-                token_writer.write_token(token)?;
+                tw.write_token(token)?;
             }
         }
-
-        encode_token_byte_streams(&mut dst, &token_writer)?;
+        token_writers.push(tw);
     }
 
-    Ok(dst)
+    // Encode all streams with rans, measure total size
+    let mut rans_dst = Vec::new();
+    write_header(
+        &mut rans_dst,
+        src.len(),
+        names.len(),
+        CompressionMethod::RansNx16,
+    )?;
+    for (pos, tw) in token_writers.iter().enumerate() {
+        encode_token_byte_streams(
+            &mut rans_dst,
+            tw,
+            CompressionMethod::RansNx16,
+            &token_writers,
+            pos,
+        )?;
+    }
+
+    // Encode all streams with AAC, measure total size
+    let mut aac_dst = Vec::new();
+    write_header(&mut aac_dst, src.len(), names.len(), CompressionMethod::Aac)?;
+    for (pos, tw) in token_writers.iter().enumerate() {
+        encode_token_byte_streams(
+            &mut aac_dst,
+            tw,
+            CompressionMethod::Aac,
+            &token_writers,
+            pos,
+        )?;
+    }
+
+    // Pick whichever is smaller
+    if aac_dst.len() < rans_dst.len() {
+        Ok(aac_dst)
+    } else {
+        Ok(rans_dst)
+    }
 }
 
-fn write_header<W>(writer: &mut W, src_len: usize, names_count: usize) -> io::Result<()>
+fn write_header<W>(
+    writer: &mut W,
+    src_len: usize,
+    names_count: usize,
+    method: CompressionMethod,
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -80,8 +121,11 @@ where
         u32::try_from(names_count).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_u32_le(writer, n_names)?;
 
-    // TODO: use_arith
-    write_u8(writer, 0)?;
+    let use_arith: u8 = match method {
+        CompressionMethod::RansNx16 => 0,
+        CompressionMethod::Aac => 1,
+    };
+    write_u8(writer, use_arith)?;
 
     Ok(())
 }
@@ -397,33 +441,86 @@ where
     write_u8(writer, n)
 }
 
-fn encode_token_byte_streams<W>(writer: &mut W, token_writer: &TokenWriter) -> io::Result<()>
+/// Returns all (type, data) pairs for a given TokenWriter in canonical order.
+fn token_writer_streams(tw: &TokenWriter) -> [(Type, &[u8]); 10] {
+    [
+        (Type::Type, tw.type_writer.as_slice()),
+        (Type::String, tw.string_writer.as_slice()),
+        (Type::Char, tw.char_writer.as_slice()),
+        (Type::Digits0, tw.digits0_writer.as_slice()),
+        (Type::DZLen, tw.dz_len_writer.as_slice()),
+        (Type::Dup, tw.dup_writer.as_slice()),
+        (Type::Diff, tw.diff_writer.as_slice()),
+        (Type::Digits, tw.digits_writer.as_slice()),
+        (Type::Delta, tw.delta_writer.as_slice()),
+        (Type::Delta0, tw.delta0_writer.as_slice()),
+    ]
+}
+
+fn encode_token_byte_streams<W>(
+    writer: &mut W,
+    token_writer: &TokenWriter,
+    method: CompressionMethod,
+    all_token_writers: &[TokenWriter],
+    current_pos: usize,
+) -> io::Result<()>
 where
     W: Write,
 {
-    encode_token_byte_stream(writer, Type::Type, &token_writer.type_writer)?;
-    encode_token_byte_stream(writer, Type::String, &token_writer.string_writer)?;
-    encode_token_byte_stream(writer, Type::Char, &token_writer.char_writer)?;
-    encode_token_byte_stream(writer, Type::Digits0, &token_writer.digits0_writer)?;
-    encode_token_byte_stream(writer, Type::DZLen, &token_writer.dz_len_writer)?;
-    encode_token_byte_stream(writer, Type::Dup, &token_writer.dup_writer)?;
-    encode_token_byte_stream(writer, Type::Diff, &token_writer.diff_writer)?;
-    encode_token_byte_stream(writer, Type::Digits, &token_writer.digits_writer)?;
-    encode_token_byte_stream(writer, Type::Delta, &token_writer.delta_writer)?;
-    encode_token_byte_stream(writer, Type::Delta0, &token_writer.delta0_writer)?;
+    for (ty, buf) in token_writer_streams(token_writer) {
+        if buf.is_empty() {
+            continue;
+        }
+
+        // Check for tok_dup: see if an earlier position has an identical byte stream
+        if let Some((dup_pos, dup_type)) =
+            find_duplicate_stream(all_token_writers, current_pos, buf)
+        {
+            // Emit type byte with 0x40 (tok_dup) flag set
+            let type_byte = if ty == Type::Type {
+                0x80 | 0x40
+            } else {
+                u8::from(ty) | 0x40
+            };
+            write_u8(writer, type_byte)?;
+            let dup_pos_u8 = u8::try_from(dup_pos)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+            write_u8(writer, dup_pos_u8)?;
+            write_u8(writer, u8::from(dup_type))?;
+        } else {
+            encode_token_byte_stream(writer, ty, buf, method)?;
+        }
+    }
 
     Ok(())
 }
 
-fn encode_token_byte_stream<W>(writer: &mut W, ty: Type, buf: &[u8]) -> io::Result<()>
+/// Search all earlier token positions for a byte stream identical to `buf`.
+fn find_duplicate_stream(
+    all_token_writers: &[TokenWriter],
+    current_pos: usize,
+    buf: &[u8],
+) -> Option<(usize, Type)> {
+    for (pos, tw) in all_token_writers[..current_pos].iter().enumerate() {
+        for (ty, stream) in token_writer_streams(tw) {
+            if !stream.is_empty() && stream == buf {
+                return Some((pos, ty));
+            }
+        }
+    }
+    None
+}
+
+fn encode_token_byte_stream<W>(
+    writer: &mut W,
+    ty: Type,
+    buf: &[u8],
+    method: CompressionMethod,
+) -> io::Result<()>
 where
     W: Write,
 {
-    use crate::codecs::rans_nx16::{self, Flags};
-
-    if buf.is_empty() {
-        return Ok(());
-    }
+    use crate::codecs::{aac, rans_nx16};
 
     if ty == Type::Type {
         write_u8(writer, 0x80)?;
@@ -431,7 +528,10 @@ where
         write_type(writer, ty)?;
     }
 
-    let cdata = rans_nx16::encode(Flags::empty(), buf)?;
+    let cdata = match method {
+        CompressionMethod::RansNx16 => rans_nx16::encode(rans_nx16::Flags::empty(), buf)?,
+        CompressionMethod::Aac => aac::encode(aac::Flags::empty(), buf)?,
+    };
 
     let clen =
         u32::try_from(cdata.len()).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;

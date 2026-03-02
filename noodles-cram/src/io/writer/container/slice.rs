@@ -30,6 +30,11 @@ pub struct Slice {
     pub external_data_blocks: Vec<Block>,
 }
 
+/// Block content ID used for embedded reference sequences.
+///
+/// This must not collide with any data series (1-30) or tag encoding content IDs.
+const EMBEDDED_REFERENCE_CONTENT_ID: block::ContentId = i32::MAX;
+
 pub(super) fn build_slice(
     reference_sequence_repository: &fasta::Repository,
     options: &Options,
@@ -45,7 +50,7 @@ pub(super) fn build_slice(
     let (core_data_buf, external_data_bufs) =
         write_records(compression_header, reference_sequence_context, records)?;
 
-    let (core_data_block, external_data_blocks) = build_blocks(
+    let (core_data_block, mut external_data_blocks) = build_blocks(
         &options.block_content_encoder_map,
         records,
         core_data_buf,
@@ -55,11 +60,37 @@ pub(super) fn build_slice(
     let mut block_content_ids = vec![core_data_block.content_id];
     block_content_ids.extend(external_data_blocks.iter().map(|block| block.content_id));
 
-    let reference_md5 = calculate_reference_sequence_md5(
-        reference_sequence_repository,
-        header,
-        reference_sequence_context,
-    )?;
+    let mut embedded_reference_bases_block_content_id = None;
+
+    let reference_md5 = if options.embed_reference_sequences {
+        if let ReferenceSequenceContext::Some(context) = reference_sequence_context {
+            let reference_bases =
+                get_reference_subsequence(reference_sequence_repository, header, context)?;
+
+            let embedded_ref_block = Block::encode(
+                ContentType::ExternalData,
+                EMBEDDED_REFERENCE_CONTENT_ID,
+                None,
+                &reference_bases,
+            )?;
+
+            embedded_reference_bases_block_content_id = Some(EMBEDDED_REFERENCE_CONTENT_ID);
+            block_content_ids.push(EMBEDDED_REFERENCE_CONTENT_ID);
+            external_data_blocks.push(embedded_ref_block);
+
+            // Embedded references don't need MD5 since they ARE the reference.
+            None
+        } else {
+            None
+        }
+    } else {
+        calculate_reference_sequence_md5(
+            reference_sequence_repository,
+            header,
+            reference_sequence_context,
+            options.reference_required,
+        )?
+    };
 
     let header = Header {
         reference_sequence_context,
@@ -67,7 +98,7 @@ pub(super) fn build_slice(
         record_counter,
         block_count: block_content_ids.len(),
         block_content_ids,
-        embedded_reference_bases_block_content_id: None,
+        embedded_reference_bases_block_content_id,
         reference_md5,
         optional_tags: Vec::new(),
     };
@@ -215,22 +246,23 @@ fn build_blocks(
         .into_iter()
         .filter(|(_, buf)| !buf.is_empty())
         .map(|(block_content_id, buf)| {
-            let content_type = ContentType::ExternalData;
-
             if let Some(encoder) =
                 block_content_encoder_map.get_data_series_encoder(block_content_id)
             {
                 match encoder {
                     Some(Encoder::Fqzcomp) => {
                         if all_quality_scores_stored_as_arrays {
-                            let lens: Vec<_> = records.iter().map(|r| r.read_length).collect();
-                            let data = fqzcomp::encode(&lens, &buf)?;
+                            let fqz_records: Vec<_> = records
+                                .iter()
+                                .map(|r| (r.read_length, r.bam_flags.is_reverse_complemented()))
+                                .collect();
+                            let data = fqzcomp::encode(&fqz_records, &buf)?;
 
                             Ok(Block {
                                 compression_method: CompressionMethod::Fqzcomp,
-                                content_type,
+                                content_type: ContentType::ExternalData,
                                 content_id: block_content_id,
-                                uncompressed_size: data.len(),
+                                uncompressed_size: buf.len(),
                                 src: data,
                             })
                         } else {
@@ -266,6 +298,7 @@ fn calculate_reference_sequence_md5(
     reference_sequence_repository: &fasta::Repository,
     header: &sam::Header,
     reference_sequence_context: ReferenceSequenceContext,
+    reference_required: bool,
 ) -> io::Result<Option<[u8; 16]>> {
     let ReferenceSequenceContext::Some(context) = reference_sequence_context else {
         return Ok(None);
@@ -274,15 +307,58 @@ fn calculate_reference_sequence_md5(
     let reference_sequence_name = header
         .reference_sequences()
         .get_index(context.reference_sequence_id())
+        .map(|(name, _)| name);
+
+    let reference_sequence_name = match reference_sequence_name {
+        Some(name) => name,
+        None if !reference_required => return Ok(Some([0u8; 16])),
+        None => {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid reference sequence ID",
+            ));
+        }
+    };
+
+    match reference_sequence_repository.get(reference_sequence_name) {
+        Some(result) => {
+            let reference_sequence = result?;
+            let interval = context.alignment_start()..=context.alignment_end();
+            let sequence = &reference_sequence[interval];
+            Ok(Some(calculate_normalized_sequence_digest(sequence)))
+        }
+        None if !reference_required => Ok(Some([0u8; 16])),
+        None => Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("missing reference sequence: {reference_sequence_name}"),
+        )),
+    }
+}
+
+fn get_reference_subsequence(
+    reference_sequence_repository: &fasta::Repository,
+    header: &sam::Header,
+    context: crate::container::ReferenceSequenceContextInner,
+) -> io::Result<Vec<u8>> {
+    let reference_sequence_name = header
+        .reference_sequences()
+        .get_index(context.reference_sequence_id())
         .map(|(name, _)| name)
-        .expect("invalid reference sequence ID");
+        .ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidInput, "invalid reference sequence ID")
+        })?;
 
     let reference_sequence = reference_sequence_repository
         .get(reference_sequence_name)
-        .expect("missing reference sequence")?;
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("missing reference sequence: {reference_sequence_name}"),
+            )
+        })??;
 
     let interval = context.alignment_start()..=context.alignment_end();
     let sequence = &reference_sequence[interval];
 
-    Ok(Some(calculate_normalized_sequence_digest(sequence)))
+    Ok(sequence.to_vec())
 }

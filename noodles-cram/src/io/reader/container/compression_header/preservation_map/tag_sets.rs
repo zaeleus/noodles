@@ -4,11 +4,12 @@ use noodles_sam::alignment::record::data::field::{Tag, Type};
 
 use crate::{
     container::compression_header::preservation_map::{TagSets, tag_sets::Key},
+    file_definition::Version,
     io::reader::collections::read_array,
 };
 
-pub(super) fn read_tag_sets(src: &mut &[u8]) -> io::Result<TagSets> {
-    let mut buf = read_array(src)?;
+pub(super) fn read_tag_sets(src: &mut &[u8], version: Version) -> io::Result<TagSets> {
+    let mut buf = read_array(src, version)?;
     read_tag_sets_inner(&mut buf)
 }
 

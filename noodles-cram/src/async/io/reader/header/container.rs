@@ -9,19 +9,22 @@ use tokio::io::{self, AsyncRead, AsyncReadExt, Take};
 pub use self::block::Decoder;
 use self::block::read_block;
 pub(super) use self::header::read_header;
+use crate::file_definition::Version;
 
 /// An async CRAM header container reader.
 pub struct Reader<R> {
     inner: Take<R>,
+    version: Version,
 }
 
 impl<R> Reader<R>
 where
     R: AsyncRead + Unpin,
 {
-    pub(super) fn new(inner: R, len: u64) -> Self {
+    pub(super) fn new(inner: R, len: u64, version: Version) -> Self {
         Self {
             inner: inner.take(len),
+            version,
         }
     }
 
@@ -64,7 +67,7 @@ where
     pub async fn raw_sam_header_reader(
         &mut self,
     ) -> io::Result<sam_header::Reader<Decoder<&mut Take<R>>>> {
-        let mut reader = read_block(&mut self.inner).await?;
+        let mut reader = read_block(&mut self.inner, self.version).await?;
 
         let len = reader.read_i32_le().await.and_then(|n| {
             u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

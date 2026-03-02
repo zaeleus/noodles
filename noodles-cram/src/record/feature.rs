@@ -2,17 +2,19 @@ pub mod code;
 
 pub use self::code::Code;
 
+use std::borrow::Cow;
+
 use noodles_core::Position;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Feature<'c> {
     Bases {
         position: Position,
-        bases: &'c [u8],
+        bases: Cow<'c, [u8]>,
     },
     Scores {
         position: Position,
-        quality_scores: &'c [u8],
+        quality_scores: Cow<'c, [u8]>,
     },
     ReadBase {
         position: Position,
@@ -25,7 +27,7 @@ pub enum Feature<'c> {
     },
     Insertion {
         position: Position,
-        bases: &'c [u8],
+        bases: Cow<'c, [u8]>,
     },
     Deletion {
         position: Position,
@@ -45,7 +47,7 @@ pub enum Feature<'c> {
     },
     SoftClip {
         position: Position,
-        bases: &'c [u8],
+        bases: Cow<'c, [u8]>,
     },
     Padding {
         position: Position,
@@ -87,7 +89,7 @@ mod tests {
         assert_eq!(
             Feature::Bases {
                 position,
-                bases: &[]
+                bases: Cow::Borrowed(&[])
             }
             .position(),
             position
@@ -95,7 +97,7 @@ mod tests {
         assert_eq!(
             Feature::Scores {
                 position,
-                quality_scores: &[]
+                quality_scores: Cow::Borrowed(&[])
             }
             .position(),
             position
@@ -116,7 +118,7 @@ mod tests {
         assert_eq!(
             Feature::Insertion {
                 position,
-                bases: &[]
+                bases: Cow::Borrowed(&[])
             }
             .position(),
             position
@@ -145,7 +147,7 @@ mod tests {
         assert_eq!(
             Feature::SoftClip {
                 position,
-                bases: &[]
+                bases: Cow::Borrowed(&[])
             }
             .position(),
             position

@@ -17,6 +17,7 @@ use crate::{FileDefinition, MAGIC_NUMBER, file_definition::Version};
 /// A CRAM header reader.
 pub struct Reader<R> {
     inner: R,
+    version: Version,
 }
 
 impl<R> Reader<R>
@@ -24,7 +25,10 @@ where
     R: Read,
 {
     pub(super) fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            version: Version::default(),
+        }
     }
 
     /// Reads the magic number.
@@ -67,7 +71,9 @@ where
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn read_format_version(&mut self) -> io::Result<Version> {
-        read_format_version(&mut self.inner)
+        let version = read_format_version(&mut self.inner)?;
+        self.version = version;
+        Ok(version)
     }
 
     /// Reads the file ID.
@@ -119,17 +125,9 @@ where
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn container_reader(&mut self) -> io::Result<container::Reader<&mut R>> {
-        let len = container::read_header(&mut self.inner)?;
-        Ok(container::Reader::new(&mut self.inner, len))
+        let len = container::read_header(&mut self.inner, self.version)?;
+        Ok(container::Reader::new(&mut self.inner, len, self.version))
     }
-}
-
-pub(super) fn read_header<R>(reader: &mut R) -> io::Result<sam::Header>
-where
-    R: Read,
-{
-    read_file_definition(reader)?;
-    read_file_header(reader)
 }
 
 pub(super) fn read_file_definition<R>(reader: &mut R) -> io::Result<FileDefinition>
@@ -154,11 +152,12 @@ where
     Ok(FileDefinition::new(version, file_id))
 }
 
-pub(super) fn read_file_header<R>(reader: &mut R) -> io::Result<sam::Header>
+pub(super) fn read_file_header<R>(reader: &mut R, version: Version) -> io::Result<sam::Header>
 where
     R: Read,
 {
     let mut header_reader = Reader::new(reader);
+    header_reader.version = version;
     read_file_header_inner(&mut header_reader)
 }
 

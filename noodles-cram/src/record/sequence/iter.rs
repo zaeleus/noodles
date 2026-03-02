@@ -68,7 +68,7 @@ enum State<'r, 'c: 'r> {
     Next,
     Prepare(slice::Iter<'c, u8>, Position, &'r Feature<'c>),
     Base(u8),
-    Bases(slice::Iter<'c, u8>),
+    Bases(slice::Iter<'r, u8>),
     Finish(slice::Iter<'c, u8>),
     Done,
 }
@@ -210,6 +210,8 @@ impl<'r: 'c, 'c: 'r> FusedIterator for Iter<'r, 'c> {}
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+
     use super::*;
 
     #[test]
@@ -219,11 +221,11 @@ mod tests {
         let features = [
             Feature::Bases {
                 position: Position::try_from(2)?,
-                bases: b"A",
+                bases: Cow::Borrowed(b"A"),
             },
             Feature::Scores {
                 position: Position::try_from(2)?,
-                quality_scores: &[0],
+                quality_scores: Cow::Borrowed(&[0]),
             },
             Feature::ReadBase {
                 position: Position::try_from(3)?,
@@ -240,7 +242,7 @@ mod tests {
             },
             Feature::Insertion {
                 position: Position::try_from(6)?,
-                bases: b"G",
+                bases: Cow::Borrowed(b"G"),
             },
             Feature::Deletion {
                 position: Position::try_from(7)?,
@@ -260,7 +262,7 @@ mod tests {
             },
             Feature::SoftClip {
                 position: Position::try_from(8)?,
-                bases: b"T",
+                bases: Cow::Borrowed(b"T"),
             },
             Feature::Padding {
                 position: Position::try_from(9)?,

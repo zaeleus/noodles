@@ -8,20 +8,22 @@ use std::io::{self, Read, Take};
 
 use self::block::read_block;
 pub(super) use self::header::read_header;
-use crate::io::reader::num::read_i32_le;
+use crate::{file_definition::Version, io::reader::num::read_i32_le};
 
 /// A CRAM header container reader.
 pub struct Reader<R> {
     inner: Take<R>,
+    version: Version,
 }
 
 impl<R> Reader<R>
 where
     R: Read,
 {
-    pub(super) fn new(inner: R, len: u64) -> Self {
+    pub(super) fn new(inner: R, len: u64, version: Version) -> Self {
         Self {
             inner: inner.take(len),
+            version,
         }
     }
 
@@ -57,7 +59,7 @@ where
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn raw_sam_header_reader(&mut self) -> io::Result<sam_header::Reader<impl Read + '_>> {
-        let mut reader = read_block(&mut self.inner)?;
+        let mut reader = read_block(&mut self.inner, self.version)?;
 
         let len = read_i32_le(&mut reader).and_then(|n| {
             u64::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

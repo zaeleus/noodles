@@ -1,15 +1,21 @@
 use std::io::{self, Write};
 
-use crate::{container::compression_header::preservation_map::TagSets, io::writer::Record};
+use crate::{
+    container::compression_header::preservation_map::TagSets,
+    file_definition::Version,
+    io::writer::{Record, collections::write_array},
+};
 
-use super::write_array;
-
-pub(super) fn write_tag_sets<W>(writer: &mut W, tag_sets: &TagSets) -> io::Result<()>
+pub(super) fn write_tag_sets<W>(
+    writer: &mut W,
+    tag_sets: &TagSets,
+    version: Version,
+) -> io::Result<()>
 where
     W: Write,
 {
     let buf = encode(tag_sets);
-    write_array(writer, &buf)
+    write_array(writer, version, &buf)
 }
 
 fn encode(tag_sets: &TagSets) -> Vec<u8> {
@@ -73,7 +79,7 @@ mod tests {
             ],
         ];
 
-        write_tag_sets(&mut buf, &tag_sets)?;
+        write_tag_sets(&mut buf, &tag_sets, Version::default())?;
 
         let expected = [
             0x0b, // data_len

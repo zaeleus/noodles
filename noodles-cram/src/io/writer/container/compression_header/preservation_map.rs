@@ -9,37 +9,43 @@ use self::{
 };
 use crate::{
     container::compression_header::{PreservationMap, preservation_map::Key},
+    file_definition::Version,
     io::writer::{
         Options, Record,
         collections::write_array,
-        num::{write_itf8, write_u8},
+        num::{write_int, write_u8},
     },
 };
 
 pub(super) fn write_preservation_map<W>(
     writer: &mut W,
     preservation_map: &PreservationMap,
+    version: Version,
 ) -> io::Result<()>
 where
     W: Write,
 {
-    let buf = encode(preservation_map)?;
-    write_array(writer, &buf)
+    let buf = encode(preservation_map, version)?;
+    write_array(writer, version, &buf)
 }
 
-fn encode(preservation_map: &PreservationMap) -> io::Result<Vec<u8>> {
+fn encode(preservation_map: &PreservationMap, version: Version) -> io::Result<Vec<u8>> {
     let mut buf = Vec::new();
-    encode_inner(&mut buf, preservation_map)?;
+    encode_inner(&mut buf, preservation_map, version)?;
     Ok(buf)
 }
 
-fn encode_inner<W>(writer: &mut W, preservation_map: &PreservationMap) -> io::Result<()>
+fn encode_inner<W>(
+    writer: &mut W,
+    preservation_map: &PreservationMap,
+    version: Version,
+) -> io::Result<()>
 where
     W: Write,
 {
-    const MAP_LENGTH: i32 = 5;
+    let map_length: i32 = if version >= Version::V4_0 { 6 } else { 5 };
 
-    write_itf8(writer, MAP_LENGTH)?;
+    write_int(writer, version, map_length)?;
 
     write_key(writer, Key::RecordsHaveNames)?;
     write_bool(writer, preservation_map.records_have_names())?;
@@ -57,9 +63,23 @@ where
     write_substitution_matrix(writer, preservation_map.substitution_matrix())?;
 
     write_key(writer, Key::TagSets)?;
-    write_tag_sets(writer, preservation_map.tag_sets())?;
+    write_tag_sets(writer, preservation_map.tag_sets(), version)?;
+
+    if version >= Version::V4_0 {
+        write_key(writer, Key::QualityScoreOrientation)?;
+        write_quality_score_orientation(writer, preservation_map.qs_seq_orient())?;
+    }
 
     Ok(())
+}
+
+fn write_quality_score_orientation<W>(writer: &mut W, qs_seq_orient: bool) -> io::Result<()>
+where
+    W: Write,
+{
+    // CRAM 4.0: 0 = original/sequencing orientation, 1 = alignment orientation.
+    let value: u8 = if qs_seq_orient { 1 } else { 0 };
+    write_u8(writer, value)
 }
 
 fn write_key<W>(writer: &mut W, key: Key) -> io::Result<()>
@@ -90,8 +110,10 @@ pub(super) fn build_preservation_map(options: &Options, records: &[Record]) -> P
     PreservationMap {
         records_have_names: options.preserve_read_names,
         alignment_starts_are_deltas: options.encode_alignment_start_positions_as_deltas,
-        external_reference_sequence_is_required: true,
+        external_reference_sequence_is_required: options.reference_required
+            && !options.embed_reference_sequences,
         substitution_matrix: build_substitution_matrix(records),
         tag_sets: build_tag_sets(records),
+        qs_seq_orient: options.qs_seq_orient,
     }
 }

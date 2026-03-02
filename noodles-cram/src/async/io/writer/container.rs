@@ -2,7 +2,10 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
-use crate::io::writer::{Options, Record};
+use crate::{
+    file_definition::Version,
+    io::writer::{Options, Record},
+};
 
 pub async fn write_container<W>(
     writer: &mut W,
@@ -31,10 +34,10 @@ where
     Ok(())
 }
 
-pub async fn write_eof_container<W>(writer: &mut W) -> io::Result<()>
+pub async fn write_eof_container<W>(writer: &mut W, version: Version) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    use crate::io::writer::container::EOF;
-    writer.write_all(&EOF).await
+    let eof = crate::io::writer::container::build_eof_container(version)?;
+    writer.write_all(&eof).await
 }

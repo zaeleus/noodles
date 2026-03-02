@@ -110,7 +110,7 @@ where
     pub async fn shutdown(&mut self, header: &sam::Header) -> io::Result<()> {
         use self::container::write_eof_container;
         self.flush(header).await?;
-        write_eof_container(&mut self.inner).await
+        write_eof_container(&mut self.inner, self.options.version).await
     }
 
     /// Writes a CRAM file definition.
@@ -161,7 +161,14 @@ where
     /// # }
     /// ```
     pub async fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        write_file_header(&mut self.inner, &self.reference_sequence_repository, header).await
+        write_file_header(
+            &mut self.inner,
+            &self.reference_sequence_repository,
+            header,
+            self.options.version,
+            self.options.reference_required,
+        )
+        .await
     }
 
     /// Writes a SAM header.
@@ -193,6 +200,7 @@ where
             &self.reference_sequence_repository,
             &file_definition,
             header,
+            self.options.reference_required,
         )
         .await
     }
@@ -226,7 +234,8 @@ where
         header: &sam::Header,
         record: &crate::Record<'_>,
     ) -> io::Result<()> {
-        self.write_alignment_record(header, record).await
+        let writer_record = Record::from_cram_record(record, self.options.strip_md_nm)?;
+        self.add_record(header, writer_record).await
     }
 
     async fn add_record(&mut self, header: &sam::Header, record: Record) -> io::Result<()> {
@@ -268,7 +277,11 @@ where
         header: &sam::Header,
         record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        let record = Record::try_from_alignment_record(header, record)?;
+        let record = Record::try_from_alignment_record_with_options(
+            header,
+            record,
+            self.options.strip_md_nm,
+        )?;
         self.add_record(header, record).await
     }
 

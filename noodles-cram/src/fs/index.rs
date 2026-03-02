@@ -134,7 +134,10 @@ fn push_index_records_for_multi_reference_slice(
     let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
 
     for record in slice.records(
-        fasta::Repository::default(), // TODO
+        // An empty repository is sufficient for indexing — we only need
+        // alignment positions and reference sequence IDs from records,
+        // not the actual reference bases.
+        fasta::Repository::default(),
         header,
         compression_header,
         &core_data_src,
@@ -155,14 +158,19 @@ fn push_index_records_for_multi_reference_slice(
     sorted_reference_sequence_ids.sort_unstable();
 
     for reference_sequence_id in sorted_reference_sequence_ids {
-        let (alignment_start, alignment_span) = if reference_sequence_id.is_some() {
+        let (alignment_start, alignment_span) = if let Some(id) = reference_sequence_id {
             let range = &reference_sequence_ids[&reference_sequence_id];
 
             if let (Some(start), Some(end)) = (range.start, range.end) {
                 let span = usize::from(end) - usize::from(start) + 1;
                 (Some(start), span)
             } else {
-                todo!("unhandled interval: {:?}", range);
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "multi-reference slice has no alignment bounds for reference sequence {id}",
+                    ),
+                ));
             }
         } else {
             (None, 0)

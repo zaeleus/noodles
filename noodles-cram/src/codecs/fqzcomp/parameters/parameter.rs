@@ -114,7 +114,7 @@ fn read_max_symbol(src: &mut &[u8]) -> io::Result<u8> {
 }
 
 fn read_quality_map(src: &mut &[u8], max_symbol: u8) -> io::Result<Vec<u8>> {
-    let len = usize::from(max_symbol);
+    let len = usize::from(max_symbol) + 1;
 
     let (buf, rest) = src
         .split_at_checked(len)
