@@ -9,6 +9,10 @@ use noodles_fasta as fasta;
 use super::{Options, RECORDS_PER_CONTAINER, Writer};
 use crate::{codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version};
 
+// § 7 "Container header structure" (2025-04-07): "record counter: 0-based sequential index of
+// records in the file/stream."
+const MIN_RECORD_COUNTER: u64 = 0;
+
 /// A CRAM writer builder.
 #[derive(Default)]
 pub struct Builder {
@@ -125,7 +129,7 @@ impl Builder {
             reference_sequence_repository: self.reference_sequence_repository,
             options: self.options,
             records: Vec::with_capacity(RECORDS_PER_CONTAINER),
-            record_counter: 0,
+            record_counter: MIN_RECORD_COUNTER,
         }
     }
 }
