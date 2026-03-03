@@ -65,11 +65,9 @@ fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     let compressed_size = read_itf8_as(src)?;
     let uncompressed_size = read_itf8_as(src)?;
 
-    let (data, rest) = src
-        .split_at_checked(compressed_size)
+    let data = src
+        .split_off(..compressed_size)
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
-
-    *src = rest;
 
     let end = original_src.len() - src.len();
     let actual_crc32 = crc32(&original_src[..end]);
