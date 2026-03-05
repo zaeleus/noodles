@@ -66,11 +66,9 @@ fn read_bool(src: &mut &[u8]) -> io::Result<bool> {
     const FALSE: u8 = 0x00;
     const TRUE: u8 = 0x01;
 
-    let (n, rest) = src
-        .split_first()
+    let n = src
+        .split_off_first()
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
-
-    *src = rest;
 
     match *n {
         FALSE => Ok(false),
