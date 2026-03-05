@@ -8,7 +8,7 @@ use self::{
     tag_sets::{build_tag_sets, write_tag_sets},
 };
 use crate::{
-    container::compression_header::{PreservationMap, preservation_map::Key},
+    container::compression_header::PreservationMap,
     io::writer::{
         Options, Record,
         collections::write_array,
@@ -37,37 +37,38 @@ fn encode_inner<W>(writer: &mut W, preservation_map: &PreservationMap) -> io::Re
 where
     W: Write,
 {
+    use crate::container::compression_header::preservation_map::key;
+
     const MAP_LENGTH: i32 = 5;
 
     write_itf8(writer, MAP_LENGTH)?;
 
-    write_key(writer, Key::RecordsHaveNames)?;
+    write_key(writer, key::RECORDS_HAVE_NAMES)?;
     write_bool(writer, preservation_map.records_have_names())?;
 
-    write_key(writer, Key::AlignmentStartsAreDeltas)?;
+    write_key(writer, key::ALIGNMENT_STARTS_ARE_DELTAS)?;
     write_bool(writer, preservation_map.alignment_starts_are_deltas())?;
 
-    write_key(writer, Key::ExternalReferenceSequenceIsRequired)?;
+    write_key(writer, key::EXTERNAL_REFERENCE_SEQUENCE_IS_REQUIRED)?;
     write_bool(
         writer,
         preservation_map.external_reference_sequence_is_required(),
     )?;
 
-    write_key(writer, Key::SubstitutionMatrix)?;
+    write_key(writer, key::SUBSTITUTION_MATRIX)?;
     write_substitution_matrix(writer, preservation_map.substitution_matrix())?;
 
-    write_key(writer, Key::TagSets)?;
+    write_key(writer, key::TAG_SETS)?;
     write_tag_sets(writer, preservation_map.tag_sets())?;
 
     Ok(())
 }
 
-fn write_key<W>(writer: &mut W, key: Key) -> io::Result<()>
+fn write_key<W>(writer: &mut W, key: &[u8; 2]) -> io::Result<()>
 where
     W: Write,
 {
-    let data = <[u8; 2]>::from(key);
-    writer.write_all(&data)
+    writer.write_all(key)
 }
 
 fn write_bool<W>(writer: &mut W, value: bool) -> io::Result<()>

@@ -4,10 +4,7 @@ mod tag_sets;
 use std::io;
 
 use self::{substitution_matrix::read_substitution_matrix, tag_sets::read_tag_sets};
-use crate::{
-    container::compression_header::{PreservationMap, preservation_map::Key},
-    io::reader::collections::read_map,
-};
+use crate::{container::compression_header::PreservationMap, io::reader::collections::read_map};
 
 pub(super) fn read_preservation_map(src: &mut &[u8]) -> io::Result<PreservationMap> {
     let (mut buf, len) = read_map(src)?;
@@ -15,6 +12,8 @@ pub(super) fn read_preservation_map(src: &mut &[u8]) -> io::Result<PreservationM
 }
 
 fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<PreservationMap> {
+    use crate::container::compression_header::preservation_map::key;
+
     let mut records_have_names = true;
     let mut alignment_starts_are_deltas = true;
     let mut external_reference_sequence_is_required = true;
@@ -25,15 +24,21 @@ fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<Preser
         let key = read_key(src)?;
 
         match key {
-            Key::RecordsHaveNames => records_have_names = read_bool(src)?,
-            Key::AlignmentStartsAreDeltas => alignment_starts_are_deltas = read_bool(src)?,
-            Key::ExternalReferenceSequenceIsRequired => {
+            key::RECORDS_HAVE_NAMES => records_have_names = read_bool(src)?,
+            key::ALIGNMENT_STARTS_ARE_DELTAS => alignment_starts_are_deltas = read_bool(src)?,
+            key::EXTERNAL_REFERENCE_SEQUENCE_IS_REQUIRED => {
                 external_reference_sequence_is_required = read_bool(src)?
             }
-            Key::SubstitutionMatrix => {
+            key::SUBSTITUTION_MATRIX => {
                 substitution_matrix = read_substitution_matrix(src).map(Some)?
             }
-            Key::TagSets => tag_sets = read_tag_sets(src).map(Some)?,
+            key::TAG_SETS => tag_sets = read_tag_sets(src).map(Some)?,
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid preservation map key",
+                ));
+            }
         }
     }
 
@@ -50,14 +55,14 @@ fn read_preservation_map_inner(src: &mut &[u8], len: usize) -> io::Result<Preser
     ))
 }
 
-fn read_key(src: &mut &[u8]) -> io::Result<Key> {
-    let (buf, rest) = src
+fn read_key<'a>(src: &mut &'a [u8]) -> io::Result<&'a [u8; 2]> {
+    let (key, rest) = src
         .split_first_chunk()
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     *src = rest;
 
-    Key::try_from(*buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    Ok(key)
 }
 
 // § 2.3 "Writing bytes to a byte stream" (2024-09-04): "Boolean is written as 1-byte with 0x0

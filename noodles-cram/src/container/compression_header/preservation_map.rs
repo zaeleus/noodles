@@ -4,7 +4,7 @@ pub(crate) mod key;
 pub(crate) mod substitution_matrix;
 pub mod tag_sets;
 
-pub(crate) use {key::Key, substitution_matrix::SubstitutionMatrix, tag_sets::TagSets};
+pub(crate) use {substitution_matrix::SubstitutionMatrix, tag_sets::TagSets};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PreservationMap {
