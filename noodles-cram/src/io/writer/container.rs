@@ -96,6 +96,9 @@ fn build_container(
     let mut blocks = vec![compression_header_block];
 
     let slice_count = slices.len();
+
+    // § 7 "Container header structure" (2024-09-04): "...landmarks[0] is equal to the byte length
+    // of the compression header."
     let mut landmarks = vec![container_size];
 
     for (i, slice) in slices.into_iter().enumerate() {
