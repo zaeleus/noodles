@@ -92,17 +92,17 @@ mod tests {
         let src = [
             0x18, // data.len = 24
             0x05, // map.len = 5
-            0x52, 0x4e, // key = "RN"
+            b'R', b'N', // key = "RN"
             0x00, // map["RN"] = false
-            0x41, 0x50, // key = "AP"
+            b'A', b'P', // key = "AP"
             0x00, // map["AP"] = false
-            0x52, 0x52, // key = "RR"
+            b'R', b'R', // key = "RR"
             0x00, // map["RR"] = false
-            0x53, 0x4d, // key = "SM"
+            b'S', b'M', // key = "SM"
             // [[C, G, T, N], [A, G, T, N], [A, C, T, N], [A, C, G, N], [A, C, G, T]]
             0x1b, 0x1b, 0x1b, 0x1b, 0x1b, // substitution matrix
-            0x54, 0x44, // key = "TD"
-            0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
+            b'T', b'D', // key = "TD"
+            0x04, b'C', b'O', b'Z', 0x00, // tag IDs dictionary = [[CO:Z]]
         ];
 
         let actual = read_preservation_map(&mut &src[..])?;
@@ -125,8 +125,8 @@ mod tests {
         let src = [
             0x08, // data.len = 8
             0x01, // map.len = 1
-            0x54, 0x44, // key = "TD"
-            0x04, 0x43, 0x4f, 0x5a, 0x00, // tag IDs dictionary = [[CO:Z]]
+            b'T', b'D', // key = "TD"
+            0x04, b'C', b'O', b'Z', 0x00, // tag IDs dictionary = [[CO:Z]]
         ];
 
         assert!(matches!(
@@ -140,7 +140,7 @@ mod tests {
         let src = [
             0x08, // data.len = 8
             0x01, // map.len = 1
-            0x53, 0x4d, // key = "SM"
+            b'S', b'M', // key = "SM"
             // [[C, G, T, N], [A, G, T, N], [A, C, T, N], [A, C, G, N], [A, C, G, T]]
             0x1b, 0x1b, 0x1b, 0x1b, 0x1b, // substitution matrix
         ];
