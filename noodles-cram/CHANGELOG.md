@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+  * cram/io/writer/record/convert: Exclude features in placed reads that
+    include bases that match the reference sequence.
+
 ### Fixed
 
   * cram/io/writer/container: Fix building landmarks.

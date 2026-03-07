@@ -285,7 +285,9 @@ where
         header: &sam::Header,
         record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        let record = Record::try_from_alignment_record(header, record)?;
+        let record =
+            Record::try_from_alignment_record(&self.reference_sequence_repository, header, record)?;
+
         self.add_record(header, record)
     }
 
