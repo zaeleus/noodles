@@ -337,12 +337,31 @@ fn get_filtered_data(
 
 #[cfg(test)]
 mod tests {
+    use bstr::ByteSlice;
     use noodles_sam::alignment::{
         record::cigar::{Op, op::Kind},
         record_buf::Cigar,
     };
 
     use super::*;
+
+    #[test]
+    fn test_get_read_group_id() -> io::Result<()> {
+        let read_group_name = b"rg0".as_bstr();
+
+        let header = sam::Header::builder()
+            .add_read_group(read_group_name, Default::default())
+            .build();
+        assert_eq!(get_read_group_id(&header, read_group_name)?, 0);
+
+        let header = sam::Header::default();
+        assert!(matches!(
+            get_read_group_id(&header, read_group_name),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
 
     #[test]
     fn test_cigar_to_features() -> Result<(), Box<dyn std::error::Error>> {
