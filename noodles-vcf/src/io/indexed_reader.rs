@@ -48,7 +48,7 @@ where
         self.inner.read_header()
     }
 
-    /// Reads a single raw VCF record.
+    /// Reads a single VCF record.
     pub fn read_record_buf(
         &mut self,
         header: &Header,
