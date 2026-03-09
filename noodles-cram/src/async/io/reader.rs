@@ -8,7 +8,9 @@ mod num;
 mod query;
 mod records;
 
-use futures::Stream;
+use std::future;
+
+use futures::{Stream, StreamExt};
 use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
@@ -297,6 +299,8 @@ where
 
     /// Returns a stream over records that intersects the given region.
     ///
+    /// To query for unmapped records, use [`Self::query_unmapped`].
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -346,5 +350,52 @@ where
             reference_sequence_id,
             region.interval(),
         ))
+    }
+
+    /// Returns a stream of unmapped records after querying for the unmapped region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_cram::{self as cram, crai};
+    /// use tokio::fs::File;
+    ///
+    /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
+    /// let header = reader.read_header().await?;
+    ///
+    /// let index = crai::r#async::read("sample.cram.crai").await?;
+    /// let mut query = reader.query_unmapped(&header, &index).await?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn query_unmapped<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &crai::Index,
+    ) -> io::Result<impl Stream<Item = io::Result<sam::alignment::RecordBuf>> + use<'r, 'h, R>>
+    {
+        let offset = index
+            .iter()
+            .find(|record| record.reference_sequence_id().is_none())
+            .map(|record| SeekFrom::Start(record.offset()))
+            .unwrap_or(SeekFrom::End(0));
+
+        self.get_mut().seek(offset).await?;
+
+        Ok(self.records(header).filter(|result| {
+            future::ready(
+                result
+                    .as_ref()
+                    .map(|record| record.flags().is_unmapped())
+                    .unwrap_or(true),
+            )
+        }))
     }
 }

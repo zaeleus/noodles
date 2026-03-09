@@ -292,6 +292,8 @@ where
 
     /// Returns an iterator over records that intersects the given region.
     ///
+    /// To query for unmapped records, use [`Self::query_unmapped`].
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -335,6 +337,48 @@ where
             reference_sequence_id,
             region.interval(),
         ))
+    }
+
+    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram::{self as cram, crai};
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    ///
+    /// let header = reader.read_header()?;
+    /// let index = crai::fs::read("sample.cram.crai")?;
+    /// let query = reader.query_unmapped(&header, &index)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn query_unmapped<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &crai::Index,
+    ) -> io::Result<impl Iterator<Item = io::Result<sam::alignment::RecordBuf>> + use<'r, 'h, R>>
+    {
+        let offset = index
+            .iter()
+            .find(|record| record.reference_sequence_id().is_none())
+            .map(|record| SeekFrom::Start(record.offset()))
+            .unwrap_or(SeekFrom::End(0));
+
+        self.get_mut().seek(offset)?;
+
+        Ok(self.records(header).filter(|result| {
+            result
+                .as_ref()
+                .map(|record| record.flags().is_unmapped())
+                .unwrap_or(true)
+        }))
     }
 }
 

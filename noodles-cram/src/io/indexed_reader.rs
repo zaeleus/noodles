@@ -97,4 +97,13 @@ where
     ) -> io::Result<Query<'r, 'h, 'r, R>> {
         self.inner.query(header, &self.index, region)
     }
+
+    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    pub fn query_unmapped<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+    ) -> io::Result<impl Iterator<Item = io::Result<sam::alignment::RecordBuf>> + use<'r, 'h, R>>
+    {
+        self.inner.query_unmapped(header, &self.index)
+    }
 }

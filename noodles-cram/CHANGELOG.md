@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/io/reader: Add `Reader::query_unmapped` to query for unmapped records
+    ([#384]).
+
+[#384]: https://github.com/zaeleus/noodles/issues/384
+
 ### Changed
 
   * cram/io/writer/record/convert: Exclude features in placed reads that
