@@ -13,11 +13,13 @@ use noodles_fasta as fasta;
 use noodles_sam::{self as sam, alignment::io::Write};
 use noodles_util::alignment;
 
+const UNMAPPED: &str = "*";
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
 
     let src = args.next().expect("missing src");
-    let region = args.next().expect("missing region").parse()?;
+    let raw_region = args.next().expect("missing region");
     let fasta_src = args.next();
 
     let mut builder = alignment::io::indexed_reader::Builder::default();
@@ -34,7 +36,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut reader = builder.build_from_path(src)?;
     let header = reader.read_header()?;
 
-    let query = reader.query(&header, &region)?;
+    let query: Box<dyn Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>>> =
+        if raw_region == UNMAPPED {
+            reader.query_unmapped(&header).map(Box::new)?
+        } else {
+            let region = raw_region.parse()?;
+            reader.query(&header, &region).map(Box::new)?
+        };
 
     let stdout = io::stdout().lock();
     let mut writer = sam::io::Writer::new(BufWriter::new(stdout));
