@@ -151,4 +151,54 @@ where
 
         Ok(records)
     }
+
+    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_util::alignment;
+    ///
+    /// let mut reader = alignment::io::indexed_reader::Builder::default()
+    ///     .build_from_path("sample.bam")?;
+    ///
+    /// let header = reader.read_header()?;
+    /// let query = reader.query_unmapped(&header)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn query_unmapped<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn Record>>> + use<'r, 'h, R>> {
+        let records: Box<dyn Iterator<Item = io::Result<Box<dyn Record>>>> = match self {
+            Self::Sam(reader) => {
+                let query = reader.query_unmapped()?;
+
+                Box::new(
+                    query.map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+                )
+            }
+            Self::Bam(reader) => {
+                let query = reader.query_unmapped()?;
+
+                Box::new(
+                    query.map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+                )
+            }
+            Self::Cram(reader) => {
+                let query = reader.query_unmapped(header)?;
+
+                Box::new(
+                    query.map(|result| result.map(|record| Box::new(record) as Box<dyn Record>)),
+                )
+            }
+        };
+
+        Ok(records)
+    }
 }

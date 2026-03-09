@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util/alignment/io/indexed_reader: Add `IndexedReader::query_unmapped` to
+    query for unmapped records ([#384]).
+
+[#384]: https://github.com/zaeleus/noodles/issues/384
+
 ## 0.76.0 - 2026-03-01
 
 ### Changed
