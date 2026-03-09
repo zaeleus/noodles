@@ -13,11 +13,13 @@ use noodles_cram as cram;
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_sam::{self as sam, alignment::io::Write as _};
 
+const UNMAPPED: &str = "*";
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1);
 
     let src = args.next().expect("missing src");
-    let region = args.next().expect("missing region").parse()?;
+    let raw_region = args.next().expect("missing region");
     let fasta_src = args.next();
 
     let reference_sequence_repository = fasta_src
@@ -36,9 +38,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = io::stdout().lock();
     let mut writer = sam::io::Writer::new(BufWriter::new(stdout));
 
-    let query = reader.query(&header, &region)?;
+    let records: Box<dyn Iterator<Item = io::Result<sam::alignment::RecordBuf>>> =
+        if raw_region == UNMAPPED {
+            reader.query_unmapped(&header).map(Box::new)?
+        } else {
+            let region = raw_region.parse()?;
+            reader.query(&header, &region).map(Box::new)?
+        };
 
-    for result in query {
+    for result in records {
         let record = result?;
         writer.write_alignment_record(&header, &record)?;
     }
