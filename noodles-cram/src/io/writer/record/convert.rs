@@ -26,7 +26,12 @@ impl Record {
         let bam_flags = record.flags()?;
         let mut cram_flags = Flags::default();
 
-        let sequence = Sequence::from(record.sequence().iter().collect::<Vec<_>>());
+        let sequence = if record.sequence().is_empty() {
+            cram_flags.insert(Flags::SEQUENCE_IS_MISSING);
+            Sequence::default()
+        } else {
+            Sequence::from(record.sequence().iter().collect::<Vec<_>>())
+        };
 
         let quality_scores = if record.quality_scores().is_empty() {
             QualityScores::default()
