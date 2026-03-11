@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * vcf: Enable `noodles-csi/async` with `async` feature.
+
 ## 0.85.0 - 2026-03-01
 
 ### Changed

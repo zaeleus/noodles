@@ -12,7 +12,14 @@ documentation = "https://docs.rs/noodles-vcf"
 categories = ["parser-implementations", "science::bioinformatics"]
 
 [features]
-async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "noodles-bgzf/async", "noodles-tabix/async"]
+async = [
+  "dep:futures",
+  "dep:pin-project-lite",
+  "dep:tokio",
+  "noodles-bgzf/async",
+  "noodles-csi/async",
+  "noodles-tabix/async",
+]
 
 [dependencies]
 indexmap.workspace = true
