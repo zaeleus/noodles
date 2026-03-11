@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * csi: Update to bit-vec 0.9.0.
+
 ## 0.54.0 - 2026-02-18
 
 ### Changed

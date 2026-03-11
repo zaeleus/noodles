@@ -15,7 +15,7 @@ categories = ["parser-implementations", "science::bioinformatics"]
 async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "noodles-bgzf/async"]
 
 [dependencies]
-bit-vec = "0.8.0"
+bit-vec = "0.9.0"
 bstr.workspace = true
 futures = { workspace = true, optional = true, features = ["std"] }
 indexmap.workspace = true
