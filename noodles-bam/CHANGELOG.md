@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bam: Enable `noodles-csi/async` with `async` feature.
+
 ## 0.86.0 - 2026-02-18
 
 ### Changed

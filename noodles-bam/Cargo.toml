@@ -12,7 +12,13 @@ documentation = "https://docs.rs/noodles-bam"
 categories = ["parser-implementations", "science::bioinformatics"]
 
 [features]
-async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "noodles-bgzf/async"]
+async = [
+  "dep:futures",
+  "dep:pin-project-lite",
+  "dep:tokio",
+  "noodles-bgzf/async",
+  "noodles-csi/async",
+]
 
 [dependencies]
 bstr.workspace = true
