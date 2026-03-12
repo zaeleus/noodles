@@ -24,7 +24,7 @@ impl Record {
         record: &dyn sam::alignment::Record,
     ) -> io::Result<Self> {
         let bam_flags = record.flags()?;
-        let mut cram_flags = Flags::default();
+        let mut cram_flags = Flags::QUALITY_SCORES_ARE_STORED_AS_ARRAY;
 
         let sequence = if record.sequence().is_empty() {
             cram_flags.insert(Flags::SEQUENCE_IS_MISSING);
