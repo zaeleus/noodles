@@ -12,8 +12,13 @@ pub mod writer;
 
 pub(crate) use self::block::Block;
 pub use self::{
-    buf_read::BufRead, indexed_reader::IndexedReader, multithreaded_reader::MultithreadedReader,
-    multithreaded_writer::MultithreadedWriter, read::Read, reader::Reader, seek::Seek,
+    buf_read::BufRead,
+    indexed_reader::IndexedReader,
+    multithreaded_reader::MultithreadedReader,
+    multithreaded_writer::{BlockInfo, BlockInfoRx, MultithreadedWriter},
+    read::Read,
+    reader::Reader,
+    seek::Seek,
     writer::Writer,
 };
 
@@ -103,6 +108,62 @@ mod tests {
         reader.read_to_end(&mut buf)?;
 
         assert_eq!(buf, b"noodles-bgzf");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_multithreaded_position_tracking() -> io::Result<()> {
+        use std::num::NonZero;
+
+        let mut writer = multithreaded_writer::Builder::default()
+            .set_worker_count(NonZero::new(2).unwrap())
+            .build_from_writer(Vec::new());
+
+        // Get the receiver before writing
+        let rx = writer.block_info_receiver().unwrap().clone();
+
+        // Initial state
+        assert_eq!(writer.position(), 0);
+        assert_eq!(writer.current_block_number(), 0);
+        assert_eq!(writer.blocks_written(), 0);
+        assert_eq!(writer.buffer_offset(), 0);
+
+        // Write first block
+        writer.write_all(b"hello")?;
+        assert_eq!(writer.buffer_offset(), 5);
+        writer.flush()?;
+        assert_eq!(writer.current_block_number(), 1);
+        assert_eq!(writer.buffer_offset(), 0);
+
+        // Write second block
+        writer.write_all(b"world")?;
+        writer.flush()?;
+        assert_eq!(writer.current_block_number(), 2);
+
+        // Finish to ensure all blocks are written
+        let _data = writer.finish()?;
+
+        // Collect block info
+        let mut block_infos: Vec<_> = rx.try_iter().collect();
+        block_infos.sort_by_key(|b| b.block_number);
+
+        // Should have 2 blocks
+        assert_eq!(block_infos.len(), 2);
+
+        // First block
+        assert_eq!(block_infos[0].block_number, 0);
+        assert_eq!(block_infos[0].compressed_start, 0);
+        assert_eq!(block_infos[0].uncompressed_size, 5);
+        assert!(block_infos[0].compressed_size > 0);
+
+        // Second block starts after first
+        assert_eq!(block_infos[1].block_number, 1);
+        assert_eq!(
+            block_infos[1].compressed_start,
+            block_infos[0].compressed_size as u64
+        );
+        assert_eq!(block_infos[1].uncompressed_size, 5);
 
         Ok(())
     }

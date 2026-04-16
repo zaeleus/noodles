@@ -1,4 +1,8 @@
-use std::{io::Write, num::NonZero};
+use std::{
+    io::Write,
+    num::NonZero,
+    sync::{Arc, atomic::AtomicU64},
+};
 
 use bytes::BytesMut;
 
@@ -62,10 +66,23 @@ impl Builder {
 
         let worker_count = self.worker_count.get();
 
+        // Position tracking for indexing support
+        let position = Arc::new(AtomicU64::new(0));
+        let blocks_written = Arc::new(AtomicU64::new(0));
+
+        // Block info channel (unbounded - writer shouldn't block)
+        let (block_info_tx, block_info_rx) = crossbeam_channel::unbounded();
+
         let (write_tx, write_rx) = crossbeam_channel::bounded(worker_count);
         let (deflate_tx, deflate_rx) = crossbeam_channel::bounded(worker_count);
 
-        let writer_handle = spawn_writer(writer, write_rx);
+        let writer_handle = spawn_writer(
+            writer,
+            write_rx,
+            Arc::clone(&position),
+            Arc::clone(&blocks_written),
+            block_info_tx,
+        );
         let deflater_handles =
             spawn_deflaters(self.compression_level, self.worker_count, deflate_rx);
 
@@ -75,8 +92,12 @@ impl Builder {
                 deflater_handles,
                 write_tx,
                 deflate_tx,
+                block_info_rx,
             },
             buf: BytesMut::new(),
+            current_block_number: 0,
+            position,
+            blocks_written,
         }
     }
 }
