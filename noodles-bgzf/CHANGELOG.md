@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * bgzf: Raise minimum supported Rust version (MSRV) to 1.89.0.
+
   * bgzf/deflate: Use libdeflate's CRC32 implementation when the `libdeflate`
     feature is enabled.
 

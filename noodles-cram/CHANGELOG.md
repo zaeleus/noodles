@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * cram: Raise minimum supported Rust version (MSRV) to 1.89.0.
+
   * cram: Update to md-5 0.11.0.
 
 ## 0.92.0 - 2026-03-27

@@ -10,6 +10,10 @@
 
 [#388]: https://github.com/zaeleus/noodles/issues/388
 
+### Changed
+
+  * sam: Raise minimum supported Rust version (MSRV) to 1.89.0.
+
 ### Removed
 
   * sam/alignment/record/sequence: Remove `Sequence::split_at_checked`.
