@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf/deflate: Use libdeflate's CRC32 implementation when the `libdeflate`
+    feature is enabled.
+
+    This matches the (de)compressor backend selection and is measurably faster
+    on both x86_64 and aarch64.
+
 ## 0.46.0 - 2026-02-18
 
 ### Changed

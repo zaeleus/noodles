@@ -78,10 +78,18 @@ pub(crate) fn encode(src: &[u8], compression_level: i32, dst: &mut Vec<u8>) -> i
     }
 }
 
+#[cfg(not(feature = "libdeflate"))]
 pub(crate) fn crc32(src: &[u8]) -> u32 {
     const START: u32 = 0;
 
     zlib_rs::crc32::crc32(START, src)
+}
+
+#[cfg(feature = "libdeflate")]
+pub(crate) fn crc32(src: &[u8]) -> u32 {
+    let mut crc = libdeflater::Crc::new();
+    crc.update(src);
+    crc.sum()
 }
 
 #[cfg(test)]
