@@ -18,7 +18,7 @@ libdeflate = ["dep:libdeflater"]
 [dependencies]
 bytes.workspace = true
 crossbeam-channel = "0.5.6"
-zlib-rs = "0.6.3"
+zlib-rs = { version = "0.6.3", features = ["avx512"] }
 
 futures = { workspace = true, optional = true, features = ["std"] }
 pin-project-lite = { workspace = true, optional = true }
