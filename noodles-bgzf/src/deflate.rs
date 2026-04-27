@@ -58,24 +58,40 @@ pub(crate) fn encode(
 pub(crate) fn encode(src: &[u8], compression_level: i32, dst: &mut Vec<u8>) -> io::Result<u32> {
     use zlib_rs::{Deflate, DeflateFlush, Status, compress_bound};
 
+    use crate::io::writer::{COMPRESSION_LEVEL_0_OVERHEAD, MAX_BUF_SIZE};
+
+    const COMPRESSION_LEVEL_0: i32 = 0;
     const HAS_ZLIB_HEADER: bool = false;
     const WINDOW_BITS: u8 = 15;
+    const MAX_COMPRESSED_SIZE: usize = MAX_BUF_SIZE + COMPRESSION_LEVEL_0_OVERHEAD;
 
     let max_len = compress_bound(src.len());
     dst.resize(max_len, 0);
 
-    let mut encoder = Deflate::new(compression_level, HAS_ZLIB_HEADER, WINDOW_BITS);
+    for level in [compression_level, COMPRESSION_LEVEL_0] {
+        let mut encoder = Deflate::new(level, HAS_ZLIB_HEADER, WINDOW_BITS);
 
-    let status = encoder
-        .compress(src, dst, DeflateFlush::Finish)
-        .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
+        let status = encoder
+            .compress(src, dst, DeflateFlush::Finish)
+            .map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
 
-    if status == Status::StreamEnd {
-        dst.truncate(encoder.total_out() as usize);
-        Ok(crc32(src))
-    } else {
-        Err(io::Error::from(io::ErrorKind::InvalidInput))
+        if status == Status::StreamEnd {
+            let compressed_size = encoder.total_out() as usize;
+
+            if compressed_size > MAX_COMPRESSED_SIZE {
+                continue;
+            }
+
+            dst.truncate(compressed_size);
+
+            return Ok(crc32(src));
+        } else {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
     }
+
+    // When `src.len() <= MAX_BUF_SIZE`, the output is guaranteed to be <= `MAX_COMPRESSED_SIZE`.
+    unreachable!();
 }
 
 #[cfg(not(feature = "libdeflate"))]

@@ -14,7 +14,7 @@ use crate::{BGZF_HEADER_SIZE, BGZF_MAX_ISIZE, VirtualPosition, gz};
 // The max DEFLATE overhead for 65536 bytes of data at compression level 0.
 //
 // For zlib (and derivatives) and libdeflate, this is 10 bytes; and for miniz_oxide, 15 bytes.
-const COMPRESSION_LEVEL_0_OVERHEAD: usize = 15;
+pub(crate) const COMPRESSION_LEVEL_0_OVERHEAD: usize = 15;
 
 // The max size of the write buffer.
 //
