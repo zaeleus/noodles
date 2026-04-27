@@ -95,7 +95,10 @@ where
     /// ```
     pub fn finish(&mut self) -> io::Result<W> {
         self.flush()?;
+        self.finish_inner()
+    }
 
+    fn finish_inner(&mut self) -> io::Result<W> {
         let state = mem::replace(&mut self.state, State::Done);
 
         match state {
@@ -139,7 +142,9 @@ where
 
         let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
 
-        write_tx.send(buffered_rx).unwrap();
+        if write_tx.send(buffered_rx).is_err() {
+            return self.finish_inner().map(|_| ());
+        }
 
         let src = self.buf.split().freeze();
         let message = (src, buffered_tx);
