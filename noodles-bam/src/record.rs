@@ -281,8 +281,9 @@ impl sam::alignment::Record for Record {
     fn sequence_ref(&self) -> sam::alignment::record::SequenceRef<'_> {
         use sam::alignment::record::sequence_ref::FourBitPacked;
 
-        let record_ref = self.as_record_ref();
-        let (src, base_count) = record_ref.raw_sequence();
+        let sequence = self.sequence();
+        let src = sequence.as_bytes();
+        let base_count = sequence.len();
         sam::alignment::record::SequenceRef::FourBitPacked(FourBitPacked::new(src, base_count))
     }
 
@@ -291,8 +292,8 @@ impl sam::alignment::Record for Record {
     }
 
     fn quality_scores_ref(&self) -> sam::alignment::record::QualityScoresRef<'_> {
-        let record_ref = self.as_record_ref();
-        sam::alignment::record::QualityScoresRef::Raw(record_ref.raw_quality_scores())
+        let src = self.quality_scores().as_bytes();
+        sam::alignment::record::QualityScoresRef::Raw(src)
     }
 
     fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {

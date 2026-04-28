@@ -165,7 +165,7 @@ impl<'a> RecordRef<'a> {
         Sequence::new(src, base_count)
     }
 
-    pub(crate) fn raw_sequence(&self) -> (&'a [u8], usize) {
+    fn raw_sequence(&self) -> (&'a [u8], usize) {
         let start = self.name_length() + (self.cigar_op_count() * mem::size_of::<u32>());
 
         let base_count = self.base_count();
@@ -180,7 +180,7 @@ impl<'a> RecordRef<'a> {
         QualityScores::new(self.raw_quality_scores())
     }
 
-    pub(crate) fn raw_quality_scores(&self) -> &'a [u8] {
+    fn raw_quality_scores(&self) -> &'a [u8] {
         const MISSING: u8 = 0xff;
 
         let base_count = self.base_count();
