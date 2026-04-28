@@ -2,7 +2,10 @@ use std::{fmt, io, mem, ops::Range};
 
 use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
-use noodles_sam::alignment::record::{Flags, MappingQuality};
+use noodles_sam::{
+    self as sam,
+    alignment::record::{Flags, MappingQuality},
+};
 
 use super::record::{
     Cigar, Data, QualityScores, Sequence, try_to_position, try_to_reference_sequence_id,
@@ -238,6 +241,62 @@ impl fmt::Debug for RecordRef<'_> {
             .field("quality_scores", &self.quality_scores())
             .field("data", &self.data())
             .finish()
+    }
+}
+
+impl sam::alignment::Record for RecordRef<'_> {
+    fn name(&self) -> Option<&BStr> {
+        self.name()
+    }
+
+    fn flags(&self) -> io::Result<Flags> {
+        Ok(self.flags())
+    }
+
+    fn reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        _: &'h sam::Header,
+    ) -> Option<io::Result<usize>> {
+        self.reference_sequence_id()
+    }
+
+    fn alignment_start(&self) -> Option<io::Result<Position>> {
+        self.alignment_start()
+    }
+
+    fn mapping_quality(&self) -> Option<io::Result<MappingQuality>> {
+        self.mapping_quality().map(Ok)
+    }
+
+    fn cigar(&self) -> Box<dyn sam::alignment::record::Cigar + '_> {
+        Box::new(self.cigar())
+    }
+
+    fn mate_reference_sequence_id<'r, 'h: 'r>(
+        &'r self,
+        _: &'h sam::Header,
+    ) -> Option<io::Result<usize>> {
+        self.mate_reference_sequence_id()
+    }
+
+    fn mate_alignment_start(&self) -> Option<io::Result<Position>> {
+        self.mate_alignment_start()
+    }
+
+    fn template_length(&self) -> io::Result<i32> {
+        Ok(self.template_length())
+    }
+
+    fn sequence(&self) -> Box<dyn sam::alignment::record::Sequence + '_> {
+        Box::new(self.sequence())
+    }
+
+    fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
+        Box::new(self.quality_scores())
+    }
+
+    fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
+        Box::new(self.data())
     }
 }
 
