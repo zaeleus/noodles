@@ -20,6 +20,11 @@ impl<'a> Sequence<'a> {
         Self { src, base_count }
     }
 
+    /// Returns a byte slice of encoded bases.
+    pub fn as_bytes(&self) -> &'a [u8] {
+        self.src
+    }
+
     /// Returns whether there are any bases.
     pub fn is_empty(&self) -> bool {
         self.src.is_empty()

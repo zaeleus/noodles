@@ -11,6 +11,11 @@ impl<'a> QualityScores<'a> {
         Self(src)
     }
 
+    /// Returns the underlying byte slice.
+    pub fn as_bytes(&self) -> &'a [u8] {
+        self.0
+    }
+
     /// Returns whether there are any scores.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()

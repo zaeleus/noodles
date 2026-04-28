@@ -19,6 +19,11 @@ impl<'r> Data<'r> {
         Self(src)
     }
 
+    /// Returns a byte slice of the raw data.
+    pub fn as_bytes(&self) -> &'r [u8] {
+        self.0
+    }
+
     /// Returns whether there are any fields.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()

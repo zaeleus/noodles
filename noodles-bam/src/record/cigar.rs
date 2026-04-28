@@ -13,6 +13,11 @@ impl<'a> Cigar<'a> {
         Self(src)
     }
 
+    /// Returns a byte slice of raw CIGAR operations.
+    pub fn as_bytes(&self) -> &'a [u8] {
+        self.0
+    }
+
     /// Returns whether there are any CIGAR operations.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
