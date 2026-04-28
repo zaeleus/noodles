@@ -27,6 +27,15 @@ pub struct RecordRef<'a> {
 }
 
 impl<'a> RecordRef<'a> {
+    /// Creates an immutable view over a a BAM record.
+    ///
+    /// The input must be at minimum 32 bytes; otherwise, `None` is returned. It is the
+    /// responsibility of the caller to ensure the input is record-like.
+    pub fn new(src: &'a [u8]) -> Option<Self> {
+        src.split_first_chunk()
+            .map(|(head, rest)| Self { head, rest })
+    }
+
     pub(crate) fn new_unchecked(src: &'a [u8]) -> Self {
         let (head, rest) = src.split_at(HEAD_SIZE);
 

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+  * bam: Add `RecordRef` as an immutable view over a raw BAM record.
+
+    This allows the caller to own the data, rather than, e.g., `Record`.
+
 ### Changed
 
   * bam: Raise minimum supported Rust version (MSRV) to 1.89.0.
