@@ -259,6 +259,11 @@ impl sam::alignment::Record for Record {
         Box::new(self.cigar())
     }
 
+    fn cigar_ref(&self) -> sam::alignment::record::CigarRef<'_> {
+        let src = self.cigar().as_bytes();
+        sam::alignment::record::CigarRef::FourBytePacked(src)
+    }
+
     fn mate_reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         _: &'h sam::Header,
