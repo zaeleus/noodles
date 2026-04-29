@@ -3,6 +3,7 @@
 pub mod cigar;
 mod cigar_ref;
 pub mod data;
+mod data_ref;
 mod flags;
 pub mod mapping_quality;
 mod quality_scores;
