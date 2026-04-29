@@ -147,7 +147,7 @@ where
     // qual
     write_quality_scores(dst, base_count, record.quality_scores_ref())?;
 
-    write_data(dst, record.data())?;
+    write_data(dst, record.data_ref())?;
 
     if cigar.is_some() {
         data::field::write_cigar(dst, &record.cigar())?;
