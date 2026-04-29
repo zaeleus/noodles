@@ -304,6 +304,11 @@ impl sam::alignment::Record for Record {
     fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
         Box::new(self.data())
     }
+
+    fn data_ref(&self) -> sam::alignment::record::DataRef<'_> {
+        let src = self.data().as_bytes();
+        sam::alignment::record::DataRef::FieldEncoded(src)
+    }
 }
 
 pub(super) fn try_to_reference_sequence_id(n: i32) -> io::Result<usize> {
