@@ -74,10 +74,9 @@ fn validate(src: &mut &[u8]) -> io::Result<()> {
                 let buf = src.split_off(..=i).unwrap();
 
                 // SAFETY: `buf` is nonempty.
-                if !buf[..buf.len() - 1]
-                    .iter()
-                    .all(|b| matches!(b, b' '..=b'~'))
-                {
+                let value = &buf[..buf.len() - 1];
+
+                if !value.iter().all(|b| matches!(b, b' '..=b'~')) {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidInput,
                         "invalid string",
@@ -91,10 +90,10 @@ fn validate(src: &mut &[u8]) -> io::Result<()> {
                 let buf = src.split_off(..=i).unwrap();
 
                 // SAFETY: `buf` is nonempty.
-                if !buf.len().is_multiple_of(2)
-                    || !buf[..buf.len() - 1]
-                        .iter()
-                        .all(|b| matches!(b, b'0'..=b'9' | b'A'..=b'F'))
+                let value = &buf[..buf.len() - 1];
+
+                if !value.len().is_multiple_of(2)
+                    || !value.iter().all(|b| matches!(b, b'0'..=b'9' | b'A'..=b'F'))
                 {
                     return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid hex"));
                 }
