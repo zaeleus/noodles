@@ -53,6 +53,12 @@ impl From<Vec<u8>> for Sequence {
     }
 }
 
+impl FromIterator<u8> for Sequence {
+    fn from_iter<T: IntoIterator<Item = u8>>(iter: T) -> Self {
+        Self(iter.into_iter().collect())
+    }
+}
+
 impl<I> Index<I> for Sequence
 where
     I: SequenceIndex<u8>,
