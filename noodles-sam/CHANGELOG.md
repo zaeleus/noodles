@@ -45,7 +45,7 @@
 
 ### Added
 
-  * sam/alignment/record/quality_scores: Implement `Extend<u8>` and
+  * sam/alignment/record_buf/quality_scores: Implement `Extend<u8>` and
     `FromIterator<u8>` for `QualityScores`.
 
 ### Changed
