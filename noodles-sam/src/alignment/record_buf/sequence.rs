@@ -35,6 +35,12 @@ impl AsMut<Vec<u8>> for Sequence {
     }
 }
 
+impl Extend<u8> for Sequence {
+    fn extend<T: IntoIterator<Item = u8>>(&mut self, iter: T) {
+        self.0.extend(iter);
+    }
+}
+
 impl From<&[u8]> for Sequence {
     fn from(buf: &[u8]) -> Self {
         Self::from(Vec::from(buf))

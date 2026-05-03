@@ -8,7 +8,8 @@
     `RecordBuf::try_clone_from_alignment_record` to clone a
     `sam::alignment::Record` into an existing `RecordBuf` ([#388]).
 
-  * sam/alignment/record_buf/sequence: Implement `FromIterator<u8>`.
+  * sam/alignment/record_buf/sequence: Implement `Extend<u8>` and
+    `FromIterator<u8>` for `Sequence`.
 
 [#388]: https://github.com/zaeleus/noodles/issues/388
 
