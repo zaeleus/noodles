@@ -227,9 +227,9 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .names()
             .ok_or_else(|| missing_data_series_encoding_error(DataSeries::Names))?
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
-            .map(|buf| match buf {
+            .map(|buf| match &buf[..] {
                 MISSING => None,
-                _ => Some(Cow::from(buf)),
+                _ => Some(buf),
             })
     }
 
@@ -413,17 +413,14 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         match code {
             Code::Bases => {
                 let bases = self.read_stretches_of_bases()?;
-                Ok(Feature::Bases {
-                    position,
-                    bases: Cow::from(bases),
-                })
+                Ok(Feature::Bases { position, bases })
             }
             Code::Scores => {
                 let quality_scores = self.read_stretches_of_quality_scores()?;
 
                 Ok(Feature::Scores {
                     position,
-                    quality_scores: Cow::from(quality_scores),
+                    quality_scores,
                 })
             }
             Code::ReadBase => {
@@ -442,10 +439,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             }
             Code::Insertion => {
                 let bases = self.read_insertion_bases()?;
-                Ok(Feature::Insertion {
-                    position,
-                    bases: Cow::from(bases),
-                })
+                Ok(Feature::Insertion { position, bases })
             }
             Code::Deletion => {
                 let len = self.read_deletion_length()?;
@@ -469,10 +463,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             }
             Code::SoftClip => {
                 let bases = self.read_soft_clip_bases()?;
-                Ok(Feature::SoftClip {
-                    position,
-                    bases: Cow::from(bases),
-                })
+                Ok(Feature::SoftClip { position, bases })
             }
             Code::Padding => {
                 let len = self.read_padding_length()?;
@@ -508,7 +499,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             })
     }
 
-    fn read_stretches_of_bases(&mut self) -> io::Result<&'c [u8]> {
+    fn read_stretches_of_bases(&mut self) -> io::Result<Cow<'c, [u8]>> {
         self.compression_header
             .data_series_encodings()
             .stretches_of_bases()
@@ -516,7 +507,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
-    fn read_stretches_of_quality_scores(&mut self) -> io::Result<&'c [u8]> {
+    fn read_stretches_of_quality_scores(&mut self) -> io::Result<Cow<'c, [u8]>> {
         self.compression_header
             .data_series_encodings()
             .stretches_of_quality_scores()
@@ -550,7 +541,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             .decode(&mut self.core_data_reader, &mut self.external_data_readers)
     }
 
-    fn read_insertion_bases(&mut self) -> io::Result<&'c [u8]> {
+    fn read_insertion_bases(&mut self) -> io::Result<Cow<'c, [u8]>> {
         self.compression_header
             .data_series_encodings()
             .insertion_bases()
@@ -580,7 +571,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             })
     }
 
-    fn read_soft_clip_bases(&mut self) -> io::Result<&'c [u8]> {
+    fn read_soft_clip_bases(&mut self) -> io::Result<Cow<'c, [u8]>> {
         self.compression_header
             .data_series_encodings()
             .soft_clip_bases()

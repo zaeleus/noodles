@@ -8,18 +8,18 @@ use crate::record::data::field::{
     value::{Array, array::Values},
 };
 
-pub(super) fn read_value(src: &[u8], ty: Type) -> io::Result<Value<'_>> {
+pub(super) fn read_value(src: Cow<'_, [u8]>, ty: Type) -> io::Result<Value<'_>> {
     match ty {
-        Type::Character => read_u8(src).map(Value::Character),
-        Type::Int8 => read_u8(src).map(|n| Value::Int8(n as i8)),
-        Type::UInt8 => read_u8(src).map(Value::UInt8),
-        Type::Int16 => read_u16_le(src).map(|n| Value::Int16(n as i16)),
-        Type::UInt16 => read_u16_le(src).map(Value::UInt16),
-        Type::Int32 => read_u32_le(src).map(|n| Value::Int32(n as i32)),
-        Type::UInt32 => read_u32_le(src).map(Value::UInt32),
-        Type::Float => read_f32_le(src).map(Value::Float),
-        Type::String => read_string(src).map(Cow::from).map(Value::String),
-        Type::Hex => read_string(src).map(Cow::from).map(Value::Hex),
+        Type::Character => read_u8(&src).map(Value::Character),
+        Type::Int8 => read_u8(&src).map(|n| Value::Int8(n as i8)),
+        Type::UInt8 => read_u8(&src).map(Value::UInt8),
+        Type::Int16 => read_u16_le(&src).map(|n| Value::Int16(n as i16)),
+        Type::UInt16 => read_u16_le(&src).map(Value::UInt16),
+        Type::Int32 => read_u32_le(&src).map(|n| Value::Int32(n as i32)),
+        Type::UInt32 => read_u32_le(&src).map(Value::UInt32),
+        Type::Float => read_f32_le(&src).map(Value::Float),
+        Type::String => read_string(src).map(Value::String),
+        Type::Hex => read_string(src).map(Value::Hex),
         Type::Array => read_array(src).map(Value::Array),
     }
 }
@@ -49,15 +49,30 @@ fn read_f32_le(src: &[u8]) -> io::Result<f32> {
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
-fn read_string(src: &[u8]) -> io::Result<&BStr> {
+fn read_string(src: Cow<'_, [u8]>) -> io::Result<Cow<'_, BStr>> {
     const NUL: u8 = 0x00;
 
-    src.strip_suffix(&[NUL])
-        .map(|s| s.as_bstr())
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing NUL terminator"))
+    match src {
+        Cow::Borrowed(s) => s
+            .strip_suffix(&[NUL])
+            .map(|s| s.as_bstr())
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing NUL terminator"))
+            .map(Cow::Borrowed),
+        Cow::Owned(mut s) => {
+            if s.ends_with(&[NUL]) {
+                s.pop();
+                Ok(Cow::Owned(s.into()))
+            } else {
+                Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "missing NUL terminator",
+                ))
+            }
+        }
+    }
 }
 
-fn read_array(src: &[u8]) -> io::Result<Array<'_>> {
+fn read_array(src: Cow<'_, [u8]>) -> io::Result<Array<'_>> {
     const LENGTH_RANGE: Range<usize> = 1..5;
 
     let subtype = src
@@ -69,8 +84,6 @@ fn read_array(src: &[u8]) -> io::Result<Array<'_>> {
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
     let n = u32::from_le_bytes(buf.try_into().unwrap());
     let len = usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    let src = Cow::from(src);
 
     match subtype {
         b'c' => Ok(Array::Int8(Values::new(src, len))),
