@@ -1,16 +1,16 @@
-use std::{io, marker::PhantomData, mem};
+use std::{borrow::Cow, io, marker::PhantomData, mem};
 
 use noodles_sam as sam;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Values<'c, N> {
-    src: &'c [u8],
+    src: Cow<'c, [u8]>,
     len: usize,
     _marker: PhantomData<N>,
 }
 
 impl<'c, N> Values<'c, N> {
-    pub(crate) fn new(src: &'c [u8], len: usize) -> Self {
+    pub(crate) fn new(src: Cow<'c, [u8]>, len: usize) -> Self {
         Self {
             src,
             len,

@@ -1,4 +1,4 @@
-use std::{io, ops::Range};
+use std::{borrow::Cow, io, ops::Range};
 
 use bstr::{BStr, ByteSlice};
 use noodles_sam::alignment::record::data::field::Type;
@@ -18,8 +18,8 @@ pub(super) fn read_value(src: &[u8], ty: Type) -> io::Result<Value<'_>> {
         Type::Int32 => read_u32_le(src).map(|n| Value::Int32(n as i32)),
         Type::UInt32 => read_u32_le(src).map(Value::UInt32),
         Type::Float => read_f32_le(src).map(Value::Float),
-        Type::String => read_string(src).map(Value::String),
-        Type::Hex => read_string(src).map(Value::Hex),
+        Type::String => read_string(src).map(Cow::from).map(Value::String),
+        Type::Hex => read_string(src).map(Cow::from).map(Value::Hex),
         Type::Array => read_array(src).map(Value::Array),
     }
 }
@@ -69,6 +69,8 @@ fn read_array(src: &[u8]) -> io::Result<Array<'_>> {
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
     let n = u32::from_le_bytes(buf.try_into().unwrap());
     let len = usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    let src = Cow::from(src);
 
     match subtype {
         b'c' => Ok(Array::Int8(Values::new(src, len))),

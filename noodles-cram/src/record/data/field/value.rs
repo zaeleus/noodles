@@ -1,5 +1,7 @@
 pub mod array;
 
+use std::borrow::Cow;
+
 use noodles_sam as sam;
 
 pub use self::array::Array;
@@ -15,8 +17,8 @@ pub enum Value<'c> {
     Int32(i32),
     UInt32(u32),
     Float(f32),
-    String(&'c BStr),
-    Hex(&'c BStr),
+    String(Cow<'c, BStr>),
+    Hex(Cow<'c, BStr>),
     Array(Array<'c>),
 }
 
