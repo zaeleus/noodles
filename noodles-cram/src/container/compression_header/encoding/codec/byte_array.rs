@@ -36,7 +36,7 @@ impl<'de> Decode<'de> for ByteArray {
         &self,
         core_data_reader: &mut BitReader<'de>,
         external_data_readers: &mut ExternalDataReaders<'de>,
-    ) -> std::io::Result<Self::Value> {
+    ) -> io::Result<Self::Value> {
         match self {
             Self::ByteArrayLength {
                 len_encoding,
