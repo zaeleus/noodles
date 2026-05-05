@@ -27,9 +27,7 @@ impl fmt::Display for DecodeError {
 }
 
 pub fn read_type(src: &mut &[u8]) -> Result<Type, DecodeError> {
-    let (n, rest) = src.split_first().ok_or(DecodeError::UnexpectedEof)?;
-
-    *src = rest;
+    let n = src.split_off_first().ok_or(DecodeError::UnexpectedEof)?;
 
     match *n {
         b'A' => Ok(Type::Character),
