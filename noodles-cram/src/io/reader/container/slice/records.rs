@@ -382,7 +382,9 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         record.mapping_quality = self.read_mapping_quality()?;
 
         if record.cram_flags.quality_scores_are_stored_as_array() {
-            record.quality_scores = self.read_quality_scores(record.read_length)?;
+            record.quality_scores = self
+                .read_quality_scores(record.read_length)
+                .map(Cow::from)?;
         }
 
         Ok(())
@@ -623,10 +625,12 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
     }
 
     fn read_unmapped_read(&mut self, record: &mut Record<'c>) -> io::Result<()> {
-        record.sequence = self.read_sequence(record.read_length)?;
+        record.sequence = self.read_sequence(record.read_length).map(Cow::from)?;
 
         if record.cram_flags.quality_scores_are_stored_as_array() {
-            record.quality_scores = self.read_quality_scores(record.read_length)?;
+            record.quality_scores = self
+                .read_quality_scores(record.read_length)
+                .map(Cow::from)?;
         }
 
         Ok(())
