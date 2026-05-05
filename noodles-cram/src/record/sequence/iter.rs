@@ -73,7 +73,7 @@ enum State<'r, 'c: 'r> {
     Done,
 }
 
-impl<'r, 'c: 'r> Iterator for Iter<'r, 'c> {
+impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -210,6 +210,8 @@ impl<'r: 'c, 'c: 'r> FusedIterator for Iter<'r, 'c> {}
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+
     use super::*;
 
     #[test]
@@ -219,11 +221,11 @@ mod tests {
         let features = [
             Feature::Bases {
                 position: Position::try_from(2)?,
-                bases: b"A",
+                bases: Cow::from(b"A"),
             },
             Feature::Scores {
                 position: Position::try_from(2)?,
-                quality_scores: &[0],
+                quality_scores: Cow::from(&[0]),
             },
             Feature::ReadBase {
                 position: Position::try_from(3)?,
@@ -240,7 +242,7 @@ mod tests {
             },
             Feature::Insertion {
                 position: Position::try_from(6)?,
-                bases: b"G",
+                bases: Cow::from(b"G"),
             },
             Feature::Deletion {
                 position: Position::try_from(7)?,
@@ -260,7 +262,7 @@ mod tests {
             },
             Feature::SoftClip {
                 position: Position::try_from(8)?,
-                bases: b"T",
+                bases: Cow::from(b"T"),
             },
             Feature::Padding {
                 position: Position::try_from(9)?,

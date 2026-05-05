@@ -266,7 +266,7 @@ mod tests {
         let features = [
             Feature::Insertion {
                 position: Position::try_from(1)?,
-                bases: b"AC",
+                bases: Cow::from(b"AC"),
             },
             Feature::InsertBase {
                 position: Position::try_from(4)?,
@@ -282,7 +282,7 @@ mod tests {
             },
             Feature::SoftClip {
                 position: Position::try_from(16)?,
-                bases: b"ACGT",
+                bases: Cow::from(b"ACGT"),
             },
         ];
         assert_eq!(calculate_alignment_span(20, &features), 21);

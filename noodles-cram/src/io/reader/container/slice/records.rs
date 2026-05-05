@@ -411,14 +411,17 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         match code {
             Code::Bases => {
                 let bases = self.read_stretches_of_bases()?;
-                Ok(Feature::Bases { position, bases })
+                Ok(Feature::Bases {
+                    position,
+                    bases: Cow::from(bases),
+                })
             }
             Code::Scores => {
                 let quality_scores = self.read_stretches_of_quality_scores()?;
 
                 Ok(Feature::Scores {
                     position,
-                    quality_scores,
+                    quality_scores: Cow::from(quality_scores),
                 })
             }
             Code::ReadBase => {
@@ -437,7 +440,10 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             }
             Code::Insertion => {
                 let bases = self.read_insertion_bases()?;
-                Ok(Feature::Insertion { position, bases })
+                Ok(Feature::Insertion {
+                    position,
+                    bases: Cow::from(bases),
+                })
             }
             Code::Deletion => {
                 let len = self.read_deletion_length()?;
@@ -461,7 +467,10 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             }
             Code::SoftClip => {
                 let bases = self.read_soft_clip_bases()?;
-                Ok(Feature::SoftClip { position, bases })
+                Ok(Feature::SoftClip {
+                    position,
+                    bases: Cow::from(bases),
+                })
             }
             Code::Padding => {
                 let len = self.read_padding_length()?;

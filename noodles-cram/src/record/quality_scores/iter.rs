@@ -124,6 +124,8 @@ impl<'r: 'c, 'c: 'r> FusedIterator for Iter<'r, 'c> {}
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+
     use super::*;
 
     #[test]
@@ -140,7 +142,7 @@ mod tests {
             },
             Feature::Scores {
                 position: Position::try_from(5)?,
-                quality_scores: &[13, 21],
+                quality_scores: Cow::from(&[13, 21]),
             },
         ];
 
