@@ -52,7 +52,6 @@ impl<'de> Decode<'de> for ByteArray {
                 value_encoding
                     .get()
                     .decode_take(core_data_reader, external_data_readers, len)
-                    .map(Cow::from)
             }
             Self::ByteArrayStop {
                 stop_byte,

@@ -1,4 +1,4 @@
-use std::io;
+use std::{borrow::Cow, io};
 
 use crate::{
     container::{
@@ -29,7 +29,7 @@ impl Byte {
         _core_data_reader: &mut BitReader<'de>,
         external_data_readers: &mut ExternalDataReaders<'de>,
         len: usize,
-    ) -> io::Result<&'de [u8]> {
+    ) -> io::Result<Cow<'de, [u8]>> {
         match self {
             Self::External { block_content_id } => {
                 let src = external_data_readers
@@ -47,7 +47,7 @@ impl Byte {
 
                 *src = rest;
 
-                Ok(buf)
+                Ok(Cow::from(buf))
             }
             Self::Huffman { .. } => todo!(),
         }
@@ -166,7 +166,7 @@ mod tests {
         };
         let dst = codec.decode_take(&mut core_data_reader, &mut external_data_readers, 4)?;
 
-        assert_eq!(dst, external_data);
+        assert_eq!(&dst[..], external_data);
 
         Ok(())
     }

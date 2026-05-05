@@ -382,9 +382,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         record.mapping_quality = self.read_mapping_quality()?;
 
         if record.cram_flags.quality_scores_are_stored_as_array() {
-            record.quality_scores = self
-                .read_quality_scores(record.read_length)
-                .map(Cow::from)?;
+            record.quality_scores = self.read_quality_scores(record.read_length)?;
         }
 
         Ok(())
@@ -616,18 +614,16 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
     }
 
     fn read_unmapped_read(&mut self, record: &mut Record<'c>) -> io::Result<()> {
-        record.sequence = self.read_sequence(record.read_length).map(Cow::from)?;
+        record.sequence = self.read_sequence(record.read_length)?;
 
         if record.cram_flags.quality_scores_are_stored_as_array() {
-            record.quality_scores = self
-                .read_quality_scores(record.read_length)
-                .map(Cow::from)?;
+            record.quality_scores = self.read_quality_scores(record.read_length)?;
         }
 
         Ok(())
     }
 
-    fn read_sequence(&mut self, read_length: usize) -> io::Result<&'c [u8]> {
+    fn read_sequence(&mut self, read_length: usize) -> io::Result<Cow<'c, [u8]>> {
         let encoding = self
             .compression_header
             .data_series_encodings()
@@ -641,7 +637,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         )
     }
 
-    fn read_quality_scores(&mut self, read_length: usize) -> io::Result<&'c [u8]> {
+    fn read_quality_scores(&mut self, read_length: usize) -> io::Result<Cow<'c, [u8]>> {
         const MISSING: u8 = 0xff;
 
         let encoding = self
@@ -657,7 +653,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         )?;
 
         if src.iter().all(|&n| n == MISSING) {
-            Ok(&[])
+            Ok(Cow::from(&[]))
         } else {
             Ok(src)
         }
