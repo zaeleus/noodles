@@ -21,7 +21,7 @@ impl<'c, N> Values<'c, N> {
 
 const OFFSET: usize = 5;
 
-impl<'c> sam::alignment::record::data::field::value::array::Values<'c, i8> for Values<'c, i8> {
+impl<'c> sam::alignment::record::data::field::value::array::Values<'c, i8> for &'c Values<'c, i8> {
     fn len(&self) -> usize {
         self.len
     }
@@ -31,7 +31,7 @@ impl<'c> sam::alignment::record::data::field::value::array::Values<'c, i8> for V
     }
 }
 
-impl<'c> sam::alignment::record::data::field::value::array::Values<'c, u8> for Values<'c, u8> {
+impl<'c> sam::alignment::record::data::field::value::array::Values<'c, u8> for &'c Values<'c, u8> {
     fn len(&self) -> usize {
         self.len
     }
@@ -41,7 +41,9 @@ impl<'c> sam::alignment::record::data::field::value::array::Values<'c, u8> for V
     }
 }
 
-impl<'c> sam::alignment::record::data::field::value::array::Values<'c, i16> for Values<'c, i16> {
+impl<'c> sam::alignment::record::data::field::value::array::Values<'c, i16>
+    for &'c Values<'c, i16>
+{
     fn len(&self) -> usize {
         self.len
     }
@@ -56,7 +58,9 @@ impl<'c> sam::alignment::record::data::field::value::array::Values<'c, i16> for 
     }
 }
 
-impl<'c> sam::alignment::record::data::field::value::array::Values<'c, u16> for Values<'c, u16> {
+impl<'c> sam::alignment::record::data::field::value::array::Values<'c, u16>
+    for &'c Values<'c, u16>
+{
     fn len(&self) -> usize {
         self.len
     }
@@ -71,7 +75,9 @@ impl<'c> sam::alignment::record::data::field::value::array::Values<'c, u16> for 
     }
 }
 
-impl<'c> sam::alignment::record::data::field::value::array::Values<'c, i32> for Values<'c, i32> {
+impl<'c> sam::alignment::record::data::field::value::array::Values<'c, i32>
+    for &'c Values<'c, i32>
+{
     fn len(&self) -> usize {
         self.len
     }
@@ -86,7 +92,9 @@ impl<'c> sam::alignment::record::data::field::value::array::Values<'c, i32> for 
     }
 }
 
-impl<'c> sam::alignment::record::data::field::value::array::Values<'c, u32> for Values<'c, u32> {
+impl<'c> sam::alignment::record::data::field::value::array::Values<'c, u32>
+    for &'c Values<'c, u32>
+{
     fn len(&self) -> usize {
         self.len
     }
@@ -101,7 +109,9 @@ impl<'c> sam::alignment::record::data::field::value::array::Values<'c, u32> for 
     }
 }
 
-impl<'c> sam::alignment::record::data::field::value::array::Values<'c, f32> for Values<'c, f32> {
+impl<'c> sam::alignment::record::data::field::value::array::Values<'c, f32>
+    for &'c Values<'c, f32>
+{
     fn len(&self) -> usize {
         self.len
     }

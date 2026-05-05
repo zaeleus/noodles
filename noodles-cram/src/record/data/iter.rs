@@ -31,14 +31,14 @@ impl<'r, 'c: 'r> Iter<'r, 'c> {
     }
 }
 
-impl<'r, 'c: 'r> Iterator for Iter<'r, 'c> {
+impl<'r: 'c, 'c: 'r> Iterator for Iter<'r, 'c> {
     type Item = io::Result<(Tag, sam::alignment::record::data::field::Value<'c>)>;
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             match self.state {
-                State::Fields(ref mut iter) => match iter.next().cloned() {
-                    Some((tag, value)) => return Some(Ok((tag, value.into()))),
+                State::Fields(ref mut iter) => match iter.next() {
+                    Some((tag, value)) => return Some(Ok((*tag, value.into()))),
                     None => self.state = State::ReadGroup,
                 },
                 State::ReadGroup => {
@@ -81,7 +81,7 @@ impl<'r, 'c: 'r> Iterator for Iter<'r, 'c> {
     }
 }
 
-impl<'r, 'c: 'r> FusedIterator for Iter<'r, 'c> {}
+impl<'r: 'c, 'c: 'r> FusedIterator for Iter<'r, 'c> {}
 
 fn get_read_group_name(header: &sam::Header, read_group_id: usize) -> io::Result<&BStr> {
     header
