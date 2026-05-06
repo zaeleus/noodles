@@ -26,7 +26,7 @@ pub enum Byte {
 impl Byte {
     pub fn decode_take<'de>(
         &self,
-        _core_data_reader: &mut BitReader<'de>,
+        core_data_reader: &mut BitReader<'de>,
         external_data_readers: &mut ExternalDataReaders<'de>,
         len: usize,
     ) -> io::Result<Cow<'de, [u8]>> {
@@ -49,7 +49,19 @@ impl Byte {
 
                 Ok(Cow::from(buf))
             }
-            Self::Huffman { .. } => todo!(),
+            Self::Huffman { alphabet, bit_lens } => {
+                if alphabet.len() == 1 {
+                    let value = alphabet[0] as u8;
+                    Ok(Cow::from(vec![value; len]))
+                } else {
+                    let decoder = CanonicalHuffmanDecoder::new(alphabet, bit_lens);
+
+                    (0..len)
+                        .map(|_| decoder.decode(core_data_reader).map(|i| i as u8))
+                        .collect::<io::Result<Vec<_>>>()
+                        .map(Cow::from)
+                }
+            }
         }
     }
 
@@ -154,19 +166,45 @@ mod tests {
 
     #[test]
     fn test_decode_take() -> io::Result<()> {
-        let core_data = [0b10000000];
-        let mut core_data_reader = BitReader::new(&core_data[..]);
+        fn t(codec: &Byte, len: usize, expected: &[u8]) -> io::Result<()> {
+            let core_data = [0b10000000];
+            let mut core_data_reader = BitReader::new(&core_data[..]);
 
-        let external_data = b"ndls";
-        let mut external_data_readers = ExternalDataReaders::new();
-        external_data_readers.insert(1, &external_data[..]);
+            let external_data = b"ndls";
+            let mut external_data_readers = ExternalDataReaders::new();
+            external_data_readers.insert(1, &external_data[..]);
 
-        let codec = Byte::External {
-            block_content_id: 1,
-        };
-        let dst = codec.decode_take(&mut core_data_reader, &mut external_data_readers, 4)?;
+            let actual =
+                codec.decode_take(&mut core_data_reader, &mut external_data_readers, len)?;
 
-        assert_eq!(&dst[..], external_data);
+            assert_eq!(expected, &actual[..]);
+
+            Ok(())
+        }
+
+        t(
+            &Byte::External {
+                block_content_id: 1,
+            },
+            4,
+            b"ndls",
+        )?;
+        t(
+            &Byte::Huffman {
+                alphabet: vec![0x4e],
+                bit_lens: vec![0],
+            },
+            4,
+            &[0x4e, 0x4e, 0x4e, 0x4e],
+        )?;
+        t(
+            &Byte::Huffman {
+                alphabet: vec![0x4e, 0x44, 0x4c],
+                bit_lens: vec![1, 2, 2],
+            },
+            4,
+            &[0x44, 0x4e, 0x4e, 0x4e],
+        )?;
 
         Ok(())
     }

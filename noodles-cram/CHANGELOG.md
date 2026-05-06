@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/container/compression_header/encoding/codec/byte: Implement decoding
+    byte range for Huffman coding ([#393]).
+
+[#393]: https://github.com/zaeleus/noodles/issues/393
+
 ### Changed
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.89.0.
