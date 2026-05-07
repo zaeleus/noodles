@@ -41,11 +41,9 @@ impl Byte {
                         )
                     })?;
 
-                let (buf, rest) = src
-                    .split_at_checked(len)
+                let buf = src
+                    .split_off(..len)
                     .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
-
-                *src = rest;
 
                 Ok(Cow::from(buf))
             }
