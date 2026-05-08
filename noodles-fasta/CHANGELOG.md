@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/record/definition: Implement `Default`.
+
 ## 0.61.0 - 2026-05-06
 
 ### Changed

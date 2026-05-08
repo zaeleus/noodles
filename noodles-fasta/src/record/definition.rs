@@ -13,7 +13,7 @@ const PREFIX: char = '>';
 ///
 /// A definition represents a definition line, i.e, a reference sequence name and, optionally, a
 /// description.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Definition {
     name: BString,
     description: Option<BString>,
