@@ -1,6 +1,7 @@
 //! FASTA reader and iterators.
 
 mod builder;
+pub(crate) mod chunk;
 mod definition;
 mod records;
 pub mod sequence;

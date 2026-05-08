@@ -22,7 +22,14 @@ futures = { workspace = true, optional = true, features = ["std"] }
 tokio = { workspace = true, optional = true, features = ["io-util"] }
 
 [dev-dependencies]
+criterion.workspace = true
+helicase = "0.1"
+needletail = "0.6"
 tokio = { workspace = true, features = ["fs", "io-std", "macros", "rt-multi-thread"] }
+
+[[bench]]
+name = "reader"
+harness = false
 
 [lints]
 workspace = true

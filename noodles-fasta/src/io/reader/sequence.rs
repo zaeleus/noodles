@@ -79,21 +79,18 @@ where
     R: BufRead,
 {
     loop {
-        let mut is_newline = false;
+        let src = reader.fill_buf()?;
 
-        if reader.fill_buf()?.starts_with(&[CARRIAGE_RETURN]) {
-            is_newline = true;
-            reader.consume(1);
-        }
+        let n = src
+            .iter()
+            .take_while(|&&b| b == LINE_FEED || b == CARRIAGE_RETURN)
+            .count();
 
-        if reader.fill_buf()?.starts_with(&[LINE_FEED]) {
-            is_newline = true;
-            reader.consume(1);
-        }
-
-        if !is_newline {
+        if n == 0 {
             break;
         }
+
+        reader.consume(n);
     }
 
     Ok(())

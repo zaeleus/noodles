@@ -1,9 +1,11 @@
 //! FASTQ reader.
 
+mod builder;
+pub(crate) mod chunk;
 pub(crate) mod record;
 mod records;
 
-pub use self::records::Records;
+pub use self::{builder::Builder, records::Records};
 
 use std::io::{self, BufRead};
 
@@ -64,6 +66,18 @@ where
     R: BufRead,
 {
     /// Creates a FASTQ reader.
+    ///
+    /// For best performance with large files, wrap the inner reader in a
+    /// [`BufReader`](std::io::BufReader) with a large capacity (e.g., 256 KiB):
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io::BufReader};
+    /// use noodles_fastq as fastq;
+    /// let reader = fastq::io::Reader::new(
+    ///     BufReader::with_capacity(256 * 1024, File::open("reads.fq")?)
+    /// );
+    /// # Ok::<(), std::io::Error>(())
+    /// ```
     ///
     /// # Examples
     ///

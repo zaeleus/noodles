@@ -23,7 +23,14 @@ noodles-core = { path = "../noodles-core", version = "0.20.0" }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
 [dev-dependencies]
+criterion.workspace = true
+helicase = "0.1"
+needletail = "0.6"
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[[bench]]
+name = "reader"
+harness = false
 
 [lints]
 workspace = true
