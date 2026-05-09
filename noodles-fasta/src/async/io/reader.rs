@@ -1,10 +1,11 @@
+mod definition;
 mod sequence;
 
 use tokio::io::{
     self, AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom,
 };
 
-use self::sequence::read_sequence;
+use self::{definition::read_definition, sequence::read_sequence};
 use crate::record::Definition;
 
 /// An async FASTA reader.
@@ -99,19 +100,7 @@ where
     /// # }
     /// ```
     pub async fn read_definition(&mut self, definition: &mut Definition) -> io::Result<usize> {
-        self.buf.clear();
-
-        match read_line(&mut self.inner, &mut self.buf).await? {
-            0 => Ok(0),
-            n => {
-                *definition = self
-                    .buf
-                    .parse()
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-                Ok(n)
-            }
-        }
+        read_definition(&mut self.inner, &mut self.buf, definition).await
     }
 
     /// Reads a sequence.
