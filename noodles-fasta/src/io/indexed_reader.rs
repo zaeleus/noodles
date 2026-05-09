@@ -9,7 +9,7 @@ use std::io::{self, BufRead, Seek};
 use noodles_core::Region;
 
 use super::Reader;
-use crate::{Record, fai};
+use crate::{Record, fai, record::Definition};
 
 /// An indexed FASTA reader.
 pub struct IndexedReader<R> {
@@ -44,9 +44,9 @@ where
         self.inner.into_inner()
     }
 
-    /// Reads a raw definition line.
-    pub fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
-        self.inner.read_definition(buf)
+    /// Reads a definition line.
+    pub fn read_definition(&mut self, definition: &mut Definition) -> io::Result<usize> {
+        self.inner.read_definition(definition)
     }
 
     /// Reads a sequence.

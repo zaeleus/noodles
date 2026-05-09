@@ -6,6 +6,18 @@
 
   * fasta/record/definition: Implement `Default`.
 
+### Changed
+
+  * fasta/io/reader: Change `Reader::read_description` to read to a
+    `Description`.
+
+    This previously read a raw definition line into a string. This now assumes
+    the definition line matches the following form:
+    `><name>[<whitespace><description>]`.
+
+    The previous behavior can be still be done using the underlying reader's
+    `BufRead::read_line` implementation.
+
 ## 0.61.0 - 2026-05-06
 
 ### Changed

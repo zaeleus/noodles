@@ -12,13 +12,14 @@ use std::io::{self, BufRead, Seek, SeekFrom};
 use noodles_core::{Position, Region};
 
 use self::definition::read_definition;
-use crate::{Record, fai};
+use crate::{Record, fai, record::Definition};
 
 pub(crate) const DEFINITION_PREFIX: u8 = b'>';
 
 /// A FASTA reader.
 pub struct Reader<R> {
     inner: R,
+    buf: String,
 }
 
 impl<R> Reader<R> {
@@ -79,13 +80,13 @@ where
     /// let mut reader = fasta::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: String::new(),
+        }
     }
 
-    /// Reads a raw definition line.
-    ///
-    /// The given buffer will not include the trailing newline. It can subsequently be parsed as a
-    /// [`crate::record::Definition`].
+    /// Reads a definition.
     ///
     /// The position of the stream is expected to be at the start or at the start of another
     /// definition.
@@ -97,19 +98,19 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::Definition};
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
     /// let mut reader = fasta::io::Reader::new(&data[..]);
     ///
-    /// let mut buf = String::new();
-    /// reader.read_definition(&mut buf)?;
+    /// let mut definition = Definition::default();
+    /// reader.read_definition(&mut definition)?;
     ///
-    /// assert_eq!(buf, ">sq0");
+    /// assert_eq!(definition.name(), "sq0");
     /// # Ok::<(), io::Error>(())
     /// ```
-    pub fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_definition(&mut self.inner, buf)
+    pub fn read_definition(&mut self, definition: &mut Definition) -> io::Result<usize> {
+        read_definition(&mut self.inner, &mut self.buf, definition)
     }
 
     /// Reads a sequence.
@@ -127,11 +128,11 @@ where
     ///
     /// ```
     /// # use std::io;
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::Definition};
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
     /// let mut reader = fasta::io::Reader::new(&data[..]);
-    /// reader.read_definition(&mut String::new())?;
+    /// reader.read_definition(&mut Definition::default())?;
     ///
     /// let mut buf = Vec::new();
     /// reader.read_sequence(&mut buf)?;
@@ -155,11 +156,11 @@ where
     ///
     /// ```
     /// # use std::io::{self, Read};
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::Definition};
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
     /// let mut reader = fasta::io::Reader::new(&data[..]);
-    /// reader.read_definition(&mut String::new())?;
+    /// reader.read_definition(&mut Definition::default())?;
     ///
     /// let mut sequence_reader = reader.sequence_reader();
     /// let mut buf = vec![0; 2];
@@ -300,10 +301,10 @@ mod tests {
         let data = b">sq0\nACGT\n";
         let mut reader = Reader::new(&data[..]);
 
-        let mut description_buf = String::new();
-        reader.read_definition(&mut description_buf)?;
+        let mut description = Definition::default();
+        reader.read_definition(&mut description)?;
 
-        assert_eq!(description_buf, ">sq0");
+        assert_eq!(description.name(), "sq0");
 
         Ok(())
     }

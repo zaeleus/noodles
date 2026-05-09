@@ -5,10 +5,12 @@ use tokio::io::{
 };
 
 use self::sequence::read_sequence;
+use crate::record::Definition;
 
 /// An async FASTA reader.
 pub struct Reader<R> {
     inner: R,
+    buf: String,
 }
 
 impl<R> Reader<R> {
@@ -69,10 +71,13 @@ where
     /// let mut reader = fasta::r#async::io::Reader::new(&data[..]);
     /// ```
     pub fn new(inner: R) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            buf: String::new(),
+        }
     }
 
-    /// Reads a raw definition line.
+    /// Reads a definition.
     ///
     /// # Examples
     ///
@@ -81,20 +86,32 @@ where
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::Definition};
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
     /// let mut reader = fasta::r#async::io::Reader::new(&data[..]);
     ///
-    /// let mut buf = String::new();
-    /// reader.read_definition(&mut buf).await?;
+    /// let mut definition = Definition::default();
+    /// reader.read_definition(&mut definition).await?;
     ///
-    /// assert_eq!(buf, ">sq0");
+    /// assert_eq!(definition.name(), "sq0");
     /// # Ok(())
     /// # }
     /// ```
-    pub async fn read_definition(&mut self, buf: &mut String) -> io::Result<usize> {
-        read_line(&mut self.inner, buf).await
+    pub async fn read_definition(&mut self, definition: &mut Definition) -> io::Result<usize> {
+        self.buf.clear();
+
+        match read_line(&mut self.inner, &mut self.buf).await? {
+            0 => Ok(0),
+            n => {
+                *definition = self
+                    .buf
+                    .parse()
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+                Ok(n)
+            }
+        }
     }
 
     /// Reads a sequence.
@@ -106,11 +123,11 @@ where
     /// #
     /// # #[tokio::main]
     /// # async fn main() -> io::Result<()> {
-    /// use noodles_fasta as fasta;
+    /// use noodles_fasta::{self as fasta, record::Definition};
     ///
     /// let data = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
     /// let mut reader = fasta::r#async::io::Reader::new(&data[..]);
-    /// reader.read_definition(&mut String::new()).await?;
+    /// reader.read_definition(&mut Definition::default()).await?;
     ///
     /// let mut buf = Vec::new();
     /// reader.read_sequence(&mut buf).await?;
@@ -166,10 +183,10 @@ mod tests {
         let data = b">sq0\nACGT\n";
         let mut reader = Reader::new(&data[..]);
 
-        let mut buf = String::new();
-        reader.read_definition(&mut buf).await?;
+        let mut definition = Definition::default();
+        reader.read_definition(&mut definition).await?;
 
-        assert_eq!(buf, ">sq0");
+        assert_eq!(definition.name(), "sq0");
 
         Ok(())
     }

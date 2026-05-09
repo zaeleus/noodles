@@ -1,12 +1,28 @@
 use std::io::{self, BufRead};
 
 use super::read_line;
+use crate::record::Definition;
 
-pub(super) fn read_definition<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+pub(super) fn read_definition<R>(
+    reader: &mut R,
+    buf: &mut String,
+    definition: &mut Definition,
+) -> io::Result<usize>
 where
     R: BufRead,
 {
-    read_line(reader, buf)
+    buf.clear();
+
+    match read_line(reader, buf)? {
+        0 => Ok(0),
+        n => {
+            *definition = buf
+                .parse()
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            Ok(n)
+        }
+    }
 }
 
 #[allow(dead_code)]
