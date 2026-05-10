@@ -16,17 +16,22 @@ where
     match read_line(reader, buf)? {
         0 => Ok(0),
         n => {
-            *definition = buf
-                .parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            let (name, description) = parse_definition(buf.as_bytes())?;
+
+            let description = if description.is_empty() {
+                None
+            } else {
+                Some(description.into())
+            };
+
+            *definition = Definition::new(name, description);
 
             Ok(n)
         }
     }
 }
 
-#[allow(dead_code)]
-fn parse_definition(mut src: &[u8]) -> io::Result<(&[u8], &[u8])> {
+pub(crate) fn parse_definition(mut src: &[u8]) -> io::Result<(&[u8], &[u8])> {
     if src.is_empty() {
         return Err(io::Error::new(io::ErrorKind::InvalidData, "empty input"));
     }
