@@ -88,6 +88,8 @@ where
 
     /// Reads a definition.
     ///
+    /// Definitions are assumed to match the following form: `><name>[<whitespace><description>]`.
+    ///
     /// The position of the stream is expected to be at the start or at the start of another
     /// definition.
     ///
