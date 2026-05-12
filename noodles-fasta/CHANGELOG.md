@@ -22,7 +22,7 @@
 
   * fasta/record/definition: Remove parser.
 
-    Use `Reader::read_description` instead.
+    Use `Reader::read_definition` instead.
     
   * fasta/record/definition: Remove formatter.
 
