@@ -23,6 +23,11 @@
   * fasta/record/definition: Remove parser.
 
     Use `Reader::read_description` instead.
+    
+  * fasta/record/definition: Remove formatter.
+
+    Use the definition components to format the output, e.g., `format!(">{}",
+    definition.name())`.
 
 ## 0.61.0 - 2026-05-06
 

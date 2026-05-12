@@ -1,10 +1,6 @@
 //! FASTA record definition and components.
 
-use std::fmt;
-
 use bstr::{BStr, BString};
-
-const PREFIX: char = '>';
 
 /// A FASTA record definition.
 ///
@@ -64,31 +60,5 @@ impl Definition {
     /// ```
     pub fn description(&self) -> Option<&BStr> {
         self.description.as_ref().map(|s| s.as_ref())
-    }
-}
-
-impl fmt::Display for Definition {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{PREFIX}{}", self.name)?;
-
-        if let Some(description) = self.description() {
-            write!(f, " {description}")?;
-        }
-
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_fmt() {
-        let definition = Definition::new("sq0", None);
-        assert_eq!(definition.to_string(), ">sq0");
-
-        let definition = Definition::new("sq0", Some(BString::from("LN:13")));
-        assert_eq!(definition.to_string(), ">sq0 LN:13");
     }
 }
