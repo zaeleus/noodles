@@ -18,6 +18,12 @@
     The previous behavior can be still be done using the underlying reader's
     `BufRead::read_line` implementation.
 
+### Removed
+
+  * fasta/record/definition: Remove parser.
+
+    Use `Reader::read_description` instead.
+
 ## 0.61.0 - 2026-05-06
 
 ### Changed

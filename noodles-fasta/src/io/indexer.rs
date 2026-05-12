@@ -9,10 +9,7 @@ use std::{
 use memchr::memchr;
 
 use super::reader::{DEFINITION_PREFIX, read_line};
-use crate::{
-    fai::Record,
-    record::definition::{Definition, ParseError},
-};
+use crate::{fai::Record, record::definition::Definition};
 
 /// A FASTA indexer.
 pub struct Indexer<R> {
@@ -132,6 +129,8 @@ where
     }
 
     fn read_definition(&mut self) -> io::Result<Option<Definition>> {
+        use super::reader::definition::parse_definition;
+
         let mut buf = String::new();
 
         match read_line(&mut self.inner, &mut buf) {
@@ -140,9 +139,15 @@ where
             Err(e) => return Err(e),
         }
 
-        buf.parse()
-            .map(Some)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+        let (name, description) = parse_definition(buf.as_bytes())?;
+
+        let description = if description.is_empty() {
+            None
+        } else {
+            Some(description.into())
+        };
+
+        Ok(Some(Definition::new(name, description)))
     }
 }
 
@@ -192,7 +197,6 @@ where
 #[derive(Debug)]
 pub enum IndexError {
     EmptySequence(u64),
-    InvalidDefinition(ParseError),
     InvalidLineBases(usize, usize),
     InvalidLineWidth(usize, usize),
     IoError(io::Error),
@@ -202,7 +206,6 @@ impl Error for IndexError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::EmptySequence(_) => None,
-            Self::InvalidDefinition(e) => Some(e),
             Self::InvalidLineBases(..) => None,
             Self::InvalidLineWidth(..) => None,
             Self::IoError(e) => Some(e),
@@ -214,7 +217,6 @@ impl fmt::Display for IndexError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::EmptySequence(offset) => write!(f, "empty sequence at offset {offset}"),
-            Self::InvalidDefinition(e) => e.fmt(f),
             Self::InvalidLineBases(expected, actual) => {
                 write!(f, "invalid line bases: expected {expected}, got {actual}")
             }
@@ -229,12 +231,6 @@ impl fmt::Display for IndexError {
 impl From<io::Error> for IndexError {
     fn from(error: io::Error) -> Self {
         Self::IoError(error)
-    }
-}
-
-impl From<ParseError> for IndexError {
-    fn from(error: ParseError) -> Self {
-        Self::InvalidDefinition(error)
     }
 }
 

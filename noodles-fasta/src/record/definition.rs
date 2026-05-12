@@ -1,9 +1,6 @@
 //! FASTA record definition and components.
 
-use std::{
-    error, fmt,
-    str::{self, FromStr},
-};
+use std::fmt;
 
 use bstr::{BStr, BString};
 
@@ -82,53 +79,6 @@ impl fmt::Display for Definition {
     }
 }
 
-/// An error returned when a raw record definition fails to parse.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// The prefix (`>`) is missing.
-    MissingPrefix,
-    /// The sequence name is missing.
-    MissingName,
-}
-
-impl error::Error for ParseError {}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::MissingPrefix => write!(f, "missing prefix ('{PREFIX}')"),
-            Self::MissingName => f.write_str("missing name"),
-        }
-    }
-}
-
-impl FromStr for Definition {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError::Empty);
-        } else if !s.starts_with(PREFIX) {
-            return Err(ParseError::MissingPrefix);
-        }
-
-        let line = &s[1..];
-        let mut components = line.splitn(2, |c: char| c.is_ascii_whitespace());
-
-        let name = components
-            .next()
-            .and_then(|s| if s.is_empty() { None } else { Some(s.into()) })
-            .ok_or(ParseError::MissingName)?;
-
-        let description = components.next().map(|s| s.trim().into());
-
-        Ok(Self { name, description })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -140,19 +90,5 @@ mod tests {
 
         let definition = Definition::new("sq0", Some(BString::from("LN:13")));
         assert_eq!(definition.to_string(), ">sq0 LN:13");
-    }
-
-    #[test]
-    fn test_from_str() {
-        assert_eq!(">sq0".parse(), Ok(Definition::new("sq0", None)));
-
-        assert_eq!(
-            ">sq0  LN:13".parse(),
-            Ok(Definition::new("sq0", Some(BString::from("LN:13"))))
-        );
-
-        assert_eq!("".parse::<Definition>(), Err(ParseError::Empty));
-        assert_eq!("sq0".parse::<Definition>(), Err(ParseError::MissingPrefix));
-        assert_eq!(">".parse::<Definition>(), Err(ParseError::MissingName));
     }
 }
