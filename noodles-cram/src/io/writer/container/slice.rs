@@ -192,10 +192,7 @@ fn build_blocks(
     core_data_buf: Vec<u8>,
     external_data_bufs: Vec<(block::ContentId, Vec<u8>)>,
 ) -> io::Result<(Block, Vec<Block>)> {
-    use crate::codecs::fqzcomp;
-
     const CORE_DATA_BLOCK_CONTENT_ID: block::ContentId = 0;
-    const DEFAULT_ENCODER: Encoder = Encoder::Gzip(Compression::new(6));
 
     let core_data_block = Block::encode(
         ContentType::CoreData,
@@ -215,51 +212,69 @@ fn build_blocks(
         .into_iter()
         .filter(|(_, buf)| !buf.is_empty())
         .map(|(block_content_id, buf)| {
-            let content_type = ContentType::ExternalData;
-
-            if let Some(encoder) =
-                block_content_encoder_map.get_data_series_encoder(block_content_id)
-            {
-                match encoder {
-                    Some(Encoder::Fqzcomp) => {
-                        if all_quality_scores_stored_as_arrays {
-                            let lens: Vec<_> = records.iter().map(|r| r.read_length).collect();
-                            let data = fqzcomp::encode(&lens, &buf)?;
-
-                            Ok(Block {
-                                compression_method: CompressionMethod::Fqzcomp,
-                                content_type,
-                                content_id: block_content_id,
-                                uncompressed_size: data.len(),
-                                src: data,
-                            })
-                        } else {
-                            Block::encode(
-                                ContentType::ExternalData,
-                                block_content_id,
-                                Some(&DEFAULT_ENCODER),
-                                &buf,
-                            )
-                        }
-                    }
-                    _ => Block::encode(ContentType::ExternalData, block_content_id, encoder, &buf),
-                }
-            } else if let Some(encoder) =
-                block_content_encoder_map.get_tag_values_encoders(block_content_id)
-            {
-                Block::encode(ContentType::ExternalData, block_content_id, encoder, &buf)
-            } else {
-                Block::encode(
-                    ContentType::ExternalData,
-                    block_content_id,
-                    Some(&DEFAULT_ENCODER),
-                    &buf,
-                )
-            }
+            encode_block(
+                block_content_encoder_map,
+                records,
+                all_quality_scores_stored_as_arrays,
+                block_content_id,
+                &buf,
+            )
         })
         .collect::<io::Result<_>>()?;
 
     Ok((core_data_block, external_data_blocks))
+}
+
+fn encode_block(
+    block_content_encoder_map: &BlockContentEncoderMap,
+    records: &[Record],
+    all_quality_scores_stored_as_arrays: bool,
+    block_content_id: block::ContentId,
+    src: &[u8],
+) -> io::Result<Block> {
+    use crate::codecs::fqzcomp;
+
+    const DEFAULT_ENCODER: Encoder = Encoder::Gzip(Compression::new(6));
+
+    let content_type = ContentType::ExternalData;
+
+    if let Some(encoder) = block_content_encoder_map.get_data_series_encoder(block_content_id) {
+        match encoder {
+            Some(Encoder::Fqzcomp) => {
+                if all_quality_scores_stored_as_arrays {
+                    let lens: Vec<_> = records.iter().map(|r| r.read_length).collect();
+                    let data = fqzcomp::encode(&lens, src)?;
+
+                    Ok(Block {
+                        compression_method: CompressionMethod::Fqzcomp,
+                        content_type,
+                        content_id: block_content_id,
+                        uncompressed_size: data.len(),
+                        src: data,
+                    })
+                } else {
+                    Block::encode(
+                        ContentType::ExternalData,
+                        block_content_id,
+                        Some(&DEFAULT_ENCODER),
+                        src,
+                    )
+                }
+            }
+            _ => Block::encode(ContentType::ExternalData, block_content_id, encoder, src),
+        }
+    } else if let Some(encoder) =
+        block_content_encoder_map.get_tag_values_encoders(block_content_id)
+    {
+        Block::encode(ContentType::ExternalData, block_content_id, encoder, src)
+    } else {
+        Block::encode(
+            ContentType::ExternalData,
+            block_content_id,
+            Some(&DEFAULT_ENCODER),
+            src,
+        )
+    }
 }
 
 fn calculate_reference_sequence_md5(
