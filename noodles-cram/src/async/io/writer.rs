@@ -15,7 +15,7 @@ use self::{
 };
 use crate::{
     FileDefinition,
-    io::writer::{Options, Record},
+    io::writer::{Context, Record},
 };
 
 /// An async CRAM writer.
@@ -24,7 +24,7 @@ use crate::{
 pub struct Writer<W> {
     inner: W,
     reference_sequence_repository: fasta::Repository,
-    options: Options,
+    context: Context,
     records: Vec<Record>,
     record_counter: u64,
 }
@@ -130,7 +130,7 @@ where
     /// # }
     /// ```
     pub async fn write_file_definition(&mut self) -> io::Result<()> {
-        let file_definition = FileDefinition::new(self.options.version, Default::default());
+        let file_definition = FileDefinition::new(self.context.version, Default::default());
         write_file_definition(&mut self.inner, &file_definition).await
     }
 
@@ -186,7 +186,7 @@ where
     /// # }
     /// ```
     pub async fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        let file_definition = FileDefinition::new(self.options.version, Default::default());
+        let file_definition = FileDefinition::new(self.context.version, Default::default());
 
         write_header(
             &mut self.inner,
@@ -278,7 +278,7 @@ where
         write_container(
             &mut self.inner,
             &self.reference_sequence_repository,
-            &self.options,
+            &self.context,
             header,
             self.record_counter,
             &mut self.records,

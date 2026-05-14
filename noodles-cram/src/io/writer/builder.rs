@@ -6,7 +6,7 @@ use std::{
 
 use noodles_fasta as fasta;
 
-use super::{Options, RECORDS_PER_CONTAINER, Writer};
+use super::{Context, RECORDS_PER_CONTAINER, Writer};
 use crate::{codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version};
 
 // § 7 "Container header structure" (2025-04-07): "record counter: 0-based sequential index of
@@ -17,7 +17,7 @@ const MIN_RECORD_COUNTER: u64 = 0;
 #[derive(Default)]
 pub struct Builder {
     reference_sequence_repository: fasta::Repository,
-    options: Options,
+    context: Context,
 }
 
 impl Builder {
@@ -54,7 +54,7 @@ impl Builder {
     /// let builder = Builder::default().preserve_read_names(false);
     /// ```
     pub fn preserve_read_names(mut self, value: bool) -> Self {
-        self.options.preserve_read_names = value;
+        self.context.preserve_read_names = value;
         self
     }
 
@@ -72,7 +72,7 @@ impl Builder {
     ///     .encode_alignment_start_positions_as_deltas(false);
     /// ```
     pub fn encode_alignment_start_positions_as_deltas(mut self, value: bool) -> Self {
-        self.options.encode_alignment_start_positions_as_deltas = value;
+        self.context.encode_alignment_start_positions_as_deltas = value;
         self
     }
 
@@ -88,7 +88,7 @@ impl Builder {
     ///     .set_block_content_encoder_map(block_content_encoder_map);
     /// ```
     pub fn set_block_content_encoder_map(mut self, map: BlockContentEncoderMap) -> Self {
-        self.options.block_content_encoder_map = map;
+        self.context.block_content_encoder_map = map;
         self
     }
 
@@ -120,14 +120,14 @@ impl Builder {
     where
         W: Write,
     {
-        if uses_cram_3_1_codecs(&self.options.block_content_encoder_map) {
-            self.options.version = Version::new(3, 1);
+        if uses_cram_3_1_codecs(&self.context.block_content_encoder_map) {
+            self.context.version = Version::new(3, 1);
         }
 
         Writer {
             inner: writer,
             reference_sequence_repository: self.reference_sequence_repository,
-            options: self.options,
+            context: self.context,
             records: Vec::with_capacity(RECORDS_PER_CONTAINER),
             record_counter: MIN_RECORD_COUNTER,
         }

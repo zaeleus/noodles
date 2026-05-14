@@ -10,7 +10,7 @@ use self::{
 use crate::{
     container::compression_header::PreservationMap,
     io::writer::{
-        Options, Record,
+        Context, Record,
         collections::write_array,
         num::{write_itf8, write_u8},
     },
@@ -85,12 +85,12 @@ where
     }
 }
 
-pub(super) fn build_preservation_map(options: &Options, records: &[Record]) -> PreservationMap {
+pub(super) fn build_preservation_map(ctx: &Context, records: &[Record]) -> PreservationMap {
     // § 8.4 Compression header block (2020-06-22): "The boolean values are optional, defaulting to
     // true when absent, although it is recommended to explicitly set them."
     PreservationMap {
-        records_have_names: options.preserve_read_names,
-        alignment_starts_are_deltas: options.encode_alignment_start_positions_as_deltas,
+        records_have_names: ctx.preserve_read_names,
+        alignment_starts_are_deltas: ctx.encode_alignment_start_positions_as_deltas,
         external_reference_sequence_is_required: true,
         substitution_matrix: build_substitution_matrix(records),
         tag_sets: build_tag_sets(records),

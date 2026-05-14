@@ -19,13 +19,13 @@ use self::{
     compression_header::{build_compression_header, write_compression_header},
     slice::{Slice, build_slice},
 };
-use super::{DEFAULT_RECORDS_PER_SLICE, Options, Record};
+use super::{Context, DEFAULT_RECORDS_PER_SLICE, Record};
 use crate::container::{Header, ReferenceSequenceContext, block::ContentType};
 
 pub fn write_container<W>(
     writer: &mut W,
     reference_sequence_repository: &fasta::Repository,
-    options: &Options,
+    ctx: &Context,
     header: &sam::Header,
     record_counter: u64,
     records: &mut [Record],
@@ -39,7 +39,7 @@ where
 
     let (header, container_size, blocks) = build_container(
         reference_sequence_repository,
-        options,
+        ctx,
         header,
         record_counter,
         records,
@@ -56,7 +56,7 @@ where
 
 fn build_container(
     reference_sequence_repository: &fasta::Repository,
-    options: &Options,
+    ctx: &Context,
     header: &sam::Header,
     record_counter: u64,
     records: &mut [Record],
@@ -64,12 +64,12 @@ fn build_container(
     let mut slices = Vec::new();
     let mut slice_record_counter = record_counter;
 
-    let compression_header = build_compression_header(options, records);
+    let compression_header = build_compression_header(ctx, records);
 
     for chunk in records.chunks_mut(DEFAULT_RECORDS_PER_SLICE) {
         let slice = build_slice(
             reference_sequence_repository,
-            options,
+            ctx,
             header,
             slice_record_counter,
             &compression_header,

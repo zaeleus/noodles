@@ -1,14 +1,14 @@
 use crate::{container::BlockContentEncoderMap, file_definition::Version};
 
 #[derive(Clone, Debug)]
-pub struct Options {
+pub struct Context {
     pub preserve_read_names: bool,
     pub encode_alignment_start_positions_as_deltas: bool,
     pub version: Version,
     pub block_content_encoder_map: BlockContentEncoderMap,
 }
 
-impl Default for Options {
+impl Default for Context {
     fn default() -> Self {
         Self {
             preserve_read_names: true,

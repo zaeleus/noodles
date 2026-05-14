@@ -10,14 +10,14 @@ use super::Writer;
 use crate::{
     container::BlockContentEncoderMap,
     file_definition::Version,
-    io::writer::{Options, RECORDS_PER_CONTAINER},
+    io::writer::{Context, RECORDS_PER_CONTAINER},
 };
 
 /// An async CRAM writer builder.
 #[derive(Default)]
 pub struct Builder {
     reference_sequence_repository: fasta::Repository,
-    options: Options,
+    context: Context,
 }
 
 impl Builder {
@@ -36,7 +36,7 @@ impl Builder {
     ///
     /// The default is `true`.
     pub fn preserve_read_names(mut self, value: bool) -> Self {
-        self.options.preserve_read_names = value;
+        self.context.preserve_read_names = value;
         self
     }
 
@@ -46,13 +46,13 @@ impl Builder {
     ///
     /// The default is `true`.
     pub fn encode_alignment_start_positions_as_deltas(mut self, value: bool) -> Self {
-        self.options.encode_alignment_start_positions_as_deltas = value;
+        self.context.encode_alignment_start_positions_as_deltas = value;
         self
     }
 
     /// Sets the block content-encoder map.
     pub fn set_block_content_encoder_map(mut self, map: BlockContentEncoderMap) -> Self {
-        self.options.block_content_encoder_map = map;
+        self.context.block_content_encoder_map = map;
         self
     }
 
@@ -92,14 +92,14 @@ impl Builder {
     {
         use crate::io::writer::builder::uses_cram_3_1_codecs;
 
-        if uses_cram_3_1_codecs(&self.options.block_content_encoder_map) {
-            self.options.version = Version::new(3, 1);
+        if uses_cram_3_1_codecs(&self.context.block_content_encoder_map) {
+            self.context.version = Version::new(3, 1);
         }
 
         Writer {
             inner: writer,
             reference_sequence_repository: self.reference_sequence_repository,
-            options: self.options,
+            context: self.context,
             records: Vec::with_capacity(RECORDS_PER_CONTAINER),
             record_counter: 0,
         }

@@ -3,9 +3,9 @@
 pub(crate) mod builder;
 mod collections;
 pub(crate) mod container;
+mod context;
 pub(crate) mod header;
 pub(crate) mod num;
-mod options;
 pub(crate) mod record;
 
 use std::io::{self, Write};
@@ -18,7 +18,7 @@ use self::{
     container::write_container,
     header::{write_file_definition, write_file_header, write_header},
 };
-pub(crate) use self::{options::Options, record::Record};
+pub(crate) use self::{context::Context, record::Record};
 use crate::FileDefinition;
 
 const DEFAULT_SLICES_PER_CONTAINER: usize = 1;
@@ -52,7 +52,7 @@ pub(crate) const RECORDS_PER_CONTAINER: usize =
 pub struct Writer<W> {
     inner: W,
     reference_sequence_repository: fasta::Repository,
-    options: Options,
+    context: Context,
     records: Vec<Record>,
     record_counter: u64,
 }
@@ -156,7 +156,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_file_definition(&mut self) -> io::Result<()> {
-        let file_definition = FileDefinition::new(self.options.version, Default::default());
+        let file_definition = FileDefinition::new(self.context.version, Default::default());
         write_file_definition(&mut self.inner, &file_definition)
     }
 
@@ -204,7 +204,7 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        let file_definition = FileDefinition::new(self.options.version, Default::default());
+        let file_definition = FileDefinition::new(self.context.version, Default::default());
 
         write_header(
             &mut self.inner,
@@ -256,7 +256,7 @@ where
         write_container(
             &mut self.inner,
             &self.reference_sequence_repository,
-            &self.options,
+            &self.context,
             header,
             self.record_counter,
             &mut self.records,

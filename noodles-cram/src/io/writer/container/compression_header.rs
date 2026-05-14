@@ -13,7 +13,7 @@ use self::{
 };
 use crate::{
     container::{CompressionHeader, compression_header::DataSeriesEncodings},
-    io::writer::{Options, Record},
+    io::writer::{Context, Record},
 };
 
 pub fn write_compression_header<W>(
@@ -29,9 +29,9 @@ where
     Ok(())
 }
 
-pub(super) fn build_compression_header(options: &Options, records: &[Record]) -> CompressionHeader {
+pub(super) fn build_compression_header(ctx: &Context, records: &[Record]) -> CompressionHeader {
     CompressionHeader {
-        preservation_map: build_preservation_map(options, records),
+        preservation_map: build_preservation_map(ctx, records),
         data_series_encodings: DataSeriesEncodings::init(),
         tag_encodings: build_tag_encodings(records),
     }

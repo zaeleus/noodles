@@ -19,7 +19,7 @@ use crate::{
     },
     io::{
         BitWriter,
-        writer::{Options, Record, container::block::Block},
+        writer::{Context, Record, container::block::Block},
     },
     record::Flags,
 };
@@ -32,7 +32,7 @@ pub struct Slice {
 
 pub(super) fn build_slice(
     reference_sequence_repository: &fasta::Repository,
-    options: &Options,
+    ctx: &Context,
     header: &sam::Header,
     record_counter: u64,
     compression_header: &CompressionHeader,
@@ -46,7 +46,7 @@ pub(super) fn build_slice(
         write_records(compression_header, reference_sequence_context, records)?;
 
     let (core_data_block, external_data_blocks) = build_blocks(
-        &options.block_content_encoder_map,
+        &ctx.block_content_encoder_map,
         records,
         core_data_buf,
         external_data_bufs,
