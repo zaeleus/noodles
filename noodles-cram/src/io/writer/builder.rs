@@ -16,7 +16,6 @@ const MIN_RECORD_COUNTER: u64 = 0;
 /// A CRAM writer builder.
 #[derive(Default)]
 pub struct Builder {
-    reference_sequence_repository: fasta::Repository,
     context: Context,
 }
 
@@ -37,7 +36,7 @@ impl Builder {
         mut self,
         reference_sequence_repository: fasta::Repository,
     ) -> Self {
-        self.reference_sequence_repository = reference_sequence_repository;
+        self.context.reference_sequence_repository = reference_sequence_repository;
         self
     }
 
@@ -126,7 +125,6 @@ impl Builder {
 
         Writer {
             inner: writer,
-            reference_sequence_repository: self.reference_sequence_repository,
             context: self.context,
             records: Vec::with_capacity(RECORDS_PER_CONTAINER),
             record_counter: MIN_RECORD_COUNTER,

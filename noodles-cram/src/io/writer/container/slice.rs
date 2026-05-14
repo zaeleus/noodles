@@ -31,7 +31,6 @@ pub struct Slice {
 }
 
 pub(super) fn build_slice(
-    reference_sequence_repository: &fasta::Repository,
     ctx: &Context,
     header: &sam::Header,
     record_counter: u64,
@@ -56,7 +55,7 @@ pub(super) fn build_slice(
     block_content_ids.extend(external_data_blocks.iter().map(|block| block.content_id));
 
     let reference_md5 = calculate_reference_sequence_md5(
-        reference_sequence_repository,
+        &ctx.reference_sequence_repository,
         header,
         reference_sequence_context,
     )?;

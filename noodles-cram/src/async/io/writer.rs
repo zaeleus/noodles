@@ -4,7 +4,6 @@ mod builder;
 mod container;
 mod header;
 
-use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite};
 
@@ -23,7 +22,6 @@ use crate::{
 /// A call to [`Self::shutdown`] must be made before the writer is dropped.
 pub struct Writer<W> {
     inner: W,
-    reference_sequence_repository: fasta::Repository,
     context: Context,
     records: Vec<Record>,
     record_counter: u64,
@@ -161,7 +159,12 @@ where
     /// # }
     /// ```
     pub async fn write_file_header(&mut self, header: &sam::Header) -> io::Result<()> {
-        write_file_header(&mut self.inner, &self.reference_sequence_repository, header).await
+        write_file_header(
+            &mut self.inner,
+            &self.context.reference_sequence_repository,
+            header,
+        )
+        .await
     }
 
     /// Writes a SAM header.
@@ -190,7 +193,7 @@ where
 
         write_header(
             &mut self.inner,
-            &self.reference_sequence_repository,
+            &self.context.reference_sequence_repository,
             &file_definition,
             header,
         )
@@ -268,8 +271,11 @@ where
         header: &sam::Header,
         record: &dyn sam::alignment::Record,
     ) -> io::Result<()> {
-        let record =
-            Record::try_from_alignment_record(&self.reference_sequence_repository, header, record)?;
+        let record = Record::try_from_alignment_record(
+            &self.context.reference_sequence_repository,
+            header,
+            record,
+        )?;
 
         self.add_record(header, record).await
     }
@@ -277,7 +283,6 @@ where
     async fn flush(&mut self, header: &sam::Header) -> io::Result<()> {
         write_container(
             &mut self.inner,
-            &self.reference_sequence_repository,
             &self.context,
             header,
             self.record_counter,

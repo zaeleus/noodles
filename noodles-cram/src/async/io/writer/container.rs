@@ -1,4 +1,3 @@
-use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
@@ -6,7 +5,6 @@ use crate::io::writer::{Context, Record};
 
 pub async fn write_container<W>(
     writer: &mut W,
-    reference_sequence_repository: &fasta::Repository,
     ctx: &Context,
     header: &sam::Header,
     record_counter: u64,
@@ -16,18 +14,8 @@ where
     W: AsyncWrite + Unpin,
 {
     let mut buf = Vec::new();
-
-    crate::io::writer::container::write_container(
-        &mut buf,
-        reference_sequence_repository,
-        ctx,
-        header,
-        record_counter,
-        records,
-    )?;
-
+    crate::io::writer::container::write_container(&mut buf, ctx, header, record_counter, records)?;
     writer.write_all(&buf).await?;
-
     Ok(())
 }
 

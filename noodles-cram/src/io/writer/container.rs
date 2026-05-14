@@ -8,7 +8,6 @@ use std::{
     io::{self, Write},
 };
 
-use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 pub use self::{
@@ -24,7 +23,6 @@ use crate::container::{Header, ReferenceSequenceContext, block::ContentType};
 
 pub fn write_container<W>(
     writer: &mut W,
-    reference_sequence_repository: &fasta::Repository,
     ctx: &Context,
     header: &sam::Header,
     record_counter: u64,
@@ -37,13 +35,7 @@ where
         return Ok(());
     }
 
-    let (header, container_size, blocks) = build_container(
-        reference_sequence_repository,
-        ctx,
-        header,
-        record_counter,
-        records,
-    )?;
+    let (header, container_size, blocks) = build_container(ctx, header, record_counter, records)?;
 
     write_header(writer, &header, container_size)?;
 
@@ -55,7 +47,6 @@ where
 }
 
 fn build_container(
-    reference_sequence_repository: &fasta::Repository,
     ctx: &Context,
     header: &sam::Header,
     record_counter: u64,
@@ -68,7 +59,6 @@ fn build_container(
 
     for chunk in records.chunks_mut(DEFAULT_RECORDS_PER_SLICE) {
         let slice = build_slice(
-            reference_sequence_repository,
             ctx,
             header,
             slice_record_counter,
