@@ -18,7 +18,7 @@ use self::{
     compression_header::{build_compression_header, write_compression_header},
     slice::{Slice, build_slice},
 };
-use super::{Context, DEFAULT_RECORDS_PER_SLICE, Record};
+use super::{Context, Record};
 use crate::container::{Header, ReferenceSequenceContext, block::ContentType};
 
 pub fn write_container<W>(
@@ -57,7 +57,7 @@ fn build_container(
 
     let compression_header = build_compression_header(ctx, records);
 
-    for chunk in records.chunks_mut(DEFAULT_RECORDS_PER_SLICE) {
+    for chunk in records.chunks_mut(ctx.records_per_slice) {
         let slice = build_slice(
             ctx,
             header,

@@ -21,7 +21,6 @@ pub(crate) use self::{context::Context, record::Record};
 use crate::FileDefinition;
 
 pub(crate) const DEFAULT_SLICES_PER_CONTAINER: usize = 1;
-pub(crate) const DEFAULT_RECORDS_PER_SLICE: usize = 10240;
 
 /// A CRAM writer.
 ///
