@@ -10,7 +10,7 @@ use super::Writer;
 use crate::{
     container::BlockContentEncoderMap,
     file_definition::Version,
-    io::writer::{Context, RECORDS_PER_CONTAINER},
+    io::writer::{Context, DEFAULT_RECORDS_PER_SLICE, DEFAULT_SLICES_PER_CONTAINER},
 };
 
 /// An async CRAM writer builder.
@@ -95,10 +95,12 @@ impl Builder {
             self.context.version = Version::new(3, 1);
         }
 
+        let records_per_container = DEFAULT_SLICES_PER_CONTAINER * DEFAULT_RECORDS_PER_SLICE;
+
         Writer {
             inner: writer,
             context: self.context,
-            records: Vec::with_capacity(RECORDS_PER_CONTAINER),
+            records: Vec::with_capacity(records_per_container),
             record_counter: 0,
         }
     }

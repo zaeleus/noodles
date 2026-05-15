@@ -20,10 +20,8 @@ use self::{
 pub(crate) use self::{context::Context, record::Record};
 use crate::FileDefinition;
 
-const DEFAULT_SLICES_PER_CONTAINER: usize = 1;
-const DEFAULT_RECORDS_PER_SLICE: usize = 10240;
-pub(crate) const RECORDS_PER_CONTAINER: usize =
-    DEFAULT_SLICES_PER_CONTAINER * DEFAULT_RECORDS_PER_SLICE;
+pub(crate) const DEFAULT_SLICES_PER_CONTAINER: usize = 1;
+pub(crate) const DEFAULT_RECORDS_PER_SLICE: usize = 10240;
 
 /// A CRAM writer.
 ///

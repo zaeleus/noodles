@@ -6,7 +6,7 @@ use std::{
 
 use noodles_fasta as fasta;
 
-use super::{Context, RECORDS_PER_CONTAINER, Writer};
+use super::{Context, DEFAULT_RECORDS_PER_SLICE, DEFAULT_SLICES_PER_CONTAINER, Writer};
 use crate::{codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version};
 
 // § 7 "Container header structure" (2025-04-07): "record counter: 0-based sequential index of
@@ -123,10 +123,12 @@ impl Builder {
             self.context.version = Version::new(3, 1);
         }
 
+        let records_per_container = DEFAULT_SLICES_PER_CONTAINER * DEFAULT_RECORDS_PER_SLICE;
+
         Writer {
             inner: writer,
             context: self.context,
-            records: Vec::with_capacity(RECORDS_PER_CONTAINER),
+            records: Vec::with_capacity(records_per_container),
             record_counter: MIN_RECORD_COUNTER,
         }
     }
