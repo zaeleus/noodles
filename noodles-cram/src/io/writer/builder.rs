@@ -1,3 +1,5 @@
+mod preset;
+
 use std::{
     fs::File,
     io::{self, Write},
@@ -7,7 +9,10 @@ use std::{
 use noodles_fasta as fasta;
 
 use super::{Context, DEFAULT_SLICES_PER_CONTAINER, Writer};
-use crate::{codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version};
+use crate::{
+    codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version,
+    io::writer::builder::preset::Preset,
+};
 
 // § 7 "Container header structure" (2025-04-07): "record counter: 0-based sequential index of
 // records in the file/stream."
@@ -17,6 +22,7 @@ const MIN_RECORD_COUNTER: u64 = 0;
 #[derive(Default)]
 pub struct Builder {
     context: Context,
+    preset: Preset,
 }
 
 impl Builder {
@@ -123,8 +129,10 @@ impl Builder {
             self.context.version = Version::new(3, 1);
         }
 
-        let records_per_slice = self.context.records_per_slice;
+        let records_per_slice = self.preset.records_per_slice();
         let records_per_container = DEFAULT_SLICES_PER_CONTAINER * records_per_slice;
+
+        self.context.records_per_slice = records_per_slice;
 
         Writer {
             inner: writer,
