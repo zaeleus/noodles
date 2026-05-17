@@ -99,3 +99,31 @@ fn read_array(src: Cow<'_, [u8]>) -> io::Result<Array<'_>> {
         )),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_string() -> io::Result<()> {
+        let s = Cow::from(b"ndls\x00");
+        assert_eq!(read_string(s)?, b"ndls".as_bstr());
+
+        let s = Cow::from(Vec::from(b"ndls\x00"));
+        assert_eq!(read_string(s)?, b"ndls".as_bstr());
+
+        let s = Cow::from(b"ndls");
+        assert!(matches!(
+            read_string(s),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        let s = Cow::from(Vec::from(b"ndls"));
+        assert!(matches!(
+            read_string(s),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+}
