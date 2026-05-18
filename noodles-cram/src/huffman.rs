@@ -5,19 +5,17 @@ use crate::io::BitReader;
 type CodeBook = HashMap<i32, (i32, u32)>;
 
 pub struct CanonicalHuffmanDecoder {
-    code_book: CodeBook,
+    code_book_by_len: HashMap<u32, Vec<(i32, i32)>>,
+    sorted_lens: Vec<u32>,
 }
 
 impl CanonicalHuffmanDecoder {
     pub fn new(alphabet: &[i32], bit_lens: &[u32]) -> Self {
         let code_book = build_canonical_code_book(alphabet, bit_lens);
-        Self { code_book }
-    }
 
-    pub fn decode(&self, reader: &mut BitReader<'_>) -> io::Result<i32> {
         let mut code_book_by_len = HashMap::new();
 
-        for (symbol, (code, len)) in &self.code_book {
+        for (symbol, (code, len)) in code_book {
             let entries = code_book_by_len.entry(len).or_insert_with(Vec::new);
             entries.push((symbol, code));
         }
@@ -28,21 +26,28 @@ impl CanonicalHuffmanDecoder {
             lens
         };
 
+        Self {
+            code_book_by_len,
+            sorted_lens,
+        }
+    }
+
+    pub fn decode(&self, reader: &mut BitReader<'_>) -> io::Result<i32> {
         let mut prev_len = 0;
         let mut input_code = 0;
 
-        for &len in sorted_lens {
+        for &len in &self.sorted_lens {
             input_code <<= len - prev_len;
 
             let b = reader.read_i32(len - prev_len)?;
             input_code |= b;
 
-            let entry = code_book_by_len[&len]
+            let entry = self.code_book_by_len[&len]
                 .iter()
-                .find(|(_, code)| input_code == **code);
+                .find(|(_, code)| input_code == *code);
 
             if let Some((symbol, _)) = entry {
-                return Ok(**symbol);
+                return Ok(*symbol);
             }
 
             prev_len = len;
