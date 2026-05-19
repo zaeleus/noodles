@@ -83,7 +83,7 @@ impl ExactSizeIterator for Iter<'_> {}
 
 impl FusedIterator for Iter<'_> {}
 
-pub(super) fn decoded_bases(n: u8) -> array::IntoIter<u8, 2> {
+fn decoded_bases(n: u8) -> array::IntoIter<u8, 2> {
     super::decode_bases(n).into_iter()
 }
 
