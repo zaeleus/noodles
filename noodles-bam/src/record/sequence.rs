@@ -207,7 +207,7 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_base() {
+    fn test_build_codes() {
         let expected = *b"=ACMGRSVTWYHKDBN";
 
         for (n, base) in expected.into_iter().enumerate() {
