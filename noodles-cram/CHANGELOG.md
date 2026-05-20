@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * cram/io/reader: Return read errors from `Reader::query_unmapped`.
+
 ## 0.93.0 - 2026-05-06
 
 ### Added

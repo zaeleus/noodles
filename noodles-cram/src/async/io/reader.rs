@@ -8,9 +8,7 @@ mod num;
 mod query;
 mod records;
 
-use std::future;
-
-use futures::{Stream, StreamExt};
+use futures::{Stream, TryStreamExt};
 use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
@@ -389,13 +387,14 @@ where
 
         self.get_mut().seek(offset).await?;
 
-        Ok(self.records(header).filter(|result| {
-            future::ready(
-                result
-                    .as_ref()
-                    .map(|record| record.flags().is_unmapped())
-                    .unwrap_or(true),
-            )
-        }))
+        Ok(Box::pin(self.records(header).try_filter_map(
+            |record| async {
+                if record.flags().is_unmapped() {
+                    Ok(Some(record))
+                } else {
+                    Ok(None)
+                }
+            },
+        )))
     }
 }

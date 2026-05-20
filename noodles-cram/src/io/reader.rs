@@ -373,11 +373,15 @@ where
 
         self.get_mut().seek(offset)?;
 
-        Ok(self.records(header).filter(|result| {
-            result
-                .as_ref()
-                .map(|record| record.flags().is_unmapped())
-                .unwrap_or(true)
+        Ok(self.records(header).filter_map(|result| match result {
+            Ok(record) => {
+                if record.flags().is_unmapped() {
+                    Some(Ok(record))
+                } else {
+                    None
+                }
+            }
+            Err(e) => Some(Err(e)),
         }))
     }
 }
