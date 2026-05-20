@@ -4,6 +4,8 @@
 
 ### Fixed
 
+  * bam/io/reader: Return read errors from `Reader::query_unmapped`.
+
   * bam/record/sequence: Fix `From<Sequence<'_>>` conversion to
     `sam::alignment::record_buf::Sequence`.
 

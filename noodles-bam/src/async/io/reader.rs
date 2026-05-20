@@ -3,9 +3,7 @@ mod query;
 mod record;
 mod record_buf;
 
-use std::future;
-
-use futures::{Stream, StreamExt, stream};
+use futures::{Stream, TryStreamExt, stream};
 use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
@@ -421,14 +419,13 @@ where
             self.seek_to_first_record().await?;
         }
 
-        Ok(self.records().filter(|result| {
-            future::ready(
-                result
-                    .as_ref()
-                    .map(|record| record.flags().is_unmapped())
-                    .unwrap_or(true),
-            )
-        }))
+        Ok(Box::pin(self.records().try_filter_map(|record| async {
+            if record.flags().is_unmapped() {
+                Ok(Some(record))
+            } else {
+                Ok(None)
+            }
+        })))
     }
 }
 
