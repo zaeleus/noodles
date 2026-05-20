@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bam/record/sequence: Fix `From<Sequence<'_>>` conversion to
+    `sam::alignment::record_buf::Sequence`.
+
+    This previously copied the inner buffer rather than decoding the sequence.
+    Prefer to collect the bases using the iterator instead, i.e.,
+    `sequence.iter().collect()`.
+
 ## 0.89.0 - 2026-05-06
 
 ### Added

@@ -121,7 +121,7 @@ impl fmt::Debug for Sequence<'_> {
 
 impl<'a> From<Sequence<'a>> for sam::alignment::record_buf::Sequence {
     fn from(sequence: Sequence<'a>) -> Self {
-        Self::from(sequence.as_ref().to_vec())
+        sequence.iter().collect()
     }
 }
 
@@ -204,6 +204,16 @@ mod tests {
 
         let sequence = Sequence::new(&[0x12, 0x48], 4);
         assert_eq!(format!("{sequence:?}"), r#"Sequence("ACGT")"#);
+    }
+
+    #[test]
+    fn test_from_sequence_for_sam_alignment_record_buf_sequence() {
+        use noodles_sam::alignment::record_buf::Sequence as SequenceBuf;
+
+        let sequence = Sequence::new(&[0x12, 0x40], 3);
+        let actual = SequenceBuf::from(sequence);
+        let expected = SequenceBuf::from(b"ACG");
+        assert_eq!(actual, expected);
     }
 
     #[test]
