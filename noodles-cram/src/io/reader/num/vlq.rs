@@ -5,14 +5,23 @@ use std::{
 
 use super::read_u8;
 
+const MAX_SIZE: usize = 5;
+
 pub fn read_uint7<R>(reader: &mut R) -> io::Result<u32>
 where
     R: Read,
 {
     let mut n = 0;
+    let mut len = 0;
 
     loop {
         let b = read_u8(reader).map(u32::from)?;
+
+        len += 1;
+
+        if len > MAX_SIZE {
+            return Err(io::Error::from(io::ErrorKind::InvalidData));
+        }
 
         n <<= 7;
         n |= b & 0x7f;
@@ -58,6 +67,13 @@ mod tests {
         t(&[0x81, 0x80, 0x80, 0x00], 2097152)?;
         t(&[0xc0, 0x80, 0x80, 0x00], 134217728)?;
         t(&[0xff, 0xff, 0xff, 0x7f], 268435455)?;
+
+        t(&[0xff, 0xff, 0xff, 0xff, 0x7f], u32::MAX)?;
+
+        assert!(matches!(
+            read_uint7(&mut &[0x80, 0x80, 0x80, 0x80, 0x80, 0x00][..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
