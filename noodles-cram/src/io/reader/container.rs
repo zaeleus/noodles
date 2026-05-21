@@ -45,15 +45,11 @@ impl Container {
         let mut i = 0;
 
         iter::from_fn(move || {
-            if i < landmarks.len() - 1 {
-                let (start, end) = (landmarks[i], landmarks[i + 1]);
-                i += 1;
-                let mut src = &self.src[start..end];
-                Some(read_slice(&mut src))
-            } else if i < landmarks.len() {
+            if i < landmarks.len() {
                 let start = landmarks[i];
                 i += 1;
-                let mut src = &self.src[start..];
+                let end = landmarks.get(i).copied().unwrap_or(self.src.len());
+                let mut src = &self.src[start..end];
                 Some(read_slice(&mut src))
             } else {
                 None
