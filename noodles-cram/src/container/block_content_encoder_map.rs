@@ -6,13 +6,20 @@ pub use self::builder::Builder;
 
 use std::collections::HashMap;
 
-use crate::{codecs::Encoder, container::block};
+use crate::{
+    codecs::Encoder,
+    container::{
+        block, compression_header::data_series_encodings::data_series::STANDARD_DATA_SERIES,
+    },
+};
+
+const DATA_SERIES_COUNT: usize = STANDARD_DATA_SERIES.len();
 
 /// A CRAM container block content-encoder map.
 #[derive(Clone, Debug)]
 pub struct BlockContentEncoderMap {
     core_data_encoder: Option<Encoder>,
-    data_series_encoders: Vec<Option<Encoder>>,
+    data_series_encoders: [Option<Encoder>; DATA_SERIES_COUNT],
     tag_values_encoders: HashMap<block::ContentId, Option<Encoder>>,
 }
 

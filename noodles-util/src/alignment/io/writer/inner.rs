@@ -13,7 +13,7 @@ where
     SamGz(sam::io::Writer<bgzf::io::Writer<W>>),
     Bam(bam::io::Writer<bgzf::io::Writer<W>>),
     BamRaw(bam::io::Writer<BufWriter<W>>),
-    Cram(cram::io::Writer<W>),
+    Cram(Box<cram::io::Writer<W>>),
 }
 
 impl<W> Inner<W>

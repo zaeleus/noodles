@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::{array, collections::HashMap};
 
-use super::BlockContentEncoderMap;
+use super::{BlockContentEncoderMap, DATA_SERIES_COUNT};
 use crate::{
     codecs::Encoder,
     container::{
@@ -13,7 +13,7 @@ use crate::{
 #[derive(Debug)]
 pub struct Builder {
     core_data_encoder: Option<Encoder>,
-    data_series_encoders: Vec<Option<Encoder>>,
+    data_series_encoders: [Option<Encoder>; DATA_SERIES_COUNT],
     tag_values_encoders: HashMap<block::ContentId, Option<Encoder>>,
 }
 
@@ -96,16 +96,11 @@ impl Default for Builder {
     fn default() -> Self {
         use flate2::Compression;
 
-        use crate::container::compression_header::data_series_encodings::data_series::STANDARD_DATA_SERIES;
-
         let compression_level = Compression::default();
 
         Self {
             core_data_encoder: Some(Encoder::Gzip(compression_level)),
-            data_series_encoders: vec![
-                Some(Encoder::Gzip(compression_level));
-                STANDARD_DATA_SERIES.len()
-            ],
+            data_series_encoders: array::from_fn(|_| Some(Encoder::Gzip(compression_level))),
             tag_values_encoders: HashMap::new(),
         }
     }

@@ -170,12 +170,12 @@ impl Builder {
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
                 Inner::Bam(bam::io::Writer::new(writer))
             }
-            (Format::Cram, None) => Inner::Cram(
+            (Format::Cram, None) => Inner::Cram(Box::new(
                 cram::io::writer::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
                     .set_block_content_encoder_map(self.block_content_encoder_map)
                     .build_from_writer(writer),
-            ),
+            )),
             (Format::Cram, Some(CompressionMethod::Bgzf)) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
