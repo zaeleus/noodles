@@ -21,6 +21,7 @@ pub struct BlockContentEncoderMap {
     core_data_encoder: Option<Encoder>,
     data_series_encoders: [Option<Encoder>; DATA_SERIES_COUNT],
     tag_values_encoders: HashMap<block::ContentId, Option<Encoder>>,
+    default_encoder: Option<Encoder>,
 }
 
 impl BlockContentEncoderMap {
@@ -63,6 +64,10 @@ impl BlockContentEncoderMap {
         self.tag_values_encoders
             .get(&block_content_id)
             .map(|e| e.as_ref())
+    }
+
+    pub(crate) fn default_encoder(&self) -> Option<&Encoder> {
+        self.default_encoder.as_ref()
     }
 }
 

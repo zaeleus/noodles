@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/container/block_content_encoder_map: Add a default encoder.
+
+    This is the fallback encoder if no other encoder is set in the map.
+
 ### Fixed
 
   * cram/io/reader: Return read errors from `Reader::query_unmapped`.

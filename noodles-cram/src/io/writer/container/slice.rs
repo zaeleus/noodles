@@ -3,7 +3,6 @@ pub mod records;
 
 use std::{collections::HashMap, io};
 
-use flate2::Compression;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -233,8 +232,6 @@ fn encode_block(
 ) -> io::Result<Block> {
     use crate::codecs::fqzcomp;
 
-    const DEFAULT_ENCODER: Encoder = Encoder::Gzip(Compression::new(6));
-
     let content_type = ContentType::ExternalData;
 
     if let Some(encoder) = block_content_encoder_map.get_data_series_encoder(block_content_id) {
@@ -255,7 +252,7 @@ fn encode_block(
                     Block::encode(
                         ContentType::ExternalData,
                         block_content_id,
-                        Some(&DEFAULT_ENCODER),
+                        block_content_encoder_map.default_encoder(),
                         src,
                     )
                 }
@@ -270,7 +267,7 @@ fn encode_block(
         Block::encode(
             ContentType::ExternalData,
             block_content_id,
-            Some(&DEFAULT_ENCODER),
+            block_content_encoder_map.default_encoder(),
             src,
         )
     }

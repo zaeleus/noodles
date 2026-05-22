@@ -15,6 +15,7 @@ pub struct Builder {
     core_data_encoder: Option<Encoder>,
     data_series_encoders: [Option<Encoder>; DATA_SERIES_COUNT],
     tag_values_encoders: HashMap<block::ContentId, Option<Encoder>>,
+    default_encoder: Option<Encoder>,
 }
 
 impl Builder {
@@ -75,6 +76,19 @@ impl Builder {
         self
     }
 
+    /// Set the default encoder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::container::BlockContentEncoderMap;
+    /// let builder = BlockContentEncoderMap::builder().set_default_encoder(None);
+    /// ```
+    pub fn set_default_encoder(mut self, encoder: Option<Encoder>) -> Self {
+        self.default_encoder = encoder;
+        self
+    }
+
     /// Builds a block content-encoder map.
     ///
     /// # Examples
@@ -88,6 +102,7 @@ impl Builder {
             core_data_encoder: self.core_data_encoder,
             data_series_encoders: self.data_series_encoders,
             tag_values_encoders: self.tag_values_encoders,
+            default_encoder: self.default_encoder,
         }
     }
 }
@@ -97,11 +112,13 @@ impl Default for Builder {
         use flate2::Compression;
 
         let compression_level = Compression::default();
+        let encoder = Some(Encoder::Gzip(compression_level));
 
         Self {
-            core_data_encoder: Some(Encoder::Gzip(compression_level)),
-            data_series_encoders: array::from_fn(|_| Some(Encoder::Gzip(compression_level))),
+            core_data_encoder: encoder.clone(),
+            data_series_encoders: array::from_fn(|_| encoder.clone()),
             tag_values_encoders: HashMap::new(),
+            default_encoder: encoder,
         }
     }
 }
