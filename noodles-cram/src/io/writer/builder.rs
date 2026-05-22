@@ -23,6 +23,7 @@ const MIN_RECORD_COUNTER: u64 = 0;
 pub struct Builder {
     context: Context,
     preset: Preset,
+    block_content_encoder_map: Option<BlockContentEncoderMap>,
 }
 
 impl Builder {
@@ -92,8 +93,11 @@ impl Builder {
     /// let builder = Builder::default()
     ///     .set_block_content_encoder_map(block_content_encoder_map);
     /// ```
-    pub fn set_block_content_encoder_map(mut self, map: BlockContentEncoderMap) -> Self {
-        self.context.block_content_encoder_map = map;
+    pub fn set_block_content_encoder_map(
+        mut self,
+        block_content_encoder_map: BlockContentEncoderMap,
+    ) -> Self {
+        self.block_content_encoder_map = Some(block_content_encoder_map);
         self
     }
 
@@ -125,7 +129,11 @@ impl Builder {
     where
         W: Write,
     {
-        if uses_cram_3_1_codecs(&self.context.block_content_encoder_map) {
+        let block_content_encoder_map = self
+            .block_content_encoder_map
+            .unwrap_or_else(|| self.preset.block_content_encoder_map());
+
+        if uses_cram_3_1_codecs(&block_content_encoder_map) {
             self.context.version = Version::new(3, 1);
         }
 
@@ -133,6 +141,7 @@ impl Builder {
         let records_per_container = DEFAULT_SLICES_PER_CONTAINER * records_per_slice;
 
         self.context.records_per_slice = records_per_slice;
+        self.context.block_content_encoder_map = block_content_encoder_map;
 
         Writer {
             inner: writer,
