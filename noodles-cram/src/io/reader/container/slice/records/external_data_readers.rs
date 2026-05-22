@@ -13,7 +13,7 @@ pub struct ExternalDataReaders<'c> {
 impl<'c> ExternalDataReaders<'c> {
     pub fn new() -> Self {
         Self {
-            low_readers: init_low_readers(),
+            low_readers: [None; LOW_READER_COUNT],
             high_readers: HashMap::new(),
         }
     }
@@ -35,14 +35,4 @@ impl<'c> ExternalDataReaders<'c> {
             _ => self.high_readers.get_mut(id),
         }
     }
-}
-
-fn init_low_readers<'c>() -> [Option<&'c [u8]>; LOW_READER_COUNT] {
-    [
-        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        None, None, None, None,
-    ]
 }
