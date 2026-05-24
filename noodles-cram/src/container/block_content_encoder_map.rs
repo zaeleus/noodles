@@ -18,10 +18,10 @@ const DATA_SERIES_COUNT: usize = STANDARD_DATA_SERIES.len();
 /// A CRAM container block content-encoder map.
 #[derive(Clone, Debug)]
 pub struct BlockContentEncoderMap {
-    core_data_encoder: Option<Encoder>,
-    data_series_encoders: [Option<Encoder>; DATA_SERIES_COUNT],
-    tag_values_encoders: HashMap<block::ContentId, Option<Encoder>>,
-    default_encoder: Option<Encoder>,
+    pub(crate) core_data_encoder: Option<Encoder>,
+    pub(crate) data_series_encoders: [Option<Encoder>; DATA_SERIES_COUNT],
+    pub(crate) tag_values_encoders: HashMap<block::ContentId, Option<Encoder>>,
+    pub(crate) default_encoder: Option<Encoder>,
 }
 
 impl BlockContentEncoderMap {
