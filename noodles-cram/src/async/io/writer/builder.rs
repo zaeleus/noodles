@@ -10,13 +10,15 @@ use super::Writer;
 use crate::{
     container::BlockContentEncoderMap,
     file_definition::Version,
-    io::writer::{Context, DEFAULT_SLICES_PER_CONTAINER},
+    io::writer::{Context, DEFAULT_SLICES_PER_CONTAINER, builder::Preset},
 };
 
 /// An async CRAM writer builder.
 #[derive(Default)]
 pub struct Builder {
     context: Context,
+    preset: Preset,
+    block_content_encoder_map: Option<BlockContentEncoderMap>,
 }
 
 impl Builder {
@@ -50,8 +52,11 @@ impl Builder {
     }
 
     /// Sets the block content-encoder map.
-    pub fn set_block_content_encoder_map(mut self, map: BlockContentEncoderMap) -> Self {
-        self.context.block_content_encoder_map = map;
+    pub fn set_block_content_encoder_map(
+        mut self,
+        block_content_encoder_map: BlockContentEncoderMap,
+    ) -> Self {
+        self.block_content_encoder_map = Some(block_content_encoder_map);
         self
     }
 
@@ -91,12 +96,19 @@ impl Builder {
     {
         use crate::io::writer::builder::uses_cram_3_1_codecs;
 
+        let block_content_encoder_map = self
+            .block_content_encoder_map
+            .unwrap_or_else(|| self.preset.block_content_encoder_map());
+
         if uses_cram_3_1_codecs(&self.context.block_content_encoder_map) {
             self.context.version = Version::new(3, 1);
         }
 
-        let records_per_slice = self.context.records_per_slice;
+        let records_per_slice = self.preset.records_per_slice();
         let records_per_container = DEFAULT_SLICES_PER_CONTAINER * records_per_slice;
+
+        self.context.records_per_slice = records_per_slice;
+        self.context.block_content_encoder_map = block_content_encoder_map;
 
         Writer {
             inner: writer,

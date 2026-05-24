@@ -8,11 +8,9 @@ use std::{
 
 use noodles_fasta as fasta;
 
+pub(crate) use self::preset::Preset;
 use super::{Context, DEFAULT_SLICES_PER_CONTAINER, Writer};
-use crate::{
-    codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version,
-    io::writer::builder::preset::Preset,
-};
+use crate::{codecs::Encoder, container::BlockContentEncoderMap, file_definition::Version};
 
 // § 7 "Container header structure" (2025-04-07): "record counter: 0-based sequential index of
 // records in the file/stream."
