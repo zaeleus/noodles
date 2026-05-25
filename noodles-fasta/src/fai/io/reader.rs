@@ -112,7 +112,7 @@ where
     }
 }
 
-pub fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: BufRead,
 {
