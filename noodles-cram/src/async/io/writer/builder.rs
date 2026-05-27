@@ -136,7 +136,7 @@ impl Builder {
             .block_content_encoder_map
             .unwrap_or_else(|| self.preset.block_content_encoder_map());
 
-        if uses_cram_3_1_codecs(&self.context.block_content_encoder_map) {
+        if uses_cram_3_1_codecs(&block_content_encoder_map) {
             self.context.version = Version::new(3, 1);
         }
 
