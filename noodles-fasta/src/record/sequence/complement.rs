@@ -34,6 +34,10 @@ impl Iterator for Complement<'_> {
     fn next(&mut self) -> Option<Self::Item> {
         self.iter.next().copied().map(complement)
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
 }
 
 impl DoubleEndedIterator for Complement<'_> {

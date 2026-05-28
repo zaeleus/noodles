@@ -6,6 +6,8 @@
 
   * fasta/record/definition: Implement `Default`.
 
+  * fasta/record/sequence/complement: Implement `Iterator::size_hint`.
+
 ### Changed
 
   * fasta/io/reader: Change `Reader::read_description` to read to a
