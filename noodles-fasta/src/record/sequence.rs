@@ -69,11 +69,6 @@ impl Sequence {
     ///
     /// Unlike [`Self::get`], this returns the slice as a [`Sequence`].
     ///
-    /// # Panics
-    ///
-    /// This panics if the given interval is empty (`start > end`) or out of bounds (`end >
-    /// self.len()`).
-    ///
     /// # Examples
     ///
     /// ```
