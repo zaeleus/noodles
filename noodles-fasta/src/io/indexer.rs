@@ -101,9 +101,9 @@ where
                 Ok((0, _)) => break,
                 Ok((bytes_read, base_count)) => {
                     if line_bases != prev_line_bases {
-                        return Err(IndexError::InvalidLineBases(line_bases, prev_line_bases));
+                        return Err(IndexError::InvalidLineBases(prev_line_bases, line_bases));
                     } else if line_width != prev_line_width {
-                        return Err(IndexError::InvalidLineWidth(line_width, prev_line_width));
+                        return Err(IndexError::InvalidLineWidth(prev_line_width, line_width));
                     }
 
                     prev_line_width = bytes_read;
@@ -254,7 +254,7 @@ mod tests {
 
         assert!(matches!(
             indexer.index_record(),
-            Err(IndexError::InvalidLineBases(4, 3))
+            Err(IndexError::InvalidLineBases(3, 4))
         ));
     }
 
@@ -265,7 +265,7 @@ mod tests {
 
         assert!(matches!(
             indexer.index_record(),
-            Err(IndexError::InvalidLineWidth(5, 6))
+            Err(IndexError::InvalidLineWidth(6, 5))
         ));
     }
 
