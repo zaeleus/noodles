@@ -113,6 +113,12 @@ where
             }
         }
 
+        if prev_line_bases > line_bases {
+            return Err(IndexError::InvalidLineBases(prev_line_bases, line_bases));
+        } else if prev_line_width > line_width {
+            return Err(IndexError::InvalidLineWidth(prev_line_width, line_width));
+        }
+
         if length == 0 {
             return Err(IndexError::EmptySequence(self.offset));
         }
@@ -256,11 +262,27 @@ mod tests {
             indexer.index_record(),
             Err(IndexError::InvalidLineBases(3, 4))
         ));
+
+        let data = b">sq0\nACGT\nACGTN\n";
+        let mut indexer = Indexer::new(&data[..]);
+
+        assert!(matches!(
+            indexer.index_record(),
+            Err(IndexError::InvalidLineBases(5, 4))
+        ));
     }
 
     #[test]
     fn test_index_record_with_invalid_line_width() {
         let data = b">sq0\nACGT\nACGT\r\nACGT\nAC\n";
+        let mut indexer = Indexer::new(&data[..]);
+
+        assert!(matches!(
+            indexer.index_record(),
+            Err(IndexError::InvalidLineWidth(6, 5))
+        ));
+
+        let data = b">sq0\nACGT\nACGT\r\n";
         let mut indexer = Indexer::new(&data[..]);
 
         assert!(matches!(

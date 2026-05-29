@@ -9,6 +9,13 @@
     This previously allowed 0 to be set, which is invalid. However, a line base
     count of 0 could never be used because chunking the sequence would panic.
 
+### Fixed
+
+  * fasta/io/indexer: Reject longer last sequence line.
+
+    The last line of a sequence may be shorter or equal to previous lines but
+    not longer.
+
 ## 0.62.0 - 2026-05-28
 
 ### Added
