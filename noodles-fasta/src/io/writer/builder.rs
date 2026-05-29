@@ -1,16 +1,17 @@
 use std::{
     fs::File,
     io::{self, Write},
+    num::NonZero,
     path::Path,
 };
 
 use super::Writer;
 
-pub(crate) const DEFAULT_LINE_BASE_COUNT: usize = 80;
+pub(crate) const DEFAULT_LINE_BASE_COUNT: NonZero<usize> = NonZero::new(80).unwrap();
 
 /// A FASTA writer builder.
 pub struct Builder {
-    line_base_count: usize,
+    line_base_count: NonZero<usize>,
 }
 
 impl Builder {
@@ -21,10 +22,11 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use std::num::NonZero;
     /// use noodles_fasta::io::writer::Builder;
-    /// let builder = Builder::default().set_line_base_count(100);
+    /// let builder = Builder::default().set_line_base_count(const { NonZero::new(100).unwrap() });
     /// ```
-    pub fn set_line_base_count(mut self, line_base_count: usize) -> Self {
+    pub fn set_line_base_count(mut self, line_base_count: NonZero<usize>) -> Self {
         self.line_base_count = line_base_count;
         self
     }

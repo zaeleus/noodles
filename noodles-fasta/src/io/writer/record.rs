@@ -1,7 +1,10 @@
 mod definition;
 mod sequence;
 
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    num::NonZero,
+};
 
 use self::{definition::write_definition, sequence::write_sequence};
 use crate::Record;
@@ -9,7 +12,7 @@ use crate::Record;
 pub(super) fn write_record<W>(
     writer: &mut W,
     record: &Record,
-    line_base_count: usize,
+    line_base_count: NonZero<usize>,
 ) -> io::Result<()>
 where
     W: Write,

@@ -3,7 +3,10 @@
 pub(crate) mod builder;
 mod record;
 
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    num::NonZero,
+};
 
 pub use self::builder::Builder;
 use self::record::write_record;
@@ -12,7 +15,7 @@ use crate::Record;
 /// A FASTA writer.
 pub struct Writer<W> {
     inner: W,
-    line_base_count: usize,
+    line_base_count: NonZero<usize>,
 }
 
 impl<W> Writer<W> {
@@ -109,6 +112,6 @@ mod tests {
     #[test]
     fn test_new() {
         let writer = Writer::new(Vec::new());
-        assert_eq!(writer.line_base_count, 80);
+        assert_eq!(writer.line_base_count, const { NonZero::new(80).unwrap() });
     }
 }

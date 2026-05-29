@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{num::NonZero, path::Path};
 
 use tokio::{
     fs::File,
@@ -10,7 +10,7 @@ use crate::io::writer::builder::DEFAULT_LINE_BASE_COUNT;
 
 /// An async FASTA writer builder.
 pub struct Builder {
-    line_base_count: usize,
+    line_base_count: NonZero<usize>,
 }
 
 impl Builder {
@@ -21,10 +21,11 @@ impl Builder {
     /// # Examples
     ///
     /// ```
+    /// # use std::num::NonZero;
     /// use noodles_fasta::r#async::io::writer::Builder;
-    /// let builder = Builder::default().set_line_base_count(100);
+    /// let builder = Builder::default().set_line_base_count(const { NonZero::new(100).unwrap() });
     /// ```
-    pub fn set_line_base_count(mut self, line_base_count: usize) -> Self {
+    pub fn set_line_base_count(mut self, line_base_count: NonZero<usize>) -> Self {
         self.line_base_count = line_base_count;
         self
     }

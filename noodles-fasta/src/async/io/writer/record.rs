@@ -1,6 +1,8 @@
 mod definition;
 mod sequence;
 
+use std::num::NonZero;
+
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use self::{definition::write_definition, sequence::write_sequence};
@@ -9,7 +11,7 @@ use crate::Record;
 pub(super) async fn write_record<W>(
     writer: &mut W,
     record: &Record,
-    line_base_count: usize,
+    line_base_count: NonZero<usize>,
 ) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,

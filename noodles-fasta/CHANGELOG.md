@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * fasta/io/writer/builder: Change `line_base_count` to a `NonZero<usize>`.
+
+    This previously allowed 0 to be set, which is invalid. However, a line base
+    count of 0 could never be used because chunking the sequence would panic.
+
 ## 0.62.0 - 2026-05-28
 
 ### Added

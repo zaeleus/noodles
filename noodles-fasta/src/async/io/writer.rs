@@ -3,6 +3,8 @@
 mod builder;
 mod record;
 
+use std::num::NonZero;
+
 use tokio::io::{self, AsyncWrite};
 
 pub use self::builder::Builder;
@@ -12,7 +14,7 @@ use crate::Record;
 /// An async FASTA writer.
 pub struct Writer<W> {
     inner: W,
-    line_base_count: usize,
+    line_base_count: NonZero<usize>,
 }
 
 impl<W> Writer<W> {
