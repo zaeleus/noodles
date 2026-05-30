@@ -34,15 +34,6 @@ where
         Self { inner, offset: 0 }
     }
 
-    /// Consumes a single sequence line.
-    ///
-    /// If successful, this returns the number of bytes read from the stream (i.e., the line width)
-    /// and the number of bases in the line. If the number of bytes read is 0, the entire sequence
-    /// of the current record was read.
-    fn consume_sequence_line(&mut self) -> io::Result<(usize, usize)> {
-        consume_sequence_line(&mut self.inner)
-    }
-
     /// Indexes a raw FASTA record.
     ///
     /// The position of the stream is expected to be at the start or at the start of another
@@ -81,54 +72,51 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn index_record(&mut self) -> Result<Option<Record>, IndexError> {
-        let definition = match self.read_definition() {
-            Ok(None) => return Ok(None),
-            Ok(Some(d)) => d,
-            Err(e) => return Err(e.into()),
+        let Some(definition) = self.read_definition()? else {
+            return Ok(None);
         };
 
         let offset = self.offset;
-        let mut length = 0;
 
-        let (line_width, line_bases) = self.consume_sequence_line()?;
-        let (mut prev_line_width, mut prev_line_bases) = (line_width, line_bases);
+        let (expected_line_width, expected_line_base_count) = self.consume_sequence_line()?;
+        let mut base_count = expected_line_base_count;
+
+        if base_count == 0 {
+            return Err(IndexError::EmptySequence(self.offset));
+        }
 
         loop {
-            self.offset += prev_line_width as u64;
-            length += prev_line_bases;
+            let (line_width, line_base_count) = self.consume_sequence_line()?;
 
-            match self.consume_sequence_line() {
-                Ok((0, _)) => break,
-                Ok((bytes_read, base_count)) => {
-                    if line_bases != prev_line_bases {
-                        return Err(IndexError::InvalidLineBases(prev_line_bases, line_bases));
-                    } else if line_width != prev_line_width {
-                        return Err(IndexError::InvalidLineWidth(prev_line_width, line_width));
-                    }
+            base_count += line_base_count;
 
-                    prev_line_width = bytes_read;
-                    prev_line_bases = base_count;
-                }
-                Err(e) => return Err(IndexError::IoError(e)),
+            let is_valid_last_sequence_line = is_last_sequence_line(&mut self.inner)?
+                && line_width <= expected_line_width
+                && line_base_count <= expected_line_base_count;
+
+            if is_valid_last_sequence_line {
+                break;
             }
-        }
 
-        if prev_line_bases > line_bases {
-            return Err(IndexError::InvalidLineBases(prev_line_bases, line_bases));
-        } else if prev_line_width > line_width {
-            return Err(IndexError::InvalidLineWidth(prev_line_width, line_width));
-        }
-
-        if length == 0 {
-            return Err(IndexError::EmptySequence(self.offset));
+            if line_base_count != expected_line_base_count {
+                return Err(IndexError::InvalidLineBases(
+                    line_base_count,
+                    expected_line_base_count,
+                ));
+            } else if line_width != expected_line_width {
+                return Err(IndexError::InvalidLineWidth(
+                    line_width,
+                    expected_line_width,
+                ));
+            }
         }
 
         let record = Record::new(
             definition.name(),
-            length as u64,
+            base_count as u64,
             offset,
-            line_bases as u64,
-            line_width as u64,
+            expected_line_base_count as u64,
+            expected_line_width as u64,
         );
 
         Ok(Some(record))
@@ -154,6 +142,12 @@ where
         };
 
         Ok(Some(Definition::new(name, description)))
+    }
+
+    fn consume_sequence_line(&mut self) -> io::Result<(usize, usize)> {
+        let (line_width, line_base_count) = consume_sequence_line(&mut self.inner)?;
+        self.offset += line_width as u64;
+        Ok((line_width, line_base_count))
     }
 }
 
@@ -198,6 +192,14 @@ where
     }
 
     Ok((bytes_read, base_count))
+}
+
+fn is_last_sequence_line<R>(reader: &mut R) -> io::Result<bool>
+where
+    R: BufRead,
+{
+    let src = reader.fill_buf()?;
+    Ok(src.is_empty() || src[0] == DEFINITION_PREFIX)
 }
 
 #[derive(Debug)]
