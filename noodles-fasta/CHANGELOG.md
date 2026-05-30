@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * fasta/io/indexer: Rename `IndexError::IoError` to `IndexError::Io`.
+
   * fasta/io/writer/builder: Change `line_base_count` to a `NonZero<usize>`.
 
     This previously allowed 0 to be set, which is invalid. However, a line base

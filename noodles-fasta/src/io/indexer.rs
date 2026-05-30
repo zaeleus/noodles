@@ -204,19 +204,19 @@ where
 
 #[derive(Debug)]
 pub enum IndexError {
+    Io(io::Error),
     EmptySequence(u64),
     InvalidLineBases(usize, usize),
     InvalidLineWidth(usize, usize),
-    IoError(io::Error),
 }
 
 impl Error for IndexError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
+            Self::Io(e) => Some(e),
             Self::EmptySequence(_) => None,
             Self::InvalidLineBases(..) => None,
             Self::InvalidLineWidth(..) => None,
-            Self::IoError(e) => Some(e),
         }
     }
 }
@@ -224,6 +224,7 @@ impl Error for IndexError {
 impl fmt::Display for IndexError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Io(e) => e.fmt(f),
             Self::EmptySequence(offset) => write!(f, "empty sequence at offset {offset}"),
             Self::InvalidLineBases(actual, expected) => {
                 write!(f, "invalid line bases: expected {expected}, got {actual}")
@@ -231,21 +232,20 @@ impl fmt::Display for IndexError {
             Self::InvalidLineWidth(actual, expected) => {
                 write!(f, "invalid line width: expected {expected}, got {actual}")
             }
-            Self::IoError(e) => e.fmt(f),
         }
     }
 }
 
 impl From<io::Error> for IndexError {
     fn from(error: io::Error) -> Self {
-        Self::IoError(error)
+        Self::Io(error)
     }
 }
 
 impl From<IndexError> for io::Error {
     fn from(error: IndexError) -> Self {
         match error {
-            IndexError::IoError(e) => e,
+            IndexError::Io(e) => e,
             _ => Self::new(io::ErrorKind::InvalidInput, error),
         }
     }
