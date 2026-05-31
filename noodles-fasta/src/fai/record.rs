@@ -15,7 +15,7 @@ const MAX_FIELDS: usize = 5;
 pub struct Record {
     name: BString,
     length: u64,
-    offset: u64,
+    position: u64,
     line_bases: u64,
     line_width: u64,
 }
@@ -29,14 +29,14 @@ impl Record {
     /// use noodles_fasta::fai;
     /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
     /// ```
-    pub fn new<N>(name: N, length: u64, offset: u64, line_bases: u64, line_width: u64) -> Self
+    pub fn new<N>(name: N, length: u64, position: u64, line_bases: u64, line_width: u64) -> Self
     where
         N: Into<BString>,
     {
         Self {
             name: name.into(),
             length,
-            offset,
+            position,
             line_bases,
             line_width,
         }
@@ -68,17 +68,23 @@ impl Record {
         self.length
     }
 
-    /// Returns the offset from the start.
+    /// Returns the position of the start of the sequence.
     ///
     /// # Examples
     ///
     /// ```
     /// use noodles_fasta::fai;
     /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
-    /// assert_eq!(record.offset(), 4);
+    /// assert_eq!(record.position(), 4);
     /// ```
+    pub fn position(&self) -> u64 {
+        self.position
+    }
+
+    /// Returns the offset from the start.
+    #[deprecated(since = "0.63.0", note = "Use `Record::position` instead.")]
     pub fn offset(&self) -> u64 {
-        self.offset
+        self.position()
     }
 
     /// Returns the number of bases in a line.
@@ -130,7 +136,7 @@ impl Record {
         let start =
             u64::try_from(start).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let pos = self.offset()
+        let pos = self.position()
             + start / self.line_bases() * self.line_width()
             + start % self.line_bases();
 

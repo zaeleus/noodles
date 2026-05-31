@@ -18,6 +18,12 @@
     The last line of a sequence may be shorter or equal to previous lines but
     not longer.
 
+### Deprecated
+
+  * fasta/fai/record: Deprecate `Record::offset`.
+
+    Use `Record::position` instead.
+
 ## 0.62.0 - 2026-05-28
 
 ### Added

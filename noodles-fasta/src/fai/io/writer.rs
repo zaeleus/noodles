@@ -101,7 +101,7 @@ where
         writer,
         "\t{length}\t{offset}\t{line_bases}\t{line_width}",
         length = record.length(),
-        offset = record.offset(),
+        offset = record.position(),
         line_bases = record.line_bases(),
         line_width = record.line_width(),
     )
