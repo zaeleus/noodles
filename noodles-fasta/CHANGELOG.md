@@ -20,9 +20,10 @@
 
 ### Deprecated
 
-  * fasta/fai/record: Deprecate `Record::offset`.
+  * fasta/fai/record: Deprecate `Record::offset` and `Record::line_bases`.
 
-    Use `Record::position` instead.
+    Use `Record::position` and `Record::line_base_count`, respectively,
+    instead.
 
 ## 0.62.0 - 2026-05-28
 

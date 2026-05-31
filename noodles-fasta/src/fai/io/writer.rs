@@ -99,10 +99,10 @@ where
 
     writeln!(
         writer,
-        "\t{length}\t{offset}\t{line_bases}\t{line_width}",
+        "\t{length}\t{offset}\t{line_base_count}\t{line_width}",
         length = record.length(),
         offset = record.position(),
-        line_bases = record.line_bases(),
+        line_base_count = record.line_base_count(),
         line_width = record.line_width(),
     )
 }

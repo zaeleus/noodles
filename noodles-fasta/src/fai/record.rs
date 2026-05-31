@@ -16,7 +16,7 @@ pub struct Record {
     name: BString,
     length: u64,
     position: u64,
-    line_bases: u64,
+    line_base_count: u64,
     line_width: u64,
 }
 
@@ -29,7 +29,13 @@ impl Record {
     /// use noodles_fasta::fai;
     /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
     /// ```
-    pub fn new<N>(name: N, length: u64, position: u64, line_bases: u64, line_width: u64) -> Self
+    pub fn new<N>(
+        name: N,
+        length: u64,
+        position: u64,
+        line_base_count: u64,
+        line_width: u64,
+    ) -> Self
     where
         N: Into<BString>,
     {
@@ -37,7 +43,7 @@ impl Record {
             name: name.into(),
             length,
             position,
-            line_bases,
+            line_base_count,
             line_width,
         }
     }
@@ -94,10 +100,16 @@ impl Record {
     /// ```
     /// use noodles_fasta::fai;
     /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
-    /// assert_eq!(record.line_bases(), 80);
+    /// assert_eq!(record.line_base_count(), 80);
     /// ```
+    pub fn line_base_count(&self) -> u64 {
+        self.line_base_count
+    }
+
+    /// Returns the number of bases in a line.
+    #[deprecated(since = "0.63.0", note = "Use `Record::line_base_count` instead.")]
     pub fn line_bases(&self) -> u64 {
-        self.line_bases
+        self.line_base_count
     }
 
     /// Returns the number of characters in a line.
@@ -137,8 +149,8 @@ impl Record {
             u64::try_from(start).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
         let pos = self.position()
-            + start / self.line_bases() * self.line_width()
-            + start % self.line_bases();
+            + start / self.line_base_count() * self.line_width()
+            + start % self.line_base_count();
 
         Ok(pos)
     }
