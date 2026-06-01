@@ -66,6 +66,10 @@ mod tests {
         t(&mut buf, b"ACGT\n>sq1\n", b"ACGT").await?;
         t(&mut buf, b"ACGT\n\nACGT\nAC\n\n", b"ACGTACGTAC").await?;
 
+        t(&mut buf, b"ACGT\r\n", b"ACGT").await?;
+        t(&mut buf, b"ACGT\r\n>sq1\r\n", b"ACGT").await?;
+        t(&mut buf, b"ACGT\r\n\r\nACGT\r\nAC\r\n\r\n", b"ACGTACGTAC").await?;
+
         Ok(())
     }
 }
