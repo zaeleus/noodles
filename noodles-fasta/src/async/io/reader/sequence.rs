@@ -64,7 +64,7 @@ mod tests {
 
         t(&mut buf, b"ACGT\n", b"ACGT").await?;
         t(&mut buf, b"ACGT\n>sq1\n", b"ACGT").await?;
-        t(&mut buf, b"NNNN\nNNNN\nNN\n", b"NNNNNNNNNN").await?;
+        t(&mut buf, b"ACGT\n\nACGT\nAC\n\n", b"ACGTACGTAC").await?;
 
         Ok(())
     }
