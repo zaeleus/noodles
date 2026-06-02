@@ -1,6 +1,6 @@
 mod field;
 
-use std::{error, fmt, io, str::FromStr};
+use std::{error, fmt, io, num::NonZero, str::FromStr};
 
 use bstr::{BStr, BString};
 use noodles_core::region::Interval;
@@ -11,13 +11,13 @@ const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 5;
 
 /// A FASTA index record.
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Record {
     name: BString,
     length: u64,
     position: u64,
     line_base_count: u64,
-    line_width: u64,
+    line_width: NonZero<u64>,
 }
 
 impl Record {
@@ -26,15 +26,17 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZero;
     /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
+    /// let line_width = const { NonZero::new(81).unwrap() };
+    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
     /// ```
     pub fn new<N>(
         name: N,
         length: u64,
         position: u64,
         line_base_count: u64,
-        line_width: u64,
+        line_width: NonZero<u64>,
     ) -> Self
     where
         N: Into<BString>,
@@ -53,8 +55,10 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZero;
     /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
+    /// let line_width = const { NonZero::new(81).unwrap() };
+    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
     /// assert_eq!(record.name(), b"sq0");
     /// ```
     pub fn name(&self) -> &BStr {
@@ -66,8 +70,10 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZero;
     /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
+    /// let line_width = const { NonZero::new(81).unwrap() };
+    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
     /// assert_eq!(record.length(), 8);
     /// ```
     pub fn length(&self) -> u64 {
@@ -79,8 +85,10 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZero;
     /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
+    /// let line_width = const { NonZero::new(81).unwrap() };
+    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
     /// assert_eq!(record.position(), 4);
     /// ```
     pub fn position(&self) -> u64 {
@@ -98,8 +106,10 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZero;
     /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
+    /// let line_width = const { NonZero::new(81).unwrap() };
+    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
     /// assert_eq!(record.line_base_count(), 80);
     /// ```
     pub fn line_base_count(&self) -> u64 {
@@ -117,11 +127,13 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZero;
     /// use noodles_fasta::fai;
-    /// let record = fai::Record::new("sq0", 8, 4, 80, 81);
-    /// assert_eq!(record.line_width(), 81);
+    /// let line_width = const { NonZero::new(81).unwrap() };
+    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
+    /// assert_eq!(record.line_width(), line_width);
     /// ```
-    pub fn line_width(&self) -> u64 {
+    pub fn line_width(&self) -> NonZero<u64> {
         self.line_width
     }
 
@@ -130,10 +142,13 @@ impl Record {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZero;
+    ///
     /// use noodles_core::{region::Interval, Position};
     /// use noodles_fasta::fai;
     ///
-    /// let record = fai::Record::new("sq0", 10946, 4, 80, 81);
+    /// let line_width = const { NonZero::new(81).unwrap() };
+    /// let record = fai::Record::new("sq0", 10946, 4, 80, line_width);
     /// let interval = Interval::from(..);
     ///
     /// assert_eq!(record.query(interval)?, 4);
@@ -148,11 +163,25 @@ impl Record {
         let start =
             u64::try_from(start).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let line_width = self.line_width.get();
+
         let pos = self.position()
-            + start / self.line_base_count() * self.line_width()
+            + start / self.line_base_count() * line_width
             + start % self.line_base_count();
 
         Ok(pos)
+    }
+}
+
+impl Default for Record {
+    fn default() -> Self {
+        Self {
+            name: BString::default(),
+            length: 0,
+            position: 0,
+            line_base_count: 0,
+            line_width: NonZero::<u64>::MIN,
+        }
     }
 }
 
@@ -200,7 +229,7 @@ impl FromStr for Record {
         let len = parse_u64(&mut fields, Field::Length)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
         let line_bases = parse_u64(&mut fields, Field::LineBases)?;
-        let line_width = parse_u64(&mut fields, Field::LineWidth)?;
+        let line_width = parse_nonzero_u64(&mut fields, Field::LineWidth)?;
 
         Ok(Self::new(name, len, offset, line_bases, line_width))
     }
@@ -226,15 +255,26 @@ where
         .and_then(|s| s.parse().map_err(|e| ParseError::InvalidField(field, e)))
 }
 
+fn parse_nonzero_u64<'a, I>(fields: &mut I, field: Field) -> Result<NonZero<u64>, ParseError>
+where
+    I: Iterator<Item = &'a str>,
+{
+    fields
+        .next()
+        .ok_or(ParseError::MissingField(field))
+        .and_then(|s| s.parse().map_err(|e| ParseError::InvalidField(field, e)))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_from_str() {
+        let line_width = const { NonZero::new(81).unwrap() };
         assert_eq!(
             "sq0\t10946\t4\t80\t81".parse(),
-            Ok(Record::new("sq0", 10946, 4, 80, 81))
+            Ok(Record::new("sq0", 10946, 4, 80, line_width))
         );
 
         assert_eq!("".parse::<Record>(), Err(ParseError::Empty));

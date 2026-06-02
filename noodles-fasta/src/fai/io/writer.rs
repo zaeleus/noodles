@@ -73,11 +73,14 @@ where
     ///
     /// ```
     /// # use std::io;
+    /// use std::num::NonZero;
+    ///
     /// use noodles_fasta::fai;
     ///
     /// let mut writer = fai::io::Writer::new(Vec::new());
     ///
-    /// let index = fai::Index::from(vec![fai::Record::new("sq0", 13, 5, 80, 81)]);
+    /// let line_width = const { NonZero::new(81).unwrap() };
+    /// let index = fai::Index::from(vec![fai::Record::new("sq0", 13, 5, 80, line_width)]);
     /// writer.write_index(&index)?;
     ///
     /// assert_eq!(writer.get_ref(), b"sq0\t13\t5\t80\t81\n");

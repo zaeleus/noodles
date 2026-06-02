@@ -4,6 +4,7 @@ use std::{
     error::Error,
     fmt,
     io::{self, BufRead},
+    num::NonZero,
 };
 
 use memchr::memchr;
@@ -52,6 +53,7 @@ where
     ///
     /// ```
     /// # use std::io;
+    /// use std::num::NonZero;
     /// use noodles_fasta::{self as fasta, fai};
     ///
     /// let src = b">sq0\nACGT\n>sq1\nNNNN\nNNNN\nNN\n";
@@ -63,9 +65,10 @@ where
     ///     records.push(record);
     /// }
     ///
+    /// let line_width = const { NonZero::new(5).unwrap() };
     /// let expected = [
-    ///     fai::Record::new("sq0", 4, 5, 4, 5),
-    ///     fai::Record::new("sq1", 10, 15, 4, 5),
+    ///     fai::Record::new("sq0", 4, 5, 4, line_width),
+    ///     fai::Record::new("sq1", 10, 15, 4, line_width),
     /// ];
     ///
     /// assert_eq!(records, expected);
@@ -111,12 +114,16 @@ where
             }
         }
 
+        let line_width = u64::try_from(expected_line_width)
+            .and_then(NonZero::try_from)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         let record = Record::new(
             definition.name(),
             base_count as u64,
             offset,
             expected_line_base_count as u64,
-            expected_line_width as u64,
+            line_width,
         );
 
         Ok(Some(record))

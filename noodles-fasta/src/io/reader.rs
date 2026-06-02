@@ -217,17 +217,20 @@ where
     ///
     /// ```
     /// # use std::io::Cursor;
+    /// use std::num::NonZero;
+    ///
     /// use noodles_core::Region;
     /// use noodles_fasta::{self as fasta, fai, record::{Definition, Sequence}};
     ///
-    /// let data = b">sq0\nNNNN\n>sq1\nACGT\n>sq2\nNNNN\n";
+    /// let line_width = const { NonZero::new(5).unwrap() };
     /// let index = fai::Index::from(vec![
-    ///     fai::Record::new("sq0", 4, 5, 4, 5),
-    ///     fai::Record::new("sq1", 4, 15, 4, 5),
-    ///     fai::Record::new("sq2", 4, 25, 4, 5),
+    ///     fai::Record::new("sq0", 4, 5, 4, line_width),
+    ///     fai::Record::new("sq1", 4, 15, 4, line_width),
+    ///     fai::Record::new("sq2", 4, 25, 4, line_width),
     /// ]);
     ///
-    /// let mut reader = fasta::io::Reader::new(Cursor::new(data));
+    /// let src = b">sq0\nNNNN\n>sq1\nACGT\n>sq2\nNNNN\n";
+    /// let mut reader = fasta::io::Reader::new(Cursor::new(src));
     ///
     /// let region = Region::new("sq1", ..);
     /// let record = reader.query(&index, &region)?;

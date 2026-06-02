@@ -14,11 +14,14 @@ impl Index {
     /// # Examples
     ///
     /// ```
+    /// use std::num::NonZero;
+    ///
     /// use noodles_core::Region;
     /// use noodles_fasta::fai;
     ///
+    /// let line_width = const { NonZero::new(81).unwrap() };
     /// let index = fai::Index::from(vec![
-    ///     fai::Record::new("sq0", 10946, 4, 80, 81),
+    ///     fai::Record::new("sq0", 10946, 4, 80, line_width),
     /// ]);
     ///
     /// let region = Region::new("sq0", ..);

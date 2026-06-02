@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * fasta/fai/record: Change `line_width` to a `NonZero<u64>`.
+
   * fasta/io/indexer: Rename `IndexError::IoError` to `IndexError::Io`.
 
   * fasta/io/writer/builder: Change `line_base_count` to a `NonZero<usize>`.

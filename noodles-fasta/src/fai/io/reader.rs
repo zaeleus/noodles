@@ -76,15 +76,18 @@ where
     ///
     /// ```
     /// # use std::io;
+    /// use std::num::NonZero;
+    ///
     /// use noodles_fasta::fai;
     ///
     /// let data = b"sq0\t13\t5\t80\t81\nsq1\t21\t19\t80\t81\n";
     /// let mut reader = fai::io::Reader::new(&data[..]);
     /// let index = reader.read_index()?;
     ///
+    /// let line_width = const { NonZero::new(81).unwrap() };
     /// assert_eq!(index, fai::Index::from(vec![
-    ///     fai::Record::new("sq0", 13, 5, 80, 81),
-    ///     fai::Record::new("sq1", 21, 19, 80, 81),
+    ///     fai::Record::new("sq0", 13, 5, 80, line_width),
+    ///     fai::Record::new("sq1", 21, 19, 80, line_width),
     /// ]));
     /// # Ok::<(), io::Error>(())
     /// ```
