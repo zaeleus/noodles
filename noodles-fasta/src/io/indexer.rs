@@ -65,10 +65,11 @@ where
     ///     records.push(record);
     /// }
     ///
+    /// let line_base_count = const { NonZero::new(4).unwrap() };
     /// let line_width = const { NonZero::new(5).unwrap() };
     /// let expected = [
-    ///     fai::Record::new("sq0", 4, 5, 4, line_width),
-    ///     fai::Record::new("sq1", 10, 15, 4, line_width),
+    ///     fai::Record::new("sq0", 4, 5, line_base_count, line_width),
+    ///     fai::Record::new("sq1", 10, 15, line_base_count, line_width),
     /// ];
     ///
     /// assert_eq!(records, expected);
@@ -114,6 +115,10 @@ where
             }
         }
 
+        let line_base_count = u64::try_from(expected_line_base_count)
+            .and_then(NonZero::try_from)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
         let line_width = u64::try_from(expected_line_width)
             .and_then(NonZero::try_from)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
@@ -122,7 +127,7 @@ where
             definition.name(),
             base_count as u64,
             offset,
-            expected_line_base_count as u64,
+            line_base_count,
             line_width,
         );
 

@@ -16,7 +16,7 @@ pub struct Record {
     name: BString,
     length: u64,
     position: u64,
-    line_base_count: u64,
+    line_base_count: NonZero<u64>,
     line_width: NonZero<u64>,
 }
 
@@ -27,15 +27,18 @@ impl Record {
     ///
     /// ```
     /// use std::num::NonZero;
+    ///
     /// use noodles_fasta::fai;
+    ///
+    /// let line_base_count = const { NonZero::new(80).unwrap() };
     /// let line_width = const { NonZero::new(81).unwrap() };
-    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
+    /// let record = fai::Record::new("sq0", 8, 4, line_base_count, line_width);
     /// ```
     pub fn new<N>(
         name: N,
         length: u64,
         position: u64,
-        line_base_count: u64,
+        line_base_count: NonZero<u64>,
         line_width: NonZero<u64>,
     ) -> Self
     where
@@ -56,9 +59,12 @@ impl Record {
     ///
     /// ```
     /// use std::num::NonZero;
+    ///
     /// use noodles_fasta::fai;
+    ///
+    /// let line_base_count = const { NonZero::new(80).unwrap() };
     /// let line_width = const { NonZero::new(81).unwrap() };
-    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
+    /// let record = fai::Record::new("sq0", 8, 4, line_base_count, line_width);
     /// assert_eq!(record.name(), b"sq0");
     /// ```
     pub fn name(&self) -> &BStr {
@@ -71,9 +77,12 @@ impl Record {
     ///
     /// ```
     /// use std::num::NonZero;
+    ///
     /// use noodles_fasta::fai;
+    ///
+    /// let line_base_count = const { NonZero::new(80).unwrap() };
     /// let line_width = const { NonZero::new(81).unwrap() };
-    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
+    /// let record = fai::Record::new("sq0", 8, 4, line_base_count, line_width);
     /// assert_eq!(record.length(), 8);
     /// ```
     pub fn length(&self) -> u64 {
@@ -86,9 +95,12 @@ impl Record {
     ///
     /// ```
     /// use std::num::NonZero;
+    ///
     /// use noodles_fasta::fai;
+    ///
+    /// let line_base_count = const { NonZero::new(80).unwrap() };
     /// let line_width = const { NonZero::new(81).unwrap() };
-    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
+    /// let record = fai::Record::new("sq0", 8, 4, line_base_count, line_width);
     /// assert_eq!(record.position(), 4);
     /// ```
     pub fn position(&self) -> u64 {
@@ -107,19 +119,22 @@ impl Record {
     ///
     /// ```
     /// use std::num::NonZero;
+    ///
     /// use noodles_fasta::fai;
+    ///
+    /// let line_base_count = const { NonZero::new(80).unwrap() };
     /// let line_width = const { NonZero::new(81).unwrap() };
-    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
-    /// assert_eq!(record.line_base_count(), 80);
+    /// let record = fai::Record::new("sq0", 8, 4, line_base_count, line_width);
+    /// assert_eq!(record.line_base_count(), line_base_count);
     /// ```
-    pub fn line_base_count(&self) -> u64 {
+    pub fn line_base_count(&self) -> NonZero<u64> {
         self.line_base_count
     }
 
     /// Returns the number of bases in a line.
     #[deprecated(since = "0.63.0", note = "Use `Record::line_base_count` instead.")]
     pub fn line_bases(&self) -> u64 {
-        self.line_base_count
+        self.line_base_count.get()
     }
 
     /// Returns the number of characters in a line.
@@ -128,9 +143,12 @@ impl Record {
     ///
     /// ```
     /// use std::num::NonZero;
+    ///
     /// use noodles_fasta::fai;
+    ///
+    /// let line_base_count = const { NonZero::new(80).unwrap() };
     /// let line_width = const { NonZero::new(81).unwrap() };
-    /// let record = fai::Record::new("sq0", 8, 4, 80, line_width);
+    /// let record = fai::Record::new("sq0", 8, 4, line_base_count, line_width);
     /// assert_eq!(record.line_width(), line_width);
     /// ```
     pub fn line_width(&self) -> NonZero<u64> {
@@ -147,8 +165,9 @@ impl Record {
     /// use noodles_core::{region::Interval, Position};
     /// use noodles_fasta::fai;
     ///
+    /// let line_base_count = const { NonZero::new(80).unwrap() };
     /// let line_width = const { NonZero::new(81).unwrap() };
-    /// let record = fai::Record::new("sq0", 10946, 4, 80, line_width);
+    /// let record = fai::Record::new("sq0", 8, 4, line_base_count, line_width);
     /// let interval = Interval::from(..);
     ///
     /// assert_eq!(record.query(interval)?, 4);
@@ -163,11 +182,9 @@ impl Record {
         let start =
             u64::try_from(start).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
+        let line_base_count = self.line_base_count.get();
         let line_width = self.line_width.get();
-
-        let pos = self.position()
-            + start / self.line_base_count() * line_width
-            + start % self.line_base_count();
+        let pos = self.position() + start / line_base_count * line_width + start % line_base_count;
 
         Ok(pos)
     }
@@ -179,7 +196,7 @@ impl Default for Record {
             name: BString::default(),
             length: 0,
             position: 0,
-            line_base_count: 0,
+            line_base_count: NonZero::<u64>::MIN,
             line_width: NonZero::<u64>::MIN,
         }
     }
@@ -228,7 +245,7 @@ impl FromStr for Record {
         let name = parse_string(&mut fields, Field::Name)?;
         let len = parse_u64(&mut fields, Field::Length)?;
         let offset = parse_u64(&mut fields, Field::Offset)?;
-        let line_bases = parse_u64(&mut fields, Field::LineBases)?;
+        let line_bases = parse_nonzero_u64(&mut fields, Field::LineBases)?;
         let line_width = parse_nonzero_u64(&mut fields, Field::LineWidth)?;
 
         Ok(Self::new(name, len, offset, line_bases, line_width))
@@ -271,10 +288,11 @@ mod tests {
 
     #[test]
     fn test_from_str() {
+        let line_base_count = const { NonZero::new(80).unwrap() };
         let line_width = const { NonZero::new(81).unwrap() };
         assert_eq!(
             "sq0\t10946\t4\t80\t81".parse(),
-            Ok(Record::new("sq0", 10946, 4, 80, line_width))
+            Ok(Record::new("sq0", 10946, 4, line_base_count, line_width))
         );
 
         assert_eq!("".parse::<Record>(), Err(ParseError::Empty));

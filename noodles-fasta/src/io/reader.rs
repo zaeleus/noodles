@@ -222,11 +222,12 @@ where
     /// use noodles_core::Region;
     /// use noodles_fasta::{self as fasta, fai, record::{Definition, Sequence}};
     ///
+    /// let line_base_count = const { NonZero::new(5).unwrap() };
     /// let line_width = const { NonZero::new(5).unwrap() };
     /// let index = fai::Index::from(vec![
-    ///     fai::Record::new("sq0", 4, 5, 4, line_width),
-    ///     fai::Record::new("sq1", 4, 15, 4, line_width),
-    ///     fai::Record::new("sq2", 4, 25, 4, line_width),
+    ///     fai::Record::new("sq0", 4, 5, line_base_count, line_width),
+    ///     fai::Record::new("sq1", 4, 15, line_base_count, line_width),
+    ///     fai::Record::new("sq2", 4, 25, line_base_count, line_width),
     /// ]);
     ///
     /// let src = b">sq0\nNNNN\n>sq1\nACGT\n>sq2\nNNNN\n";

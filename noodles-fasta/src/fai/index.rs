@@ -19,9 +19,10 @@ impl Index {
     /// use noodles_core::Region;
     /// use noodles_fasta::fai;
     ///
+    /// let line_base_count = const { NonZero::new(80).unwrap() };
     /// let line_width = const { NonZero::new(81).unwrap() };
     /// let index = fai::Index::from(vec![
-    ///     fai::Record::new("sq0", 10946, 4, 80, line_width),
+    ///     fai::Record::new("sq0", 10946, 4, line_base_count, line_width),
     /// ]);
     ///
     /// let region = Region::new("sq0", ..);

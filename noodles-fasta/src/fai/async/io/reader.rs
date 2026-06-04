@@ -44,10 +44,11 @@ where
     ///
     /// let index = reader.read_index().await?;
     ///
+    /// let line_base_count = const { NonZero::new(80).unwrap() };
     /// let line_width = const { NonZero::new(81).unwrap() };
     /// assert_eq!(index, fai::Index::from(vec![
-    ///     fai::Record::new("sq0", 13, 5, 80, line_width),
-    ///     fai::Record::new("sq1", 21, 19, 80, line_width),
+    ///     fai::Record::new("sq0", 13, 5, line_base_count, line_width),
+    ///     fai::Record::new("sq1", 21, 19, line_base_count, line_width),
     /// ]));
     /// # Ok(())
     /// # }
