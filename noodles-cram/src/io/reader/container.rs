@@ -56,6 +56,30 @@ impl Container {
             }
         })
     }
+
+    /// Returns the slice at the given landmark.
+    pub(crate) fn slice(&self, landmark: u64) -> io::Result<Slice<'_>> {
+        let landmark =
+            usize::try_from(landmark).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+        let i = self
+            .header
+            .landmarks
+            .iter()
+            .position(|&pos| pos == landmark)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid landmark"))?;
+
+        let end = self
+            .header
+            .landmarks
+            .get(i + 1)
+            .copied()
+            .unwrap_or(self.src.len());
+
+        let mut src = &self.src[landmark..end];
+
+        read_slice(&mut src)
+    }
 }
 
 pub fn read_container<R>(reader: &mut R, container: &mut Container) -> io::Result<usize>
