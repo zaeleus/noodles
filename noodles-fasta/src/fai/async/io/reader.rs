@@ -1,6 +1,9 @@
+mod record;
+
 use tokio::io::{self, AsyncBufRead};
 
-use crate::fai::Index;
+use self::record::read_record;
+use crate::fai::{Index, Record};
 
 /// An async FASTA index reader.
 pub struct Reader<R> {
@@ -54,23 +57,17 @@ where
     /// # }
     /// ```
     pub async fn read_index(&mut self) -> io::Result<Index> {
-        use crate::r#async::io::reader::read_line;
-
         let mut buf = String::new();
         let mut records = Vec::new();
 
         loop {
             buf.clear();
 
-            match read_line(&mut self.inner, &mut buf).await? {
-                0 => break,
-                _ => {
-                    let record = buf
-                        .parse()
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            let mut record = Record::default();
 
-                    records.push(record);
-                }
+            match read_record(&mut self.inner, &mut buf, &mut record).await? {
+                0 => break,
+                _ => records.push(record),
             }
         }
 

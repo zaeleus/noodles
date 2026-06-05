@@ -1,6 +1,9 @@
+mod record;
+
 use std::io::{self, BufRead};
 
-use crate::fai::Index;
+use self::record::read_record;
+use crate::fai::{Index, Record};
 
 /// A FASTA index reader.
 pub struct Reader<R> {
@@ -99,16 +102,11 @@ where
         loop {
             buf.clear();
 
-            match read_line(&mut self.inner, &mut buf) {
-                Ok(0) => break,
-                Ok(_) => {
-                    let record = buf
-                        .parse()
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            let mut record = Record::default();
 
-                    records.push(record);
-                }
-                Err(e) => return Err(e),
+            match read_record(&mut self.inner, &mut buf, &mut record)? {
+                0 => break,
+                _ => records.push(record),
             }
         }
 
