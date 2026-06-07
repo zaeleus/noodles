@@ -1,14 +1,7 @@
-mod field;
-
-use std::{error, fmt, io, num::NonZero, str::FromStr};
+use std::{io, num::NonZero};
 
 use bstr::{BStr, BString};
 use noodles_core::region::Interval;
-
-use self::field::Field;
-
-const FIELD_DELIMITER: char = '\t';
-const MAX_FIELDS: usize = 5;
 
 /// A FASTA index record.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -199,112 +192,5 @@ impl Default for Record {
             line_base_count: NonZero::<u64>::MIN,
             line_width: NonZero::<u64>::MIN,
         }
-    }
-}
-
-/// An error returned when a raw FASTA index record fails to parse.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum ParseError {
-    /// The input is empty.
-    Empty,
-    /// A field is missing.
-    MissingField(Field),
-    /// A field is invalid.
-    InvalidField(Field, std::num::ParseIntError),
-}
-
-impl error::Error for ParseError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self {
-            Self::InvalidField(_, e) => Some(e),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Empty => f.write_str("empty input"),
-            Self::MissingField(field) => write!(f, "missing field: {field:?}"),
-            Self::InvalidField(field, _) => write!(f, "invalid field: {field:?}"),
-        }
-    }
-}
-
-impl FromStr for Record {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.is_empty() {
-            return Err(ParseError::Empty);
-        }
-
-        let mut fields = s.splitn(MAX_FIELDS, FIELD_DELIMITER);
-
-        let name = parse_string(&mut fields, Field::Name)?;
-        let len = parse_u64(&mut fields, Field::Length)?;
-        let offset = parse_u64(&mut fields, Field::Offset)?;
-        let line_bases = parse_nonzero_u64(&mut fields, Field::LineBases)?;
-        let line_width = parse_nonzero_u64(&mut fields, Field::LineWidth)?;
-
-        Ok(Self::new(name, len, offset, line_bases, line_width))
-    }
-}
-
-fn parse_string<'a, I>(fields: &mut I, field: Field) -> Result<String, ParseError>
-where
-    I: Iterator<Item = &'a str>,
-{
-    fields
-        .next()
-        .ok_or(ParseError::MissingField(field))
-        .map(|s| s.into())
-}
-
-fn parse_u64<'a, I>(fields: &mut I, field: Field) -> Result<u64, ParseError>
-where
-    I: Iterator<Item = &'a str>,
-{
-    fields
-        .next()
-        .ok_or(ParseError::MissingField(field))
-        .and_then(|s| s.parse().map_err(|e| ParseError::InvalidField(field, e)))
-}
-
-fn parse_nonzero_u64<'a, I>(fields: &mut I, field: Field) -> Result<NonZero<u64>, ParseError>
-where
-    I: Iterator<Item = &'a str>,
-{
-    fields
-        .next()
-        .ok_or(ParseError::MissingField(field))
-        .and_then(|s| s.parse().map_err(|e| ParseError::InvalidField(field, e)))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_from_str() {
-        let line_base_count = const { NonZero::new(80).unwrap() };
-        let line_width = const { NonZero::new(81).unwrap() };
-        assert_eq!(
-            "sq0\t10946\t4\t80\t81".parse(),
-            Ok(Record::new("sq0", 10946, 4, line_base_count, line_width))
-        );
-
-        assert_eq!("".parse::<Record>(), Err(ParseError::Empty));
-
-        assert_eq!(
-            "sq0".parse::<Record>(),
-            Err(ParseError::MissingField(Field::Length))
-        );
-
-        assert!(matches!(
-            "sq0\tnoodles".parse::<Record>(),
-            Err(ParseError::InvalidField(Field::Length, _))
-        ));
     }
 }

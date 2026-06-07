@@ -28,6 +28,12 @@
     Use `Record::position` and `Record::line_base_count`, respectively,
     instead.
 
+### Removed
+
+  * fasta/fai/record: Remove parser.
+
+    Use a deserializer (e.g., `fasta::fai::io::Reader`) instead.
+
 ## 0.62.0 - 2026-05-28
 
 ### Added
