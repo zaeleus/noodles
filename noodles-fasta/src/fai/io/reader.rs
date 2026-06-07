@@ -1,4 +1,4 @@
-mod record;
+pub(crate) mod record;
 
 use std::io::{self, BufRead};
 
