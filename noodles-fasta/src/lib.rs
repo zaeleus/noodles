@@ -1,4 +1,4 @@
-//! **noodles-fasta** handles and reading and writing of the FASTA format.
+//! **noodles-fasta** handles the reading and writing of the FASTA format.
 //!
 //! FASTA is a text format with no formal specification and only has de facto rules. It typically
 //! consists of a list of records, each with a definition on the first line and a sequence in the
