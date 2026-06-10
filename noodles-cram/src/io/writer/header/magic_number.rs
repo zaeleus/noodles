@@ -17,7 +17,7 @@ mod tests {
     fn test_write_magic_number() -> io::Result<()> {
         let mut buf = Vec::new();
         write_magic_number(&mut buf)?;
-        assert_eq!(buf, [b'C', b'R', b'A', b'M']);
+        assert_eq!(buf, b"CRAM");
         Ok(())
     }
 }
