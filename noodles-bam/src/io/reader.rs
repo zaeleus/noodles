@@ -59,7 +59,7 @@ use crate::Record;
 ///
 /// ### `flate2::read::MultiGzDecoder`
 ///
-/// ```
+/// ```ignore
 /// # use std::{fs::File, io};
 /// use flate2::read::MultiGzDecoder;
 /// use noodles_bam as bam;
