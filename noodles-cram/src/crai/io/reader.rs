@@ -5,6 +5,7 @@ use std::io::{self, BufRead, BufReader, Read};
 use flate2::read::GzDecoder;
 
 pub(crate) use self::record::parse_record;
+use self::record::read_record;
 use crate::crai::{Index, Record};
 
 /// A CRAM index reader.
@@ -84,14 +85,7 @@ where
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         let mut buf = String::new();
-
-        match read_line(&mut self.inner, &mut buf)? {
-            0 => Ok(0),
-            n => {
-                *record = parse_record(&buf)?;
-                Ok(n)
-            }
-        }
+        read_record(&mut self.inner, &mut buf, record)
     }
 }
 

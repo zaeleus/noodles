@@ -1,6 +1,9 @@
+mod record;
+
 use async_compression::tokio::bufread::GzipDecoder;
 use tokio::io::{self, AsyncBufRead, AsyncBufReadExt, AsyncRead, BufReader};
 
+use self::record::read_record;
 use crate::crai::{Index, Record, io::reader::parse_record};
 
 /// An async CRAM index reader.
@@ -77,16 +80,7 @@ where
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         let mut buf = String::new();
-
-        match read_line(&mut self.inner, &mut buf).await? {
-            0 => Ok(0),
-            n => {
-                *record = parse_record(&buf)
-                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-                Ok(n)
-            }
-        }
+        read_record(&mut self.inner, &mut buf, record).await
     }
 }
 

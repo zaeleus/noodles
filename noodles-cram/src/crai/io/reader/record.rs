@@ -1,11 +1,29 @@
-use std::io;
+use std::io::{self, BufRead};
 
 use noodles_core::Position;
 
+use super::read_line;
 use crate::crai::Record;
 
 const FIELD_DELIMITER: char = '\t';
 const MAX_FIELDS: usize = 6;
+
+pub(super) fn read_record<R>(
+    reader: &mut R,
+    buf: &mut String,
+    record: &mut Record,
+) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    match read_line(reader, buf)? {
+        0 => Ok(0),
+        n => {
+            *record = parse_record(buf)?;
+            Ok(n)
+        }
+    }
+}
 
 pub(crate) fn parse_record(s: &str) -> io::Result<Record> {
     const UNMAPPED: i32 = -1;
