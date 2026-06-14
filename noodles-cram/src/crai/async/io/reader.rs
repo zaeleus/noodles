@@ -9,6 +9,7 @@ use crate::crai::{Index, Record, io::reader::parse_record};
 /// An async CRAM index reader.
 pub struct Reader<R> {
     inner: BufReader<GzipDecoder<BufReader<R>>>,
+    buf: String,
 }
 
 impl<R> Reader<R>
@@ -27,6 +28,7 @@ where
     pub fn new(inner: R) -> Self {
         Self {
             inner: BufReader::new(GzipDecoder::new(BufReader::new(inner))),
+            buf: String::new(),
         }
     }
 
@@ -53,7 +55,7 @@ where
     /// # }
     /// ```
     pub async fn read_index(&mut self) -> io::Result<Index> {
-        read_index(&mut self.inner).await
+        read_index(&mut self.inner, &mut self.buf).await
     }
 
     /// Reads a record.
@@ -79,25 +81,24 @@ where
     /// # }
     /// ```
     pub async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        let mut buf = String::new();
-        read_record(&mut self.inner, &mut buf, record).await
+        self.buf.clear();
+        read_record(&mut self.inner, &mut self.buf, record).await
     }
 }
 
-async fn read_index<R>(reader: &mut R) -> io::Result<Index>
+async fn read_index<R>(reader: &mut R, buf: &mut String) -> io::Result<Index>
 where
     R: AsyncBufRead + Unpin,
 {
     let mut index = Vec::new();
-    let mut buf = String::new();
 
     loop {
         buf.clear();
 
-        match read_line(reader, &mut buf).await {
+        match read_line(reader, buf).await {
             Ok(0) => break,
             Ok(_) => {
-                let record = parse_record(&buf)?;
+                let record = parse_record(buf)?;
                 index.push(record);
             }
             Err(e) => return Err(e),
@@ -138,7 +139,8 @@ mod tests {
         let data = b"0\t10946\t6765\t17711\t233\t317811\n";
 
         let mut reader = &data[..];
-        let actual = read_index(&mut reader).await?;
+        let mut buf = String::new();
+        let actual = read_index(&mut reader, &mut buf).await?;
 
         let expected = vec![Record::new(
             Some(0),

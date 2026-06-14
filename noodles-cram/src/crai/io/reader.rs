@@ -11,6 +11,7 @@ use crate::crai::{Index, Record};
 /// A CRAM index reader.
 pub struct Reader<R> {
     inner: BufReader<GzDecoder<R>>,
+    buf: String,
 }
 
 impl<R> Reader<R>
@@ -29,6 +30,7 @@ where
     pub fn new(inner: R) -> Self {
         Self {
             inner: BufReader::new(GzDecoder::new(inner)),
+            buf: String::new(),
         }
     }
 
@@ -46,16 +48,15 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
-        let mut buf = String::new();
         let mut index = Vec::new();
 
         loop {
-            buf.clear();
+            self.buf.clear();
 
-            match read_line(&mut self.inner, &mut buf) {
+            match read_line(&mut self.inner, &mut self.buf) {
                 Ok(0) => break,
                 Ok(_) => {
-                    let record = parse_record(&buf)
+                    let record = parse_record(&self.buf)
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
                     index.push(record);
@@ -84,8 +85,8 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
-        let mut buf = String::new();
-        read_record(&mut self.inner, &mut buf, record)
+        self.buf.clear();
+        read_record(&mut self.inner, &mut self.buf, record)
     }
 }
 
