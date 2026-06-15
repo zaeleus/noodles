@@ -94,13 +94,22 @@ fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: BufRead,
 {
-    match reader.read_line(buf) {
-        Ok(0) => Ok(0),
-        Ok(n) => {
-            buf.pop();
+    const LINE_FEED: char = '\n';
+    const CARRIAGE_RETURN: char = '\r';
+
+    match reader.read_line(buf)? {
+        0 => Ok(0),
+        n => {
+            if buf.ends_with(LINE_FEED) {
+                buf.pop();
+
+                if buf.ends_with(CARRIAGE_RETURN) {
+                    buf.pop();
+                }
+            }
+
             Ok(n)
         }
-        Err(e) => Err(e),
     }
 }
 
@@ -136,6 +145,24 @@ mod tests {
         ];
 
         assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_line() -> io::Result<()> {
+        fn t(buf: &mut String, mut src: &[u8], expected: &str) -> io::Result<()> {
+            buf.clear();
+            read_line(&mut src, buf)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = String::new();
+
+        t(&mut buf, b"noodles\n", "noodles")?;
+        t(&mut buf, b"noodles\r\n", "noodles")?;
+        t(&mut buf, b"noodles", "noodles")?;
 
         Ok(())
     }
