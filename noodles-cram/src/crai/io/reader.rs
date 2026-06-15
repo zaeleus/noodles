@@ -49,20 +49,10 @@ where
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
         let mut index = Vec::new();
+        let mut record = Record::default();
 
-        loop {
-            self.buf.clear();
-
-            match read_line(&mut self.inner, &mut self.buf) {
-                Ok(0) => break,
-                Ok(_) => {
-                    let record = parse_record(&self.buf)
-                        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-                    index.push(record);
-                }
-                Err(e) => return Err(e),
-            }
+        while self.read_record(&mut record)? != 0 {
+            index.push(record.clone());
         }
 
         Ok(index)
