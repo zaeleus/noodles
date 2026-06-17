@@ -8,14 +8,17 @@ pub(crate) mod num;
 mod query;
 mod records;
 
-use std::io::{self, Read, Seek, SeekFrom};
+use std::{
+    io::{self, Read, Seek, SeekFrom},
+    vec,
+};
 
 use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 pub use self::{builder::Builder, container::Container, query::Query, records::Records};
-use self::{container::read_container, header::read_header};
+use self::{container::read_container, header::read_header, records::decode_container_records};
 use crate::{FileDefinition, crai};
 
 /// A CRAM reader.
@@ -43,6 +46,9 @@ use crate::{FileDefinition, crai};
 pub struct Reader<R> {
     inner: R,
     reference_sequence_repository: fasta::Repository,
+    container: Container,
+    records: vec::IntoIter<sam::alignment::RecordBuf>,
+    is_eof: bool,
 }
 
 impl<R> Reader<R> {
@@ -228,6 +234,67 @@ where
         read_container(&mut self.inner, container)
     }
 
+    /// Reads the next alignment record.
+    ///
+    /// The record is read into `record`, replacing its previous contents. This advances through
+    /// containers and slices as needed, decoding a whole container at a time and buffering its
+    /// records internally so that subsequent calls are served from the buffer.
+    ///
+    /// The stream is expected to be at the start of a container.
+    ///
+    /// This returns the number of records read, which is `0` if the end of the stream was reached.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram as cram;
+    /// use noodles_sam::alignment::RecordBuf;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    /// let header = reader.read_header()?;
+    ///
+    /// let mut record = RecordBuf::default();
+    ///
+    /// while reader.read_record_buf(&header, &mut record)? != 0 {
+    ///     // ...
+    /// }
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn read_record_buf(
+        &mut self,
+        header: &sam::Header,
+        record: &mut sam::alignment::RecordBuf,
+    ) -> io::Result<usize> {
+        loop {
+            if let Some(r) = self.records.next() {
+                *record = r;
+                return Ok(1);
+            }
+
+            if !self.read_next_container_records(header)? {
+                return Ok(0);
+            }
+        }
+    }
+
+    fn read_next_container_records(&mut self, header: &sam::Header) -> io::Result<bool> {
+        if self.is_eof {
+            return Ok(false);
+        }
+
+        if read_container(&mut self.inner, &mut self.container)? == 0 {
+            self.is_eof = true;
+            return Ok(false);
+        }
+
+        self.records =
+            decode_container_records(&self.reference_sequence_repository, header, &self.container)?
+                .into_iter();
+
+        Ok(true)
+    }
+
     /// Returns a iterator over records starting from the current stream position.
     ///
     /// The stream is expected to be at the start of a container.
@@ -261,6 +328,9 @@ where
     ///
     /// Positions typically come from the associated CRAM index file.
     ///
+    /// This discards any records buffered by [`Self::read_record_buf`], as the stream position no
+    /// longer matches the buffer.
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -271,7 +341,12 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn seek(&mut self, pos: SeekFrom) -> io::Result<u64> {
-        self.inner.seek(pos)
+        let position = self.inner.seek(pos)?;
+
+        self.records = Vec::new().into_iter();
+        self.is_eof = false;
+
+        Ok(position)
     }
 
     /// Returns the current position of the underlying reader.
@@ -371,7 +446,7 @@ where
             .map(|record| SeekFrom::Start(record.offset()))
             .unwrap_or(SeekFrom::End(0));
 
-        self.get_mut().seek(offset)?;
+        self.seek(offset)?;
 
         Ok(self.records(header).filter_map(|result| match result {
             Ok(record) => {
@@ -403,5 +478,150 @@ where
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             }),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{io::Cursor, num::NonZero};
+
+    use noodles_core::Position;
+    use noodles_sam::{
+        alignment::{
+            RecordBuf,
+            io::Write,
+            record::{
+                Flags,
+                cigar::{Op, op::Kind},
+            },
+            record_buf::Sequence,
+        },
+        header::record::value::{Map, map::ReferenceSequence},
+    };
+
+    use super::*;
+    use crate::io::writer;
+
+    const REFERENCE_SEQUENCE: &[u8] = b"TTCACCCA";
+
+    fn mapped_record(alignment_start: usize, bases: &[u8]) -> RecordBuf {
+        RecordBuf::builder()
+            .set_flags(Flags::empty())
+            .set_reference_sequence_id(0)
+            .set_alignment_start(Position::new(alignment_start).unwrap())
+            .set_cigar([Op::new(Kind::Match, bases.len())].into_iter().collect())
+            .set_sequence(Sequence::from(bases.to_vec()))
+            .set_quality_scores(vec![45; bases.len()].into_iter().collect())
+            .build()
+    }
+
+    fn write_fixture(
+        records: &[RecordBuf],
+    ) -> io::Result<(sam::Header, fasta::Repository, Vec<u8>)> {
+        let reference_sequences = vec![fasta::Record::new(
+            fasta::record::Definition::new("sq0", None),
+            fasta::record::Sequence::from(REFERENCE_SEQUENCE.to_vec()),
+        )];
+
+        let length = NonZero::try_from(REFERENCE_SEQUENCE.len())
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+        let header = sam::Header::builder()
+            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(length))
+            .build();
+
+        let repository = fasta::Repository::new(reference_sequences);
+
+        let mut buf = Vec::new();
+        let mut writer = writer::Builder::default()
+            .set_reference_sequence_repository(repository.clone())
+            .build_from_writer(&mut buf);
+
+        writer.write_header(&header)?;
+
+        for record in records {
+            writer.write_alignment_record(&header, record)?;
+        }
+
+        writer.try_finish(&header)?;
+
+        Ok((header, repository, buf))
+    }
+
+    #[test]
+    fn test_read_record_buf() -> io::Result<()> {
+        let (header, repository, buf) = write_fixture(&[mapped_record(1, b"TTCA")])?;
+
+        let mut reader = Builder::default()
+            .set_reference_sequence_repository(repository)
+            .build_from_reader(&buf[..]);
+        reader.read_header()?;
+
+        let mut record = RecordBuf::default();
+
+        assert_eq!(reader.read_record_buf(&header, &mut record)?, 1);
+        assert_eq!(record.sequence(), &Sequence::from(b"TTCA"));
+        assert_eq!(record.alignment_start(), Position::new(1));
+
+        // Once the end-of-file container is reached, further reads return 0 idempotently rather
+        // than attempting to read past it.
+        assert_eq!(reader.read_record_buf(&header, &mut record)?, 0);
+        assert_eq!(reader.read_record_buf(&header, &mut record)?, 0);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_record_buf_across_containers() -> io::Result<()> {
+        // The writer emits a container per 10240 records, so one more than that spans two
+        // containers and exercises advancing across the boundary.
+        const RECORD_COUNT: usize = 10240 + 1;
+
+        let records = vec![mapped_record(1, b"TTCA"); RECORD_COUNT];
+        let (header, repository, buf) = write_fixture(&records)?;
+
+        let mut reader = Builder::default()
+            .set_reference_sequence_repository(repository)
+            .build_from_reader(&buf[..]);
+        reader.read_header()?;
+
+        let mut record = RecordBuf::default();
+        let mut n = 0;
+
+        while reader.read_record_buf(&header, &mut record)? != 0 {
+            n += 1;
+        }
+
+        assert_eq!(n, RECORD_COUNT);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_record_buf_after_seek_discards_buffer() -> io::Result<()> {
+        let records = [mapped_record(1, b"TTCA"), mapped_record(2, b"TCAC")];
+        let (header, repository, buf) = write_fixture(&records)?;
+
+        let mut reader = Builder::default()
+            .set_reference_sequence_repository(repository)
+            .build_from_reader(Cursor::new(buf));
+        reader.read_header()?;
+
+        // Both records decode from a single container, so reading the first buffers the second
+        // inside the reader.
+        let container_position = reader.position()?;
+
+        let mut record = RecordBuf::default();
+        assert_eq!(reader.read_record_buf(&header, &mut record)?, 1);
+        assert_eq!(record.alignment_start(), Position::new(1));
+
+        // Seeking back to the container discards that buffered record, so the next read starts
+        // over from the first record instead of yielding the stale buffer.
+        reader.seek(SeekFrom::Start(container_position))?;
+
+        assert_eq!(reader.read_record_buf(&header, &mut record)?, 1);
+        assert_eq!(record.alignment_start(), Position::new(1));
+
+        Ok(())
     }
 }

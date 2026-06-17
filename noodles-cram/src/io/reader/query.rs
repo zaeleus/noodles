@@ -6,7 +6,7 @@ use std::{
 use noodles_core::region::Interval;
 use noodles_sam as sam;
 
-use super::{Container, Reader};
+use super::{Container, Reader, records::decode_container_records};
 use crate::crai;
 
 /// An iterator over records that intersect a given region.
@@ -72,50 +72,16 @@ where
             Err(e) => return Some(Err(e)),
         };
 
-        let compression_header = match container.compression_header() {
-            Ok(compression_header) => compression_header,
-            Err(e) => return Some(Err(e)),
-        };
-
-        let records = container
-            .slices()
-            .map(|result| {
-                let slice = result?;
-
-                let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
-
-                slice
-                    .records(
-                        self.reader.reference_sequence_repository.clone(),
-                        self.header,
-                        &compression_header,
-                        &core_data_src,
-                        &external_data_srcs,
-                    )
-                    .and_then(|records| {
-                        records
-                            .into_iter()
-                            .map(|record| {
-                                sam::alignment::RecordBuf::try_from_alignment_record(
-                                    self.header,
-                                    &record,
-                                )
-                            })
-                            .collect::<io::Result<Vec<_>>>()
-                    })
-            })
-            .collect::<Result<Vec<_>, _>>();
-
-        let records = match records {
+        let records = match decode_container_records(
+            &self.reader.reference_sequence_repository,
+            self.header,
+            &container,
+        ) {
             Ok(records) => records,
             Err(e) => return Some(Err(e)),
         };
 
-        self.records = records
-            .into_iter()
-            .flatten()
-            .collect::<Vec<_>>()
-            .into_iter();
+        self.records = records.into_iter();
 
         Some(Ok(()))
     }

@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/io/reader: Add record reader (`Reader::read_record_buf`).
+
+    This reads the next alignment record into a reusable buffer, advancing
+    through containers and slices as needed. It mirrors
+    `bam::io::Reader::read_record_buf`, allowing records to be streamed without
+    holding a borrowing iterator alongside the reader.
+
+  * cram/io/indexed_reader: Add record reader
+    (`IndexedReader::read_record_buf`).
+
+### Changed
+
+  * cram/io/reader: `Reader::seek` now discards any records buffered by
+    `Reader::read_record_buf`, so reads after a seek start from the new
+    position.
+
 ## 0.94.0 - 2026-05-28
 
 ### Added

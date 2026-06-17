@@ -1,8 +1,6 @@
-use std::{
-    io::{self, Read},
-    vec,
-};
+use std::io::{self, Read};
 
+use noodles_fasta as fasta;
 use noodles_sam as sam;
 
 use super::{Container, Reader};
@@ -16,8 +14,6 @@ where
 {
     reader: &'r mut Reader<R>,
     header: &'h sam::Header,
-    container: Container,
-    records: vec::IntoIter<sam::alignment::RecordBuf>,
 }
 
 impl<'r, 'h: 'r, R> Records<'r, 'h, R>
@@ -25,56 +21,7 @@ where
     R: Read,
 {
     pub(crate) fn new(reader: &'r mut Reader<R>, header: &'h sam::Header) -> Self {
-        Self {
-            reader,
-            header,
-            container: Container::default(),
-            records: Vec::new().into_iter(),
-        }
-    }
-
-    fn read_container_records(&mut self) -> io::Result<bool> {
-        if self.reader.read_container(&mut self.container)? == 0 {
-            return Ok(true);
-        }
-
-        let compression_header = self.container.compression_header()?;
-
-        self.records = self
-            .container
-            .slices()
-            .map(|result| {
-                let slice = result?;
-
-                let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
-
-                slice
-                    .records(
-                        self.reader.reference_sequence_repository.clone(),
-                        self.header,
-                        &compression_header,
-                        &core_data_src,
-                        &external_data_srcs,
-                    )
-                    .and_then(|records| {
-                        records
-                            .into_iter()
-                            .map(|record| {
-                                sam::alignment::RecordBuf::try_from_alignment_record(
-                                    self.header,
-                                    &record,
-                                )
-                            })
-                            .collect::<io::Result<Vec<_>>>()
-                    })
-            })
-            .collect::<Result<Vec<_>, _>>()?
-            .into_iter()
-            .flatten()
-            .collect::<Vec<_>>()
-            .into_iter();
-
-        Ok(false)
+        Self { reader, header }
     }
 }
 
@@ -85,15 +32,49 @@ where
     type Item = io::Result<sam::alignment::RecordBuf>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.records.next() {
-                Some(r) => return Some(Ok(r)),
-                None => match self.read_container_records() {
-                    Ok(true) => return None,
-                    Ok(false) => {}
-                    Err(e) => return Some(Err(e)),
-                },
-            }
+        let mut record = sam::alignment::RecordBuf::default();
+
+        match self.reader.read_record_buf(self.header, &mut record) {
+            Ok(0) => None,
+            Ok(_) => Some(Ok(record)),
+            Err(e) => Some(Err(e)),
         }
     }
+}
+
+/// Decodes all records of a container into owned alignment records.
+pub(super) fn decode_container_records(
+    reference_sequence_repository: &fasta::Repository,
+    header: &sam::Header,
+    container: &Container,
+) -> io::Result<Vec<sam::alignment::RecordBuf>> {
+    let compression_header = container.compression_header()?;
+
+    let records = container
+        .slices()
+        .map(|result| {
+            let slice = result?;
+
+            let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
+
+            slice
+                .records(
+                    reference_sequence_repository.clone(),
+                    header,
+                    &compression_header,
+                    &core_data_src,
+                    &external_data_srcs,
+                )
+                .and_then(|records| {
+                    records
+                        .into_iter()
+                        .map(|record| {
+                            sam::alignment::RecordBuf::try_from_alignment_record(header, &record)
+                        })
+                        .collect::<io::Result<Vec<_>>>()
+                })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(records.into_iter().flatten().collect())
 }

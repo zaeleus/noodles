@@ -74,6 +74,17 @@ where
         self.inner.read_container(container)
     }
 
+    /// Reads the next alignment record.
+    ///
+    /// This returns the number of records read, which is `0` if the end of the stream was reached.
+    pub fn read_record_buf(
+        &mut self,
+        header: &sam::Header,
+        record: &mut sam::alignment::RecordBuf,
+    ) -> io::Result<usize> {
+        self.inner.read_record_buf(header, record)
+    }
+
     /// Returns a iterator over records starting from the current stream position.
     pub fn records<'r, 'h: 'r>(&'r mut self, header: &'h sam::Header) -> Records<'r, 'h, R> {
         self.inner.records(header)

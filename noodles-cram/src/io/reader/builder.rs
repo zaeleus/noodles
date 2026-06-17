@@ -69,6 +69,9 @@ impl Builder {
         Reader {
             inner: reader,
             reference_sequence_repository: self.reference_sequence_repository,
+            container: Default::default(),
+            records: Vec::new().into_iter(),
+            is_eof: false,
         }
     }
 }
