@@ -9,6 +9,7 @@ use noodles_sam as sam;
 
 pub use self::builder::Builder;
 use self::inner::Inner;
+use crate::alignment::Record;
 
 /// An alignment reader.
 pub struct Reader<R>(Inner<R>);
@@ -46,6 +47,28 @@ where
     /// ```
     pub fn read_header(&mut self) -> io::Result<sam::Header> {
         self.0.read_header()
+    }
+
+    /// Reads an alignment record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_util::alignment;
+    ///
+    /// let mut reader = alignment::io::Reader::new(io::empty())?;
+    /// let header = reader.read_header()?;
+    ///
+    /// let mut record = alignment::Record::default();
+    ///
+    /// while reader.read_record(&header, &mut record)? != 0 {
+    ///     // ...
+    /// }
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn read_record(&mut self, header: &sam::Header, record: &mut Record) -> io::Result<usize> {
+        self.0.read_record(header, record)
     }
 
     /// Returns an iterator over records starting from the current stream position.

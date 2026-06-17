@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * util/alignment/io/reader: Add alignment record reader
+    (`Reader::read_record`).
+
 ## 0.80.0 - 2026-05-28
 
 ### Changed
