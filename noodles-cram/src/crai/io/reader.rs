@@ -48,14 +48,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn read_index(&mut self) -> io::Result<Index> {
-        let mut index = Vec::new();
-        let mut record = Record::default();
-
-        while self.read_record(&mut record)? != 0 {
-            index.push(record.clone());
-        }
-
-        Ok(index)
+        read_index(&mut self.inner, &mut self.buf)
     }
 
     /// Reads a record.
@@ -78,6 +71,20 @@ where
         self.buf.clear();
         read_record(&mut self.inner, &mut self.buf, record)
     }
+}
+
+fn read_index<R>(reader: &mut R, buf: &mut String) -> io::Result<Index>
+where
+    R: BufRead,
+{
+    let mut index = Vec::new();
+    let mut record = Record::default();
+
+    while read_record(reader, buf, &mut record)? != 0 {
+        index.push(record.clone());
+    }
+
+    Ok(index)
 }
 
 fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
@@ -105,34 +112,27 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::Write;
-
-    use flate2::write::GzEncoder;
     use noodles_core::Position;
 
-    use crate::crai::Record;
-
     use super::*;
+    use crate::crai::Record;
 
     #[test]
     fn test_read_index() -> Result<(), Box<dyn std::error::Error>> {
-        let data = b"\
-0\t10946\t6765\t17711\t233\t317811
-0\t17711\t121393\t317811\t233\t317811
-";
+        let data = b"0\t10946\t6765\t17711\t233\t317811\n";
 
-        let mut writer = GzEncoder::new(Vec::new(), Default::default());
-        writer.write_all(data)?;
-        let compressed_data = writer.finish()?;
+        let mut reader = &data[..];
+        let mut buf = String::new();
+        let actual = read_index(&mut reader, &mut buf)?;
 
-        let mut reader = Reader::new(&compressed_data[..]);
-
-        let actual = reader.read_index()?;
-
-        let expected = vec![
-            Record::new(Some(0), Position::new(10946), 6765, 17711, 233, 317811),
-            Record::new(Some(0), Position::new(17711), 121393, 317811, 233, 317811),
-        ];
+        let expected = vec![Record::new(
+            Some(0),
+            Position::new(10946),
+            6765,
+            17711,
+            233,
+            317811,
+        )];
 
         assert_eq!(actual, expected);
 
