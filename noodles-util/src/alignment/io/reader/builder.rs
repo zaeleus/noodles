@@ -139,11 +139,11 @@ impl Builder {
             (Format::Bam, Some(CompressionMethod::Bgzf)) => {
                 Inner::Bam(bam::io::Reader::new(reader))
             }
-            (Format::Cram, None) => Inner::Cram(
+            (Format::Cram, None) => Inner::Cram(cram::io::BufReader::new(
                 cram::io::reader::Builder::default()
                     .set_reference_sequence_repository(self.reference_sequence_repository)
                     .build_from_reader(reader),
-            ),
+            )),
             (Format::Cram, Some(CompressionMethod::Bgzf)) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidData,

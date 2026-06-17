@@ -10,7 +10,7 @@ pub(super) enum Inner<R> {
     SamGz(sam::io::Reader<bgzf::io::Reader<BufReader<R>>>),
     Bam(bam::io::Reader<bgzf::io::Reader<BufReader<R>>>),
     BamRaw(bam::io::Reader<BufReader<R>>),
-    Cram(cram::io::Reader<BufReader<R>>),
+    Cram(cram::io::BufReader<BufReader<R>>),
 }
 
 impl<R> Inner<R>
@@ -23,7 +23,7 @@ where
             Inner::SamGz(reader) => reader.read_header(),
             Inner::Bam(reader) => reader.read_header(),
             Inner::BamRaw(reader) => reader.read_header(),
-            Inner::Cram(reader) => reader.read_header(),
+            Inner::Cram(reader) => reader.get_mut().read_header(),
         }
     }
 
@@ -44,7 +44,7 @@ where
             Inner::BamRaw(reader) => Box::new(reader.records().map(|result| {
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             })),
-            Inner::Cram(reader) => Box::new(reader.records(header).map(|result| {
+            Inner::Cram(reader) => Box::new(reader.get_mut().records(header).map(|result| {
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             })),
         };
