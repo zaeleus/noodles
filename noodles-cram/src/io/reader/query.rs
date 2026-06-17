@@ -1,3 +1,5 @@
+mod records;
+
 use std::{
     io::{self, Read, Seek, SeekFrom},
     slice, vec,
@@ -6,6 +8,7 @@ use std::{
 use noodles_core::region::Interval;
 use noodles_sam as sam;
 
+use self::records::Records;
 use super::{Container, Reader};
 use crate::crai;
 
@@ -50,6 +53,24 @@ where
             interval,
 
             records: Vec::new().into_iter(),
+        }
+    }
+
+    fn read_record_buf(&mut self, record: &mut sam::alignment::RecordBuf) -> io::Result<usize> {
+        loop {
+            match self.records.next() {
+                Some(r) => {
+                    if intersects(&r, self.interval) {
+                        *record = r;
+                        return Ok(1);
+                    }
+                }
+                None => {
+                    if self.read_next_container().transpose()?.is_none() {
+                        return Ok(0);
+                    }
+                }
+            }
         }
     }
 
@@ -121,27 +142,15 @@ where
     }
 }
 
-impl<R> Iterator for Query<'_, '_, '_, R>
+impl<'r, 'h: 'r, 'i: 'r, R> IntoIterator for Query<'r, 'h, 'i, R>
 where
     R: Read + Seek,
 {
     type Item = io::Result<sam::alignment::RecordBuf>;
+    type IntoIter = Records<'r, 'h, 'i, R>;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            match self.records.next() {
-                Some(record) => {
-                    if intersects(&record, self.interval) {
-                        return Some(Ok(record));
-                    }
-                }
-                None => match self.read_next_container() {
-                    Some(Ok(())) => {}
-                    Some(Err(e)) => return Some(Err(e)),
-                    None => return None,
-                },
-            }
-        }
+    fn into_iter(self) -> Self::IntoIter {
+        Records::new(self)
     }
 }
 
