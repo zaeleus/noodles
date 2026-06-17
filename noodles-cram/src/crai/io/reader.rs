@@ -1,10 +1,9 @@
-mod record;
+pub(crate) mod record;
 
 use std::io::{self, BufRead, BufReader, Read};
 
 use flate2::read::GzDecoder;
 
-pub(crate) use self::record::parse_record;
 use self::record::read_record;
 use crate::crai::{Index, Record};
 
