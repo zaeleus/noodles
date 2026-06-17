@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * cram/io: Add buffered reader (`cram::io::BufReader`) ([#398]).
+
+    This is similiar to using the `Records` iterator but calling
+    `Reader::read_record_buf` for each record instead.
+
+[#398]: https://github.com/zaeleus/noodles/issues/398
+
 ## 0.94.0 - 2026-05-28
 
 ### Added
