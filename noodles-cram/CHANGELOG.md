@@ -11,6 +11,13 @@
 
 [#398]: https://github.com/zaeleus/noodles/issues/398
 
+### Changed
+
+  * cram/io/reader/query: Change `Query` to a reader.
+
+    `Query` is a now a reader adapter, rather than an iterator. Use
+    `Query::records` for an iterator.
+
 ## 0.94.0 - 2026-05-28
 
 ### Added

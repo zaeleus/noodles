@@ -43,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             reader.query_unmapped(&header).map(Box::new)?
         } else {
             let region = raw_region.parse()?;
-            Box::new(reader.query(&header, &region)?.into_iter())
+            Box::new(reader.query(&header, &region)?.records())
         };
 
     for result in records {

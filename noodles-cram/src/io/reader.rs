@@ -290,7 +290,7 @@ where
         self.inner.stream_position()
     }
 
-    /// Returns an iterator over records that intersects the given region.
+    /// Returns a reader over records that intersects the given region.
     ///
     /// To query for unmapped records, use [`Self::query_unmapped`].
     ///
@@ -308,7 +308,7 @@ where
     /// let region = "sq0:8-13".parse()?;
     /// let query = reader.query(&header, &index, &region)?;
     ///
-    /// for result in query {
+    /// for result in query.records() {
     ///     let record = result?;
     ///     // ...
     /// }

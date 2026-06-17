@@ -12,7 +12,7 @@ use self::records::Records;
 use super::{Container, Reader};
 use crate::crai;
 
-/// An iterator over records that intersect a given region.
+/// A reader over records that intersect a given region.
 ///
 /// This is created by calling [`Reader::query`].
 pub struct Query<'r, 'h: 'r, 'i: 'r, R>
@@ -56,7 +56,33 @@ where
         }
     }
 
-    fn read_record_buf(&mut self, record: &mut sam::alignment::RecordBuf) -> io::Result<usize> {
+    /// Reads a record into an alignment record buffer.
+    ///
+    /// If successful, 1 is returned. If 0 is returned, the stream reached EOF.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram::{self as cram, crai};
+    /// use noodles_fasta as fasta;
+    /// use noodles_sam as sam;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    ///
+    /// let header = reader.read_header()?;
+    /// let index = crai::fs::read("sample.cram.crai")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?;
+    ///
+    /// let mut record = sam::alignment::RecordBuf::default();
+    ///
+    /// while query.read_record_buf(&mut record)? != 0 {
+    ///     // ...
+    /// }
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn read_record_buf(&mut self, record: &mut sam::alignment::RecordBuf) -> io::Result<usize> {
         loop {
             match self.records.next() {
                 Some(r) => {
@@ -72,6 +98,32 @@ where
                 }
             }
         }
+    }
+
+    /// Returns an iterator over records.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram::{self as cram, crai};
+    /// use noodles_fasta as fasta;
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    ///
+    /// let header = reader.read_header()?;
+    /// let index = crai::fs::read("sample.cram.crai")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let query = reader.query(&header, &index, &region)?;
+    ///
+    /// for result in query.records() {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn records(self) -> Records<'r, 'h, 'i, R> {
+        Records::new(self)
     }
 
     fn read_next_container(&mut self) -> Option<io::Result<()>> {
@@ -139,18 +191,6 @@ where
             .into_iter();
 
         Some(Ok(()))
-    }
-}
-
-impl<'r, 'h: 'r, 'i: 'r, R> IntoIterator for Query<'r, 'h, 'i, R>
-where
-    R: Read + Seek,
-{
-    type Item = io::Result<sam::alignment::RecordBuf>;
-    type IntoIter = Records<'r, 'h, 'i, R>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        Records::new(self)
     }
 }
 
