@@ -4,7 +4,10 @@
 
 ### Changed
 
-  * bgzf/io/multithreaded_reader: Use global thread pool for inflate tasks.
+  * bgzf/io: Use global thread pool for inflate/deflate tasks.
+
+    `MultithreadedReader` and `MultithreadedWriter` now use rayon's default
+    global thread pool for tasks.
 
 ## 0.47.0 - 2026-05-06
 

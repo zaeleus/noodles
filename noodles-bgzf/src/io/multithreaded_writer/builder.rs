@@ -58,25 +58,21 @@ impl Builder {
     where
         W: Write + Send + 'static,
     {
-        use super::{State, spawn_deflaters, spawn_writer};
+        use super::{State, spawn_writer};
 
         let worker_count = self.worker_count.get();
 
         let (write_tx, write_rx) = crossbeam_channel::bounded(worker_count);
-        let (deflate_tx, deflate_rx) = crossbeam_channel::bounded(worker_count);
 
         let writer_handle = spawn_writer(writer, write_rx);
-        let deflater_handles =
-            spawn_deflaters(self.compression_level, self.worker_count, deflate_rx);
 
         MultithreadedWriter {
             state: State::Running {
                 writer_handle,
-                deflater_handles,
                 write_tx,
-                deflate_tx,
             },
             buf: BytesMut::new(),
+            compression_level: self.compression_level.into(),
         }
     }
 }

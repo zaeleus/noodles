@@ -9,26 +9,21 @@ use std::{
     thread::{self, JoinHandle},
 };
 
-use bytes::{Bytes, BytesMut};
+use bytes::BytesMut;
 use crossbeam_channel::{Receiver, Sender};
 
 pub use self::builder::Builder;
 use super::writer::{CompressionLevelImpl, MAX_BUF_SIZE};
 
 type FrameParts = (Vec<u8>, u32, usize);
-type BufferedTx = Sender<io::Result<FrameParts>>;
 type BufferedRx = Receiver<io::Result<FrameParts>>;
-type DeflateTx = Sender<(Bytes, BufferedTx)>;
-type DeflateRx = Receiver<(Bytes, BufferedTx)>;
 type WriteTx = Sender<BufferedRx>;
 type WriteRx = Receiver<BufferedRx>;
 
 enum State<W> {
     Running {
         writer_handle: JoinHandle<io::Result<W>>,
-        deflater_handles: Vec<JoinHandle<()>>,
         write_tx: WriteTx,
-        deflate_tx: DeflateTx,
     },
     Done,
 }
@@ -42,6 +37,7 @@ where
 {
     state: State<W>,
     buf: BytesMut,
+    compression_level: CompressionLevelImpl,
 }
 
 impl<W> MultithreadedWriter<W>
@@ -104,18 +100,9 @@ where
         match state {
             State::Running {
                 writer_handle,
-                mut deflater_handles,
                 write_tx,
-                deflate_tx,
             } => {
-                drop(deflate_tx);
-
-                for handle in deflater_handles.drain(..) {
-                    handle.join().unwrap();
-                }
-
                 drop(write_tx);
-
                 writer_handle.join().unwrap()
             }
             State::Done => panic!("invalid state"),
@@ -131,12 +118,7 @@ where
     }
 
     fn send(&mut self) -> io::Result<()> {
-        let State::Running {
-            write_tx,
-            deflate_tx,
-            ..
-        } = &self.state
-        else {
+        let State::Running { write_tx, .. } = &self.state else {
             panic!("invalid state");
         };
 
@@ -147,8 +129,12 @@ where
         }
 
         let src = self.buf.split().freeze();
-        let message = (src, buffered_tx);
-        deflate_tx.send(message).unwrap();
+        let compression_level = self.compression_level;
+
+        rayon::spawn(move || {
+            let result = compress(&src, compression_level);
+            buffered_tx.send(result).ok();
+        });
 
         Ok(())
     }
@@ -207,30 +193,6 @@ where
 
         Ok(writer)
     })
-}
-
-fn spawn_deflaters<L>(
-    compression_level: L,
-    worker_count: NonZero<usize>,
-    deflate_rx: DeflateRx,
-) -> Vec<JoinHandle<()>>
-where
-    L: Into<CompressionLevelImpl>,
-{
-    let compression_level = compression_level.into();
-
-    (0..worker_count.get())
-        .map(|_| {
-            let deflate_rx = deflate_rx.clone();
-
-            thread::spawn(move || {
-                while let Ok((src, buffered_tx)) = deflate_rx.recv() {
-                    let result = compress(&src, compression_level);
-                    buffered_tx.send(result).ok();
-                }
-            })
-        })
-        .collect()
 }
 
 fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<FrameParts> {
