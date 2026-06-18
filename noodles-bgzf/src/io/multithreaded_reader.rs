@@ -10,10 +10,7 @@ use crossbeam_channel::{Receiver, Sender};
 use super::Block;
 use crate::{VirtualPosition, gzi};
 
-type BufferedTx = Sender<io::Result<Buffer>>;
 type BufferedRx = Receiver<io::Result<Buffer>>;
-type InflateTx = Sender<(Buffer, BufferedTx)>;
-type InflateRx = Receiver<(Buffer, BufferedTx)>;
 type ReadTx = Sender<BufferedRx>;
 type ReadRx = Receiver<BufferedRx>;
 type RecycleTx = Sender<Buffer>;
@@ -23,7 +20,6 @@ enum State<R> {
     Paused(R),
     Running {
         reader_handle: JoinHandle<Result<R, ReadError<R>>>,
-        inflater_handles: Vec<JoinHandle<()>>,
         read_rx: ReadRx,
         recycle_tx: RecycleTx,
     },
@@ -94,16 +90,10 @@ impl<R> MultithreadedReader<R> {
             State::Paused(inner) => Ok(inner),
             State::Running {
                 reader_handle,
-                mut inflater_handles,
                 recycle_tx,
                 ..
             } => {
                 drop(recycle_tx);
-
-                for handle in inflater_handles.drain(..) {
-                    handle.join().unwrap();
-                }
-
                 reader_handle.join().unwrap().map_err(|e| e.1)
             }
             State::Done => panic!("invalid state"),
@@ -182,7 +172,6 @@ where
 
         let worker_count = self.worker_count.get();
 
-        let (inflate_tx, inflate_rx) = crossbeam_channel::bounded(worker_count);
         let (read_tx, read_rx) = crossbeam_channel::bounded(worker_count);
         let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(worker_count);
 
@@ -190,12 +179,10 @@ where
             recycle_tx.send(Buffer::default()).unwrap();
         }
 
-        let reader_handle = spawn_reader(inner, inflate_tx, read_tx, recycle_rx);
-        let inflater_handles = spawn_inflaters(self.worker_count, inflate_rx);
+        let reader_handle = spawn_reader(inner, read_tx, recycle_rx);
 
         self.state = State::Running {
             reader_handle,
-            inflater_handles,
             read_rx,
             recycle_tx,
         };
@@ -210,7 +197,6 @@ where
 
         let State::Running {
             reader_handle,
-            mut inflater_handles,
             recycle_tx,
             ..
         } = state
@@ -219,10 +205,6 @@ where
         };
 
         drop(recycle_tx);
-
-        for handle in inflater_handles.drain(..) {
-            handle.join().unwrap();
-        }
 
         // Discard read errors.
         let inner = match reader_handle.join().unwrap() {
@@ -363,14 +345,13 @@ struct ReadError<R>(R, io::Error);
 
 fn spawn_reader<R>(
     mut reader: R,
-    inflate_tx: InflateTx,
     read_tx: ReadTx,
     recycle_rx: RecycleRx,
 ) -> JoinHandle<Result<R, ReadError<R>>>
 where
     R: Read + Send + 'static,
 {
-    use super::reader::frame::read_frame_into;
+    use super::reader::frame::{parse_block, read_frame_into};
 
     thread::spawn(move || {
         while let Ok(mut buffer) = recycle_rx.recv() {
@@ -382,29 +363,16 @@ where
 
             let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
 
-            inflate_tx.send((buffer, buffered_tx)).unwrap();
+            rayon::spawn(move || {
+                let result = parse_block(&buffer.buf, &mut buffer.block).map(|_| buffer);
+                buffered_tx.send(result).unwrap();
+            });
+
             read_tx.send(buffered_rx).unwrap();
         }
 
         Ok(reader)
     })
-}
-
-fn spawn_inflaters(worker_count: NonZero<usize>, inflate_rx: InflateRx) -> Vec<JoinHandle<()>> {
-    use super::reader::frame::parse_block;
-
-    (0..worker_count.get())
-        .map(|_| {
-            let inflate_rx = inflate_rx.clone();
-
-            thread::spawn(move || {
-                while let Ok((mut buffer, buffered_tx)) = inflate_rx.recv() {
-                    let result = parse_block(&buffer.buf, &mut buffer.block).map(|_| buffer);
-                    buffered_tx.send(result).unwrap();
-                }
-            })
-        })
-        .collect()
 }
 
 #[cfg(test)]

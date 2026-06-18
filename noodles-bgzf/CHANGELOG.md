@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf/io/multithreaded_reader: Use global thread pool for inflate tasks.
+
 ## 0.47.0 - 2026-05-06
 
 ### Changed
