@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             reader.query_unmapped(&header, &index).await.map(Box::pin)?
         } else {
             let region = raw_region.parse()?;
-            Box::pin(reader.query(&header, &index, &region)?)
+            Box::pin(reader.query(&header, &index, &region)?.records())
         };
 
     let mut writer = sam::r#async::io::Writer::new(io::stdout());

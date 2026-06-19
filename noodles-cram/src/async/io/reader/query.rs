@@ -8,7 +8,10 @@ use tokio::io::{self, AsyncRead, AsyncSeek};
 use super::Reader;
 use crate::{crai, io::reader::Container};
 
-struct Query<'r, 'h: 'r, 'i: 'r, R> {
+/// An async reader over records of an async CRAM reader that intersects the given region.
+///
+/// This is created by calling [`Reader::query`].
+pub struct Query<'r, 'h: 'r, 'i: 'r, R> {
     inner: &'r mut Reader<R>,
 
     header: &'h sam::Header,
@@ -25,7 +28,7 @@ impl<'r, 'h: 'r, 'i: 'r, R> Query<'r, 'h, 'i, R>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
-    fn new(
+    pub(super) fn new(
         inner: &'r mut Reader<R>,
         header: &'h sam::Header,
         index: &'i crai::Index,
@@ -42,7 +45,8 @@ where
         }
     }
 
-    async fn read_record_buf(
+    /// Reads a record.
+    pub async fn read_record_buf(
         &mut self,
         record: &mut sam::alignment::RecordBuf,
     ) -> io::Result<usize> {
@@ -66,28 +70,21 @@ where
             }
         }
     }
-}
 
-pub(super) fn query<'r, 'h: 'r, 'i: 'r, R>(
-    inner: &'r mut Reader<R>,
-    header: &'h sam::Header,
-    index: &'i crai::Index,
-    reference_sequence_id: usize,
-    interval: Interval,
-) -> impl Stream<Item = io::Result<sam::alignment::RecordBuf>> + 'r
-where
-    R: AsyncRead + AsyncSeek + Unpin,
-{
-    let ctx = Query::new(inner, header, index, reference_sequence_id, interval);
+    /// Returns a stream over records.
+    pub fn records(self) -> impl Stream<Item = io::Result<sam::alignment::RecordBuf>>
+    where
+        R: AsyncRead + AsyncSeek + Unpin,
+    {
+        Box::pin(stream::try_unfold(self, |mut ctx| async {
+            let mut record = sam::alignment::RecordBuf::default();
 
-    Box::pin(stream::try_unfold(ctx, |mut ctx| async {
-        let mut record = sam::alignment::RecordBuf::default();
-
-        match ctx.read_record_buf(&mut record).await? {
-            0 => Ok(None),
-            _ => Ok(Some((record, ctx))),
-        }
-    }))
+            match ctx.read_record_buf(&mut record).await? {
+                0 => Ok(None),
+                _ => Ok(Some((record, ctx))),
+            }
+        }))
+    }
 }
 
 async fn read_next_container<R>(ctx: &mut Query<'_, '_, '_, R>) -> Option<io::Result<()>>

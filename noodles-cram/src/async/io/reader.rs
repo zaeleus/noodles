@@ -14,7 +14,7 @@ use noodles_fasta as fasta;
 use noodles_sam as sam;
 use tokio::io::{self, AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
 
-pub use self::builder::Builder;
+pub use self::{builder::Builder, query::Query};
 use self::{container::read_container, crc_reader::CrcReader, header::read_header};
 use crate::{FileDefinition, crai, io::reader::Container};
 
@@ -295,7 +295,7 @@ where
         self.inner.stream_position().await
     }
 
-    /// Returns a stream over records that intersects the given region.
+    /// Returns an async reader over records that intersects the given region.
     ///
     /// To query for unmapped records, use [`Self::query_unmapped`].
     ///
@@ -314,7 +314,7 @@ where
     ///
     /// let index = crai::r#async::read("sample.cram.crai").await?;
     /// let region = "sq0:8-13".parse()?;
-    /// let mut query = reader.query(&header, &index, &region)?;
+    /// let mut query = reader.query(&header, &index, &region)?.records();
     ///
     /// while let Some(record) = query.try_next().await? {
     ///     // ...
@@ -327,10 +327,7 @@ where
         header: &'h sam::Header,
         index: &'i crai::Index,
         region: &Region,
-    ) -> io::Result<impl Stream<Item = io::Result<sam::alignment::RecordBuf>> + use<'r, 'h, 'i, R>>
-    {
-        use self::query::query;
-
+    ) -> io::Result<Query<'r, 'h, 'i, R>> {
         let reference_sequence_id = header
             .reference_sequences()
             .get_index_of(region.name())
@@ -341,7 +338,7 @@ where
                 )
             })?;
 
-        Ok(query(
+        Ok(Query::new(
             self,
             header,
             index,
