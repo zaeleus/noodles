@@ -8,8 +8,8 @@ use tokio::io::{self, AsyncRead, AsyncSeek};
 use super::Reader;
 use crate::{crai, io::reader::Container};
 
-struct Context<'r, 'h: 'r, 'i: 'r, R> {
-    reader: &'r mut Reader<R>,
+struct Query<'r, 'h: 'r, 'i: 'r, R> {
+    inner: &'r mut Reader<R>,
 
     header: &'h sam::Header,
 
@@ -21,8 +21,55 @@ struct Context<'r, 'h: 'r, 'i: 'r, R> {
     records: vec::IntoIter<sam::alignment::RecordBuf>,
 }
 
+impl<'r, 'h: 'r, 'i: 'r, R> Query<'r, 'h, 'i, R>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    fn new(
+        inner: &'r mut Reader<R>,
+        header: &'h sam::Header,
+        index: &'i crai::Index,
+        reference_sequence_id: usize,
+        interval: Interval,
+    ) -> Self {
+        Self {
+            inner,
+            header,
+            index: index.iter(),
+            reference_sequence_id,
+            interval,
+            records: Vec::new().into_iter(),
+        }
+    }
+
+    async fn read_record_buf(
+        &mut self,
+        record: &mut sam::alignment::RecordBuf,
+    ) -> io::Result<usize> {
+        loop {
+            match self.records.next() {
+                Some(r) => {
+                    if let (Some(start), Some(end)) = (r.alignment_start(), r.alignment_end()) {
+                        let alignment_interval = (start..=end).into();
+
+                        if self.interval.intersects(alignment_interval) {
+                            *record = r;
+                            return Ok(1);
+                        }
+                    }
+                }
+                None => match read_next_container(self).await {
+                    Some(Ok(())) => {}
+                    Some(Err(e)) => return Err(e),
+                    None => return Ok(0),
+                },
+            }
+        }
+    }
+}
+
 pub(super) fn query<'r, 'h: 'r, 'i: 'r, R>(
-    reader: &'r mut Reader<R>,
+    inner: &'r mut Reader<R>,
     header: &'h sam::Header,
     index: &'i crai::Index,
     reference_sequence_id: usize,
@@ -31,42 +78,19 @@ pub(super) fn query<'r, 'h: 'r, 'i: 'r, R>(
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
-    let ctx = Context {
-        reader,
-
-        header,
-
-        index: index.iter(),
-
-        reference_sequence_id,
-        interval,
-
-        records: Vec::new().into_iter(),
-    };
+    let ctx = Query::new(inner, header, index, reference_sequence_id, interval);
 
     Box::pin(stream::try_unfold(ctx, |mut ctx| async {
-        loop {
-            match ctx.records.next() {
-                Some(r) => {
-                    if let (Some(start), Some(end)) = (r.alignment_start(), r.alignment_end()) {
-                        let alignment_interval = (start..=end).into();
+        let mut record = sam::alignment::RecordBuf::default();
 
-                        if ctx.interval.intersects(alignment_interval) {
-                            return Ok(Some((r, ctx)));
-                        }
-                    }
-                }
-                None => match read_next_container(&mut ctx).await {
-                    Some(Ok(())) => {}
-                    Some(Err(e)) => return Err(e),
-                    None => return Ok(None),
-                },
-            }
+        match ctx.read_record_buf(&mut record).await? {
+            0 => Ok(None),
+            _ => Ok(Some((record, ctx))),
         }
     }))
 }
 
-async fn read_next_container<R>(ctx: &mut Context<'_, '_, '_, R>) -> Option<io::Result<()>>
+async fn read_next_container<R>(ctx: &mut Query<'_, '_, '_, R>) -> Option<io::Result<()>>
 where
     R: AsyncRead + AsyncSeek + Unpin,
 {
@@ -76,17 +100,13 @@ where
         return Some(Ok(()));
     }
 
-    if let Err(e) = ctx
-        .reader
-        .seek(SeekFrom::Start(index_record.offset()))
-        .await
-    {
+    if let Err(e) = ctx.inner.seek(SeekFrom::Start(index_record.offset())).await {
         return Some(Err(e));
     }
 
     let mut container = Container::default();
 
-    match ctx.reader.read_container(&mut container).await {
+    match ctx.inner.read_container(&mut container).await {
         Ok(0) => return None,
         Ok(_) => {}
         Err(e) => return Some(Err(e)),
@@ -106,7 +126,7 @@ where
 
             slice
                 .records(
-                    ctx.reader.reference_sequence_repository.clone(),
+                    ctx.inner.reference_sequence_repository.clone(),
                     ctx.header,
                     &compression_header,
                     &core_data_src,
