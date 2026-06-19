@@ -15,10 +15,15 @@ use crossbeam_channel::{Receiver, Sender};
 pub use self::builder::Builder;
 use super::writer::{CompressionLevelImpl, MAX_BUF_SIZE};
 
-type FrameParts = (Vec<u8>, u32, usize);
 type BufferedRx = Receiver<io::Result<FrameParts>>;
 type WriteTx = Sender<BufferedRx>;
 type WriteRx = Receiver<BufferedRx>;
+
+struct FrameParts {
+    compressed_data: Vec<u8>,
+    crc32: u32,
+    uncompressed_size: usize,
+}
 
 enum State<W> {
     Running {
@@ -184,7 +189,12 @@ where
     thread::spawn(move || {
         while let Ok(buffered_rx) = write_rx.recv() {
             if let Ok(result) = buffered_rx.recv() {
-                let (compressed_data, crc32, uncompressed_size) = result?;
+                let FrameParts {
+                    compressed_data,
+                    crc32,
+                    uncompressed_size,
+                } = result?;
+
                 write_frame(&mut writer, &compressed_data, crc32, uncompressed_size)?;
             }
         }
@@ -200,5 +210,10 @@ fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<F
 
     let mut dst = Vec::new();
     let crc32 = deflate::encode(src, compression_level, &mut dst)?;
-    Ok((dst, crc32, src.len()))
+
+    Ok(FrameParts {
+        compressed_data: dst,
+        crc32,
+        uncompressed_size: src.len(),
+    })
 }
