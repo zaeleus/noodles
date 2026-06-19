@@ -338,7 +338,7 @@ where
         Ok(self.get_ref().virtual_position())
     }
 
-    /// Returns a stream over records that intersect the given region.
+    /// Returns an async reader over records that intersect the given region.
     ///
     /// To query for unmapped records, use [`Self::query_unmapped`].
     ///
