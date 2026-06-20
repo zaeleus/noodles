@@ -137,7 +137,7 @@ where
     fn read_definition(&mut self) -> io::Result<Option<Definition>> {
         use super::reader::definition::parse_definition;
 
-        let mut buf = String::new();
+        let mut buf = Vec::new();
 
         match read_line(&mut self.inner, &mut buf) {
             Ok(0) => return Ok(None),
@@ -145,7 +145,7 @@ where
             Err(e) => return Err(e),
         }
 
-        let (name, description) = parse_definition(buf.as_bytes())?;
+        let (name, description) = parse_definition(&buf)?;
 
         let description = if description.is_empty() {
             None

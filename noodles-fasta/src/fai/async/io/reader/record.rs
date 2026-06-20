@@ -3,7 +3,7 @@ use tokio::io::{self, AsyncBufRead};
 
 pub(super) async fn read_record<R>(
     reader: &mut R,
-    buf: &mut String,
+    buf: &mut Vec<u8>,
     record: &mut Record,
 ) -> io::Result<usize>
 where
@@ -12,7 +12,11 @@ where
     match read_line(reader, buf).await? {
         0 => Ok(0),
         n => {
-            *record = parse_record(buf)?;
+            let s =
+                str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+            *record = parse_record(s)?;
+
             Ok(n)
         }
     }

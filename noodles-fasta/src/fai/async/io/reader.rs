@@ -57,7 +57,7 @@ where
     /// # }
     /// ```
     pub async fn read_index(&mut self) -> io::Result<Index> {
-        let mut buf = String::new();
+        let mut buf = Vec::new();
         let mut records = Vec::new();
 
         loop {

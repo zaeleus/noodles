@@ -19,7 +19,7 @@ pub(crate) const DEFINITION_PREFIX: u8 = b'>';
 /// A FASTA reader.
 pub struct Reader<R> {
     inner: R,
-    buf: String,
+    buf: Vec<u8>,
 }
 
 impl<R> Reader<R> {
@@ -82,7 +82,7 @@ where
     pub fn new(inner: R) -> Self {
         Self {
             inner,
-            buf: String::new(),
+            buf: Vec::new(),
         }
     }
 
@@ -271,30 +271,26 @@ where
     }
 }
 
-// Reads all bytes until a line feed ('\n') or EOF is reached.
-//
-// The buffer will not include the trailing newline ('\n' or '\r\n').
-pub(crate) fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
+pub(crate) fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    const LINE_FEED: char = '\n';
-    const CARRIAGE_RETURN: char = '\r';
+    const LINE_FEED: u8 = b'\n';
+    const CARRIAGE_RETURN: u8 = b'\r';
 
-    match reader.read_line(buf) {
-        Ok(0) => Ok(0),
-        Ok(n) => {
-            if buf.ends_with(LINE_FEED) {
+    match reader.read_until(LINE_FEED, buf)? {
+        0 => Ok(0),
+        n => {
+            if buf.ends_with(&[LINE_FEED]) {
                 buf.pop();
 
-                if buf.ends_with(CARRIAGE_RETURN) {
+                if buf.ends_with(&[CARRIAGE_RETURN]) {
                     buf.pop();
                 }
             }
 
             Ok(n)
         }
-        Err(e) => Err(e),
     }
 }
 
@@ -317,25 +313,18 @@ mod tests {
 
     #[test]
     fn test_read_line() -> io::Result<()> {
-        let mut buf = String::new();
+        fn t(buf: &mut Vec<u8>, mut src: &[u8], expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            read_line(&mut src, buf)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
 
-        let data = b"noodles\n";
-        let mut reader = &data[..];
-        buf.clear();
-        read_line(&mut reader, &mut buf)?;
-        assert_eq!(buf, "noodles");
+        let mut buf = Vec::new();
 
-        let data = b"noodles\r\n";
-        let mut reader = &data[..];
-        buf.clear();
-        read_line(&mut reader, &mut buf)?;
-        assert_eq!(buf, "noodles");
-
-        let data = b"noodles";
-        let mut reader = &data[..];
-        buf.clear();
-        read_line(&mut reader, &mut buf)?;
-        assert_eq!(buf, "noodles");
+        t(&mut buf, b"noodles\n", b"noodles")?;
+        t(&mut buf, b"noodles\r\n", b"noodles")?;
+        t(&mut buf, b"noodles", b"noodles")?;
 
         Ok(())
     }

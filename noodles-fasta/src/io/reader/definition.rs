@@ -5,7 +5,7 @@ use crate::record::Definition;
 
 pub(super) fn read_definition<R>(
     reader: &mut R,
-    buf: &mut String,
+    buf: &mut Vec<u8>,
     definition: &mut Definition,
 ) -> io::Result<usize>
 where
@@ -16,7 +16,7 @@ where
     match read_line(reader, buf)? {
         0 => Ok(0),
         n => {
-            let (name, description) = parse_definition(buf.as_bytes())?;
+            let (name, description) = parse_definition(buf)?;
 
             let description = if description.is_empty() {
                 None
