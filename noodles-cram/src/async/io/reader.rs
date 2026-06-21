@@ -193,8 +193,8 @@ where
 
     /// Reads a container.
     ///
-    /// This returns `None` if the container header is the EOF container header, which signals the
-    /// end of the stream.
+    /// If successful, the container size is returned. If a container size of 0 is returned, the
+    /// stream reached EOF.
     ///
     /// # Examples
     ///
