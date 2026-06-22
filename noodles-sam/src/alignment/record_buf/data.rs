@@ -294,28 +294,6 @@ impl crate::alignment::record::Data for &Data {
     }
 }
 
-impl crate::alignment::record::Data for Data {
-    fn is_empty(&self) -> bool {
-        self.is_empty()
-    }
-
-    fn get(
-        &self,
-        tag: &Tag,
-    ) -> Option<io::Result<crate::alignment::record::data::field::Value<'_>>> {
-        self.get(tag).map(|value| Ok(value.into()))
-    }
-
-    fn iter(
-        &self,
-    ) -> Box<
-        dyn Iterator<Item = io::Result<(Tag, crate::alignment::record::data::field::Value<'_>)>>
-            + '_,
-    > {
-        Box::new(self.iter().map(|(tag, value)| Ok((tag, value.into()))))
-    }
-}
-
 impl Extend<(Tag, Value)> for Data {
     fn extend<T: IntoIterator<Item = (Tag, Value)>>(&mut self, iter: T) {
         for (tag, value) in iter {

@@ -8,7 +8,7 @@ mod mate_flags;
 mod quality_scores;
 mod sequence;
 
-use std::{borrow::Cow, io};
+use std::{borrow::Cow, io, iter, marker::PhantomData};
 
 use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
@@ -186,7 +186,7 @@ impl sam::alignment::Record for Record<'_> {
         if let Some(header) = self.header {
             Box::new(Data::new(header, &self.data, self.read_group_id))
         } else {
-            Box::new(sam::alignment::record_buf::Data::default())
+            Box::new(EmptyData::new())
         }
     }
 
@@ -232,6 +232,35 @@ impl sam::alignment::record::QualityScores for Scores<'_> {
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u8>> + '_> {
         Box::new(self.0.iter().copied().map(Ok))
+    }
+}
+
+struct EmptyData<'c>(PhantomData<&'c ()>);
+
+impl EmptyData<'_> {
+    fn new() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl sam::alignment::record::Data for EmptyData<'_> {
+    fn is_empty(&self) -> bool {
+        true
+    }
+
+    fn get(
+        &self,
+        _tag: &Tag,
+    ) -> Option<io::Result<sam::alignment::record::data::field::Value<'_>>> {
+        None
+    }
+
+    fn iter(
+        &self,
+    ) -> Box<
+        dyn Iterator<Item = io::Result<(Tag, sam::alignment::record::data::field::Value<'_>)>> + '_,
+    > {
+        Box::new(iter::empty())
     }
 }
 

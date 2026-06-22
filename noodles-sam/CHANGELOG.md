@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+  * sam/alignment/record_buf/data: Remove `crate::alignment::record::Data`
+    implementation.
+
 ## 0.85.0 - 2026-05-06
 
 ### Added
