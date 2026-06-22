@@ -560,7 +560,7 @@ impl Record for RecordBuf {
         Box::new(self.quality_scores())
     }
 
-    fn data(&self) -> Box<dyn super::record::Data + '_> {
+    fn data(&self) -> Box<dyn super::record::Data<'_> + '_> {
         Box::new(self.data())
     }
 }

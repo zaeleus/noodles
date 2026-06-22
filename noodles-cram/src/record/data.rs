@@ -27,12 +27,12 @@ impl<'r, 'c: 'r> Data<'r, 'c> {
     }
 }
 
-impl<'r, 'c: 'r> sam::alignment::record::Data for Data<'r, 'c> {
+impl<'r, 'c: 'r> sam::alignment::record::Data<'r> for Data<'r, 'c> {
     fn is_empty(&self) -> bool {
         self.fields.is_empty()
     }
 
-    fn get(&self, tag: &Tag) -> Option<io::Result<sam::alignment::record::data::field::Value<'_>>> {
+    fn get(&self, tag: &Tag) -> Option<io::Result<sam::alignment::record::data::field::Value<'r>>> {
         if *tag == Tag::READ_GROUP {
             return self.read_group_id.map(|id| {
                 self.header
@@ -64,7 +64,7 @@ impl<'r, 'c: 'r> sam::alignment::record::Data for Data<'r, 'c> {
     fn iter(
         &self,
     ) -> Box<
-        dyn Iterator<Item = io::Result<(Tag, sam::alignment::record::data::field::Value<'_>)>> + '_,
+        dyn Iterator<Item = io::Result<(Tag, sam::alignment::record::data::field::Value<'r>)>> + 'r,
     > {
         Box::new(Iter::new(self.header, self.fields, self.read_group_id))
     }

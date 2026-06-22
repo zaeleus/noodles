@@ -182,7 +182,7 @@ impl sam::alignment::Record for Record<'_> {
         }
     }
 
-    fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
+    fn data(&self) -> Box<dyn sam::alignment::record::Data<'_> + '_> {
         if let Some(header) = self.header {
             Box::new(Data::new(header, &self.data, self.read_group_id))
         } else {
@@ -243,7 +243,7 @@ impl EmptyData<'_> {
     }
 }
 
-impl sam::alignment::record::Data for EmptyData<'_> {
+impl<'c> sam::alignment::record::Data<'c> for EmptyData<'c> {
     fn is_empty(&self) -> bool {
         true
     }
@@ -251,14 +251,14 @@ impl sam::alignment::record::Data for EmptyData<'_> {
     fn get(
         &self,
         _tag: &Tag,
-    ) -> Option<io::Result<sam::alignment::record::data::field::Value<'_>>> {
+    ) -> Option<io::Result<sam::alignment::record::data::field::Value<'c>>> {
         None
     }
 
     fn iter(
         &self,
     ) -> Box<
-        dyn Iterator<Item = io::Result<(Tag, sam::alignment::record::data::field::Value<'_>)>> + '_,
+        dyn Iterator<Item = io::Result<(Tag, sam::alignment::record::data::field::Value<'c>)>> + 'c,
     > {
         Box::new(iter::empty())
     }

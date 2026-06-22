@@ -5,10 +5,10 @@ use std::io::{self, Write};
 use self::field::write_field;
 use crate::alignment::record::Data;
 
-pub(super) fn write_data<W, D>(writer: &mut W, data: D) -> io::Result<()>
+pub(super) fn write_data<'r, W, D>(writer: &mut W, data: D) -> io::Result<()>
 where
     W: Write,
-    D: Data,
+    D: Data<'r>,
 {
     const DELIMITER: u8 = b'\t';
 

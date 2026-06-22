@@ -49,7 +49,7 @@ impl<'r> Data<'r> {
     }
 
     /// Returns an iterator over all tag-value pairs.
-    pub fn iter(&self) -> impl Iterator<Item = io::Result<(Tag, Value<'r>)>> + '_ {
+    pub fn iter(&self) -> impl Iterator<Item = io::Result<(Tag, Value<'r>)>> + 'r {
         let mut src = self.0;
 
         iter::from_fn(move || {
@@ -75,16 +75,16 @@ impl fmt::Debug for Data<'_> {
     }
 }
 
-impl sam::alignment::record::Data for Data<'_> {
+impl<'r> sam::alignment::record::Data<'r> for Data<'r> {
     fn is_empty(&self) -> bool {
         self.is_empty()
     }
 
-    fn get(&self, tag: &Tag) -> Option<io::Result<Value<'_>>> {
+    fn get(&self, tag: &Tag) -> Option<io::Result<Value<'r>>> {
         self.get(tag)
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Tag, Value<'r>)>> + 'r> {
         Box::new(self.iter())
     }
 }

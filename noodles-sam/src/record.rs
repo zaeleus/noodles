@@ -319,7 +319,7 @@ impl crate::alignment::Record for Record {
         Box::new(self.quality_scores())
     }
 
-    fn data(&self) -> Box<dyn crate::alignment::record::Data + '_> {
+    fn data(&self) -> Box<dyn crate::alignment::record::Data<'_> + '_> {
         Box::new(self.data())
     }
 }

@@ -7,27 +7,27 @@ use std::io;
 use self::field::{Tag, Value};
 
 /// Alignment record data.
-pub trait Data {
+pub trait Data<'r> {
     /// Returns whether there are any fields.
     fn is_empty(&self) -> bool;
 
     /// Returns the value for the given tag.
-    fn get(&self, tag: &Tag) -> Option<io::Result<Value<'_>>>;
+    fn get(&self, tag: &Tag) -> Option<io::Result<Value<'r>>>;
 
     /// Returns an iterator over fields.
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_>;
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Tag, Value<'r>)>> + 'r>;
 }
 
-impl Data for Box<dyn Data + '_> {
+impl<'r> Data<'r> for Box<dyn Data<'r> + 'r> {
     fn is_empty(&self) -> bool {
         (**self).is_empty()
     }
 
-    fn get(&self, tag: &Tag) -> Option<io::Result<Value<'_>>> {
+    fn get(&self, tag: &Tag) -> Option<io::Result<Value<'r>>> {
         (**self).get(tag)
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Tag, Value<'_>)>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<(Tag, Value<'r>)>> + 'r> {
         (**self).iter()
     }
 }

@@ -301,7 +301,7 @@ impl sam::alignment::Record for Record {
         sam::alignment::record::QualityScoresRef::Raw(src)
     }
 
-    fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
+    fn data(&self) -> Box<dyn sam::alignment::record::Data<'_> + '_> {
         Box::new(self.data())
     }
 

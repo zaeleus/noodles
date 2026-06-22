@@ -27,9 +27,9 @@ fn write_field_encoded_data(dst: &mut Vec<u8>, src: &[u8]) -> io::Result<()> {
     }
 }
 
-fn write_generic_data<D>(dst: &mut Vec<u8>, data: D) -> io::Result<()>
+fn write_generic_data<'r, D>(dst: &mut Vec<u8>, data: D) -> io::Result<()>
 where
-    D: Data,
+    D: Data<'r>,
 {
     for result in data.iter() {
         let (tag, value) = result?;

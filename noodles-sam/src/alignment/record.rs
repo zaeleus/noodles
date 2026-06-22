@@ -77,7 +77,7 @@ pub trait Record {
     fn quality_scores(&self) -> Box<dyn QualityScores + '_>;
 
     /// Returns the data.
-    fn data(&self) -> Box<dyn Data + '_>;
+    fn data(&self) -> Box<dyn Data<'_> + '_>;
 
     /// Returns the associated reference sequence.
     fn reference_sequence<'h>(
@@ -205,7 +205,7 @@ impl Record for Box<dyn Record> {
         (**self).quality_scores()
     }
 
-    fn data(&self) -> Box<dyn Data + '_> {
+    fn data(&self) -> Box<dyn Data<'_> + '_> {
         (**self).data()
     }
 }

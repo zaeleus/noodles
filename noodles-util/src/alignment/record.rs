@@ -112,7 +112,7 @@ impl sam::alignment::Record for Record {
         }
     }
 
-    fn data(&self) -> Box<dyn sam::alignment::record::Data + '_> {
+    fn data(&self) -> Box<dyn sam::alignment::record::Data<'_> + '_> {
         match self {
             Self::Sam(record) => sam::alignment::Record::data(record),
             Self::Bam(record) => sam::alignment::Record::data(record),

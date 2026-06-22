@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changed
+
+  * sam/alignment/record/data: Add lifetime to `Data` ([#400]).
+
+    This allows field values to be associated with the lifetime of the record.
+
+[#400]: https://github.com/zaeleus/noodles/issues/400
+
 ### Removed
 
   * sam/alignment/record_buf/data: Remove `crate::alignment::record::Data`

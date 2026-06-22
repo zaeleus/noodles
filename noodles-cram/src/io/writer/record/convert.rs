@@ -314,9 +314,9 @@ fn cigar_to_features(
 }
 
 #[allow(clippy::type_complexity)]
-fn get_filtered_data(
-    data: &dyn sam::alignment::record::Data,
-) -> io::Result<(Vec<(Tag, ValueBuf)>, Option<&BStr>)> {
+fn get_filtered_data<'r>(
+    data: &dyn sam::alignment::record::Data<'r>,
+) -> io::Result<(Vec<(Tag, ValueBuf)>, Option<&'r BStr>)> {
     let mut data_buf = Vec::new();
     let mut read_group_name = None;
 
