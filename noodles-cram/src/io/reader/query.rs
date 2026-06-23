@@ -86,7 +86,7 @@ where
         loop {
             match self.records.next() {
                 Some(r) => {
-                    if intersects(&r, self.interval) {
+                    if intersects(&r, self.reference_sequence_id, self.interval) {
                         *record = r;
                         return Ok(1);
                     }
@@ -129,7 +129,7 @@ where
     fn read_next_container(&mut self) -> Option<io::Result<()>> {
         let index_record = self.index.next()?;
 
-        if index_record.reference_sequence_id() != Some(self.reference_sequence_id) {
+        if !intersects_index_record(index_record, self.reference_sequence_id, self.interval) {
             return Some(Ok(()));
         }
 
@@ -194,12 +194,109 @@ where
     }
 }
 
-fn intersects(record: &sam::alignment::RecordBuf, region_interval: Interval) -> bool {
-    match (record.alignment_start(), record.alignment_end()) {
-        (Some(start), Some(end)) => {
+fn intersects(
+    record: &sam::alignment::RecordBuf,
+    reference_sequence_id: usize,
+    region_interval: Interval,
+) -> bool {
+    match (
+        record.reference_sequence_id(),
+        record.alignment_start(),
+        record.alignment_end(),
+    ) {
+        (Some(id), Some(start), Some(end)) if id == reference_sequence_id => {
             let alignment_interval = (start..=end).into();
             region_interval.intersects(alignment_interval)
         }
         _ => false,
+    }
+}
+
+fn intersects_index_record(
+    record: &crai::Record,
+    reference_sequence_id: usize,
+    region_interval: Interval,
+) -> bool {
+    if record.reference_sequence_id() != Some(reference_sequence_id) {
+        return false;
+    }
+
+    let Some(start) = record.alignment_start() else {
+        return false;
+    };
+
+    let Some(end) = start.checked_add(record.alignment_span().saturating_sub(1)) else {
+        return true;
+    };
+
+    region_interval.intersects((start..=end).into())
+}
+
+#[cfg(test)]
+mod tests {
+    use noodles_core::Position;
+    use noodles_sam::alignment::{
+        record::cigar::{Op, op::Kind},
+        record_buf::Cigar,
+    };
+
+    use super::*;
+
+    #[test]
+    fn test_intersects() {
+        let record = build_record(0, 8, 5);
+        let interval =
+            Interval::from(Position::try_from(10).unwrap()..=Position::try_from(13).unwrap());
+
+        assert!(intersects(&record, 0, interval));
+    }
+
+    #[test]
+    fn test_intersects_with_different_reference_sequence() {
+        let record = build_record(1, 8, 5);
+        let interval =
+            Interval::from(Position::try_from(10).unwrap()..=Position::try_from(13).unwrap());
+
+        assert!(!intersects(&record, 0, interval));
+    }
+
+    #[test]
+    fn test_intersects_index_record() {
+        let record = crai::Record::new(Some(0), Position::new(8), 5, 13, 21, 34);
+        let interval =
+            Interval::from(Position::try_from(10).unwrap()..=Position::try_from(13).unwrap());
+
+        assert!(intersects_index_record(&record, 0, interval));
+    }
+
+    #[test]
+    fn test_intersects_index_record_with_nonoverlapping_interval() {
+        let record = crai::Record::new(Some(0), Position::new(8), 5, 13, 21, 34);
+        let interval =
+            Interval::from(Position::try_from(13).unwrap()..=Position::try_from(21).unwrap());
+
+        assert!(!intersects_index_record(&record, 0, interval));
+    }
+
+    #[test]
+    fn test_intersects_index_record_with_different_reference_sequence() {
+        let record = crai::Record::new(Some(1), Position::new(8), 5, 13, 21, 34);
+        let interval = Interval::from(Position::MIN..=Position::MAX);
+
+        assert!(!intersects_index_record(&record, 0, interval));
+    }
+
+    fn build_record(
+        reference_sequence_id: usize,
+        alignment_start: usize,
+        alignment_span: usize,
+    ) -> sam::alignment::RecordBuf {
+        let cigar: Cigar = [Op::new(Kind::Match, alignment_span)].into_iter().collect();
+
+        sam::alignment::RecordBuf::builder()
+            .set_reference_sequence_id(reference_sequence_id)
+            .set_alignment_start(Position::try_from(alignment_start).unwrap())
+            .set_cigar(cigar)
+            .build()
     }
 }
