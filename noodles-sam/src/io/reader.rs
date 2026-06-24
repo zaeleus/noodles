@@ -372,6 +372,8 @@ where
 
     /// Returns an iterator of unmapped records after querying for the unmapped region.
     ///
+    /// # Examples
+    ///
     /// ```no_run
     /// # use std::{fs::File, io};
     /// use noodles_bgzf as bgzf;
