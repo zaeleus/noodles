@@ -9,6 +9,8 @@ pub trait QualityScores {
     fn len(&self) -> usize;
 
     /// Returns an iterator over scores.
+    ///
+    /// Yields normalized phred values; implementations strip any encoding offset.
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<u8>> + '_>;
 }
 
