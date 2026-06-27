@@ -52,7 +52,7 @@ impl Builder {
     ///
     /// let reference_sequences = [(
     ///     BString::from("sq0"),
-    ///     Map::<ReferenceSequence>::new(NonZero::try_from(13)?),
+    ///     Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
     /// )]
     /// .into_iter()
     /// .collect();
@@ -64,7 +64,6 @@ impl Builder {
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
     /// assert!(reference_sequences.contains_key(&b"sq0"[..]));
-    /// # Ok::<(), std::num::TryFromIntError>(())
     /// ```
     pub fn set_reference_sequences(mut self, reference_sequences: ReferenceSequences) -> Self {
         self.reference_sequences = reference_sequences;
@@ -86,14 +85,13 @@ impl Builder {
     /// let header = sam::Header::builder()
     ///     .add_reference_sequence(
     ///         "sq0",
-    ///         Map::<ReferenceSequence>::new(NonZero::try_from(13)?),
+    ///         Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
     ///     )
     ///     .build();
     ///
     /// let reference_sequences = header.reference_sequences();
     /// assert_eq!(reference_sequences.len(), 1);
     /// assert!(reference_sequences.contains_key(&b"sq0"[..]));
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn add_reference_sequence<N>(
         mut self,
@@ -199,6 +197,8 @@ impl Builder {
 
 #[cfg(test)]
 mod tests {
+    use std::num::NonZero;
+
     use super::*;
 
     #[test]
@@ -213,13 +213,20 @@ mod tests {
     }
 
     #[test]
-    fn test_build() -> Result<(), Box<dyn std::error::Error>> {
-        use std::num::NonZero;
-
+    fn test_build() {
         let header = Builder::default()
-            .add_reference_sequence("sq0", Map::<ReferenceSequence>::new(NonZero::try_from(8)?))
-            .add_reference_sequence("sq1", Map::<ReferenceSequence>::new(NonZero::try_from(13)?))
-            .add_reference_sequence("sq2", Map::<ReferenceSequence>::new(NonZero::try_from(21)?))
+            .add_reference_sequence(
+                "sq0",
+                Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
+            )
+            .add_reference_sequence(
+                "sq1",
+                Map::<ReferenceSequence>::new(const { NonZero::new(13).unwrap() }),
+            )
+            .add_reference_sequence(
+                "sq2",
+                Map::<ReferenceSequence>::new(const { NonZero::new(21).unwrap() }),
+            )
             .add_read_group("rg0", Map::<ReadGroup>::default())
             .add_read_group("rg1", Map::<ReadGroup>::default())
             .add_program("pg0", Map::<Program>::default())
@@ -239,7 +246,5 @@ mod tests {
         let comments = header.comments();
         assert_eq!(comments.len(), 1);
         assert_eq!(&comments[0], &b"written by noodles-sam"[..]);
-
-        Ok(())
     }
 }
