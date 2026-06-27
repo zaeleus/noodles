@@ -3,11 +3,9 @@ use std::io;
 use noodles_sam::alignment::record::data::field::Type;
 
 pub(crate) fn decode_type(src: &mut &[u8]) -> io::Result<Type> {
-    let Some((n, rest)) = src.split_first() else {
-        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
-    };
-
-    *src = rest;
+    let n = src
+        .split_off_first()
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     match n {
         b'A' => Ok(Type::Character),
