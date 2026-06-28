@@ -165,7 +165,7 @@ mod tests {
         assert_eq!(parse_score(b"0.0").transpose()?, Some(0.0));
 
         assert!(matches!(
-            parse_phase(b""),
+            parse_score(b""),
             Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
         ));
 
