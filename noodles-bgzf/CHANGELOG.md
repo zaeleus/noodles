@@ -9,6 +9,14 @@
     `MultithreadedReader` and `MultithreadedWriter` now use rayon's default
     global thread pool for tasks.
 
+### Fixed
+
+  * bgzf/io/reader/frame: Validate `ISIZE` ([#401]).
+
+    Frames with an uncompressed data size > 2^16 are now rejected.
+
+[#401]: https://github.com/zaeleus/noodles/issues/401
+
 ## 0.47.0 - 2026-05-06
 
 ### Changed

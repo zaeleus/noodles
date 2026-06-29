@@ -1,6 +1,6 @@
 use std::io::{self, Read};
 
-use crate::{BGZF_HEADER_SIZE, gz, io::Block};
+use crate::{BGZF_HEADER_SIZE, BGZF_MAX_ISIZE, gz, io::Block};
 
 const MIN_FRAME_SIZE: usize = BGZF_HEADER_SIZE + gz::TRAILER_SIZE;
 
@@ -90,7 +90,14 @@ fn parse_trailer(src: &TrailerBuf) -> io::Result<(u32, usize)> {
     let isize = usize::try_from(u32::from_le_bytes(src[4..].try_into().unwrap()))
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-    Ok((crc32, isize))
+    if isize <= BGZF_MAX_ISIZE {
+        Ok((crc32, isize))
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid BGZF ISIZE",
+        ))
+    }
 }
 
 pub(crate) fn parse_block(src: &[u8], block: &mut Block) -> io::Result<()> {
@@ -184,10 +191,18 @@ mod tests {
     #[test]
     fn test_parse_trailer() -> io::Result<()> {
         let (_, src) = BGZF_EOF.split_last_chunk().unwrap();
-
         let (crc32, isize) = parse_trailer(src)?;
         assert_eq!(crc32, 0);
         assert_eq!(isize, 0);
+
+        let src = [
+            0x00, 0x00, 0x00, 0x00, // CRC32
+            0x01, 0x00, 0x01, 0x00, // ISIZE = 65537
+        ];
+        assert!(matches!(
+            parse_trailer(&src),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
