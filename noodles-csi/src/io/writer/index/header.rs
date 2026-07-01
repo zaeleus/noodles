@@ -3,7 +3,10 @@ mod reference_sequence_names;
 use std::io::{self, Write};
 
 use self::reference_sequence_names::write_reference_sequence_names;
-use crate::{binning_index::index::Header, io::writer::num::write_i32_le};
+use crate::{
+    binning_index::index::{Header, header::Format},
+    io::writer::num::write_i32_le,
+};
 
 pub(super) fn write_aux<W>(writer: &mut W, header: Option<&Header>) -> io::Result<()>
 where
@@ -47,7 +50,12 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_i32_le(writer, col_beg)?;
 
-    write_end_position_index(writer, header.end_position_index())?;
+    write_end_position_index(
+        writer,
+        header.format(),
+        header.start_position_index(),
+        header.end_position_index(),
+    )?;
 
     let meta = i32::from(header.line_comment_prefix());
     write_i32_le(writer, meta)?;
@@ -61,16 +69,34 @@ where
     Ok(())
 }
 
-fn write_end_position_index<W>(writer: &mut W, i: Option<usize>) -> io::Result<()>
+fn write_end_position_index<W>(
+    writer: &mut W,
+    format: Format,
+    start_position_index: usize,
+    end_position_index: Option<usize>,
+) -> io::Result<()>
 where
     W: Write,
 {
-    let n = i.map_or(Ok(0), |mut j| {
-        j = j.checked_add(1).expect("attempt to add with overflow");
-        i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-    })?;
+    const SPECIALIZED_END_VALUE: i32 = 0;
 
-    write_i32_le(writer, n)
+    if matches!(format, Format::Sam | Format::Vcf) {
+        if end_position_index.is_some() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid end position index for format",
+            ));
+        } else {
+            write_i32_le(writer, SPECIALIZED_END_VALUE)?;
+        }
+    } else {
+        let i = end_position_index.unwrap_or(start_position_index);
+        let j = i.checked_add(1).expect("attempt to add with overflow");
+        let n = i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        write_i32_le(writer, n)?;
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -78,6 +104,7 @@ mod tests {
     use bstr::BString;
 
     use super::*;
+    use crate::binning_index::index::header::format::CoordinateSystem;
 
     #[test]
     fn test_write_aux() -> io::Result<()> {
@@ -116,15 +143,43 @@ mod tests {
 
     #[test]
     fn test_write_end_position_index() -> io::Result<()> {
+        fn t(
+            buf: &mut Vec<u8>,
+            format: Format,
+            start_position_index: usize,
+            end_position_index: Option<usize>,
+            expected: i32,
+        ) -> io::Result<()> {
+            buf.clear();
+            write_end_position_index(buf, format, start_position_index, end_position_index)?;
+            assert_eq!(buf, &expected.to_le_bytes());
+            Ok(())
+        }
+
         let mut buf = Vec::new();
 
-        buf.clear();
-        write_end_position_index(&mut buf, None)?;
-        assert_eq!(buf, 0i32.to_le_bytes());
+        t(&mut buf, Format::Sam, 5, None, 0)?;
+        t(&mut buf, Format::Vcf, 5, None, 0)?;
+        t(&mut buf, Format::Generic(CoordinateSystem::Gff), 5, None, 6)?;
+        t(
+            &mut buf,
+            Format::Generic(CoordinateSystem::Gff),
+            5,
+            Some(8),
+            9,
+        )?;
 
         buf.clear();
-        write_end_position_index(&mut buf, Some(0))?;
-        assert_eq!(buf, 1i32.to_le_bytes());
+        assert!(matches!(
+            write_end_position_index(&mut buf, Format::Sam, 5, Some(8)),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        buf.clear();
+        assert!(matches!(
+            write_end_position_index(&mut buf, Format::Vcf, 5, Some(8)),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
