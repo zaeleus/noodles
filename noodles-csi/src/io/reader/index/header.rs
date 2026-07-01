@@ -108,7 +108,7 @@ where
 
     let col_seq = read_reference_sequence_name_index(reader)?;
     let col_beg = read_start_position_index(reader)?;
-    let col_end = read_end_position_index(reader)?;
+    let col_end = read_end_position_index(reader, col_beg)?;
 
     let meta = read_i32_le(reader)
         .and_then(|b| u8::try_from(b).map_err(ReadError::InvalidLineCommentPrefix))?;
@@ -165,20 +165,30 @@ where
     })
 }
 
-fn read_end_position_index<R>(reader: &mut R) -> Result<Option<usize>, ReadError>
+fn read_end_position_index<R>(
+    reader: &mut R,
+    start_position_index: usize,
+) -> Result<Option<usize>, ReadError>
 where
     R: Read,
 {
-    read_i32_le(reader).and_then(|i| match i {
+    match read_i32_le(reader)? {
         0 => Ok(None),
-        _ => usize::try_from(i)
-            .map(|n| {
-                // SAFETY: `n` is > 0.
-                n - 1
-            })
-            .map(Some)
-            .map_err(ReadError::InvalidEndPositionIndex),
-    })
+        n => {
+            let i = usize::try_from(n)
+                .map(|m| {
+                    // SAFETY: `m` is > 0.
+                    m - 1
+                })
+                .map_err(ReadError::InvalidEndPositionIndex)?;
+
+            if i == start_position_index {
+                Ok(None)
+            } else {
+                Ok(Some(i))
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -255,18 +265,18 @@ mod tests {
 
     #[test]
     fn test_read_end_position_index() -> Result<(), ReadError> {
-        let data = [0x00, 0x00, 0x00, 0x00]; // col_end = 0
-        let mut reader = &data[..];
-        assert!(read_end_position_index(&mut reader)?.is_none());
+        let src = [0x00, 0x00, 0x00, 0x00]; // col_end = 0
+        assert!(read_end_position_index(&mut &src[..], 5)?.is_none());
 
-        let data = [0x05, 0x00, 0x00, 0x00]; // col_end = 5
-        let mut reader = &data[..];
-        assert_eq!(read_end_position_index(&mut reader)?, Some(4));
+        let src = [0x06, 0x00, 0x00, 0x00]; // col_end = 6
+        assert!(read_end_position_index(&mut &src[..], 5)?.is_none());
 
-        let data = [0xff, 0xff, 0xff, 0xff]; // col_end = -1
-        let mut reader = &data[..];
+        let src = [0x09, 0x00, 0x00, 0x00]; // col_end = 9
+        assert_eq!(read_end_position_index(&mut &src[..], 5)?, Some(8));
+
+        let src = [0xff, 0xff, 0xff, 0xff]; // col_end = -1
         assert!(matches!(
-            read_end_position_index(&mut reader),
+            read_end_position_index(&mut &src[..], 5),
             Err(ReadError::InvalidEndPositionIndex(_))
         ));
 

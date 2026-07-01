@@ -4,6 +4,13 @@
 
 ### Changed
 
+  * csi/io/reader/index/header: Resolve end position index as missing when it
+    matches the start position index.
+
+    This changes the start and end position indices from `(i, Some(j))` to `(i,
+    None)` when `i == j`. An end position index of 0 continues to resolve to
+    `None`.
+
   * csi/io/writer/index/header: Write missing end position index value based on
     format.
 
