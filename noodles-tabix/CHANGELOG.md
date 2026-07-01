@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * tabix/io/writer/index/header: Write missing end position index value based
+    on format.
+
+    If the end position index is missing, a specialized value is written for
+    SAM and VCF; otherwise, the end position index is set to the start position
+    index.
+
 ## 0.62.0 - 2026-05-06
 
 ### Changed

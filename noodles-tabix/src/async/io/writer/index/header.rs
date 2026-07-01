@@ -1,6 +1,6 @@
 mod reference_sequence_names;
 
-use noodles_csi::binning_index::index::Header;
+use noodles_csi::binning_index::index::{Header, header::Format};
 use tokio::io::{self, AsyncWrite, AsyncWriteExt};
 
 use self::reference_sequence_names::write_reference_sequence_names;
@@ -28,7 +28,13 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32_le(col_beg).await?;
 
-    write_end_position_index(writer, header.end_position_index()).await?;
+    write_end_position_index(
+        writer,
+        header.format(),
+        header.start_position_index(),
+        header.end_position_index(),
+    )
+    .await?;
 
     let meta = i32::from(header.line_comment_prefix());
     writer.write_i32_le(meta).await?;
@@ -42,20 +48,40 @@ where
     Ok(())
 }
 
-async fn write_end_position_index<W>(writer: &mut W, i: Option<usize>) -> io::Result<()>
+async fn write_end_position_index<W>(
+    writer: &mut W,
+    format: Format,
+    start_position_index: usize,
+    end_position_index: Option<usize>,
+) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
-    let n = i.map_or(Ok(0), |mut j| {
-        j = j.checked_add(1).expect("attempt to add with overflow");
-        i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-    })?;
+    const SPECIALIZED_END_VALUE: i32 = 0;
 
-    writer.write_i32_le(n).await
+    if matches!(format, Format::Sam | Format::Vcf) {
+        if end_position_index.is_some() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid end position index for format",
+            ));
+        } else {
+            writer.write_i32_le(SPECIALIZED_END_VALUE).await?;
+        }
+    } else {
+        let i = end_position_index.unwrap_or(start_position_index);
+        let j = i.checked_add(1).expect("attempt to add with overflow");
+        let n = i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        writer.write_i32_le(n).await?;
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
+    use noodles_csi::binning_index::index::header::format::CoordinateSystem;
+
     use super::*;
 
     #[tokio::test]
@@ -84,15 +110,44 @@ mod tests {
 
     #[tokio::test]
     async fn test_write_end_position_index() -> io::Result<()> {
+        async fn t(
+            buf: &mut Vec<u8>,
+            format: Format,
+            start_position_index: usize,
+            end_position_index: Option<usize>,
+            expected: i32,
+        ) -> io::Result<()> {
+            buf.clear();
+            write_end_position_index(buf, format, start_position_index, end_position_index).await?;
+            assert_eq!(buf, &expected.to_le_bytes());
+            Ok(())
+        }
+
         let mut buf = Vec::new();
 
-        buf.clear();
-        write_end_position_index(&mut buf, None).await?;
-        assert_eq!(buf, 0i32.to_le_bytes());
+        t(&mut buf, Format::Sam, 5, None, 0).await?;
+        t(&mut buf, Format::Vcf, 5, None, 0).await?;
+        t(&mut buf, Format::Generic(CoordinateSystem::Gff), 5, None, 6).await?;
+        t(
+            &mut buf,
+            Format::Generic(CoordinateSystem::Gff),
+            5,
+            Some(8),
+            9,
+        )
+        .await?;
 
         buf.clear();
-        write_end_position_index(&mut buf, Some(0)).await?;
-        assert_eq!(buf, 1i32.to_le_bytes());
+        assert!(matches!(
+            write_end_position_index(&mut buf, Format::Sam, 5, Some(8)).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        buf.clear();
+        assert!(matches!(
+            write_end_position_index(&mut buf, Format::Vcf, 5, Some(8)).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
