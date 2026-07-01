@@ -11,6 +11,9 @@
     None)` when `i == j`. An end position index of 0 continues to resolve to
     `None`.
 
+  * csi/io/reader/index/header: Validate end position index value based on
+    format.
+
   * csi/io/writer/index/header: Write missing end position index value based on
     format.
 
