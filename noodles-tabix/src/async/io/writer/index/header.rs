@@ -28,11 +28,7 @@ where
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     writer.write_i32_le(col_beg).await?;
 
-    let col_end = header.end_position_index().map_or(Ok(0), |mut i| {
-        i = i.checked_add(1).expect("attempt to add with overflow");
-        i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-    })?;
-    writer.write_i32_le(col_end).await?;
+    write_end_position_index(writer, header.end_position_index()).await?;
 
     let meta = i32::from(header.line_comment_prefix());
     writer.write_i32_le(meta).await?;
@@ -44,6 +40,18 @@ where
     write_reference_sequence_names(writer, header.reference_sequence_names()).await?;
 
     Ok(())
+}
+
+async fn write_end_position_index<W>(writer: &mut W, i: Option<usize>) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let n = i.map_or(Ok(0), |mut j| {
+        j = j.checked_add(1).expect("attempt to add with overflow");
+        i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })?;
+
+    writer.write_i32_le(n).await
 }
 
 #[cfg(test)]
@@ -70,6 +78,21 @@ mod tests {
         ];
 
         assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_write_end_position_index() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        write_end_position_index(&mut buf, None).await?;
+        assert_eq!(buf, 0i32.to_le_bytes());
+
+        buf.clear();
+        write_end_position_index(&mut buf, Some(0)).await?;
+        assert_eq!(buf, 1i32.to_le_bytes());
 
         Ok(())
     }
