@@ -60,7 +60,7 @@ impl Builder {
     {
         use super::{State, spawn_writer};
 
-        let worker_count = self.worker_count.get();
+        let worker_count = rayon::current_num_threads();
 
         let (write_tx, write_rx) = crossbeam_channel::bounded(worker_count);
 
