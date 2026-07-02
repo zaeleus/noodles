@@ -114,7 +114,11 @@ where
     /// let reader = bgzf::io::MultithreadedReader::new(io::empty());
     /// ```
     pub fn new(inner: R) -> Self {
-        Self::with_worker_count(NonZero::<usize>::MIN, inner)
+        Self {
+            state: State::Paused(inner),
+            position: 0,
+            buffer: Buffer::default(),
+        }
     }
 
     /// Creates a multithreaded BGZF reader with a worker count.
@@ -130,12 +134,12 @@ where
     ///     io::empty(),
     /// );
     /// ```
+    #[deprecated(
+        since = "0.48.0",
+        note = "Use `rayon::ThreadPoolBuilder` to configure the thread pool."
+    )]
     pub fn with_worker_count(_worker_count: NonZero<usize>, inner: R) -> Self {
-        Self {
-            state: State::Paused(inner),
-            position: 0,
-            buffer: Buffer::default(),
-        }
+        Self::new(inner)
     }
 
     /// Returns a mutable reference to the underlying reader.
