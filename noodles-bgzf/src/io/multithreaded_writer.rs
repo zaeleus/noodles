@@ -75,10 +75,12 @@ where
     ///     io::sink(),
     /// );
     /// ```
-    pub fn with_worker_count(worker_count: NonZero<usize>, inner: W) -> Self {
-        Builder::default()
-            .set_worker_count(worker_count)
-            .build_from_writer(inner)
+    #[deprecated(
+        since = "0.48.0",
+        note = "Use `rayon::ThreadPoolBuilder` to configure the thread pool."
+    )]
+    pub fn with_worker_count(_worker_count: NonZero<usize>, inner: W) -> Self {
+        Self::new(inner)
     }
 
     /// Finishes the output stream by flushing any remaining buffers.

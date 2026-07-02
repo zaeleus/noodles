@@ -11,7 +11,8 @@
 
 ### Deprecated
 
-  * bgzf/io/multithreaded_reader: Deprecate `MultithreadedReader::with_worker_count`.
+  * bgzf/io: Deprecate `MultithreadedReader::with_worker_count` and
+    `MultithreadedWriter::with_worker_count`.
 
     Use `rayon::ThreadPoolBuilder` to configure the thread pool.
 

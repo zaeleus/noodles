@@ -38,6 +38,10 @@ impl Builder {
     /// let builder = bgzf::io::multithreaded_writer::Builder::default()
     ///     .set_worker_count(NonZero::<usize>::MIN);
     /// ```
+    #[deprecated(
+        since = "0.48.0",
+        note = "Use `rayon::ThreadPoolBuilder` to configure the thread pool."
+    )]
     pub fn set_worker_count(mut self, worker_count: NonZero<usize>) -> Self {
         self.worker_count = worker_count;
         self
