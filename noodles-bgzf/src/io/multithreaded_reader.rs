@@ -38,7 +38,6 @@ struct Buffer {
 /// the inner reader on its own thread to read raw frames asynchronously.
 pub struct MultithreadedReader<R> {
     state: State<R>,
-    worker_count: NonZero<usize>,
     position: u64,
     buffer: Buffer,
 }
@@ -131,10 +130,9 @@ where
     ///     io::empty(),
     /// );
     /// ```
-    pub fn with_worker_count(worker_count: NonZero<usize>, inner: R) -> Self {
+    pub fn with_worker_count(_worker_count: NonZero<usize>, inner: R) -> Self {
         Self {
             state: State::Paused(inner),
-            worker_count,
             position: 0,
             buffer: Buffer::default(),
         }
@@ -170,7 +168,7 @@ where
             panic!("invalid state");
         };
 
-        let worker_count = self.worker_count.get();
+        let worker_count = rayon::current_num_threads();
 
         let (read_tx, read_rx) = crossbeam_channel::bounded(worker_count);
         let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(worker_count);
