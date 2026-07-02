@@ -23,12 +23,8 @@ pub enum ReadError {
     InvalidFormat(format::TryFromIntError),
     /// The header reference sequence index is invalid.
     InvalidReferenceSequenceNameIndex(num::TryFromIntError),
-    /// The header reference sequence index value is invalid.
-    InvalidReferenceSequenceNameIndexValue,
     /// The header start position index is invalid.
     InvalidStartPositionIndex(num::TryFromIntError),
-    /// The header start position index value is invalid.
-    InvalidStartPositionIndexValue,
     /// The header end position index is invalid.
     InvalidEndPositionIndex(num::TryFromIntError),
     /// The header end position index value is invalid.
@@ -67,11 +63,7 @@ impl fmt::Display for ReadError {
             Self::InvalidReferenceSequenceNameIndex(_) => {
                 write!(f, "invalid reference sequence name index")
             }
-            Self::InvalidReferenceSequenceNameIndexValue => {
-                write!(f, "invalid reference sequence name index value")
-            }
             Self::InvalidStartPositionIndex(_) => write!(f, "invalid start position index"),
-            Self::InvalidStartPositionIndexValue => write!(f, "invalid start position index value"),
             Self::InvalidEndPositionIndex(_) => write!(f, "invalid end position index"),
             Self::InvalidEndPositionIndexValue => write!(f, "invalid end position index value"),
             Self::InvalidLineCommentPrefix(_) => write!(f, "invalid line comment prefix"),
@@ -147,11 +139,9 @@ where
 {
     read_i32_le(reader).and_then(|i| {
         usize::try_from(i)
+            .and_then(NonZero::try_from)
+            .map(|n| n.get() - 1)
             .map_err(ReadError::InvalidReferenceSequenceNameIndex)
-            .and_then(|n| {
-                n.checked_sub(1)
-                    .ok_or(ReadError::InvalidReferenceSequenceNameIndexValue)
-            })
     })
 }
 
@@ -161,11 +151,9 @@ where
 {
     read_i32_le(reader).and_then(|i| {
         usize::try_from(i)
+            .and_then(NonZero::try_from)
+            .map(|n| n.get() - 1)
             .map_err(ReadError::InvalidStartPositionIndex)
-            .and_then(|n| {
-                n.checked_sub(1)
-                    .ok_or(ReadError::InvalidStartPositionIndexValue)
-            })
     })
 }
 
@@ -244,14 +232,18 @@ mod tests {
 
     #[test]
     fn test_read_reference_sequence_name_index() -> Result<(), ReadError> {
-        let data = [0x01, 0x00, 0x00, 0x00]; // col_seq = 1
-        let mut reader = &data[..];
-        assert_eq!(read_reference_sequence_name_index(&mut reader)?, 0);
+        let src = [0x01, 0x00, 0x00, 0x00];
+        assert_eq!(read_reference_sequence_name_index(&mut &src[..])?, 0);
 
-        let data = [0xff, 0xff, 0xff, 0xff]; // col_seq = -1
-        let mut reader = &data[..];
+        let src = [0xff, 0xff, 0xff, 0xff];
         assert!(matches!(
-            read_reference_sequence_name_index(&mut reader),
+            read_reference_sequence_name_index(&mut &src[..]),
+            Err(ReadError::InvalidReferenceSequenceNameIndex(_))
+        ));
+
+        let src = [0x00, 0x00, 0x00, 0x00];
+        assert!(matches!(
+            read_reference_sequence_name_index(&mut &src[..]),
             Err(ReadError::InvalidReferenceSequenceNameIndex(_))
         ));
 
@@ -260,14 +252,18 @@ mod tests {
 
     #[test]
     fn test_read_start_position_index() -> Result<(), ReadError> {
-        let data = [0x04, 0x00, 0x00, 0x00]; // col_beg = 4
-        let mut reader = &data[..];
-        assert_eq!(read_start_position_index(&mut reader)?, 3);
+        let src = [0x06, 0x00, 0x00, 0x00];
+        assert_eq!(read_start_position_index(&mut &src[..])?, 5);
 
-        let data = [0xff, 0xff, 0xff, 0xff]; // col_beg = -1
-        let mut reader = &data[..];
+        let src = [0xff, 0xff, 0xff, 0xff];
         assert!(matches!(
-            read_start_position_index(&mut reader),
+            read_start_position_index(&mut &src[..]),
+            Err(ReadError::InvalidStartPositionIndex(_))
+        ));
+
+        let src = [0x00, 0x00, 0x00, 0x00];
+        assert!(matches!(
+            read_start_position_index(&mut &src[..]),
             Err(ReadError::InvalidStartPositionIndex(_))
         ));
 
