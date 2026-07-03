@@ -171,6 +171,49 @@ mod tests {
     }
 
     #[test]
+    fn test_write_format() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, format: Format, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_format(buf, format)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(
+            &mut buf,
+            Format::Generic(CoordinateSystem::Gff),
+            &[0x00, 0x00, 0x00, 0x00],
+        )?;
+        t(
+            &mut buf,
+            Format::Generic(CoordinateSystem::Bed),
+            &[0x00, 0x00, 0x01, 0x00],
+        )?;
+        t(&mut buf, Format::Sam, &[0x01, 0x00, 0x00, 0x00])?;
+        t(&mut buf, Format::Vcf, &[0x02, 0x00, 0x00, 0x00])?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_reference_sequence_name_index() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_reference_sequence_name_index(&mut buf, 0)?;
+        assert_eq!(buf, 1i32.to_le_bytes());
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_start_position_index() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_start_position_index(&mut buf, 0)?;
+        assert_eq!(buf, 1i32.to_le_bytes());
+        Ok(())
+    }
+
+    #[test]
     fn test_write_end_position_index() -> io::Result<()> {
         fn t(
             buf: &mut Vec<u8>,
@@ -207,6 +250,31 @@ mod tests {
         buf.clear();
         assert!(matches!(
             write_end_position_index(&mut buf, Format::Vcf, 5, Some(8)),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_line_comment_prefix() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_line_comment_prefix(&mut buf, b'#')?;
+        assert_eq!(buf, i32::from(b'#').to_le_bytes());
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_line_skip_count() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        write_line_skip_count(&mut buf, 8)?;
+        assert_eq!(buf, 8i32.to_le_bytes());
+
+        buf.clear();
+        assert!(matches!(
+            write_line_skip_count(&mut buf, u32::MAX),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
