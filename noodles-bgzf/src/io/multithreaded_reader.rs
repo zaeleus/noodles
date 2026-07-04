@@ -174,10 +174,16 @@ where
 
         let worker_count = rayon::current_num_threads();
 
-        let (read_tx, read_rx) = crossbeam_channel::bounded(worker_count);
-        let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(worker_count);
+        // Sizing the channels and buffer pool to `worker_count` alone can stall the
+        // pipeline when the pool is small: a single worker leaves one buffer in flight,
+        // so the reader can't run ahead of the consumer. Keep a small floor.
+        const MIN_BUFFERS: usize = 8;
+        let capacity = worker_count.max(MIN_BUFFERS);
 
-        for _ in 0..worker_count {
+        let (read_tx, read_rx) = crossbeam_channel::bounded(capacity);
+        let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(capacity);
+
+        for _ in 0..capacity {
             recycle_tx.send(Buffer::default()).unwrap();
         }
 
