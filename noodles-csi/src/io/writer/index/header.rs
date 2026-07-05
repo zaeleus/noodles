@@ -27,7 +27,8 @@ where
     Ok(())
 }
 
-pub(crate) fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>
+#[doc(hidden)]
+pub fn write_header<W>(writer: &mut W, header: &Header) -> io::Result<()>
 where
     W: Write,
 {

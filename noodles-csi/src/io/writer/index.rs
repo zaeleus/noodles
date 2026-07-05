@@ -3,6 +3,7 @@ mod reference_sequences;
 
 use std::io::{self, Write};
 
+pub use self::header::write_header;
 use self::{header::write_aux, reference_sequences::write_reference_sequences};
 use super::num::{write_i32_le, write_u64_le};
 use crate::{BinningIndex, Index, io::MAGIC_NUMBER};

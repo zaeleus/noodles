@@ -6,7 +6,7 @@ mod indexed_record;
 pub mod indexed_records;
 mod query;
 pub mod reader;
-pub(crate) mod writer;
+pub mod writer;
 
 pub use self::{
     filter_by_region::FilterByRegion, indexed_reader::IndexedReader, indexed_record::IndexedRecord,

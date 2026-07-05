@@ -1,4 +1,6 @@
-pub(crate) mod index;
+#![doc(hidden)]
+
+pub mod index;
 mod num;
 
 use std::io::{self, Write};

@@ -1,4 +1,3 @@
-mod header;
 mod magic_number;
 mod reference_sequences;
 
@@ -6,10 +5,7 @@ use std::io::{self, Write};
 
 use noodles_csi::BinningIndex;
 
-use self::{
-    header::write_header, magic_number::write_magic_number,
-    reference_sequences::write_reference_sequences,
-};
+use self::{magic_number::write_magic_number, reference_sequences::write_reference_sequences};
 use super::num::{write_i32_le, write_u64_le};
 use crate::Index;
 
@@ -17,6 +13,8 @@ pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
     W: Write,
 {
+    use noodles_csi::io::writer::index::write_header;
+
     write_magic_number(writer)?;
 
     let reference_sequence_count = i32::try_from(index.reference_sequences().len())
