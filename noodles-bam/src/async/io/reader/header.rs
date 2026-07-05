@@ -49,7 +49,7 @@ where
 
     /// Returns a SAM header reader.
     ///
-    /// The caller is responsible of discarding any extra padding in the header text, e.g., using
+    /// The caller is responsible for discarding any extra padding in the header text, e.g., using
     /// [`sam_header::Reader::discard_to_end`].
     ///
     /// The position of the stream is expected to be directly after the magic number.
