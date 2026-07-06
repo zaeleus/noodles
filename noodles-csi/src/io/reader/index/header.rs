@@ -106,9 +106,7 @@ where
     let col_beg = read_start_position_index(reader)?;
     let col_end = read_end_position_index(reader, format, col_beg)?;
     let meta = read_line_comment_prefix(reader)?;
-
-    let skip = read_i32_le(reader)
-        .and_then(|n| u32::try_from(n).map_err(ReadError::InvalidLineSkipCount))?;
+    let skip = read_line_skip_count(reader)?;
 
     let names =
         read_reference_sequence_names(reader).map_err(ReadError::InvalidReferenceSequenceNames)?;
@@ -192,6 +190,13 @@ where
     R: Read,
 {
     read_i32_le(reader).and_then(|b| u8::try_from(b).map_err(ReadError::InvalidLineCommentPrefix))
+}
+
+fn read_line_skip_count<R>(reader: &mut R) -> Result<u32, ReadError>
+where
+    R: Read,
+{
+    read_i32_le(reader).and_then(|n| u32::try_from(n).map_err(ReadError::InvalidLineSkipCount))
 }
 
 #[cfg(test)]
@@ -329,6 +334,20 @@ mod tests {
         assert!(matches!(
             read_line_comment_prefix(&mut &src[..]),
             Err(ReadError::InvalidLineCommentPrefix(_))
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_line_skip_count() -> Result<(), ReadError> {
+        let src = [0x00, 0x00, 0x00, 0x00];
+        assert_eq!(read_line_skip_count(&mut &src[..])?, 0);
+
+        let src = [0xff, 0xff, 0xff, 0xff];
+        assert!(matches!(
+            read_line_skip_count(&mut &src[..]),
+            Err(ReadError::InvalidLineSkipCount(_))
         ));
 
         Ok(())
