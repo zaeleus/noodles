@@ -105,9 +105,7 @@ where
     let col_seq = read_reference_sequence_name_index(reader)?;
     let col_beg = read_start_position_index(reader)?;
     let col_end = read_end_position_index(reader, format, col_beg)?;
-
-    let meta = read_i32_le(reader)
-        .and_then(|b| u8::try_from(b).map_err(ReadError::InvalidLineCommentPrefix))?;
+    let meta = read_line_comment_prefix(reader)?;
 
     let skip = read_i32_le(reader)
         .and_then(|n| u32::try_from(n).map_err(ReadError::InvalidLineSkipCount))?;
@@ -187,6 +185,13 @@ where
             Ok(Some(i))
         }
     }
+}
+
+fn read_line_comment_prefix<R>(reader: &mut R) -> Result<u8, ReadError>
+where
+    R: Read,
+{
+    read_i32_le(reader).and_then(|b| u8::try_from(b).map_err(ReadError::InvalidLineCommentPrefix))
 }
 
 #[cfg(test)]
@@ -310,6 +315,20 @@ mod tests {
         assert!(matches!(
             read_end_position_index(&mut &src[..], format, 5),
             Err(ReadError::InvalidEndPositionIndex(_))
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_line_comment_prefix() -> Result<(), ReadError> {
+        let src = [b'#', 0x00, 0x00, 0x00];
+        assert_eq!(read_line_comment_prefix(&mut &src[..])?, b'#');
+
+        let src = [0xff, 0xff, 0xff, 0xff];
+        assert!(matches!(
+            read_line_comment_prefix(&mut &src[..]),
+            Err(ReadError::InvalidLineCommentPrefix(_))
         ));
 
         Ok(())
