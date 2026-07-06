@@ -16,6 +16,8 @@ type ReadRx = Receiver<BufferedRx>;
 type RecycleTx = Sender<Buffer>;
 type RecycleRx = Receiver<Buffer>;
 
+const NON_WORKER_COUNT: usize = 2;
+
 enum State<R> {
     Paused(R),
     Running {
@@ -173,11 +175,12 @@ where
         };
 
         let worker_count = rayon::current_num_threads();
+        let buffer_count = worker_count + NON_WORKER_COUNT;
 
-        let (read_tx, read_rx) = crossbeam_channel::bounded(worker_count);
-        let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(worker_count);
+        let (read_tx, read_rx) = crossbeam_channel::bounded(buffer_count);
+        let (recycle_tx, recycle_rx) = crossbeam_channel::bounded(buffer_count);
 
-        for _ in 0..worker_count {
+        for _ in 0..buffer_count {
             recycle_tx.send(Buffer::default()).unwrap();
         }
 
