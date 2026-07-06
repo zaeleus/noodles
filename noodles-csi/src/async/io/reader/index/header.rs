@@ -27,16 +27,16 @@ where
 {
     use crate::io::reader::index::header::read_header as read_tabix_header;
 
-    let l_aux = reader.read_i32_le().await.and_then(|len| {
+    let len = reader.read_i32_le().await.and_then(|len| {
         usize::try_from(len).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    if l_aux > 0 {
-        let mut aux = vec![0; l_aux];
+    if len > 0 {
+        let mut aux = vec![0; len];
         reader.read_exact(&mut aux).await?;
 
-        let mut rdr = &aux[..];
-        read_tabix_header(&mut rdr)
+        let mut aux_reader = &aux[..];
+        read_tabix_header(&mut aux_reader)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             .map(Some)
     } else {
