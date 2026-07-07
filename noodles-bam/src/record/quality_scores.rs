@@ -3,6 +3,8 @@ use std::io;
 use noodles_sam as sam;
 
 /// BAM record quality scores.
+///
+/// The wrapped bytes are raw phred values (no encoding offset).
 #[derive(Debug, Eq, PartialEq)]
 pub struct QualityScores<'a>(&'a [u8]);
 
