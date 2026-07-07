@@ -9,14 +9,14 @@ pub enum ParseError {
     /// The input is invalid.
     Parse(position::ParseError),
     /// The position is invalid.
-    Invalid(position::TryFromIntError),
+    Invalid,
 }
 
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Parse(e) => Some(e),
-            Self::Invalid(e) => Some(e),
+            Self::Invalid => None,
         }
     }
 }
@@ -25,7 +25,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Parse(_) => write!(f, "invalid input"),
-            Self::Invalid(_) => write!(f, "invalid input"),
+            Self::Invalid => write!(f, "invalid input"),
         }
     }
 }
@@ -36,10 +36,12 @@ pub(super) fn parse_start_position(
 ) -> Result<Position, ParseError> {
     match coordinate_system {
         CoordinateSystem::Gff => s.parse().map_err(ParseError::Parse),
-        CoordinateSystem::Bed => s
-            .parse::<usize>()
-            .map_err(ParseError::Parse)
-            .and_then(|n| Position::try_from(n + 1).map_err(ParseError::Invalid)),
+        CoordinateSystem::Bed => {
+            let n: usize = s.parse::<usize>().map_err(ParseError::Parse)?;
+            let m = n.checked_add(1).ok_or(ParseError::Invalid)?;
+            // SAFETY: `m` > 0.
+            Ok(Position::new(m).unwrap())
+        }
     }
 }
 
@@ -66,6 +68,10 @@ mod test {
             parse_start_position("1", CoordinateSystem::Bed)?,
             const { Position::new(2).unwrap() }
         );
+        assert!(matches!(
+            parse_start_position(&usize::MAX.to_string(), CoordinateSystem::Bed),
+            Err(ParseError::Invalid)
+        ));
 
         Ok(())
     }
