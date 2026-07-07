@@ -42,3 +42,31 @@ pub(super) fn parse_start_position(
             .and_then(|n| Position::try_from(n + 1).map_err(ParseError::Invalid)),
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_parse_start_position() -> Result<(), ParseError> {
+        assert!(matches!(
+            parse_start_position("0", CoordinateSystem::Gff),
+            Err(ParseError::Parse(_))
+        ));
+        assert_eq!(
+            parse_start_position("1", CoordinateSystem::Gff)?,
+            Position::MIN
+        );
+
+        assert_eq!(
+            parse_start_position("0", CoordinateSystem::Bed)?,
+            Position::MIN
+        );
+        assert_eq!(
+            parse_start_position("1", CoordinateSystem::Bed)?,
+            const { Position::new(2).unwrap() }
+        );
+
+        Ok(())
+    }
+}
