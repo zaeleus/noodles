@@ -25,7 +25,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Parse(_) => write!(f, "invalid input"),
-            Self::Invalid => write!(f, "invalid input"),
+            Self::Invalid => write!(f, "invalid position"),
         }
     }
 }
