@@ -68,12 +68,13 @@ impl Parser {
         }
 
         if self.state == State::Empty {
-            let file_format = match parse_file_format(src) {
-                Ok(f) => match self.file_format_option {
+            let file_format = {
+                let f = parse_file_format(src)?;
+
+                match self.file_format_option {
                     FileFormatOption::Auto => f,
                     FileFormatOption::FileFormat(g) => g,
-                },
-                Err(e) => return Err(e),
+                }
             };
 
             self.file_format = file_format;
