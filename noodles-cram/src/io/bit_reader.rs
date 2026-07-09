@@ -27,7 +27,7 @@ impl<'c> BitReader<'c> {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "invalid read length",
-            ))?;
+            ));
         }
 
         let mut n = 0;
