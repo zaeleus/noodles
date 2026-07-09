@@ -12,21 +12,21 @@ pub(crate) type Tag = map::tag::Tag<Standard>;
 pub(crate) const ID: Tag = map::tag::Tag::Standard(Standard::Id);
 
 /// Program name (`PN`).
-pub const NAME: Other<Standard> = Other([b'P', b'N'], PhantomData);
+pub const NAME: Other<Standard> = Other(*b"PN", PhantomData);
 
 /// Command line (`CL`).
-pub const COMMAND_LINE: Other<Standard> = Other([b'C', b'L'], PhantomData);
+pub const COMMAND_LINE: Other<Standard> = Other(*b"CL", PhantomData);
 
 /// Previous program ID (`PP`).
-pub const PREVIOUS_PROGRAM_ID: Other<Standard> = Other([b'P', b'P'], PhantomData);
+pub const PREVIOUS_PROGRAM_ID: Other<Standard> = Other(*b"PP", PhantomData);
 
 /// Description (`DS`).
-pub const DESCRIPTION: Other<Standard> = Other([b'D', b'S'], PhantomData);
+pub const DESCRIPTION: Other<Standard> = Other(*b"DS", PhantomData);
 
 /// Program version (`VN`).
-pub const VERSION: Other<Standard> = Other([b'V', b'N'], PhantomData);
+pub const VERSION: Other<Standard> = Other(*b"VN", PhantomData);
 
-const ID_VALUE: [u8; LENGTH] = [b'I', b'D'];
+const ID_VALUE: [u8; LENGTH] = *b"ID";
 
 /// A SAM header program tag.
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
@@ -75,8 +75,8 @@ mod tests {
 
     #[test]
     fn test_try_from_u8_array_for_standard() {
-        assert_eq!(Standard::try_from([b'I', b'D']), Ok(Standard::Id));
-        assert_eq!(Standard::try_from([b'N', b'D']), Err(()));
+        assert_eq!(Standard::try_from(*b"ID"), Ok(Standard::Id));
+        assert_eq!(Standard::try_from(*b"ND"), Err(()));
     }
 
     #[test]

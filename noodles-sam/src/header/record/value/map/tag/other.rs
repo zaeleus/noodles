@@ -88,7 +88,7 @@ mod tests {
     fn test_fmt_debug() {
         use crate::header::record::value::map::header;
 
-        let tag: Other<header::tag::Standard> = Other([b'n', b'd'], PhantomData);
+        let tag: Other<header::tag::Standard> = Other(*b"nd", PhantomData);
         assert_eq!(format!("{tag:?}"), r#"Other("nd")"#);
     }
 }

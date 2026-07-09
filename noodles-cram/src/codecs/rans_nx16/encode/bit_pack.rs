@@ -39,7 +39,7 @@ mod tests {
 
     #[test]
     fn test_pack_8() {
-        let src = [b'n', b'n', b'd', b'd'];
+        let src = *b"nndd";
 
         let mut mapping_table = [0; ALPHABET_SIZE];
         mapping_table[usize::from(b'n')] = 0;
@@ -50,7 +50,7 @@ mod tests {
 
     #[test]
     fn test_pack_4() {
-        let src = [b'n', b'd', b'l', b's'];
+        let src = *b"ndls";
 
         let mut mapping_table = [0; ALPHABET_SIZE];
         mapping_table[usize::from(b'n')] = 0;
@@ -63,7 +63,7 @@ mod tests {
 
     #[test]
     fn test_pack_2() {
-        let src = [b'n', b'd'];
+        let src = *b"nd";
 
         let mut mapping_table = [0; ALPHABET_SIZE];
         mapping_table[usize::from(b'n')] = 0;

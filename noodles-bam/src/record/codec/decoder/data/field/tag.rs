@@ -37,7 +37,7 @@ mod tests {
 
     #[test]
     fn test_read_tag() {
-        let data = [b'N', b'H'];
+        let data = b"NH";
         let mut reader = &data[..];
         assert_eq!(read_tag(&mut reader), Ok(Tag::ALIGNMENT_HIT_COUNT));
     }

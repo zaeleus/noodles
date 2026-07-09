@@ -71,7 +71,7 @@ fn is_valid_header(src: &HeaderBuf) -> bool {
     const BGZF_CM: u8 = 0x08; // DEFLATE
     const BGZF_FLG: u8 = 0x04; // FEXTRA
     const BGZF_XLEN: [u8; 2] = [0x06, 0x00];
-    const BGZF_SI: [u8; 2] = [b'B', b'C'];
+    const BGZF_SI: [u8; 2] = *b"BC";
     const BGZF_SLEN: [u8; 2] = [0x02, 0x00];
 
     src[0..2] == gz::MAGIC_NUMBER

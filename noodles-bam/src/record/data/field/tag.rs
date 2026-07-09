@@ -18,8 +18,8 @@ mod tests {
 
     #[test]
     fn test_decode_tag() -> io::Result<()> {
-        let mut src = &[b'N', b'H'][..];
-        assert_eq!(decode_tag(&mut src)?, Tag::ALIGNMENT_HIT_COUNT);
+        let src = b"NH";
+        assert_eq!(decode_tag(&mut &src[..])?, Tag::ALIGNMENT_HIT_COUNT);
         Ok(())
     }
 }

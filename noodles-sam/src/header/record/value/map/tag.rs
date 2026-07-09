@@ -117,7 +117,7 @@ mod tests {
 
     #[test]
     fn test_from_str_for_tag() {
-        const ID: [u8; LENGTH] = [b'I', b'D'];
+        const ID: [u8; LENGTH] = *b"ID";
 
         #[derive(Debug, Eq, PartialEq)]
         enum TestTag {
@@ -146,7 +146,7 @@ mod tests {
         assert_eq!("ID".parse(), Ok(Tag::Standard(TestTag::Id)));
         assert_eq!(
             "VN".parse(),
-            Ok(Tag::<TestTag>::Other(Other([b'V', b'N'], PhantomData)))
+            Ok(Tag::<TestTag>::Other(Other(*b"VN", PhantomData)))
         );
 
         assert_eq!(

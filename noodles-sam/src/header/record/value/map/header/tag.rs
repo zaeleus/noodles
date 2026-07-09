@@ -13,15 +13,15 @@ pub type Tag = map::tag::Tag<Standard>;
 pub(crate) const VERSION: Tag = map::tag::Tag::Standard(Standard::Version);
 
 /// Sort order (`SO`).
-pub const SORT_ORDER: Other<Standard> = Other([b'S', b'O'], PhantomData);
+pub const SORT_ORDER: Other<Standard> = Other(*b"SO", PhantomData);
 
 /// Group order (`GO`).
-pub const GROUP_ORDER: Other<Standard> = Other([b'G', b'O'], PhantomData);
+pub const GROUP_ORDER: Other<Standard> = Other(*b"GO", PhantomData);
 
 /// Subsort order (`SS`).
-pub const SUBSORT_ORDER: Other<Standard> = Other([b'S', b'S'], PhantomData);
+pub const SUBSORT_ORDER: Other<Standard> = Other(*b"SS", PhantomData);
 
-const VN: [u8; LENGTH] = [b'V', b'N'];
+const VN: [u8; LENGTH] = *b"VN";
 
 /// A SAM header header tag.
 #[derive(Clone, Copy, Debug, Hash, Eq, PartialEq)]
@@ -70,8 +70,8 @@ mod tests {
 
     #[test]
     fn test_try_from_u8_array_for_standard() {
-        assert_eq!(Standard::try_from([b'V', b'N']), Ok(Standard::Version));
-        assert_eq!(Standard::try_from([b'N', b'D']), Err(()));
+        assert_eq!(Standard::try_from(*b"VN"), Ok(Standard::Version));
+        assert_eq!(Standard::try_from(*b"ND"), Err(()));
     }
 
     #[test]

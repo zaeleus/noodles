@@ -25,12 +25,12 @@ mod tests {
         let mut buf = Vec::new();
 
         buf.clear();
-        write_tag(&mut buf, [b'N', b'D'])?;
+        write_tag(&mut buf, *b"ND")?;
         assert_eq!(buf, b"ND");
 
         buf.clear();
         assert!(matches!(
-            write_tag(&mut buf, [b'0', b'D']),
+            write_tag(&mut buf, *b"0D"),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -39,15 +39,15 @@ mod tests {
 
     #[test]
     fn test_is_valid() {
-        assert!(is_valid([b'N', b'D']));
-        assert!(is_valid([b'N', b'd']));
-        assert!(is_valid([b'N', b'0']));
-        assert!(is_valid([b'n', b'D']));
-        assert!(is_valid([b'n', b'd']));
-        assert!(is_valid([b'n', b'0']));
+        assert!(is_valid(*b"ND"));
+        assert!(is_valid(*b"Nd"));
+        assert!(is_valid(*b"N0"));
+        assert!(is_valid(*b"nD"));
+        assert!(is_valid(*b"nd"));
+        assert!(is_valid(*b"n0"));
 
-        assert!(!is_valid([b'0', b'D']));
-        assert!(!is_valid([b'*', b'D']));
-        assert!(!is_valid([b'D', b'*']));
+        assert!(!is_valid(*b"0D"));
+        assert!(!is_valid(*b"*D"));
+        assert!(!is_valid(*b"D*"));
     }
 }

@@ -199,7 +199,7 @@ mod tests {
 
     #[test]
     fn test_read_string() {
-        let mut src = &[b'n', b'd', b'l', b's'][..];
+        let mut src = &b"ndls"[..];
         assert_eq!(read_string(&mut src, 4), Ok(&b"ndls"[..]));
 
         let mut src = &[][..];

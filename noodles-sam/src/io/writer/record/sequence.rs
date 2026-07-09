@@ -157,7 +157,7 @@ mod tests {
 
     #[test]
     fn test_is_valid_base() {
-        for b in (b'A'..=b'Z').chain(b'a'..=b'z').chain([b'=', b'.']) {
+        for b in (b'A'..=b'Z').chain(b'a'..=b'z').chain(*b"=.") {
             assert!(is_valid_base(b));
         }
 

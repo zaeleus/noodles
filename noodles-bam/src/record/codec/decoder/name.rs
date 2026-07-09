@@ -119,7 +119,7 @@ mod tests {
         let src = [0xf0, 0x9f, 0x8d, 0x9c, 0x00]; // "🍜\x00"
         t(&src, Some(BString::from(&src[0..4])))?;
 
-        let data = [b'*'];
+        let data = b"*";
         let mut src = &data[..];
         let l_read_name = NonZero::try_from(data.len()).unwrap();
         assert_eq!(

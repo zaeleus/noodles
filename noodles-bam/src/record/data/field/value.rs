@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn test_decode_value() -> io::Result<()> {
-        let mut src = &[b'n'][..];
+        let mut src = &b"n"[..];
         assert!(matches!(
             decode_value(&mut src, Type::Character)?,
             Value::Character(b'n')

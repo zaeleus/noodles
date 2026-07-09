@@ -182,7 +182,7 @@ where
 {
     use flate2::bufread::MultiGzDecoder;
 
-    const CRAM_MAGIC_NUMBER: [u8; 4] = [b'C', b'R', b'A', b'M'];
+    const CRAM_MAGIC_NUMBER: [u8; 4] = *b"CRAM";
     const BAM_MAGIC_NUMBER: [u8; 4] = [b'B', b'A', b'M', 0x01];
 
     let src = reader.fill_buf()?;

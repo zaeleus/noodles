@@ -80,14 +80,14 @@ mod tests {
             Err(DecodeError::InvalidTag(_))
         ));
 
-        let data = [b'N', b'H', b'z'];
+        let data = b"NHz";
         let mut reader = &data[..];
         assert!(matches!(
             read_field(&mut reader),
             Err(DecodeError::InvalidType(Tag::ALIGNMENT_HIT_COUNT, _))
         ));
 
-        let data = [b'N', b'H', b'C'];
+        let data = b"NHC";
         let mut reader = &data[..];
         assert!(matches!(
             read_field(&mut reader),
