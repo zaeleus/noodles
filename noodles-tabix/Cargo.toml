@@ -1,6 +1,6 @@
 [package]
 name = "noodles-tabix"
-version = "0.62.0"
+version = "0.63.0"
 authors = ["Michael Macias <zaeleus@gmail.com>"]
 license.workspace = true
 edition.workspace = true
@@ -17,9 +17,9 @@ async = ["dep:tokio", "noodles-bgzf/async"]
 [dependencies]
 bstr.workspace = true
 indexmap.workspace = true
-noodles-bgzf = { path = "../noodles-bgzf", version = "0.47.0" }
+noodles-bgzf = { path = "../noodles-bgzf", version = "0.48.0" }
 noodles-core = { path = "../noodles-core", version = "0.20.0" }
-noodles-csi = { path = "../noodles-csi", version = "0.56.0" }
+noodles-csi = { path = "../noodles-csi", version = "0.57.0" }
 
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
