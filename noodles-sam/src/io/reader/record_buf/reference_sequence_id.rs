@@ -1,3 +1,5 @@
+//! SAM record buf reference sequence ID reader.
+
 use std::{error, fmt};
 
 use bstr::BString;

@@ -4,7 +4,7 @@ mod builder;
 pub mod header;
 pub(crate) mod query;
 mod record;
-pub(crate) mod record_buf;
+pub mod record_buf;
 mod record_bufs;
 
 use std::{

@@ -1,3 +1,5 @@
+//! SAM record buf position reader.
+
 use std::{error, fmt};
 
 use noodles_core::Position;
@@ -5,6 +7,7 @@ use noodles_core::Position;
 /// An error when a raw SAM record position fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is invalid.
     Invalid(lexical_core::Error),
 }
 

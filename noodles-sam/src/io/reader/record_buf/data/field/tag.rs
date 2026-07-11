@@ -1,3 +1,5 @@
+//! SAM record buf data field tag reader.
+
 use std::{error, fmt};
 
 use crate::alignment::record::data::field::Tag;

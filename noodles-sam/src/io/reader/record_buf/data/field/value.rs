@@ -1,4 +1,6 @@
-mod array;
+//! SAM record buf data field value reader.
+
+pub mod array;
 
 use std::{error, fmt};
 
@@ -11,7 +13,7 @@ pub enum ParseError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The type is invalid.
-    InvalidType { actual: Type },
+    InvalidType(Type),
     /// The character is invalid.
     InvalidCharacter,
     /// The integer is invalid.
@@ -43,7 +45,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
-            Self::InvalidType { actual } => write!(
+            Self::InvalidType(actual) => write!(
                 f,
                 "invalid type: expected {{Character, Int32, Float, String, Hex, Array}}, got {actual:?}"
             ),
@@ -68,7 +70,7 @@ pub(super) fn parse_value(src: &mut &[u8], ty: Type) -> Result<Value, ParseError
         Type::Array => parse_array(src)
             .map(Value::Array)
             .map_err(ParseError::InvalidArray),
-        _ => Err(ParseError::InvalidType { actual: ty }),
+        _ => Err(ParseError::InvalidType(ty)),
     }
 }
 

@@ -1,3 +1,5 @@
+//! SAM record buf template length reader.
+
 use std::{error, fmt};
 
 /// An error when raw SAM record flags fail to parse.

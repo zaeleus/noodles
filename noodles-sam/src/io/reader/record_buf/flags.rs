@@ -1,3 +1,5 @@
+//! SAM record buf flags reader.
+
 use std::{error, fmt};
 
 use crate::alignment::record::Flags;
@@ -5,6 +7,7 @@ use crate::alignment::record::Flags;
 /// An error when raw SAM record flags fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is invalid.
     Invalid(lexical_core::Error),
 }
 

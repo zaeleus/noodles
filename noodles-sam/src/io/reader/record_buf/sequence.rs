@@ -1,3 +1,5 @@
+//! SAM record buf sequence reader.
+
 use std::{error, fmt};
 
 use crate::alignment::record_buf::Sequence;

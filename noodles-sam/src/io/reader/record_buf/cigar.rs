@@ -1,4 +1,6 @@
-pub(crate) mod op;
+//! SAM record buf CIGAR reader.
+
+pub mod op;
 
 use std::{error, fmt};
 

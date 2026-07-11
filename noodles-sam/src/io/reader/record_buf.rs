@@ -1,13 +1,15 @@
-pub(crate) mod cigar;
-pub(crate) mod data;
-mod flags;
-mod mapping_quality;
-mod name;
-mod position;
-mod quality_scores;
-mod reference_sequence_id;
-mod sequence;
-mod template_length;
+//! SAM record buf reader.
+
+pub mod cigar;
+pub mod data;
+pub mod flags;
+pub mod mapping_quality;
+pub mod name;
+pub mod position;
+pub mod quality_scores;
+pub mod reference_sequence_id;
+pub mod sequence;
+pub mod template_length;
 
 use std::{
     error, fmt,
@@ -23,7 +25,7 @@ pub(crate) use self::{flags::parse_flags, template_length::parse_template_length
 use super::read_line;
 use crate::{Header, alignment::RecordBuf};
 
-pub fn read_record_buf<R>(
+pub(crate) fn read_record_buf<R>(
     reader: &mut R,
     buf: &mut Vec<u8>,
     header: &Header,

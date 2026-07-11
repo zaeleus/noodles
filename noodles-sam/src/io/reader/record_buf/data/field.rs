@@ -1,5 +1,7 @@
-mod tag;
-mod ty;
+//! SAM record buf data field reader.
+
+pub mod tag;
+pub mod ty;
 pub mod value;
 
 use std::{error, fmt};

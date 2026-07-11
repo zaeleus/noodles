@@ -1,4 +1,6 @@
-mod subtype;
+//! SAM record buf data field array value reader.
+
+pub mod subtype;
 
 use std::{error, fmt};
 

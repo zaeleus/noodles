@@ -1,4 +1,6 @@
-mod kind;
+//! SAM record buf CIGAR operation reader.
+
+pub mod kind;
 
 use std::{error, fmt};
 

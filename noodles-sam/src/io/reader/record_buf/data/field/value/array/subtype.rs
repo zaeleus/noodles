@@ -1,3 +1,5 @@
+//! SAM record buf data field array value subtype reader.
+
 use std::{error, fmt};
 
 use crate::alignment::record::data::field::value::array::Subtype;
@@ -8,7 +10,7 @@ pub enum ParseError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The subtype is invalid.
-    Invalid { actual: u8 },
+    Invalid(u8),
 }
 
 impl error::Error for ParseError {}
@@ -17,7 +19,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
-            Self::Invalid { actual } => write!(
+            Self::Invalid(actual) => write!(
                 f,
                 "invalid input: expected {{c, C, s, S, i, I, f}}, got {}",
                 char::from(*actual)
@@ -39,7 +41,7 @@ pub(super) fn parse_subtype(src: &mut &[u8]) -> Result<Subtype, ParseError> {
         b'i' => Ok(Subtype::Int32),
         b'I' => Ok(Subtype::UInt32),
         b'f' => Ok(Subtype::Float),
-        _ => Err(ParseError::Invalid { actual: *n }),
+        _ => Err(ParseError::Invalid(*n)),
     }
 }
 
@@ -67,7 +69,7 @@ mod tests {
         let mut src = &b"n"[..];
         assert!(matches!(
             parse_subtype(&mut src),
-            Err(ParseError::Invalid { actual: b'n' })
+            Err(ParseError::Invalid(b'n'))
         ));
     }
 }

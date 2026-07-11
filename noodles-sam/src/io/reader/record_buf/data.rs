@@ -1,4 +1,6 @@
-pub(crate) mod field;
+//! SAM record buf data reader.
+
+pub mod field;
 
 use std::{error, fmt};
 

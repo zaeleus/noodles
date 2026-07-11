@@ -1,3 +1,5 @@
+//! SAM record buf quality scores reader.
+
 use std::{error, fmt};
 
 use crate::alignment::record_buf::QualityScores;

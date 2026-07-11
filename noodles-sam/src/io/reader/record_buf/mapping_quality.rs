@@ -1,3 +1,5 @@
+//! SAM record buf mapping quality reader.
+
 use std::{error, fmt};
 
 use crate::alignment::record::MappingQuality;
@@ -5,6 +7,7 @@ use crate::alignment::record::MappingQuality;
 /// An error when a raw SAM record mapping quality fails to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is invalid.
     Invalid(lexical_core::Error),
 }
 

@@ -1,3 +1,5 @@
+//! SAM record buf data field type reader.
+
 use std::{error, fmt};
 
 use crate::alignment::record::data::field::Type;
@@ -8,7 +10,7 @@ pub enum ParseError {
     /// Unexpected EOF.
     UnexpectedEof,
     /// The type is invalid.
-    Invalid { actual: u8 },
+    Invalid(u8),
 }
 
 impl error::Error for ParseError {}
@@ -17,7 +19,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedEof => write!(f, "unexpected EOF"),
-            Self::Invalid { actual } => write!(
+            Self::Invalid(actual) => write!(
                 f,
                 "invalid type: expected {{A, i, f, Z, H, B}}, got {}",
                 char::from(*actual)
@@ -38,7 +40,7 @@ pub(crate) fn parse_type(src: &mut &[u8]) -> Result<Type, ParseError> {
         b'Z' => Ok(Type::String),
         b'H' => Ok(Type::Hex),
         b'B' => Ok(Type::Array),
-        _ => Err(ParseError::Invalid { actual: *n }),
+        _ => Err(ParseError::Invalid(*n)),
     }
 }
 
@@ -67,7 +69,7 @@ mod tests {
         for &n in b"cCsSIn" {
             let data = [n];
             let mut src = &data[..];
-            assert_eq!(parse_type(&mut src), Err(ParseError::Invalid { actual: n }));
+            assert_eq!(parse_type(&mut src), Err(ParseError::Invalid(n)));
         }
 
         Ok(())

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/io/reader/record_buf: Increase the visibility of `ParseError` ([#403]).
+
+[#403]: https://github.com/zaeleus/noodles/issues/403
+
 ## 0.86.0 - 2026-07-10
 
 ### Changed

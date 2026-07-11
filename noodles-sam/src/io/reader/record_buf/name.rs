@@ -1,3 +1,5 @@
+//! SAM record buf name reader.
+
 use std::{error, fmt};
 
 use bstr::BString;
