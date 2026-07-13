@@ -9,24 +9,9 @@ pub(super) async fn write_header<W>(writer: &mut W, header: &Header) -> io::Resu
 where
     W: AsyncWrite + Unpin,
 {
-    let format = i32::from(header.format());
-    writer.write_i32_le(format).await?;
-
-    let reference_sequence_name_index = header
-        .reference_sequence_name_index()
-        .checked_add(1)
-        .expect("attempt to add with overflow");
-    let col_seq = i32::try_from(reference_sequence_name_index)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32_le(col_seq).await?;
-
-    let start_position_index = header
-        .start_position_index()
-        .checked_add(1)
-        .expect("attempt to add with overflow");
-    let col_beg = i32::try_from(start_position_index)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32_le(col_beg).await?;
+    write_format(writer, header.format()).await?;
+    write_reference_sequence_name_index(writer, header.reference_sequence_name_index()).await?;
+    write_start_position_index(writer, header.start_position_index()).await?;
 
     write_end_position_index(
         writer,
@@ -36,15 +21,39 @@ where
     )
     .await?;
 
-    let meta = i32::from(header.line_comment_prefix());
-    writer.write_i32_le(meta).await?;
-
-    let skip = i32::try_from(header.line_skip_count())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    writer.write_i32_le(skip).await?;
+    write_line_comment_prefix(writer, header.line_comment_prefix()).await?;
+    write_line_skip_count(writer, header.line_skip_count()).await?;
 
     write_reference_sequence_names(writer, header.reference_sequence_names()).await?;
 
+    Ok(())
+}
+
+async fn write_format<W>(writer: &mut W, format: Format) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let format = i32::from(format);
+    writer.write_i32_le(format).await
+}
+
+async fn write_reference_sequence_name_index<W>(writer: &mut W, i: usize) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let j = i.checked_add(1).expect("attempt to add with overflow");
+    let n = i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_i32_le(n).await?;
+    Ok(())
+}
+
+async fn write_start_position_index<W>(writer: &mut W, i: usize) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let j = i.checked_add(1).expect("attempt to add with overflow");
+    let n = i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    writer.write_i32_le(n).await?;
     Ok(())
 }
 
@@ -76,6 +85,24 @@ where
     }
 
     Ok(())
+}
+
+async fn write_line_comment_prefix<W>(writer: &mut W, line_comment_prefix: u8) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let n = i32::from(line_comment_prefix);
+    writer.write_i32_le(n).await
+}
+
+async fn write_line_skip_count<W>(writer: &mut W, line_skip_count: u32) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let n = i32::try_from(line_skip_count)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    writer.write_i32_le(n).await
 }
 
 #[cfg(test)]
