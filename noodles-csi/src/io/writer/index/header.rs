@@ -51,6 +51,34 @@ where
     Ok(())
 }
 
+fn write_format<W>(writer: &mut W, format: Format) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = i32::from(format);
+    write_i32_le(writer, n)
+}
+
+fn write_reference_sequence_name_index<W>(writer: &mut W, i: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let j = i.checked_add(1).expect("attempt to add with overflow");
+    let n = i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_i32_le(writer, n)?;
+    Ok(())
+}
+
+fn write_start_position_index<W>(writer: &mut W, i: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let j = i.checked_add(1).expect("attempt to add with overflow");
+    let n = i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    write_i32_le(writer, n)?;
+    Ok(())
+}
+
 fn write_end_position_index<W>(
     writer: &mut W,
     format: Format,
@@ -78,34 +106,6 @@ where
         write_i32_le(writer, n)?;
     }
 
-    Ok(())
-}
-
-fn write_format<W>(writer: &mut W, format: Format) -> io::Result<()>
-where
-    W: Write,
-{
-    let n = i32::from(format);
-    write_i32_le(writer, n)
-}
-
-fn write_reference_sequence_name_index<W>(writer: &mut W, i: usize) -> io::Result<()>
-where
-    W: Write,
-{
-    let j = i.checked_add(1).expect("attempt to add with overflow");
-    let n = i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_i32_le(writer, n)?;
-    Ok(())
-}
-
-fn write_start_position_index<W>(writer: &mut W, i: usize) -> io::Result<()>
-where
-    W: Write,
-{
-    let j = i.checked_add(1).expect("attempt to add with overflow");
-    let n = i32::try_from(j).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_i32_le(writer, n)?;
     Ok(())
 }
 
