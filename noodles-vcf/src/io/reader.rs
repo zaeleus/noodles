@@ -472,6 +472,35 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
     }
 
     #[test]
+    fn test_read_header_with_redefined_reserved_key() -> io::Result<()> {
+        // A header may loosen a reserved field's `Number` (e.g. declare the reserved
+        // `DP`/`AD` FORMAT keys with `Number=.`). This is valid VCF and accepted by
+        // htslib, so reading the header and record must succeed even when the declared
+        // `fileformat` is 4.3 or later.
+        static DATA: &[u8] = b"\
+##fileformat=VCFv4.4
+##contig=<ID=chr1,length=248956422>
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">
+##FORMAT=<ID=DP,Number=.,Type=Integer,Description=\"d\">
+##FORMAT=<ID=AD,Number=.,Type=Integer,Description=\"a\">
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1
+chr1\t53210776\t.\tG\tA\t50\tPASS\t.\tGT:DP:AD\t1/1:512:5,7
+";
+
+        let mut reader = Reader::new(DATA);
+        let header = reader.read_header()?;
+
+        let mut record = RecordBuf::default();
+        let bytes_read = reader.read_record_buf(&header, &mut record)?;
+        assert!(bytes_read > 0);
+
+        let bytes_read = reader.read_record_buf(&header, &mut record)?;
+        assert_eq!(bytes_read, 0);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_read_line() -> io::Result<()> {
         let mut buf = String::new();
 

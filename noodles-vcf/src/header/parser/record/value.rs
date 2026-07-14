@@ -10,6 +10,7 @@ use crate::header::{
 };
 
 /// An error returned when a VCF header record value fails to parse.
+#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     InvalidFileFormat(string::file_format::ParseError),
@@ -20,28 +21,6 @@ pub enum ParseError {
     InvalidContig(map::contig::ParseError),
     InvalidOtherString(key::Other, string::ParseError),
     InvalidOtherMap(key::Other, map::other::ParseError),
-    FormatDefinitionMismatch {
-        id: String,
-        actual: (
-            crate::header::record::value::map::format::Number,
-            crate::header::record::value::map::format::Type,
-        ),
-        expected: (
-            crate::header::record::value::map::format::Number,
-            crate::header::record::value::map::format::Type,
-        ),
-    },
-    InfoDefinitionMismatch {
-        id: String,
-        actual: (
-            crate::header::record::value::map::info::Number,
-            crate::header::record::value::map::info::Type,
-        ),
-        expected: (
-            crate::header::record::value::map::info::Number,
-            crate::header::record::value::map::info::Type,
-        ),
-    },
 }
 
 impl error::Error for ParseError {
@@ -55,7 +34,6 @@ impl error::Error for ParseError {
             Self::InvalidContig(e) => Some(e),
             Self::InvalidOtherString(_, e) => Some(e),
             Self::InvalidOtherMap(_, e) => Some(e),
-            _ => None,
         }
     }
 }
@@ -123,42 +101,6 @@ impl fmt::Display for ParseError {
 
                 Ok(())
             }
-            Self::FormatDefinitionMismatch {
-                id,
-                actual,
-                expected,
-            } => {
-                let (actual_number, actual_type) = actual;
-                let (expected_number, expected_type) = expected;
-
-                write!(
-                    f,
-                    "{} definition mismatch: ID={id}: expected Number={:?},Type={}, got Number={:?},Type={}",
-                    key::FORMAT,
-                    expected_number,
-                    expected_type,
-                    actual_number,
-                    actual_type,
-                )
-            }
-            Self::InfoDefinitionMismatch {
-                id,
-                actual,
-                expected,
-            } => {
-                let (actual_number, actual_type) = actual;
-                let (expected_number, expected_type) = expected;
-
-                write!(
-                    f,
-                    "{} definition mismatch: ID={id}: expected Number={:?},Type={}, got Number={:?},Type={}",
-                    key::INFO,
-                    expected_number,
-                    expected_type,
-                    actual_number,
-                    actual_type,
-                )
-            }
         }
     }
 }
@@ -175,20 +117,15 @@ pub(super) fn parse_value(
         key::FILE_FORMAT => string::parse_file_format(src)
             .map(Record::FileFormat)
             .map_err(ParseError::InvalidFileFormat),
-        key::INFO => {
-            let (id, map) = map::parse_info(src, file_format).map_err(ParseError::InvalidInfo)?;
-            validate_info_definition(file_format, &id, map.number(), map.ty())?;
-            Ok(Record::Info(id, map))
-        }
+        key::INFO => map::parse_info(src, file_format)
+            .map(|(id, map)| Record::Info(id, map))
+            .map_err(ParseError::InvalidInfo),
         key::FILTER => map::parse_filter(src)
             .map(|(id, map)| Record::Filter(id, map))
             .map_err(ParseError::InvalidFilter),
-        key::FORMAT => {
-            let (id, map) =
-                map::parse_format(src, file_format).map_err(ParseError::InvalidFormat)?;
-            validate_format_definition(file_format, &id, map.number(), map.ty())?;
-            Ok(Record::Format(id, map))
-        }
+        key::FORMAT => map::parse_format(src, file_format)
+            .map(|(id, map)| Record::Format(id, map))
+            .map_err(ParseError::InvalidFormat),
         key::ALTERNATIVE_ALLELE => map::parse_alternative_allele(src)
             .map(|(id, map)| Record::AlternativeAllele(id, map))
             .map_err(ParseError::InvalidAlternativeAllele),
@@ -219,44 +156,59 @@ pub(super) fn parse_value(
     }
 }
 
-fn validate_format_definition(
-    file_format: FileFormat,
-    id: &str,
-    actual_number: crate::header::record::value::map::format::Number,
-    actual_type: crate::header::record::value::map::format::Type,
-) -> Result<(), ParseError> {
-    use crate::header::record::value::map::format::definition::definition;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    if let Some((expected_number, expected_type, _)) = definition(file_format, id)
-        && (actual_number != expected_number || actual_type != expected_type)
-    {
-        return Err(ParseError::FormatDefinitionMismatch {
-            id: id.into(),
-            actual: (actual_number, actual_type),
-            expected: (expected_number, expected_type),
-        });
+    #[test]
+    fn test_parse_value_with_redefined_reserved_format_key() {
+        use crate::header::record::value::map::format::{Number, Type};
+
+        // A header may loosen a reserved field's `Number` (e.g. `DP` from the reserved
+        // `Number=1` to `Number=.`). Such a definition is valid VCF and must be honored
+        // rather than rejected against the version-reserved default.
+        let mut src = &b"<ID=DP,Number=.,Type=Integer,Description=\"d\">"[..];
+        let record = parse_value(&mut src, FileFormat::new(4, 4), key::FORMAT).unwrap();
+
+        match record {
+            Record::Format(id, map) => {
+                assert_eq!(id, "DP");
+                assert_eq!(map.number(), Number::Unknown);
+                assert_eq!(map.ty(), Type::Integer);
+            }
+            _ => panic!("expected a FORMAT record"),
+        }
+
+        // `AD` is reserved as `Number=R`; a header declaring `Number=.` must be honored.
+        let mut src = &b"<ID=AD,Number=.,Type=Integer,Description=\"a\">"[..];
+        let record = parse_value(&mut src, FileFormat::new(4, 4), key::FORMAT).unwrap();
+
+        match record {
+            Record::Format(id, map) => {
+                assert_eq!(id, "AD");
+                assert_eq!(map.number(), Number::Unknown);
+                assert_eq!(map.ty(), Type::Integer);
+            }
+            _ => panic!("expected a FORMAT record"),
+        }
     }
 
-    Ok(())
-}
+    #[test]
+    fn test_parse_value_with_redefined_reserved_info_key() {
+        use crate::header::record::value::map::info::{Number, Type};
 
-fn validate_info_definition(
-    file_format: FileFormat,
-    id: &str,
-    actual_number: crate::header::record::value::map::info::Number,
-    actual_type: crate::header::record::value::map::info::Type,
-) -> Result<(), ParseError> {
-    use crate::header::record::value::map::info::definition::definition;
+        // `DP` is reserved in INFO as `Number=1`; a header declaring `Number=.` must be
+        // honored rather than rejected.
+        let mut src = &b"<ID=DP,Number=.,Type=Integer,Description=\"d\">"[..];
+        let record = parse_value(&mut src, FileFormat::new(4, 4), key::INFO).unwrap();
 
-    if let Some((expected_number, expected_type, _)) = definition(file_format, id)
-        && (actual_number != expected_number || actual_type != expected_type)
-    {
-        return Err(ParseError::InfoDefinitionMismatch {
-            id: id.into(),
-            actual: (actual_number, actual_type),
-            expected: (expected_number, expected_type),
-        });
+        match record {
+            Record::Info(id, map) => {
+                assert_eq!(id, "DP");
+                assert_eq!(map.number(), Number::Unknown);
+                assert_eq!(map.ty(), Type::Integer);
+            }
+            _ => panic!("expected an INFO record"),
+        }
     }
-
-    Ok(())
 }
