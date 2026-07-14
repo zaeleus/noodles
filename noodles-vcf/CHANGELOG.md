@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/header/parser: Change `Parser::parse` to use current parser.
+
+    This previously created a new parser, which may not have the same applied
+    options.
+
 ## 0.89.0 - 2026-07-10
 
 ### Changed

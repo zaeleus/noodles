@@ -50,15 +50,13 @@ impl Parser {
         Builder::default()
     }
 
-    /// Parses a raw VCF header.
-    pub fn parse(&self, s: &str) -> Result<Header, ParseError> {
-        let mut parser = Self::default();
-
+    /// Parses an entire raw VCF header.
+    pub fn parse(mut self, s: &str) -> Result<Header, ParseError> {
         for line in s.lines() {
-            parser.parse_partial(line.as_bytes())?;
+            self.parse_partial(line.as_bytes())?;
         }
 
-        parser.finish()
+        self.finish()
     }
 
     /// Parses and adds a raw record to the header.
