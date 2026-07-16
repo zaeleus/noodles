@@ -528,15 +528,8 @@ mod tests {
     #[test]
     fn test_default() -> Result<(), Box<dyn std::error::Error>> {
         let actual = RecordBuf::default();
-
-        let expected = RecordBuf::builder()
-            .set_reference_sequence_name(".")
-            .set_variant_start(Position::MIN)
-            .set_reference_bases("N")
-            .build();
-
+        let expected = RecordBuf::builder().build();
         assert_eq!(actual, expected);
-
         Ok(())
     }
 }
