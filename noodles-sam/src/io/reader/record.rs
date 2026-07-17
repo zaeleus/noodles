@@ -97,7 +97,7 @@ where
             break;
         }
 
-        let (mut buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
+        let (buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
             Some(i) => {
                 r#match = Some(src[i]);
                 (&src[..i], i + 1)
@@ -105,16 +105,16 @@ where
             None => (src, src.len()),
         };
 
-        if let [head @ .., CARRIAGE_RETURN] = buf {
-            buf = head;
-        }
-
         dst.extend(buf);
         len += n;
         reader.consume(n);
     }
 
     let is_eol = matches!(r#match, Some(LINE_FEED));
+
+    if is_eol && dst.ends_with(&[CARRIAGE_RETURN]) {
+        dst.pop();
+    }
 
     Ok((len, is_eol))
 }
