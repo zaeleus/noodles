@@ -13,6 +13,10 @@
 
     The default builder now matches a default `RecordBuf`.
 
+### Fixed
+
+  * vcf/io/reader/record: Only strip carriage return from CRLF newline.
+
 ## 0.89.0 - 2026-07-10
 
 ### Changed

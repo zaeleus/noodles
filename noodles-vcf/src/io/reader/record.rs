@@ -79,7 +79,7 @@ where
 
     const DELIMITER: u8 = b'\t';
     const LINE_FEED: u8 = b'\n';
-    const CARRIAGE_RETURN: u8 = b'\r';
+    const CARRIAGE_RETURN: char = '\r';
 
     let mut r#match = None;
     let mut len = 0;
@@ -91,17 +91,13 @@ where
             break;
         }
 
-        let (mut buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
+        let (buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
             Some(i) => {
                 r#match = Some(src[i]);
                 (&src[..i], i + 1)
             }
             None => (src, src.len()),
         };
-
-        if let [head @ .., CARRIAGE_RETURN] = buf {
-            buf = head;
-        }
 
         let s = str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         dst.push_str(s);
@@ -112,6 +108,10 @@ where
     }
 
     let is_eol = matches!(r#match, Some(LINE_FEED));
+
+    if is_eol && dst.ends_with(CARRIAGE_RETURN) {
+        dst.pop();
+    }
 
     Ok((len, is_eol))
 }
