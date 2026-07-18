@@ -38,10 +38,7 @@ impl Filters {
     /// assert!(!filters.is_pass());
     /// ```
     pub fn is_pass(&self) -> bool {
-        self.0
-            .first()
-            .map(|filter| filter == PASS)
-            .unwrap_or_default()
+        self.0.len() == 1 && self.0[0] == PASS
     }
 }
 

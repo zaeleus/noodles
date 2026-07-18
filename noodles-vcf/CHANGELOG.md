@@ -13,6 +13,11 @@
 
     The default builder now matches a default `RecordBuf`.
 
+  * vcf/variant/record_buf/filters: Require a single PASS filter for passing
+    status.
+
+    This matches the behavior of `vcf::variant::record::Filters::is_pass`.
+
 ### Fixed
 
   * vcf/io/reader/record: Only strip carriage return from CRLF newline.
