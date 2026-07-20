@@ -144,7 +144,7 @@ where
     /// let record = vcf::Record::default();
     /// writer.write_record(&header, &record)?;
     ///
-    /// assert_eq!(writer.get_ref(), b"sq0\t1\t.\tA\t.\t.\t.\t.\n");
+    /// assert_eq!(writer.get_ref(), b".\t1\t.\tN\t.\t.\t.\t.\n");
     /// # Ok::<_, std::io::Error>(())
     /// ```
     pub fn write_record(&mut self, header: &Header, record: &Record) -> io::Result<()> {

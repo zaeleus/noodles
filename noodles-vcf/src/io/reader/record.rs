@@ -123,16 +123,16 @@ mod tests {
 
     #[test]
     fn test_read_record() -> io::Result<()> {
-        let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\n"[..];
+        let mut src = &b".\t1\t.\tN\t.\t.\t.\t.\n"[..];
         let mut record = Record::default();
         read_record(&mut src, &mut record)?;
-        assert_eq!(record.fields().buf, "sq01.A....");
+        assert_eq!(record.fields().buf, ".1.N....");
         assert_eq!(record.fields().bounds, Bounds::default());
 
-        let mut src = &b"sq0\t1\t.\tA\t.\t.\t.\t.\r\n"[..];
+        let mut src = &b".\t1\t.\tN\t.\t.\t.\t.\r\n"[..];
         let mut record = Record::default();
         read_record(&mut src, &mut record)?;
-        assert_eq!(record.fields().buf, "sq01.A....");
+        assert_eq!(record.fields().buf, ".1.N....");
         assert_eq!(record.fields().bounds, Bounds::default());
 
         let mut src = &b"\n"[..];

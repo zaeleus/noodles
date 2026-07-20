@@ -53,14 +53,14 @@ impl Bounds {
 impl Default for Bounds {
     fn default() -> Self {
         Self {
-            reference_sequence_name_end: 3,
-            variant_start_end: 4,
-            ids_end: 5,
-            reference_bases_end: 6,
-            alternate_bases_end: 7,
-            quality_score_end: 8,
-            filters_end: 9,
-            info_end: 10,
+            reference_sequence_name_end: 1,
+            variant_start_end: 2,
+            ids_end: 3,
+            reference_bases_end: 4,
+            alternate_bases_end: 5,
+            quality_score_end: 6,
+            filters_end: 7,
+            info_end: 8,
         }
     }
 }
@@ -72,14 +72,14 @@ mod tests {
     #[test]
     fn test_ranges() {
         let bounds = Bounds::default();
-        assert_eq!(bounds.reference_sequence_name_range(), 0..3);
-        assert_eq!(bounds.variant_start_range(), 3..4);
-        assert_eq!(bounds.ids_range(), 4..5);
-        assert_eq!(bounds.reference_bases_range(), 5..6);
-        assert_eq!(bounds.alternate_bases_range(), 6..7);
-        assert_eq!(bounds.quality_score_range(), 7..8);
-        assert_eq!(bounds.filters_range(), 8..9);
-        assert_eq!(bounds.info_range(), 9..10);
-        assert_eq!(bounds.samples_range(), 10..);
+        assert_eq!(bounds.reference_sequence_name_range(), 0..1);
+        assert_eq!(bounds.variant_start_range(), 1..2);
+        assert_eq!(bounds.ids_range(), 2..3);
+        assert_eq!(bounds.reference_bases_range(), 3..4);
+        assert_eq!(bounds.alternate_bases_range(), 4..5);
+        assert_eq!(bounds.quality_score_range(), 5..6);
+        assert_eq!(bounds.filters_range(), 6..7);
+        assert_eq!(bounds.info_range(), 7..8);
+        assert_eq!(bounds.samples_range(), 8..);
     }
 }

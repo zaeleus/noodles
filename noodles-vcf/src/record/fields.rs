@@ -97,7 +97,7 @@ impl Fields {
 impl Default for Fields {
     fn default() -> Self {
         Self {
-            buf: String::from("sq01.A...."),
+            buf: String::from(".1.N...."),
             bounds: Bounds::default(),
         }
     }
