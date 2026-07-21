@@ -9,7 +9,7 @@ use noodles_bgzf as bgzf;
 use super::Writer;
 use crate::io::CompressionMethod;
 
-/// A BAM writer builder.
+/// A VCF writer builder.
 #[derive(Debug, Default)]
 pub struct Builder {
     compression_method: Option<CompressionMethod>,
