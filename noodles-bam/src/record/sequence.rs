@@ -27,7 +27,7 @@ impl<'a> Sequence<'a> {
 
     /// Returns whether there are any bases.
     pub fn is_empty(&self) -> bool {
-        self.src.is_empty()
+        self.len() == 0
     }
 
     /// Returns the number of bases in the sequence.
