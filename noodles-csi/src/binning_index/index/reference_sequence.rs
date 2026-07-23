@@ -209,6 +209,16 @@ where
         self.index.last_first_start_position()
     }
 
+    // Adds or merges a chunk into the given bin, creating the bin if necessary.
+    pub(crate) fn add_chunk(&mut self, bin_id: usize, chunk: Chunk) {
+        self.bins
+            .entry(bin_id)
+            .or_insert(Bin::new(Vec::new()))
+            .add_chunk(chunk);
+    }
+
+    // Updates the linear index and metadata for a record. The chunk is the record's own, even when
+    // the bin stores a wider run chunk (see `Indexer::add_record`).
     pub(crate) fn update(
         &mut self,
         min_shift: u8,
@@ -218,10 +228,6 @@ where
         is_mapped: bool,
         chunk: Chunk,
     ) {
-        let id = reg2bin(start, end, min_shift, depth);
-        let bins = self.bins.entry(id).or_insert(Bin::new(Vec::new()));
-        bins.add_chunk(chunk);
-
         self.index.update(min_shift, depth, start, end, chunk);
 
         let metadata = self.metadata.get_or_insert(Metadata::new(
@@ -307,7 +313,7 @@ pub(crate) fn parent_id(id: usize) -> Option<usize> {
 }
 
 // `CSIv1.pdf` (2020-07-21)
-fn reg2bin(start: Position, end: Position, min_shift: u8, depth: u8) -> usize {
+pub(crate) fn reg2bin(start: Position, end: Position, min_shift: u8, depth: u8) -> usize {
     // [beg, end), 0-based
     let beg = usize::from(start) - 1;
     let end = usize::from(end);

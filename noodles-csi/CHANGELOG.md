@@ -15,6 +15,14 @@
     reduces the size of the index for dense data (e.g. a human WGS BAI shrinks
     by roughly an order of magnitude). Query results are unchanged.
 
+  * csi/binning_index/indexer: Merge chunks of consecutive records in the same
+    bin.
+
+    A run of consecutive records assigned to the same bin is now stored as a
+    single chunk spanning any BGZF block boundaries within the run, rather than
+    one chunk per block, matching htslib's `hts_idx_push`. This reduces the
+    number of chunks per bin. Query results are unchanged.
+
 ## 0.57.0 - 2026-07-10
 
 ### Changed
