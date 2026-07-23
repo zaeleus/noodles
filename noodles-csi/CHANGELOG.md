@@ -6,6 +6,15 @@
 
   * csi: Update to bit-vec 0.10.1.
 
+  * csi/binning_index/index/reference_sequence: Compact bins when building an
+    index.
+
+    After the index is built, a bin whose records span less than 64 KiB of
+    compressed data is folded into its parent bin, and chunks sharing a BGZF
+    block are merged, matching htslib's `compress_binning`. This substantially
+    reduces the size of the index for dense data (e.g. a human WGS BAI shrinks
+    by roughly an order of magnitude). Query results are unchanged.
+
 ## 0.57.0 - 2026-07-10
 
 ### Changed

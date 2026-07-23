@@ -135,6 +135,10 @@ where
             self.add_reference_sequences_until(reference_sequence_count - 1);
         }
 
+        for reference_sequence in &mut self.reference_sequences {
+            reference_sequence.compact();
+        }
+
         let mut builder = Index::builder()
             .set_min_shift(self.min_shift)
             .set_depth(self.depth)
@@ -177,7 +181,10 @@ mod tests {
     use noodles_bgzf as bgzf;
 
     use super::*;
-    use crate::binning_index::index::reference_sequence::{Bin, Metadata, index::LinearIndex};
+    use crate::binning_index::index::reference_sequence::{
+        Bin, Metadata,
+        index::{BinnedIndex, LinearIndex},
+    };
 
     #[test]
     fn test_default() {
@@ -306,5 +313,54 @@ mod tests {
             .build();
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_build_compacts_bins_and_preserves_queries() -> Result<(), Box<dyn std::error::Error>> {
+        use noodles_core::region::Interval;
+
+        use crate::BinningIndex;
+
+        // Uses a binned index (as CSI does) to exercise the per-bin linear offset (loff) path
+        // under folding.
+        let mut indexer = Indexer::<BinnedIndex>::default();
+
+        // A record contained in one 16 KiB window is placed in leaf bin 4681.
+        indexer.add_record(
+            Some((0, Position::try_from(1)?, Position::try_from(100)?, true)),
+            Chunk::new(
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(100),
+            ),
+        )?;
+
+        // A record spanning two 16 KiB windows is placed in the parent bin 585.
+        indexer.add_record(
+            Some((0, Position::try_from(1)?, Position::try_from(20000)?, true)),
+            Chunk::new(
+                bgzf::VirtualPosition::from(100),
+                bgzf::VirtualPosition::from(200),
+            ),
+        )?;
+
+        let index = indexer.build(1);
+
+        // The leaf bin was folded into its parent.
+        let reference_sequence = &index.reference_sequences()[0];
+        assert!(!reference_sequence.bins().contains_key(&4681));
+        assert!(reference_sequence.bins().contains_key(&585));
+
+        // A query over the folded leaf's region still returns the record's chunk.
+        let interval = Interval::from(Position::try_from(1)?..=Position::try_from(100)?);
+        let chunks = index.query(0, interval)?;
+        assert_eq!(
+            chunks,
+            [Chunk::new(
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(200),
+            )]
+        );
+
+        Ok(())
     }
 }
