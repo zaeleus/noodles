@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bgzf/io/multithreaded_reader: Discard channel disconnection errors when not
+    running ([#405]).
+
+    When the buffered read channel is closed, e.g., the reader is paused or
+    dropped before EOF, any further messages are unused and can be discarded.
+
+[#405]: https://github.com/zaeleus/noodles/issues/405
+
 ## 0.48.0 - 2026-07-10
 
 ### Changed

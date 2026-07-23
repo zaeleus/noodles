@@ -370,10 +370,12 @@ where
 
             rayon::spawn(move || {
                 let result = parse_block(&buffer.buf, &mut buffer.block).map(|_| buffer);
-                buffered_tx.send(result).unwrap();
+                let _ = buffered_tx.send(result);
             });
 
-            read_tx.send(buffered_rx).unwrap();
+            if read_tx.send(buffered_rx).is_err() {
+                break;
+            }
         }
 
         Ok(reader)
