@@ -1,6 +1,7 @@
 use std::io;
 
 use indexmap::IndexMap;
+use noodles_bgzf as bgzf;
 use noodles_core::Position;
 
 use super::index::{
@@ -16,6 +17,16 @@ pub struct Indexer<I> {
     header: Option<Header>,
     reference_sequences: Vec<ReferenceSequence<I>>,
     unplaced_unmapped_record_count: u64,
+    run: Option<Run>,
+}
+
+// Tracks a run of consecutive records assigned to the same bin so their chunks can be merged into a
+// single chunk spanning any BGZF block boundaries within the run, matching htslib's `hts_idx_push`.
+#[derive(Clone, Copy, Debug)]
+struct Run {
+    reference_sequence_id: usize,
+    bin_id: usize,
+    start: bgzf::VirtualPosition,
 }
 
 impl<I> Indexer<I>
@@ -37,6 +48,7 @@ where
             header: None,
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: 0,
+            run: None,
         }
     }
 
@@ -92,6 +104,7 @@ where
         use std::cmp::Ordering;
 
         let Some((reference_sequence_id, start, end, is_mapped)) = alignment_context else {
+            self.run = None;
             self.unplaced_unmapped_record_count += 1;
             return Ok(());
         };
@@ -114,7 +127,28 @@ where
             Ordering::Greater => self.add_reference_sequences_until(reference_sequence_id),
         }
 
+        // Within a run of consecutive records assigned to the same bin, anchor the chunk at the
+        // run's start so that `Bin::add_chunk` coalesces the run into a single chunk spanning BGZF
+        // block boundaries. The linear index and metadata still see the record's own chunk.
+        let bin_id = reference_sequence::reg2bin(start, end, self.min_shift, self.depth);
+        let bin_chunk = match self.run {
+            Some(run)
+                if run.reference_sequence_id == reference_sequence_id && run.bin_id == bin_id =>
+            {
+                Chunk::new(run.start, chunk.end())
+            }
+            _ => {
+                self.run = Some(Run {
+                    reference_sequence_id,
+                    bin_id,
+                    start: chunk.start(),
+                });
+                chunk
+            }
+        };
+
         let reference_sequence = &mut self.reference_sequences[reference_sequence_id];
+        reference_sequence.add_chunk(bin_id, bin_chunk);
         reference_sequence.update(self.min_shift, self.depth, start, end, is_mapped, chunk);
 
         Ok(())
@@ -133,6 +167,10 @@ where
         if reference_sequence_count > self.reference_sequences.len() {
             // SAFETY: `reference_sequence_count` is nonzero.
             self.add_reference_sequences_until(reference_sequence_count - 1);
+        }
+
+        for reference_sequence in &mut self.reference_sequences {
+            reference_sequence.compact();
         }
 
         let mut builder = Index::builder()
@@ -168,6 +206,7 @@ where
             header: None,
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: 0,
+            run: None,
         }
     }
 }
@@ -177,7 +216,15 @@ mod tests {
     use noodles_bgzf as bgzf;
 
     use super::*;
-    use crate::binning_index::index::reference_sequence::{Bin, Metadata, index::LinearIndex};
+    use crate::binning_index::index::reference_sequence::{
+        Bin, Metadata,
+        index::{BinnedIndex, LinearIndex},
+    };
+
+    // Builds a virtual position from a compressed (block) offset and an uncompressed offset.
+    fn vp(compressed: u64, uncompressed: u16) -> bgzf::VirtualPosition {
+        bgzf::VirtualPosition::try_from((compressed, uncompressed)).unwrap()
+    }
 
     #[test]
     fn test_default() {
@@ -306,5 +353,153 @@ mod tests {
             .build();
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn test_build_compacts_bins_and_preserves_queries() -> Result<(), Box<dyn std::error::Error>> {
+        use noodles_core::region::Interval;
+
+        use crate::BinningIndex;
+
+        // Uses a binned index (as CSI does) to exercise the per-bin linear offset (loff) path
+        // under folding.
+        let mut indexer = Indexer::<BinnedIndex>::default();
+
+        // A record contained in one 16 KiB window is placed in leaf bin 4681.
+        indexer.add_record(
+            Some((0, Position::try_from(1)?, Position::try_from(100)?, true)),
+            Chunk::new(
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(100),
+            ),
+        )?;
+
+        // A record spanning two 16 KiB windows is placed in the parent bin 585.
+        indexer.add_record(
+            Some((0, Position::try_from(1)?, Position::try_from(20000)?, true)),
+            Chunk::new(
+                bgzf::VirtualPosition::from(100),
+                bgzf::VirtualPosition::from(200),
+            ),
+        )?;
+
+        let index = indexer.build(1);
+
+        // The leaf bin was folded into its parent.
+        let reference_sequence = &index.reference_sequences()[0];
+        assert!(!reference_sequence.bins().contains_key(&4681));
+        assert!(reference_sequence.bins().contains_key(&585));
+
+        // A query over the folded leaf's region still returns the record's chunk.
+        let interval = Interval::from(Position::try_from(1)?..=Position::try_from(100)?);
+        let chunks = index.query(0, interval)?;
+        assert_eq!(
+            chunks,
+            [Chunk::new(
+                bgzf::VirtualPosition::from(0),
+                bgzf::VirtualPosition::from(200),
+            )]
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_add_record_batches_chunks_across_blocks() -> Result<(), Box<dyn std::error::Error>> {
+        let mut indexer = Indexer::<LinearIndex>::default();
+
+        // Three consecutive records in the same leaf bin, with chunks in three different BGZF
+        // blocks.
+        indexer.add_record(
+            Some((0, Position::try_from(1)?, Position::try_from(100)?, true)),
+            Chunk::new(vp(0, 0), vp(0, 100)),
+        )?;
+        indexer.add_record(
+            Some((0, Position::try_from(200)?, Position::try_from(300)?, true)),
+            Chunk::new(vp(1, 0), vp(1, 100)),
+        )?;
+        indexer.add_record(
+            Some((0, Position::try_from(400)?, Position::try_from(500)?, true)),
+            Chunk::new(vp(2, 0), vp(2, 100)),
+        )?;
+
+        let index = indexer.build(1);
+        let reference_sequence = &index.reference_sequences()[0];
+
+        // The whole run is a single chunk spanning the three blocks.
+        assert_eq!(
+            reference_sequence.bins()[&4681].chunks(),
+            [Chunk::new(vp(0, 0), vp(2, 100))]
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_add_record_keeps_per_record_linear_index() -> Result<(), Box<dyn std::error::Error>> {
+        let mut indexer = Indexer::<LinearIndex>::default();
+
+        // Two consecutive records in the same bin (585) but in different 16 KiB windows and BGZF
+        // blocks.
+        indexer.add_record(
+            Some((0, Position::try_from(1)?, Position::try_from(20000)?, true)),
+            Chunk::new(vp(0, 0), vp(0, 50)),
+        )?;
+        indexer.add_record(
+            Some((
+                0,
+                Position::try_from(40001)?,
+                Position::try_from(60000)?,
+                true,
+            )),
+            Chunk::new(vp(1, 0), vp(1, 50)),
+        )?;
+
+        let index = indexer.build(1);
+        let reference_sequence = &index.reference_sequences()[0];
+
+        // The run is batched into a single chunk in the bin...
+        assert_eq!(
+            reference_sequence.bins()[&585].chunks(),
+            [Chunk::new(vp(0, 0), vp(1, 50))]
+        );
+
+        // ...but the linear index records each record's own start, not the run's start.
+        assert_eq!(
+            reference_sequence.index().clone(),
+            [vp(0, 0), vp(0, 0), vp(1, 0), vp(1, 0)]
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_add_record_ends_run_on_unplaced_record() -> Result<(), Box<dyn std::error::Error>> {
+        let mut indexer = Indexer::<LinearIndex>::default();
+
+        // Two records in the same leaf bin separated by an unplaced record; the run must not bridge
+        // the gap.
+        indexer.add_record(
+            Some((0, Position::try_from(1)?, Position::try_from(100)?, true)),
+            Chunk::new(vp(0, 0), vp(0, 100)),
+        )?;
+        indexer.add_record(None, Chunk::new(vp(1, 0), vp(1, 100)))?;
+        indexer.add_record(
+            Some((0, Position::try_from(1)?, Position::try_from(100)?, true)),
+            Chunk::new(vp(2, 0), vp(2, 100)),
+        )?;
+
+        let index = indexer.build(1);
+        let reference_sequence = &index.reference_sequences()[0];
+
+        assert_eq!(
+            reference_sequence.bins()[&4681].chunks(),
+            [
+                Chunk::new(vp(0, 0), vp(0, 100)),
+                Chunk::new(vp(2, 0), vp(2, 100)),
+            ]
+        );
+
+        Ok(())
     }
 }

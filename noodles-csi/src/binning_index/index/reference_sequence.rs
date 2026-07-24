@@ -17,6 +17,11 @@ use self::bin::Chunk;
 use super::resolve_interval;
 use crate::binning_index;
 
+// A bin is kept only if its records span at least this many bytes of compressed data; a bin
+// covering less is folded into its parent during compaction. Same value as htslib's
+// HTS_MIN_MARKER_DIST (`compress_binning`, hts.c).
+const MIN_COMPRESSED_SPAN: u64 = 1 << 16;
+
 /// A binning index reference sequence.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ReferenceSequence<I> {
@@ -204,6 +209,16 @@ where
         self.index.last_first_start_position()
     }
 
+    // Adds or merges a chunk into the given bin, creating the bin if necessary.
+    pub(crate) fn add_chunk(&mut self, bin_id: usize, chunk: Chunk) {
+        self.bins
+            .entry(bin_id)
+            .or_insert(Bin::new(Vec::new()))
+            .add_chunk(chunk);
+    }
+
+    // Updates the linear index and metadata for a record. The chunk is the record's own, even when
+    // the bin stores a wider run chunk (see `Indexer::add_record`).
     pub(crate) fn update(
         &mut self,
         min_shift: u8,
@@ -213,10 +228,6 @@ where
         is_mapped: bool,
         chunk: Chunk,
     ) {
-        let id = reg2bin(start, end, min_shift, depth);
-        let bins = self.bins.entry(id).or_insert(Bin::new(Vec::new()));
-        bins.add_chunk(chunk);
-
         self.index.update(min_shift, depth, start, end, chunk);
 
         let metadata = self.metadata.get_or_insert(Metadata::new(
@@ -227,6 +238,61 @@ where
         ));
 
         metadata.update(is_mapped, chunk);
+    }
+
+    // Folds bins that span little compressed data into their parents and merges chunks that share a
+    // BGZF block, matching htslib's `compress_binning`. This significantly reduces the size of the
+    // index without changing query results.
+    pub(crate) fn compact(&mut self) {
+        // Snapshot the insertion order so serialization stays deterministic after the folding
+        // below (bins are an ordered map for this reason).
+        let order: Vec<usize> = self.bins.keys().copied().collect();
+
+        // First pass: fold a bin into its parent when its records span less than
+        // `MIN_COMPRESSED_SPAN` bytes of compressed data. Bins are visited deepest first
+        // (descending ID) so that a bin has received all of its descendants' folded chunks before
+        // its own span is tested, and so a parent is never removed before its children are
+        // considered.
+        let mut ids = order.clone();
+        ids.sort_unstable();
+
+        for &id in ids.iter().rev() {
+            let Some(pid) = parent_id(id) else { continue };
+
+            let Some(bin) = self.bins.get_mut(&id) else {
+                continue;
+            };
+
+            bin.sort_chunks();
+
+            if bin.compressed_span() >= MIN_COMPRESSED_SPAN {
+                continue;
+            }
+
+            if !self.bins.contains_key(&pid) {
+                continue;
+            }
+
+            if let Some(bin) = self.bins.swap_remove(&id)
+                && let Some(parent) = self.bins.get_mut(&pid)
+            {
+                parent.extend_chunks(bin.into_chunks());
+            }
+        }
+
+        // Second pass: restore the original insertion order and, within each surviving bin, sort by
+        // start and merge chunks that share a BGZF block.
+        let mut compacted = IndexMap::with_capacity(self.bins.len());
+
+        for id in order {
+            if let Some(mut bin) = self.bins.swap_remove(&id) {
+                bin.sort_chunks();
+                bin.merge_chunks_in_same_block();
+                compacted.insert(id, bin);
+            }
+        }
+
+        self.bins = compacted;
     }
 }
 
@@ -247,7 +313,7 @@ pub(crate) fn parent_id(id: usize) -> Option<usize> {
 }
 
 // `CSIv1.pdf` (2020-07-21)
-fn reg2bin(start: Position, end: Position, min_shift: u8, depth: u8) -> usize {
+pub(crate) fn reg2bin(start: Position, end: Position, min_shift: u8, depth: u8) -> usize {
     // [beg, end), 0-based
     let beg = usize::from(start) - 1;
     let end = usize::from(end);
@@ -298,10 +364,16 @@ fn reg2bins(start: Position, end: Position, min_shift: u8, depth: u8, bins: &mut
 
 #[cfg(test)]
 mod tests {
+    use super::index::LinearIndex;
     use super::*;
 
     const MIN_SHIFT: u8 = 14;
     const DEPTH: u8 = 5;
+
+    // Builds a virtual position from a compressed (block) offset and an uncompressed offset.
+    fn vp(compressed: u64, uncompressed: u16) -> bgzf::VirtualPosition {
+        bgzf::VirtualPosition::try_from((compressed, uncompressed)).unwrap()
+    }
 
     #[cfg(not(target_pointer_width = "16"))]
     #[test]
@@ -388,5 +460,91 @@ mod tests {
         );
 
         Ok(())
+    }
+
+    #[test]
+    fn test_compact_folds_bin_into_parent() {
+        // Bin 4681 is a child of bin 585 (parent_id(4681) == 585).
+        let bins = [
+            (585, Bin::new(vec![Chunk::new(vp(1, 0), vp(1, 100))])),
+            (4681, Bin::new(vec![Chunk::new(vp(1, 100), vp(1, 200))])),
+        ]
+        .into_iter()
+        .collect();
+        let mut reference_sequence: ReferenceSequence<LinearIndex> =
+            ReferenceSequence::new(bins, Vec::new(), None);
+
+        reference_sequence.compact();
+
+        assert_eq!(reference_sequence.bins().len(), 1);
+        assert_eq!(
+            reference_sequence.bins()[&585].chunks(),
+            [Chunk::new(vp(1, 0), vp(1, 200))]
+        );
+    }
+
+    #[test]
+    fn test_compact_keeps_bin_without_parent() {
+        let bins = [(4681, Bin::new(vec![Chunk::new(vp(1, 0), vp(1, 100))]))]
+            .into_iter()
+            .collect();
+        let mut reference_sequence: ReferenceSequence<LinearIndex> =
+            ReferenceSequence::new(bins, Vec::new(), None);
+
+        reference_sequence.compact();
+
+        assert!(reference_sequence.bins().contains_key(&4681));
+    }
+
+    #[test]
+    fn test_compact_keeps_bin_with_large_span() {
+        let bins = [
+            (585, Bin::new(vec![Chunk::new(vp(0, 0), vp(0, 10))])),
+            (4681, Bin::new(vec![Chunk::new(vp(0, 0), vp(1 << 16, 0))])),
+        ]
+        .into_iter()
+        .collect();
+        let mut reference_sequence: ReferenceSequence<LinearIndex> =
+            ReferenceSequence::new(bins, Vec::new(), None);
+
+        reference_sequence.compact();
+
+        assert!(reference_sequence.bins().contains_key(&585));
+        assert!(reference_sequence.bins().contains_key(&4681));
+    }
+
+    #[test]
+    fn test_compact_does_not_fold_root() {
+        let bins = [(0, Bin::new(vec![Chunk::new(vp(0, 0), vp(0, 100))]))]
+            .into_iter()
+            .collect();
+        let mut reference_sequence: ReferenceSequence<LinearIndex> =
+            ReferenceSequence::new(bins, Vec::new(), None);
+
+        reference_sequence.compact();
+
+        assert!(reference_sequence.bins().contains_key(&0));
+    }
+
+    #[test]
+    fn test_compact_cascades() {
+        // Bin 4681 -> 585 -> 73 (each is the parent of the next); bin 9 (73's parent) is absent.
+        let bins = [
+            (73, Bin::new(vec![Chunk::new(vp(1, 0), vp(1, 10))])),
+            (585, Bin::new(vec![Chunk::new(vp(1, 10), vp(1, 20))])),
+            (4681, Bin::new(vec![Chunk::new(vp(1, 20), vp(1, 30))])),
+        ]
+        .into_iter()
+        .collect();
+        let mut reference_sequence: ReferenceSequence<LinearIndex> =
+            ReferenceSequence::new(bins, Vec::new(), None);
+
+        reference_sequence.compact();
+
+        assert_eq!(reference_sequence.bins().len(), 1);
+        assert_eq!(
+            reference_sequence.bins()[&73].chunks(),
+            [Chunk::new(vp(1, 0), vp(1, 30))]
+        );
     }
 }
