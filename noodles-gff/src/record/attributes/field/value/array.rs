@@ -2,7 +2,7 @@ use std::{borrow::Cow, fmt, io};
 
 use bstr::{BStr, ByteSlice};
 
-use crate::record::attributes::field::percent_decode;
+use crate::record::percent;
 
 /// A GFF record attributes field array value.
 #[derive(Eq, PartialEq)]
@@ -16,7 +16,7 @@ impl<'a> Array<'a> {
     /// Returns an iterator over values.
     pub fn iter(&self) -> impl Iterator<Item = Cow<'a, BStr>> + use<'a> {
         const DELIMITER: u8 = b',';
-        self.0.split(|b| *b == DELIMITER).map(|s| percent_decode(s))
+        self.0.split(|b| *b == DELIMITER).map(percent::decode)
     }
 }
 

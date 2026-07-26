@@ -2,10 +2,11 @@
 
 pub mod attributes;
 pub(crate) mod fields;
+mod percent;
 
-use std::{fmt, io};
+use std::{borrow::Cow, fmt, io};
 
-use bstr::{BStr, ByteSlice};
+use bstr::BStr;
 use noodles_core::Position;
 
 pub use self::attributes::Attributes;
@@ -24,17 +25,17 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the reference sequence name.
-    pub fn reference_sequence_name(&self) -> &BStr {
+    pub fn reference_sequence_name(&self) -> Cow<'_, BStr> {
         self.0.reference_sequence_name()
     }
 
     /// Returns the source.
-    pub fn source(&self) -> &BStr {
+    pub fn source(&self) -> Cow<'_, BStr> {
         self.0.source()
     }
 
     /// Returns the feature type.
-    pub fn ty(&self) -> &BStr {
+    pub fn ty(&self) -> Cow<'_, BStr> {
         self.0.ty()
     }
 
@@ -86,16 +87,16 @@ impl fmt::Debug for Record<'_> {
 }
 
 impl super::feature::Record for Record<'_> {
-    fn reference_sequence_name(&self) -> &BStr {
-        self.reference_sequence_name().as_bytes().as_bstr()
+    fn reference_sequence_name(&self) -> Cow<'_, BStr> {
+        self.reference_sequence_name()
     }
 
-    fn source(&self) -> &BStr {
-        self.source().as_bytes().as_bstr()
+    fn source(&self) -> Cow<'_, BStr> {
+        self.source()
     }
 
-    fn ty(&self) -> &BStr {
-        self.ty().as_bytes().as_bstr()
+    fn ty(&self) -> Cow<'_, BStr> {
+        self.ty()
     }
 
     fn feature_start(&self) -> io::Result<Position> {
@@ -158,6 +159,26 @@ fn parse_phase(src: &[u8]) -> Option<io::Result<Phase>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_percent_decoded_fields() -> io::Result<()> {
+        let src = b"chr%201\tNDLS%25v1\tge%09ne\t8\t13\t.\t+\t.\tID=0";
+        let record = Record::try_new(src)?;
+
+        assert_eq!(record.reference_sequence_name().as_ref(), "chr 1");
+        assert_eq!(record.source().as_ref(), "NDLS%v1");
+        assert_eq!(record.ty().as_ref(), "ge\tne");
+
+        // Invalid escapes are passed through.
+        let src = b"sq%0\tND%LS\tge%ne\t8\t13\t.\t+\t.\tID=0";
+        let record = Record::try_new(src)?;
+
+        assert_eq!(record.reference_sequence_name().as_ref(), "sq%0");
+        assert_eq!(record.source().as_ref(), "ND%LS");
+        assert_eq!(record.ty().as_ref(), "ge%ne");
+
+        Ok(())
+    }
 
     #[test]
     fn test_parse_score() -> io::Result<()> {

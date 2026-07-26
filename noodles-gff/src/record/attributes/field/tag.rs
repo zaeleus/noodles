@@ -2,10 +2,10 @@ use std::borrow::Cow;
 
 use bstr::BStr;
 
-use super::percent_decode;
+use crate::record::percent;
 
 pub(crate) fn parse_tag(src: &[u8]) -> Cow<'_, BStr> {
-    percent_decode(src)
+    percent::decode(src)
 }
 
 #[cfg(test)]

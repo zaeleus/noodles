@@ -1,12 +1,12 @@
 mod bounds;
 
-use std::io;
+use std::{borrow::Cow, io};
 
 use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
 
 use self::bounds::Bounds;
-use super::Attributes;
+use super::{Attributes, percent};
 
 #[derive(Clone, Eq, PartialEq)]
 pub(super) struct Fields<'l> {
@@ -19,16 +19,16 @@ impl<'l> Fields<'l> {
         Bounds::index(src).map(|bounds| Self { src, bounds })
     }
 
-    pub fn reference_sequence_name(&self) -> &BStr {
-        self.src[self.bounds.reference_sequence_name_range()].as_bstr()
+    pub fn reference_sequence_name(&self) -> Cow<'_, BStr> {
+        percent::decode(&self.src[self.bounds.reference_sequence_name_range()])
     }
 
-    pub fn source(&self) -> &BStr {
-        self.src[self.bounds.source_range()].as_bstr()
+    pub fn source(&self) -> Cow<'_, BStr> {
+        percent::decode(&self.src[self.bounds.source_range()])
     }
 
-    pub fn ty(&self) -> &BStr {
-        self.src[self.bounds.type_range()].as_bstr()
+    pub fn ty(&self) -> Cow<'_, BStr> {
+        percent::decode(&self.src[self.bounds.type_range()])
     }
 
     pub fn start(&self) -> io::Result<Position> {

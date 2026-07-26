@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use bstr::BStr;
 
 use self::array::Array;
-use super::percent_decode;
+use crate::record::percent;
 
 /// A GFF record attributes field value.
 #[derive(Debug, Eq, PartialEq)]
@@ -38,7 +38,7 @@ pub(crate) fn parse_value(src: &[u8]) -> Value<'_> {
     if is_array(src) {
         Value::Array(Array::new(src))
     } else {
-        Value::String(percent_decode(src))
+        Value::String(percent::decode(src))
     }
 }
 

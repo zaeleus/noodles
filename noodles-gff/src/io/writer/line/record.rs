@@ -7,7 +7,13 @@ mod source;
 mod strand;
 mod ty;
 
-use std::io::{self, Write};
+use std::{
+    borrow::Cow,
+    io::{self, Write},
+};
+
+use bstr::BStr;
+use percent_encoding::{AsciiSet, CONTROLS};
 
 use self::{
     attributes::write_attributes, phase::write_phase, position::write_position,
@@ -21,14 +27,14 @@ where
     W: Write,
     R: Record + ?Sized,
 {
-    write_reference_sequence_name(writer, record.reference_sequence_name())?;
+    write_reference_sequence_name(writer, record.reference_sequence_name().as_ref())?;
 
     write_separator(writer)?;
-    write_source(writer, record.source())?;
+    write_source(writer, record.source().as_ref())?;
 
     write_separator(writer)?;
     let ty = record.ty();
-    write_type(writer, ty)?;
+    write_type(writer, ty.as_ref())?;
 
     write_separator(writer)?;
     write_position(writer, record.feature_start()?)?;
@@ -43,7 +49,7 @@ where
     write_strand(writer, record.strand()?)?;
 
     write_separator(writer)?;
-    write_phase(writer, ty, record.phase().transpose()?)?;
+    write_phase(writer, ty.as_ref(), record.phase().transpose()?)?;
 
     write_separator(writer)?;
     write_attributes(writer, record.attributes().as_ref())?;
@@ -65,6 +71,14 @@ where
 {
     const SEPARATOR: u8 = b'\t';
     writer.write_all(&[SEPARATOR])
+}
+
+// § "Description of the Format" (2020-08-18): "Literal use of tab, newline, carriage return, the
+// percent (%) sign, and control characters must be encoded using RFC 3986 Percent-Encoding; no
+// other characters may be encoded." `;`, `=`, `&`, and `,` are only reserved in column 9.
+fn percent_encode(s: &BStr) -> Cow<'_, str> {
+    const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'\t').add(b'\n').add(b'\r').add(b'%');
+    percent_encoding::percent_encode(s, PERCENT_ENCODE_SET).into()
 }
 
 #[cfg(test)]

@@ -5,7 +5,7 @@ mod value;
 
 use std::{borrow::Cow, io};
 
-use bstr::{BStr, ByteSlice};
+use bstr::BStr;
 
 pub use self::value::Value;
 pub(super) use self::{tag::parse_tag, value::parse_value};
@@ -56,13 +56,6 @@ fn take_value<'a>(src: &mut &'a [u8]) -> &'a [u8] {
 fn split_once(src: &[u8], n: u8) -> Option<(&[u8], &[u8])> {
     let i = src.iter().position(|b| *b == n)?;
     Some((&src[..i], &src[i + 1..]))
-}
-
-fn percent_decode(s: &[u8]) -> Cow<'_, BStr> {
-    match Cow::from(percent_encoding::percent_decode(s)) {
-        Cow::Borrowed(buf) => Cow::Borrowed(buf.as_bstr()),
-        Cow::Owned(buf) => Cow::Owned(buf.into()),
-    }
 }
 
 #[cfg(test)]

@@ -4,7 +4,7 @@ pub mod attributes;
 mod builder;
 mod convert;
 
-use std::io;
+use std::{borrow::Cow, io};
 
 use bstr::{BStr, BString};
 use noodles_core::Position;
@@ -175,16 +175,16 @@ impl Default for RecordBuf {
 }
 
 impl super::Record for RecordBuf {
-    fn reference_sequence_name(&self) -> &BStr {
-        self.reference_sequence_name()
+    fn reference_sequence_name(&self) -> Cow<'_, BStr> {
+        Cow::from(self.reference_sequence_name())
     }
 
-    fn source(&self) -> &BStr {
-        self.source()
+    fn source(&self) -> Cow<'_, BStr> {
+        Cow::from(self.source())
     }
 
-    fn ty(&self) -> &BStr {
-        self.ty()
+    fn ty(&self) -> Cow<'_, BStr> {
+        Cow::from(self.ty())
     }
 
     fn feature_start(&self) -> io::Result<Position> {

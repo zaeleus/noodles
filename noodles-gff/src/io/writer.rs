@@ -190,3 +190,86 @@ where
         line::write_newline(&mut self.inner)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use bstr::BString;
+    use noodles_core::Position;
+
+    use super::*;
+    use crate::io::Reader;
+
+    // Values covering each character that must be encoded, plus ones that must not be.
+    const VALUES: [&str; 10] = [
+        "ndls",
+        "ndls v1",
+        "ndls\tv1",
+        "ndls\nv1",
+        "ndls\rv1",
+        "ndls\x00v1",
+        "ndls\x7fv1",
+        "50%",
+        "%25",
+        "a;b=c&d,e",
+    ];
+
+    #[test]
+    fn test_write_record_with_delimiters_in_fields() -> Result<(), Box<dyn std::error::Error>> {
+        for value in VALUES {
+            let record = RecordBuf::builder()
+                .set_reference_sequence_name(BString::from(value))
+                .set_source(BString::from(value))
+                .set_type(BString::from(value))
+                .set_start(Position::try_from(8)?)
+                .set_end(Position::try_from(13)?)
+                .build();
+
+            let mut writer = Writer::new(Vec::new());
+            writer.write_record(&record)?;
+            let dst = writer.into_inner();
+
+            // § "Description of the Format" (2020-08-18): "GFF3 files are nine-column,
+            // tab-delimited, plain text files."
+            let line_count = dst.iter().filter(|b| **b == b'\n').count();
+            let field_count = dst.iter().filter(|b| **b == b'\t').count() + 1;
+            assert_eq!((line_count, field_count), (1, 9), "{value:?}");
+
+            let mut reader = Reader::new(&dst[..]);
+            let actual = reader.record_bufs().next().transpose()?;
+            assert_eq!(actual.as_ref(), Some(&record), "{value:?}");
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_feature_record_is_idempotent() -> Result<(), Box<dyn std::error::Error>> {
+        for value in VALUES {
+            let mut writer = Writer::new(Vec::new());
+
+            let record = RecordBuf::builder()
+                .set_reference_sequence_name(BString::from(value))
+                .set_source(BString::from(value))
+                .set_type(BString::from(value))
+                .set_start(Position::try_from(8)?)
+                .set_end(Position::try_from(13)?)
+                .build();
+
+            writer.write_record(&record)?;
+            let expected = writer.into_inner();
+
+            let mut reader = Reader::new(&expected[..]);
+            let mut line = crate::Line::default();
+            reader.read_line(&mut line)?;
+
+            let record = line.as_record().transpose()?.expect("missing record");
+
+            let mut writer = Writer::new(Vec::new());
+            writer.write_feature_record(&record)?;
+
+            assert_eq!(writer.into_inner(), expected, "{value:?}");
+        }
+
+        Ok(())
+    }
+}
