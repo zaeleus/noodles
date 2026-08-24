@@ -1,6 +1,9 @@
 use std::io;
 
 /// SAM record quality scores.
+///
+/// The wrapped bytes are Phred+33-encoded, as written in the QUAL field.
+/// See [`crate::alignment::record::QualityScores`] for normalized phred values.
 #[derive(Debug, Eq, PartialEq)]
 pub struct QualityScores<'a>(&'a [u8]);
 
