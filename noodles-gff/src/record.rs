@@ -34,8 +34,8 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the feature type.
-    pub fn ty(&self) -> &BStr {
-        self.0.ty()
+    pub fn ty(&self) -> Cow<'_, BStr> {
+        percent_decode(self.0.ty())
     }
 
     /// Returns the start position.
@@ -95,7 +95,7 @@ impl super::feature::Record for Record<'_> {
     }
 
     fn ty(&self) -> Cow<'_, BStr> {
-        Cow::from(self.ty().as_bytes().as_bstr())
+        self.ty()
     }
 
     fn feature_start(&self) -> io::Result<Position> {
