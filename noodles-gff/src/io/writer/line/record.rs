@@ -7,7 +7,13 @@ mod source;
 mod strand;
 mod ty;
 
-use std::io::{self, Write};
+use std::{
+    borrow::Cow,
+    io::{self, Write},
+};
+
+use bstr::BStr;
+use percent_encoding::{AsciiSet, CONTROLS};
 
 use self::{
     attributes::write_attributes, phase::write_phase, position::write_position,
@@ -67,6 +73,14 @@ where
     writer.write_all(&[SEPARATOR])
 }
 
+// § "Description of the Format" (2020-08-18): "Literal use of tab, newline, carriage return, the
+// percent (%) sign, and control characters must be encoded using RFC 3986 Percent-Encoding; no
+// other characters may be encoded."
+fn percent_encode(s: &BStr) -> Cow<'_, str> {
+    const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS.add(b'%');
+    percent_encoding::percent_encode(s, PERCENT_ENCODE_SET).into()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,5 +93,12 @@ mod tests {
         write_record(&mut buf, &record)?;
         assert_eq!(buf, b".\t.\t.\t1\t1\t.\t.\t.\t.");
         Ok(())
+    }
+
+    #[test]
+    fn test_percent_encode() {
+        assert_eq!(percent_encode(BStr::new("")), "");
+        assert_eq!(percent_encode(BStr::new("noodles")), "noodles");
+        assert_eq!(percent_encode(BStr::new("\t\n\r%\0")), "%09%0A%0D%25%00");
     }
 }

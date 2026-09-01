@@ -7,6 +7,8 @@
   * gff/feature/record: Change reference sequence name, source, and type to
     return `Cow<'_, BStr>` ([#407]).
 
+  * gff/io/writer/line/record/source: Percent-encode source ([#407]).
+
 [#407]: https://github.com/zaeleus/noodles/pull/407
 
 ## 0.62.0 - 2026-08-21
