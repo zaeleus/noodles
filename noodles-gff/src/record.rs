@@ -29,8 +29,8 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the source.
-    pub fn source(&self) -> &BStr {
-        self.0.source()
+    pub fn source(&self) -> Cow<'_, BStr> {
+        percent_decode(self.0.source())
     }
 
     /// Returns the feature type.
@@ -91,7 +91,7 @@ impl super::feature::Record for Record<'_> {
     }
 
     fn source(&self) -> Cow<'_, BStr> {
-        Cow::from(self.source().as_bytes().as_bstr())
+        self.source()
     }
 
     fn ty(&self) -> Cow<'_, BStr> {
