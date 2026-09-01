@@ -90,8 +90,8 @@ impl super::feature::Record for Record<'_> {
         Cow::from(self.reference_sequence_name().as_bytes().as_bstr())
     }
 
-    fn source(&self) -> &BStr {
-        self.source().as_bytes().as_bstr()
+    fn source(&self) -> Cow<'_, BStr> {
+        Cow::from(self.source().as_bytes().as_bstr())
     }
 
     fn ty(&self) -> &BStr {

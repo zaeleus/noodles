@@ -17,7 +17,7 @@ pub trait Record {
     fn reference_sequence_name(&self) -> Cow<'_, BStr>;
 
     /// Returns the source.
-    fn source(&self) -> &BStr;
+    fn source(&self) -> Cow<'_, BStr>;
 
     /// Returns the type.
     fn ty(&self) -> &BStr;

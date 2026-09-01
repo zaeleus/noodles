@@ -179,8 +179,8 @@ impl super::Record for RecordBuf {
         Cow::from(self.reference_sequence_name())
     }
 
-    fn source(&self) -> &BStr {
-        self.source()
+    fn source(&self) -> Cow<'_, BStr> {
+        Cow::from(self.source())
     }
 
     fn ty(&self) -> &BStr {
