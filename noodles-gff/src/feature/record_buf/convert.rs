@@ -12,7 +12,7 @@ impl RecordBuf {
         let mut builder = Self::builder();
 
         builder = builder
-            .set_reference_sequence_name(record.reference_sequence_name())
+            .set_reference_sequence_name(record.reference_sequence_name().into_owned())
             .set_source(record.source())
             .set_type(record.ty())
             .set_start(record.feature_start()?)

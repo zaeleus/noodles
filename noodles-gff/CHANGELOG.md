@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * gff/feature/record: Change reference sequence name to return a `Cow<'_,
+    BStr>` ([#407]).
+
+[#407]: https://github.com/zaeleus/noodles/pull/407
+
 ## 0.62.0 - 2026-08-21
 
 ### Changed

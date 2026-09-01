@@ -4,7 +4,7 @@ pub mod attributes;
 mod phase;
 mod strand;
 
-use std::io;
+use std::{borrow::Cow, io};
 
 use bstr::BStr;
 use noodles_core::Position;
@@ -14,7 +14,7 @@ pub use self::{attributes::Attributes, phase::Phase, strand::Strand};
 /// A feature record.
 pub trait Record {
     /// Returns the reference sequence name.
-    fn reference_sequence_name(&self) -> &BStr;
+    fn reference_sequence_name(&self) -> Cow<'_, BStr>;
 
     /// Returns the source.
     fn source(&self) -> &BStr;

@@ -3,7 +3,7 @@
 pub mod attributes;
 pub(crate) mod fields;
 
-use std::{fmt, io};
+use std::{borrow::Cow, fmt, io};
 
 use bstr::{BStr, ByteSlice};
 use noodles_core::Position;
@@ -86,8 +86,8 @@ impl fmt::Debug for Record<'_> {
 }
 
 impl super::feature::Record for Record<'_> {
-    fn reference_sequence_name(&self) -> &BStr {
-        self.reference_sequence_name().as_bytes().as_bstr()
+    fn reference_sequence_name(&self) -> Cow<'_, BStr> {
+        Cow::from(self.reference_sequence_name().as_bytes().as_bstr())
     }
 
     fn source(&self) -> &BStr {
