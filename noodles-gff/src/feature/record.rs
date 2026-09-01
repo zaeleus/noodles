@@ -20,7 +20,7 @@ pub trait Record {
     fn source(&self) -> Cow<'_, BStr>;
 
     /// Returns the type.
-    fn ty(&self) -> &BStr;
+    fn ty(&self) -> Cow<'_, BStr>;
 
     /// Returns the feature start.
     fn feature_start(&self) -> io::Result<Position>;

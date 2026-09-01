@@ -28,7 +28,7 @@ where
     write_source(writer, record.source().as_ref())?;
 
     write_separator(writer)?;
-    write_type(writer, record.ty())?;
+    write_type(writer, record.ty().as_ref())?;
 
     write_separator(writer)?;
     write_position(writer, record.feature_start()?)?;

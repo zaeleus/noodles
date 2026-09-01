@@ -4,8 +4,8 @@
 
 ### Changed
 
-  * gff/feature/record: Change reference sequence name and source to return
-    `Cow<'_, BStr>` ([#407]).
+  * gff/feature/record: Change reference sequence name, source, and type to
+    return `Cow<'_, BStr>` ([#407]).
 
 [#407]: https://github.com/zaeleus/noodles/pull/407
 

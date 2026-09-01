@@ -97,8 +97,8 @@ impl gff::feature::Record for Record<'_> {
         Cow::from(self.source())
     }
 
-    fn ty(&self) -> &BStr {
-        self.ty()
+    fn ty(&self) -> Cow<'_, BStr> {
+        Cow::from(self.ty())
     }
 
     fn feature_start(&self) -> io::Result<Position> {

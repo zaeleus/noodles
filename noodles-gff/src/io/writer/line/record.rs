@@ -28,7 +28,7 @@ where
 
     write_separator(writer)?;
     let ty = record.ty();
-    write_type(writer, ty)?;
+    write_type(writer, ty.as_ref())?;
 
     write_separator(writer)?;
     write_position(writer, record.feature_start()?)?;
@@ -43,7 +43,7 @@ where
     write_strand(writer, record.strand()?)?;
 
     write_separator(writer)?;
-    write_phase(writer, ty, record.phase().transpose()?)?;
+    write_phase(writer, ty.as_ref(), record.phase().transpose()?)?;
 
     write_separator(writer)?;
     write_attributes(writer, record.attributes().as_ref())?;

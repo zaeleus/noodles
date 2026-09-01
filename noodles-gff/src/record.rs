@@ -94,8 +94,8 @@ impl super::feature::Record for Record<'_> {
         Cow::from(self.source().as_bytes().as_bstr())
     }
 
-    fn ty(&self) -> &BStr {
-        self.ty().as_bytes().as_bstr()
+    fn ty(&self) -> Cow<'_, BStr> {
+        Cow::from(self.ty().as_bytes().as_bstr())
     }
 
     fn feature_start(&self) -> io::Result<Position> {
