@@ -9,6 +9,8 @@
 
   * gff/io/writer/line/record: Percent-encode source and type ([#407]).
 
+  * gff/record: Percent-decode reference sequence name ([#407]).
+
 [#407]: https://github.com/zaeleus/noodles/pull/407
 
 ## 0.62.0 - 2026-08-21

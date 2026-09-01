@@ -2,7 +2,7 @@ use std::{borrow::Cow, fmt, io};
 
 use bstr::{BStr, ByteSlice};
 
-use crate::record::attributes::field::percent_decode;
+use crate::record::percent_decode;
 
 /// A GFF record attributes field array value.
 #[derive(Eq, PartialEq)]

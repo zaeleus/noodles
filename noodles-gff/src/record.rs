@@ -24,8 +24,8 @@ impl<'l> Record<'l> {
     }
 
     /// Returns the reference sequence name.
-    pub fn reference_sequence_name(&self) -> &BStr {
-        self.0.reference_sequence_name()
+    pub fn reference_sequence_name(&self) -> Cow<'_, BStr> {
+        percent_decode(self.0.reference_sequence_name())
     }
 
     /// Returns the source.
@@ -87,7 +87,7 @@ impl fmt::Debug for Record<'_> {
 
 impl super::feature::Record for Record<'_> {
     fn reference_sequence_name(&self) -> Cow<'_, BStr> {
-        Cow::from(self.reference_sequence_name().as_bytes().as_bstr())
+        self.reference_sequence_name()
     }
 
     fn source(&self) -> Cow<'_, BStr> {
@@ -120,6 +120,13 @@ impl super::feature::Record for Record<'_> {
 
     fn attributes(&self) -> Box<dyn super::feature::record::Attributes + '_> {
         Box::new(self.attributes())
+    }
+}
+
+fn percent_decode(src: &[u8]) -> Cow<'_, BStr> {
+    match Cow::from(percent_encoding::percent_decode(src)) {
+        Cow::Borrowed(buf) => Cow::Borrowed(buf.as_bstr()),
+        Cow::Owned(buf) => Cow::Owned(buf.into()),
     }
 }
 
@@ -158,6 +165,17 @@ fn parse_phase(src: &[u8]) -> Option<io::Result<Phase>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_percent_decode() {
+        assert_eq!(percent_decode(b""), b"".as_bstr());
+        assert_eq!(percent_decode(b"noodles"), b"noodles".as_bstr());
+        assert_eq!(
+            percent_decode(b"%09%0A%0D%25%00%3B%3D%26%2C"),
+            b"\t\n\r%\0;=&,".as_bstr()
+        );
+        assert_eq!(percent_decode(b"nd%2ls"), b"nd%2ls".as_bstr());
+    }
 
     #[test]
     fn test_parse_score() -> io::Result<()> {

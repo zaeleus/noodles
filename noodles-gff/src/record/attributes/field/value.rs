@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use bstr::BStr;
 
 use self::array::Array;
-use super::percent_decode;
+use crate::record::percent_decode;
 
 /// A GFF record attributes field value.
 #[derive(Debug, Eq, PartialEq)]
