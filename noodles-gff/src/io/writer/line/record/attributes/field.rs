@@ -30,6 +30,9 @@ where
     writer.write_all(&[SEPARATOR])
 }
 
+// § "Description of the Format" (2020-08-18): "In addition, the following characters have reserved
+// meanings in column 9 and must be escaped when used in other contexts: semicolon (%3B), equals
+// (%3D) ampersand (%26), and comman (%2C)."
 fn percent_encode(s: &BStr) -> Cow<'_, str> {
     const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS
         .add(b'\t')
