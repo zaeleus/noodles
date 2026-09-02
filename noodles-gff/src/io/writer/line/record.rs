@@ -99,6 +99,9 @@ mod tests {
     fn test_percent_encode() {
         assert_eq!(percent_encode(BStr::new("")), "");
         assert_eq!(percent_encode(BStr::new("noodles")), "noodles");
-        assert_eq!(percent_encode(BStr::new("\t\n\r%\0")), "%09%0A%0D%25%00");
+        assert_eq!(
+            percent_encode(BStr::new("\t\n\r%\0;=&,")),
+            "%09%0A%0D%25%00;=&,"
+        );
     }
 }

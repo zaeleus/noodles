@@ -34,15 +34,8 @@ where
 // meanings in column 9 and must be escaped when used in other contexts: semicolon (%3B), equals
 // (%3D) ampersand (%26), and comman (%2C)."
 fn percent_encode(s: &BStr) -> Cow<'_, str> {
-    const PERCENT_ENCODE_SET: &AsciiSet = &CONTROLS
-        .add(b'\t')
-        .add(b'\n')
-        .add(b'\r')
-        .add(b'%')
-        .add(b';')
-        .add(b'=')
-        .add(b'&')
-        .add(b',');
+    const PERCENT_ENCODE_SET: &AsciiSet =
+        &CONTROLS.add(b'%').add(b';').add(b'=').add(b'&').add(b',');
 
     percent_encoding::percent_encode(s, PERCENT_ENCODE_SET).into()
 }
@@ -64,5 +57,15 @@ mod tests {
         assert_eq!(buf, b"ID=0");
 
         Ok(())
+    }
+
+    #[test]
+    fn test_percent_encode() {
+        assert_eq!(percent_encode(BStr::new("")), "");
+        assert_eq!(percent_encode(BStr::new("noodles")), "noodles");
+        assert_eq!(
+            percent_encode(BStr::new("\t\n\r%\0;=&,")),
+            "%09%0A%0D%25%00%3B%3D%26%2C"
+        );
     }
 }
