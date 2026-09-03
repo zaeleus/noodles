@@ -14,6 +14,10 @@
 
 [#407]: https://github.com/zaeleus/noodles/pull/407
 
+### Fixed
+
+  * gff/io/reader/line_bufs: Fix `LineBufs` not removing comment prefix (`#`).
+
 ## 0.62.0 - 2026-08-21
 
 ### Changed

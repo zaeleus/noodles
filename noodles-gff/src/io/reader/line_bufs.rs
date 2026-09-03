@@ -41,7 +41,11 @@ where
                     let directive = self.line.as_directive().unwrap();
                     Some(Ok(LineBuf::Directive(directive.into())))
                 }
-                Kind::Comment => Some(Ok(LineBuf::Comment(self.line.as_ref().into()))),
+                Kind::Comment => {
+                    // SAFETY: `self.line` is a comment.
+                    let comment = self.line.as_comment().unwrap();
+                    Some(Ok(LineBuf::Comment(comment.into())))
+                }
                 Kind::Record => Some(
                     self.line
                         .as_record()
@@ -53,5 +57,21 @@ where
             },
             Err(e) => Some(Err(e)),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use bstr::BString;
+
+    use super::*;
+
+    #[test]
+    fn test_next() -> io::Result<()> {
+        let mut reader = Reader::new(&b"#noodles"[..]);
+        let mut iter = LineBufs::new(&mut reader);
+        let line = iter.next().transpose().unwrap();
+        assert_eq!(line, Some(LineBuf::Comment(BString::from("noodles"))));
+        Ok(())
     }
 }
