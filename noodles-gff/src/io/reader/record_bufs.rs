@@ -8,7 +8,7 @@ use crate::{LineBuf, directive_buf::key, feature::RecordBuf};
 /// This filters lines for only records. It stops at either EOF or when the `FASTA` directive is
 /// read, whichever comes first.
 ///
-/// This is created by calling [`crate::Reader::records`].
+/// This is created by calling [`crate::io::Reader::record_bufs`].
 pub struct RecordBufs<'a, R> {
     lines: LineBufs<'a, R>,
 }
