@@ -119,6 +119,10 @@ impl crate::variant::record::Samples for Samples<'_> {
         )
     }
 
+    fn as_text(&self) -> Option<&str> {
+        Some(self.0)
+    }
+
     fn iter(
         &self,
     ) -> Box<dyn Iterator<Item = Box<dyn crate::variant::record::samples::Sample + '_>> + '_> {

@@ -17,6 +17,12 @@
 
     Empty inputs now return `io::ErrorKind::UnexpectedEof`.
 
+  * vcf/io/writer/record/samples: Write already-encoded samples as they are.
+
+    Samples that are already VCF text, i.e., those of a parsed `Record`, are
+    now written directly rather than decoded into values and formatted again.
+    Output is unchanged.
+
 ## 0.93.0 - 2026-08-21
 
 ### Changed
@@ -1277,7 +1283,6 @@
   * vcf/record/genotypes/genotype/field: Remove `Field`.
 
     Use `(Key, Option<Value>)` instead.
-
 
 ## 0.23.0 - 2022-11-29
 
