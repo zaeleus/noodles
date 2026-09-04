@@ -12,12 +12,13 @@ documentation = "https://docs.rs/noodles-bgzf"
 categories = ["compression"]
 
 [features]
+default = ["multithreaded"]
 async = ["dep:futures", "dep:pin-project-lite", "dep:tokio", "dep:tokio-util"]
 libdeflate = ["dep:libdeflater"]
+multithreaded = ["dep:crossbeam-channel", "dep:rayon"]
 
 [dependencies]
 bytes.workspace = true
-crossbeam-channel = "0.5.6"
 zlib-rs = { version = "0.6.3", features = ["avx512"] }
 
 futures = { workspace = true, optional = true, features = ["std"] }
@@ -26,7 +27,9 @@ tokio = { workspace = true, optional = true, features = ["fs", "io-util", "rt"] 
 tokio-util = { version = "0.7.0", optional = true, features = ["codec"] }
 
 libdeflater = { workspace = true, optional = true }
-rayon = "1.12.0"
+
+crossbeam-channel = { version = "0.5.6", optional = true }
+rayon = { version = "1.12.0", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
@@ -42,5 +45,13 @@ name = "bgzf_read_async"
 required-features = ["async"]
 
 [[example]]
+name = "bgzf_read_multithreaded"
+required-features = ["multithreaded"]
+
+[[example]]
 name = "bgzf_write_async"
 required-features = ["async"]
+
+[[example]]
+name = "bgzf_write_multithreaded"
+required-features = ["multithreaded"]

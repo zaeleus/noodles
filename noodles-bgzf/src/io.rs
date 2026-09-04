@@ -3,7 +3,9 @@
 mod block;
 mod buf_read;
 pub mod indexed_reader;
+#[cfg(feature = "multithreaded")]
 mod multithreaded_reader;
+#[cfg(feature = "multithreaded")]
 pub mod multithreaded_writer;
 mod read;
 pub mod reader;
@@ -12,9 +14,12 @@ pub mod writer;
 
 pub(crate) use self::block::Block;
 pub use self::{
-    buf_read::BufRead, indexed_reader::IndexedReader, multithreaded_reader::MultithreadedReader,
-    multithreaded_writer::MultithreadedWriter, read::Read, reader::Reader, seek::Seek,
+    buf_read::BufRead, indexed_reader::IndexedReader, read::Read, reader::Reader, seek::Seek,
     writer::Writer,
+};
+#[cfg(feature = "multithreaded")]
+pub use self::{
+    multithreaded_reader::MultithreadedReader, multithreaded_writer::MultithreadedWriter,
 };
 
 #[cfg(test)]
@@ -86,6 +91,7 @@ mod tests {
         Ok(())
     }
 
+    #[cfg(feature = "multithreaded")]
     #[test]
     fn test_self_multithreaded() -> io::Result<()> {
         let mut writer = MultithreadedWriter::new(Vec::new());

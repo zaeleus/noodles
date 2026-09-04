@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bgzf: Add `multithreaded` feature.
+
+    This gates the multithreaded reader (`io::MultithreadedReader`) and writer
+    (`io::MultithreadedWriter`). It is enabled by default, so the previous
+    behavior is unchanged. Disabling it removes the crossbeam-channel and rayon
+    dependencies.
+
 ## 0.51.0 - 2026-08-03
 
 ### Fixed
