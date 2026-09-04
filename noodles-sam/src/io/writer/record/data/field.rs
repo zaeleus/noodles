@@ -1,6 +1,6 @@
 mod tag;
 mod ty;
-mod value;
+pub(super) mod value;
 
 use std::io::{self, Write};
 

@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use crate::io::writer::num;
 
-pub(super) fn write_float<W>(writer: &mut W, n: f32) -> io::Result<()>
+pub(in crate::io::writer::record::data) fn write_float<W>(writer: &mut W, n: f32) -> io::Result<()>
 where
     W: Write,
 {

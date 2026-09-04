@@ -94,7 +94,7 @@ where
     writer.write_all(DELIMITER)?;
     write_quality_scores(writer, base_count, record.quality_scores_ref())?;
 
-    write_data(writer, record.data())?;
+    write_data(writer, record.data_ref())?;
 
     writeln!(writer)?;
 

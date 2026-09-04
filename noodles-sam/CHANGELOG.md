@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/io/writer/record/data: Write BAM-encoded fields without decoding them.
+
+    Fields that are already encoded, i.e., `DataRef::FieldEncoded`, are now
+    transcoded to text directly rather than decoded into values first. This
+    removes two allocations per record and the value materialized for each
+    field. Output is unchanged.
+
 ## 0.90.0 - 2026-08-21
 
 ### Changed

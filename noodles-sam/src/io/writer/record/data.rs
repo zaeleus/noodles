@@ -1,11 +1,22 @@
 mod field;
+mod field_encoded;
 
 use std::io::{self, Write};
 
-use self::field::write_field;
-use crate::alignment::record::Data;
+use self::{field::write_field, field_encoded::write_field_encoded_data};
+use crate::alignment::record::{Data, DataRef};
 
-pub(super) fn write_data<'r, W, D>(writer: &mut W, data: D) -> io::Result<()>
+pub(super) fn write_data<W>(writer: &mut W, data: DataRef<'_>) -> io::Result<()>
+where
+    W: Write,
+{
+    match data {
+        DataRef::FieldEncoded(src) => write_field_encoded_data(writer, src),
+        DataRef::Data(d) => write_generic_data(writer, d),
+    }
+}
+
+fn write_generic_data<'r, W, D>(writer: &mut W, data: D) -> io::Result<()>
 where
     W: Write,
     D: Data<'r>,
@@ -40,7 +51,7 @@ mod tests {
         .into_iter()
         .collect();
 
-        write_data(&mut buf, &data)?;
+        write_data(&mut buf, DataRef::Data(Box::new(&data)))?;
 
         assert_eq!(buf, b"\tNH:i:1\tCO:Z:noodles");
 

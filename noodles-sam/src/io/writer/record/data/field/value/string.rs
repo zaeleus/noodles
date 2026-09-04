@@ -1,6 +1,9 @@
 use std::io::{self, Write};
 
-pub(super) fn write_string<W>(writer: &mut W, buf: &[u8]) -> io::Result<()>
+pub(in crate::io::writer::record::data) fn write_string<W>(
+    writer: &mut W,
+    buf: &[u8],
+) -> io::Result<()>
 where
     W: Write,
 {

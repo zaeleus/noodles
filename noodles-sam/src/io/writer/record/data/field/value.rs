@@ -6,9 +6,9 @@ mod string;
 
 use std::io::{self, Write};
 
-use self::{
-    array::write_array, character::write_character, float::write_float, hex::write_hex,
-    string::write_string,
+use self::{array::write_array, character::write_character};
+pub(in crate::io::writer::record::data) use self::{
+    float::write_float, hex::write_hex, string::write_string,
 };
 use crate::{alignment::record::data::field::Value, io::writer::num};
 
