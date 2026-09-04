@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/codecs/rans_4x8: Add decoder (`decode`) and encoder (`encode`)
+    ([#412]).
+
+  * cram/codecs/rans_nx16: Add decoder (`decode`) and encoder (`encode`)
+    ([#412]).
+
+[#412]: https://github.com/zaeleus/noodles/pull/412
+
 ### Changed
 
   * cram: Update to lzma-rust2 0.20.0.
