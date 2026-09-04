@@ -1,5 +1,6 @@
 //! BAI I/O.
 
+mod num;
 mod reader;
 mod writer;
 

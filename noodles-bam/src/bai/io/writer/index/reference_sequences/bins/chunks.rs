@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 
-use crate::io::writer::num::{write_u32_le, write_u64_le};
+use crate::bai::io::num::{write_u32_le, write_u64_le};
 
 pub(super) fn write_chunks<W>(writer: &mut W, chunks: &[Chunk]) -> io::Result<()>
 where

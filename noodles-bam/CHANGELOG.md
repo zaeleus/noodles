@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * bam: Add `records` feature.
+
+    This gates the record (`record`), I/O (`io`), and filesystem operations
+    (`fs`) modules, i.e., everything but the index (`bai`). It is enabled by
+    default, so the previous behavior is unchanged. Disabling it removes the
+    noodles-sam dependency, which the index does not use.
+
+### Changed
+
+  * bam/bai: Read and write integers using the index's own helpers.
+
+    The index previously borrowed `io::reader::num` and `io::writer::num`,
+    which belong to the record reader and writer.
+
 ## 0.95.0 - 2026-08-21
 
 ### Changed

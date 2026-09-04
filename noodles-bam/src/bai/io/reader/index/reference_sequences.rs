@@ -8,7 +8,7 @@ use noodles_csi::binning_index::index::{
 };
 
 use self::{bins::read_bins, intervals::read_intervals};
-use crate::io::reader::num::read_u32_le;
+use crate::bai::io::num::read_u32_le;
 
 pub(super) fn read_reference_sequences<R>(
     reader: &mut R,

@@ -2,7 +2,7 @@ use std::io::{self, Read};
 
 use noodles_bgzf as bgzf;
 
-use crate::io::reader::num::{read_u32_le, read_u64_le};
+use crate::bai::io::num::{read_u32_le, read_u64_le};
 
 pub(super) fn read_intervals<R>(reader: &mut R) -> io::Result<Vec<bgzf::VirtualPosition>>
 where

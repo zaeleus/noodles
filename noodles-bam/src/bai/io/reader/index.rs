@@ -4,7 +4,7 @@ mod reference_sequences;
 use std::io::{self, Read};
 
 use self::{magic_number::read_magic_number, reference_sequences::read_reference_sequences};
-use crate::{bai::Index, io::reader::num::read_u64_le};
+use crate::bai::{Index, io::num::read_u64_le};
 
 pub(super) fn read_index<R>(reader: &mut R) -> io::Result<Index>
 where

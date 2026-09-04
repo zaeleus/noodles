@@ -2,7 +2,7 @@ use std::io::{self, Write};
 
 use noodles_bgzf as bgzf;
 
-use crate::io::writer::num::{write_u32_le, write_u64_le};
+use crate::bai::io::num::{write_u32_le, write_u64_le};
 
 pub(super) fn write_intervals<W>(
     writer: &mut W,

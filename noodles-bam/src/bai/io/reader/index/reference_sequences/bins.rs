@@ -3,7 +3,7 @@ use std::io::{self, Read};
 use indexmap::IndexMap;
 use noodles_csi::binning_index::index::reference_sequence::{Bin, Metadata};
 
-use crate::io::reader::num::read_u32_le;
+use crate::bai::io::num::read_u32_le;
 
 pub(super) fn read_bins<R>(reader: &mut R) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)>
 where

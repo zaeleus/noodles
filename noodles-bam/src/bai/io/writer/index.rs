@@ -6,7 +6,7 @@ use std::io::{self, Write};
 use noodles_csi::BinningIndex;
 
 use self::{magic_number::write_magic_number, reference_sequences::write_reference_sequences};
-use crate::{bai::Index, io::writer::num::write_u64_le};
+use crate::bai::{Index, io::num::write_u64_le};
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
@@ -41,7 +41,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::{bai::MAGIC_NUMBER, io::writer::num::write_u32_le};
+    use crate::bai::{MAGIC_NUMBER, io::num::write_u32_le};
 
     #[test]
     fn test_write_index() -> io::Result<()> {

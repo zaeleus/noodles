@@ -10,7 +10,7 @@ use noodles_csi::binning_index::{
 };
 
 use self::{bins::write_bins, intervals::write_intervals, metadata::write_metadata};
-use crate::io::writer::num::write_u32_le;
+use crate::bai::io::num::write_u32_le;
 
 pub(super) fn write_reference_sequences<W>(
     writer: &mut W,
