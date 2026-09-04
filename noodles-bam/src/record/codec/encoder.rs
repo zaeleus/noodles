@@ -15,7 +15,8 @@ mod template_length;
 
 use std::{error, fmt, io};
 
-use noodles_sam::{self as sam, alignment::Record};
+use noodles_core::Position;
+use noodles_sam::{self as sam, alignment::Record, alignment::record::Cigar};
 
 use self::{
     bin::write_bin,
@@ -97,13 +98,19 @@ where
     let mapping_quality = record.mapping_quality().transpose()?;
     write_mapping_quality(dst, mapping_quality);
 
+    // A single pass over the CIGAR operations gives the alignment span, the read length, and the
+    // operation count. Reading them from the record instead parses the operations once each, which
+    // for a text CIGAR means parsing it four times per record.
+    let cigar = record.cigar();
+    let (op_count, alignment_span, read_length) = cigar_stats(&*cigar)?;
+
     // bin
-    let alignment_end = record.alignment_end().transpose()?;
+    let alignment_end = alignment_end(alignment_start, alignment_span);
     write_bin(dst, alignment_start, alignment_end);
 
     // n_cigar_op
-    let base_count = record.sequence().len();
-    let cigar = overflowing_write_cigar_op_count(dst, base_count, &record.cigar())?;
+    let base_count = record.sequence_ref().len();
+    let cigar = overflowing_write_cigar_op_count(dst, base_count, op_count, alignment_span)?;
 
     // flag
     let flags = record.flags()?;
@@ -141,7 +148,6 @@ where
     }
 
     // seq
-    let read_length = record.cigar().read_length()?;
     write_sequence(dst, read_length, record.sequence_ref())?;
 
     // qual
@@ -154,6 +160,42 @@ where
     }
 
     Ok(())
+}
+
+fn cigar_stats<C>(cigar: &C) -> io::Result<(usize, usize, usize)>
+where
+    C: Cigar + ?Sized,
+{
+    let mut op_count = 0;
+    let mut alignment_span = 0;
+    let mut read_length = 0;
+
+    for result in cigar.iter() {
+        let op = result?;
+        let kind = op.kind();
+
+        op_count += 1;
+
+        if kind.consumes_reference() {
+            alignment_span += op.len();
+        }
+
+        if kind.consumes_read() {
+            read_length += op.len();
+        }
+    }
+
+    Ok((op_count, alignment_span, read_length))
+}
+
+fn alignment_end(alignment_start: Option<Position>, alignment_span: usize) -> Option<Position> {
+    let start = alignment_start?;
+
+    if alignment_span == 0 {
+        Some(start)
+    } else {
+        Position::new(usize::from(start) + alignment_span - 1)
+    }
 }
 
 #[cfg(test)]

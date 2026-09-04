@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/record/codec/encoder: Read the CIGAR operations once per record.
+
+    The alignment span, the read length, and the operation count now come from
+    a single pass rather than one each, which also removes four allocations per
+    record. Output is unchanged.
+
 ## 0.95.0 - 2026-08-21
 
 ### Changed
