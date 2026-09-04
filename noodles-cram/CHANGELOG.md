@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/container: Add block module (`container::block`).
+
+    This exposes `block::CompressionMethod`, `block::ContentType`, and
+    `block::ContentId`, which were already written as public items.
+
+  * cram/io/reader/container/slice: Add raw blocks iterator
+    (`Slice::blocks`).
+
+    Unlike `Slice::decode_blocks`, this decodes nothing and does not require
+    the block content types to be what the specification expects, which makes
+    it usable to inspect or validate a container.
+
+  * cram/io/reader: Add container block (`io::reader::Block`).
+
 ### Changed
 
   * cram: Update to lzma-rust2 0.20.0.

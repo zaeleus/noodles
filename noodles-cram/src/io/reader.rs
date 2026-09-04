@@ -14,7 +14,12 @@ use noodles_core::Region;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
-pub use self::{builder::Builder, container::Container, query::Query, records::Records};
+pub use self::{
+    builder::Builder,
+    container::{Block, Container},
+    query::Query,
+    records::Records,
+};
 use self::{container::read_container, header::read_header};
 use crate::{FileDefinition, crai};
 
