@@ -85,7 +85,7 @@ where
     /// When using this, the caller is responsible to stop reading at either EOF or when the
     /// `FASTA` directive is read, whichever comes first.
     ///
-    /// Unlike [`Self::read_line`], each line is parsed as a [`crate::Line`].
+    /// Unlike [`Self::read_line`], each line is parsed as a [`crate::LineBuf`].
     ///
     /// # Examples
     ///

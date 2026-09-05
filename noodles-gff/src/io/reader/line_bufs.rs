@@ -8,7 +8,7 @@ use crate::{Line, LineBuf, feature::RecordBuf, line::Kind};
 /// When using this, the caller is responsible to stop reading at either EOF or when the `FASTA`
 /// directive is read, whichever comes first.
 ///
-/// This is created by calling [`Reader::lines`].
+/// This is created by calling [`Reader::line_bufs`].
 pub struct LineBufs<'a, R> {
     inner: &'a mut Reader<R>,
     line: Line,
