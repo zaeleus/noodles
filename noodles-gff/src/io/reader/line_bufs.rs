@@ -65,13 +65,25 @@ mod tests {
     use bstr::BString;
 
     use super::*;
+    use crate::{DirectiveBuf, directive_buf::Value};
 
     #[test]
     fn test_next() -> io::Result<()> {
-        let mut reader = Reader::new(&b"#noodles"[..]);
+        let mut reader = Reader::new(&b"##gff-version 3\n#noodles"[..]);
         let mut iter = LineBufs::new(&mut reader);
+
+        let line = iter.next().transpose().unwrap();
+        assert_eq!(
+            line,
+            Some(LineBuf::Directive(DirectiveBuf::new(
+                "gff-version",
+                Some(Value::String(BString::from("3")))
+            )))
+        );
+
         let line = iter.next().transpose().unwrap();
         assert_eq!(line, Some(LineBuf::Comment(BString::from("noodles"))));
+
         Ok(())
     }
 }
