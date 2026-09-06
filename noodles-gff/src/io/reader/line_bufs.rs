@@ -69,20 +69,22 @@ mod tests {
 
     #[test]
     fn test_next() -> io::Result<()> {
-        let mut reader = Reader::new(&b"##gff-version 3\n#noodles"[..]);
-        let mut iter = LineBufs::new(&mut reader);
+        let mut reader =
+            Reader::new(&b"##gff-version 3\n#noodles\n.\t.\t.\t1\t1\t.\t.\t.\t.\n"[..]);
 
-        let line = iter.next().transpose().unwrap();
-        assert_eq!(
-            line,
-            Some(LineBuf::Directive(DirectiveBuf::new(
+        let iter = LineBufs::new(&mut reader);
+        let actual: Vec<_> = iter.collect::<io::Result<_>>()?;
+
+        let expected = [
+            LineBuf::Directive(DirectiveBuf::new(
                 "gff-version",
-                Some(Value::String(BString::from("3")))
-            )))
-        );
+                Some(Value::String(BString::from("3"))),
+            )),
+            LineBuf::Comment(BString::from("noodles")),
+            LineBuf::Record(RecordBuf::default()),
+        ];
 
-        let line = iter.next().transpose().unwrap();
-        assert_eq!(line, Some(LineBuf::Comment(BString::from("noodles"))));
+        assert_eq!(actual, expected);
 
         Ok(())
     }
