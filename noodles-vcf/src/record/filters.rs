@@ -1,6 +1,10 @@
 use std::{fmt, io};
 
+use memchr::memchr_iter;
+
 use crate::Header;
+
+const DELIMITER: char = ';';
 
 /// VCF record filters.
 #[derive(Eq, PartialEq)]
@@ -24,8 +28,7 @@ impl crate::variant::record::Filters for Filters<'_> {
     }
 
     fn len(&self) -> usize {
-        let header = Header::default();
-        self.iter(&header).count()
+        count(self.0)
     }
 
     fn iter<'a, 'h: 'a>(
@@ -42,9 +45,16 @@ impl fmt::Debug for Filters<'_> {
     }
 }
 
-fn iter(s: &str) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
-    const DELIMITER: char = ';';
+fn count(s: &str) -> usize {
+    if s.is_empty() {
+        0
+    } else {
+        let n = memchr_iter(DELIMITER as u8, s.as_bytes()).count();
+        n + 1
+    }
+}
 
+fn iter(s: &str) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
     if s.is_empty() {
         Box::new(std::iter::empty())
     } else {
