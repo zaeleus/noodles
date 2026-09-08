@@ -29,7 +29,10 @@ pub(super) fn parse_filters(s: &str, filters: &mut Filters) -> Result<(), ParseE
     if s.is_empty() {
         return Err(ParseError::Empty);
     } else if s == PASS {
-        *filters = Filters::pass();
+        if !filters.is_pass() {
+            *filters = Filters::pass();
+        }
+
         return Ok(());
     }
 
