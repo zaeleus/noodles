@@ -1,5 +1,7 @@
 use std::{fmt, io, iter};
 
+use memchr::memchr_iter;
+
 use crate::variant::record::AlternateBases as _;
 
 /// VCF record alternate bases.
@@ -34,7 +36,8 @@ impl crate::variant::record::AlternateBases for AlternateBases<'_> {
         if self.is_empty() {
             0
         } else {
-            self.iter().count()
+            let n = memchr_iter(DELIMITER as u8, self.0.as_bytes()).count();
+            n + 1
         }
     }
 
