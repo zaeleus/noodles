@@ -1,5 +1,6 @@
 use std::{io, path::Path};
 
+use bstr::ByteSlice;
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
 use noodles_csi::binning_index::{Indexer, index::reference_sequence::bin::Chunk};
@@ -44,7 +45,7 @@ where
             io::ErrorKind::InvalidData,
             format!(
                 "invalid sort order: expected {:?}, got {:?}",
-                Some(COORDINATE),
+                Some(COORDINATE.as_bstr()),
                 header
                     .header()
                     .and_then(|hdr| hdr.other_fields().get(&SORT_ORDER))
