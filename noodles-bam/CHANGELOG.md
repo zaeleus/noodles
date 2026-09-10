@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/bai/io/writer/index: Validate min shift and depth.
+
+    These are now required to be the values assumed by BAI (14 and 5,
+    respectively).
+
 ## 0.95.0 - 2026-08-21
 
 ### Changed

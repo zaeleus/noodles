@@ -12,6 +12,8 @@ pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
     W: Write,
 {
+    validate(index)?;
+
     write_magic_number(writer)?;
     write_reference_sequences(writer, index.reference_sequences())?;
 
@@ -20,6 +22,25 @@ where
     }
 
     Ok(())
+}
+
+fn validate(index: &Index) -> io::Result<()> {
+    const MIN_SHIFT: u8 = 14;
+    const DEPTH: u8 = 5;
+
+    let min_shift = index.min_shift();
+    let depth = index.depth();
+
+    if min_shift == MIN_SHIFT && depth == DEPTH {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!(
+                "invalid (min shift, depth): expected ({MIN_SHIFT}, {DEPTH}), got ({min_shift}, {depth})"
+            ),
+        ))
+    }
 }
 
 fn write_unplaced_unmapped_record_count<W>(
@@ -73,5 +94,17 @@ mod tests {
         assert_eq!(buf, expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_validate() {
+        let index = Index::default();
+        assert!(validate(&index).is_ok());
+
+        let index = Index::builder().set_min_shift(13).set_depth(8).build();
+        assert!(matches!(
+            validate(&index),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
     }
 }
