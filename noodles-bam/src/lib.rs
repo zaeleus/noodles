@@ -52,4 +52,4 @@ pub mod io;
 pub mod record;
 mod record_ref;
 
-pub use self::{record::Record, record_ref::RecordRef};
+pub use self::{index::Index, record::Record, record_ref::RecordRef};
