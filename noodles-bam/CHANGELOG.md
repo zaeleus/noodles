@@ -11,6 +11,11 @@
 
 ### Changed
 
+  * bam/fs/index: Return `bam::Index` from `index`.
+
+    `index` can return either a BAM index (BAI) or coordinate-sorted index
+    (CSI).
+
   * bam/bai/io/writer/index: Validate min shift and depth.
 
     These are now required to be the values assumed by BAI (14 and 5,

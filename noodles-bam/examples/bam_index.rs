@@ -13,7 +13,9 @@ use noodles_bam::{self as bam, bai};
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let index = bam::fs::index(src)?;
+    let bam::Index::Bai(index) = bam::fs::index(src)? else {
+        panic!("failed to index input as BAI");
+    };
 
     let stdout = io::stdout().lock();
     let mut writer = bai::io::Writer::new(stdout);

@@ -3,14 +3,14 @@ use std::{io, path::Path};
 use bstr::ByteSlice;
 use noodles_bgzf as bgzf;
 use noodles_core::Position;
-use noodles_csi::binning_index::{Indexer, index::reference_sequence::bin::Chunk};
+use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 use noodles_sam::{
     self as sam,
     alignment::Record as _,
     header::record::value::map::header::{sort_order::COORDINATE, tag::SORT_ORDER},
 };
 
-use crate::{Record, bai, io::Reader};
+use crate::{Index, Record, index::Indexer, io::Reader};
 
 /// Indexes a BAM file.
 ///
@@ -26,7 +26,7 @@ use crate::{Record, bai, io::Reader};
 /// let _index = bam::fs::index("sample.bam")?;
 /// # Ok::<_, std::io::Error>(())
 /// ```
-pub fn index<P>(src: P) -> io::Result<bai::Index>
+pub fn index<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,
 {
@@ -34,7 +34,7 @@ where
     index_inner(&mut reader)
 }
 
-fn index_inner<R>(reader: &mut Reader<R>) -> io::Result<bai::Index>
+fn index_inner<R>(reader: &mut Reader<R>) -> io::Result<Index>
 where
     R: bgzf::io::Read,
 {
@@ -55,7 +55,7 @@ where
 
     let mut record = Record::default();
 
-    let mut builder = Indexer::default();
+    let mut builder = Indexer::builder().build();
     let mut start_position = reader.get_ref().virtual_position();
 
     while reader.read_record(&mut record)? != 0 {
@@ -150,7 +150,10 @@ mod tests {
         let data = writer.into_inner().into_inner();
 
         let mut reader = Reader::new(&data[..]);
-        let index = index_inner(&mut reader)?;
+
+        let Index::Bai(index) = index_inner(&mut reader)? else {
+            panic!();
+        };
 
         assert_eq!(index.min_shift(), 14);
         assert_eq!(index.depth(), 5);
