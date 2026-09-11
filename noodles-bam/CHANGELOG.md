@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+
+  * bam/index: Add indexer (`bam::index::Indexer`).
+
+    This is an abstraction over building a BAM index (BAI) and
+    coordinate-sorted index (CSI).
+
 ### Changed
 
   * bam/bai/io/writer/index: Validate min shift and depth.
