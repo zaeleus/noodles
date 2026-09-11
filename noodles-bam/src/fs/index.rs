@@ -1,4 +1,4 @@
-use std::{io, path::Path};
+use std::{io, num::NonZero, path::Path};
 
 use bstr::ByteSlice;
 use noodles_bgzf as bgzf;
@@ -14,10 +14,14 @@ use crate::{Index, Record, index::Indexer, io::Reader};
 
 /// Indexes a BAM file.
 ///
-/// The input must be coordinate-sorted and marked as such in the SAM header, i.e.,
-/// `SO:coordinate`.
+/// The input must be coordinate-sorted and marked as such in the SAM header, i.e., `SO:coordinate`.
 ///
-/// See also [`bai::fs::write`] to write the resulting [`bai::Index`] to a file.
+/// This typically returns the index as a BAM index (BAI); however, if the length of a reference
+/// sequence is longer than 2<sup>29</sup> - 1, this returns a coordinate-sorted index (CSI)
+/// instead.
+///
+/// See also [`crate::bai::fs::write`] and [`noodles_csi::fs::write`] to write the resulting
+/// [`Index`] to a file.
 ///
 /// # Examples
 ///
@@ -55,7 +59,20 @@ where
 
     let mut record = Record::default();
 
-    let mut builder = Indexer::builder().build();
+    let max_reference_sequence_length = header
+        .reference_sequences()
+        .values()
+        .map(|rs| rs.length())
+        .max()
+        .unwrap_or(NonZero::<usize>::MIN);
+
+    // SAFETY: `max_reference_sequence_length` is nonzero.
+    let max_position = Position::new(max_reference_sequence_length.get()).unwrap();
+
+    let mut indexer = Indexer::builder()
+        .set_max_position_hint(max_position)
+        .build();
+
     let mut start_position = reader.get_ref().virtual_position();
 
     while reader.read_record(&mut record)? != 0 {
@@ -70,12 +87,12 @@ where
             _ => None,
         };
 
-        builder.add_record(alignment_context, chunk)?;
+        indexer.add_record(alignment_context, chunk)?;
 
         start_position = end_position;
     }
 
-    Ok(builder.build(header.reference_sequences().len()))
+    Ok(indexer.build(header.reference_sequences().len()))
 }
 
 fn is_coordinate_sorted(header: &sam::Header) -> bool {

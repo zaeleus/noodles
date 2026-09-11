@@ -14,7 +14,7 @@
   * bam/fs/index: Return `bam::Index` from `index`.
 
     `index` can return either a BAM index (BAI) or coordinate-sorted index
-    (CSI).
+    (CSI), depending on the length of the longest reference sequence.
 
   * bam/bai/io/writer/index: Validate min shift and depth.
 
