@@ -15,6 +15,7 @@ pub use self::{format::Format, indexer::Indexer};
 use crate::bai;
 
 /// A BAM binning index.
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Index {
     /// A BAM index.
     Bai(bai::Index),
