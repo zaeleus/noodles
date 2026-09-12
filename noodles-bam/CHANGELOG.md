@@ -4,10 +4,12 @@
 
 ### Added
 
-  * bam/index: Add indexer (`bam::index::Indexer`).
+  * bam: Add index (`bam::Index`) ([#433]).
 
-    This is an abstraction over building a BAM index (BAI) and
-    coordinate-sorted index (CSI).
+    This is an abstraction over a BAM index (BAI) and coordinate-sorted index
+    (CSI). Use `bam::index::Indexer` to create a `bam::Index`.
+
+[#433]: https://github.com/zaeleus/noodles/discussions/433
 
 ### Changed
 
