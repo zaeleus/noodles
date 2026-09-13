@@ -32,7 +32,11 @@ impl Builder {
 
     /// Builds a BAM indexer.
     pub fn build(self) -> Indexer {
-        let depth = self.max_position_hint.map(fit_depth).unwrap_or(BAI_DEPTH);
+        let depth = if let Some(n) = self.max_position_hint {
+            fit_depth(n).expect("unsupported max position")
+        } else {
+            BAI_DEPTH
+        };
 
         let format = if depth == BAI_DEPTH {
             self.format
@@ -49,27 +53,32 @@ impl Builder {
     }
 }
 
-fn fit_depth(max_position: Position) -> u8 {
-    const MAX_DEPTH: u8 = 10;
-
+fn fit_depth(max_position: Position) -> Option<u8> {
     let mut depth = BAI_DEPTH;
 
     loop {
-        let max_index_position = calculate_max_position(BAI_MIN_SHIFT, depth);
+        let max_index_position = calculate_max_position(BAI_MIN_SHIFT, depth)?;
 
-        if max_position <= max_index_position || depth >= MAX_DEPTH {
+        if max_position <= max_index_position {
             break;
         }
 
         depth += 1;
     }
 
-    depth
+    Some(depth)
 }
 
-fn calculate_max_position(min_shift: u8, depth: u8) -> Position {
-    let n = (1 << (usize::from(min_shift) + 3 * usize::from(depth))) - 1;
-    Position::new(n).unwrap()
+fn calculate_max_position(min_shift: u8, depth: u8) -> Option<Position> {
+    const MAX_DEPTH: u8 = 10;
+
+    if depth > MAX_DEPTH {
+        None
+    } else {
+        1u64.checked_shl(u32::from(min_shift) + 3 * u32::from(depth))
+            .and_then(|n| usize::try_from(n - 1).ok())
+            .and_then(Position::new)
+    }
 }
 
 #[cfg(test)]
@@ -80,31 +89,51 @@ mod tests {
     fn test_fit_depth() {
         #[cfg(not(target_pointer_width = "16"))]
         {
-            assert_eq!(fit_depth(Position::MIN), 5);
+            assert_eq!(fit_depth(Position::MIN), Some(5));
 
             assert_eq!(
                 fit_depth(const { Position::new((1 << 29) - 1).unwrap() }),
-                5
+                Some(5)
             );
-            assert_eq!(fit_depth(const { Position::new(1 << 29).unwrap() }), 6);
+            assert_eq!(
+                fit_depth(const { Position::new(1 << 29).unwrap() }),
+                Some(6)
+            );
             assert_eq!(
                 fit_depth(const { Position::new(u32::MAX as usize).unwrap() }),
-                6
+                Some(6)
             );
         }
 
         #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
         {
-            assert_eq!(fit_depth(const { Position::new(1 << 32).unwrap() }), 7);
-            assert_eq!(fit_depth(Position::MAX), 10);
+            assert_eq!(
+                fit_depth(const { Position::new(1 << 32).unwrap() }),
+                Some(7)
+            );
+            assert_eq!(
+                fit_depth(const { Position::new((1 << 44) - 1).unwrap() }),
+                Some(10)
+            );
+            assert!(fit_depth(const { Position::new(1 << 44).unwrap() }).is_none());
+            assert!(fit_depth(Position::MAX).is_none());
         }
     }
 
     #[test]
     fn test_calculate_max_position() {
+        #[cfg(not(target_pointer_width = "16"))]
         assert_eq!(
             calculate_max_position(14, 5),
-            const { Position::new(536870911).unwrap() }
-        )
+            Some(const { Position::new((1 << 29) - 1).unwrap() })
+        );
+
+        #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
+        assert_eq!(
+            calculate_max_position(14, 10),
+            Some(const { Position::new((1 << 44) - 1).unwrap() })
+        );
+
+        assert!(calculate_max_position(14, 11).is_none());
     }
 }
