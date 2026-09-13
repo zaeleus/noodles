@@ -51,8 +51,8 @@ impl Builder {
 
     /// Sets a max position hint.
     ///
-    /// This sets the maximum expected position that is used for indexing. When < 2^29, this will
-    /// select a BAM index (BAI); otherwise, a coordinate-sorted index (CSI) is used.
+    /// This sets the maximum expected position that is used for indexing. When <= 2<sup>29</sup>,
+    /// this will select a BAM index (BAI); otherwise, a coordinate-sorted index (CSI) is used.
     pub fn set_max_position_hint(mut self, max_position_hint: Position) -> Self {
         self.max_position_hint = Some(max_position_hint);
         self
@@ -106,7 +106,7 @@ fn calculate_max_position(min_shift: u8, depth: u8) -> Option<Position> {
         None
     } else {
         1u64.checked_shl(u32::from(min_shift) + 3 * u32::from(depth))
-            .and_then(|n| usize::try_from(n - 1).ok())
+            .and_then(|n| usize::try_from(n).ok())
             .and_then(Position::new)
     }
 }
@@ -122,13 +122,13 @@ mod tests {
 
         #[cfg(not(target_pointer_width = "16"))]
         {
-            let builder =
-                Builder::default().set_max_position_hint(const { Position::new(1 << 29).unwrap() });
+            let builder = Builder::default()
+                .set_max_position_hint(const { Position::new((1 << 29) + 1).unwrap() });
             assert!(builder.build().is_ok());
 
             let builder = Builder::default()
                 .set_format(Format::Bai)
-                .set_max_position_hint(const { Position::new(1 << 29).unwrap() });
+                .set_max_position_hint(const { Position::new((1 << 29) + 1).unwrap() });
             assert_eq!(builder.build().err(), Some(BuildError::InvalidFormat));
         }
 
@@ -150,11 +150,11 @@ mod tests {
             assert_eq!(fit_depth(Position::MIN), Some(5));
 
             assert_eq!(
-                fit_depth(const { Position::new((1 << 29) - 1).unwrap() }),
+                fit_depth(const { Position::new(1 << 29).unwrap() }),
                 Some(5)
             );
             assert_eq!(
-                fit_depth(const { Position::new(1 << 29).unwrap() }),
+                fit_depth(const { Position::new((1 << 29) + 1).unwrap() }),
                 Some(6)
             );
             assert_eq!(
@@ -167,13 +167,17 @@ mod tests {
         {
             assert_eq!(
                 fit_depth(const { Position::new(1 << 32).unwrap() }),
+                Some(6)
+            );
+            assert_eq!(
+                fit_depth(const { Position::new((1 << 32) + 1).unwrap() }),
                 Some(7)
             );
             assert_eq!(
-                fit_depth(const { Position::new((1 << 44) - 1).unwrap() }),
+                fit_depth(const { Position::new(1 << 44).unwrap() }),
                 Some(10)
             );
-            assert!(fit_depth(const { Position::new(1 << 44).unwrap() }).is_none());
+            assert!(fit_depth(const { Position::new((1 << 44) + 1).unwrap() }).is_none());
             assert!(fit_depth(Position::MAX).is_none());
         }
     }
@@ -183,13 +187,13 @@ mod tests {
         #[cfg(not(target_pointer_width = "16"))]
         assert_eq!(
             calculate_max_position(14, 5),
-            Some(const { Position::new((1 << 29) - 1).unwrap() })
+            Some(const { Position::new(1 << 29).unwrap() })
         );
 
         #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
         assert_eq!(
             calculate_max_position(14, 10),
-            Some(const { Position::new((1 << 44) - 1).unwrap() })
+            Some(const { Position::new(1 << 44).unwrap() })
         );
 
         assert!(calculate_max_position(14, 11).is_none());

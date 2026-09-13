@@ -17,8 +17,7 @@ use crate::{Index, Record, index::Indexer, io::Reader};
 /// The input must be coordinate-sorted and marked as such in the SAM header, i.e., `SO:coordinate`.
 ///
 /// This typically returns the index as a BAM index (BAI); however, if the length of a reference
-/// sequence is longer than 2<sup>29</sup> - 1, this returns a coordinate-sorted index (CSI)
-/// instead.
+/// sequence is longer than 2<sup>29</sup>, this returns a coordinate-sorted index (CSI) instead.
 ///
 /// See also [`crate::bai::fs::write`] and [`noodles_csi::fs::write`] to write the resulting
 /// [`Index`] to a file.
