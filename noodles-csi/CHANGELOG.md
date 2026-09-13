@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * csi/binning_index/index: Fix max position calculation to be 1-based.
+
+    This now allows querying with position 2^29.
+
 ## 0.61.0 - 2026-08-21
 
 ### Changed

@@ -158,7 +158,7 @@ where
 
 fn max_position(min_shift: u8, depth: u8) -> io::Result<Position> {
     assert!(min_shift > 0);
-    let n = (1 << (usize::from(min_shift) + 3 * usize::from(depth))) - 1;
+    let n = 1 << (usize::from(min_shift) + 3 * usize::from(depth));
     Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
 }
 
@@ -172,7 +172,7 @@ mod tests {
         const DEPTH: u8 = 5;
 
         let actual = max_position(MIN_SHIFT, DEPTH)?;
-        let expected = Position::try_from(536870911)?;
+        let expected = Position::try_from(1 << 29)?;
         assert_eq!(actual, expected);
 
         Ok(())
