@@ -1,7 +1,7 @@
 //! BAM index.
 
 mod format;
-mod indexer;
+pub mod indexer;
 
 use std::io;
 

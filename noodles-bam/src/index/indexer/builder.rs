@@ -1,3 +1,7 @@
+//! A BAM indexer builder.
+
+use std::{error, fmt};
+
 use noodles_core::Position;
 use noodles_csi as csi;
 
@@ -7,39 +11,65 @@ use crate::index::Format;
 const BAI_MIN_SHIFT: u8 = 14;
 const BAI_DEPTH: u8 = 5;
 
+/// An error returned when a BAM indexer fails to build.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BuildError {
+    /// The estimated max position is unsupported.
+    ///
+    /// No format is able to support the given estimated max position.
+    UnsupportedMaxPosition,
+    /// The format is invalid.
+    ///
+    /// The estimated max position cannot fit in the given format.
+    InvalidFormat,
+}
+
+impl error::Error for BuildError {}
+
+impl fmt::Display for BuildError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnsupportedMaxPosition => write!(f, "unsupported max position"),
+            Self::InvalidFormat => write!(f, "invalid format"),
+        }
+    }
+}
+
 /// A BAM indexer builder.
 #[derive(Default)]
 pub struct Builder {
-    format: Format,
+    format: Option<Format>,
     max_position_hint: Option<Position>,
 }
 
 impl Builder {
     /// Sets the BAM index format.
     pub fn set_format(mut self, format: Format) -> Self {
-        self.format = format;
+        self.format = Some(format);
         self
     }
 
     /// Sets a max position hint.
     ///
-    /// This optionally sets the maximum expected position that is used for indexing. When < 2^29,
-    /// this will select a BAM index (BAI); otherwise, a coordinate-sorted index (CSI) is used.
+    /// This sets the maximum expected position that is used for indexing. When < 2^29, this will
+    /// select a BAM index (BAI); otherwise, a coordinate-sorted index (CSI) is used.
     pub fn set_max_position_hint(mut self, max_position_hint: Position) -> Self {
         self.max_position_hint = Some(max_position_hint);
         self
     }
 
     /// Builds a BAM indexer.
-    pub fn build(self) -> Indexer {
+    pub fn build(self) -> Result<Indexer, BuildError> {
         let depth = if let Some(n) = self.max_position_hint {
-            fit_depth(n).expect("unsupported max position")
+            fit_depth(n).ok_or(BuildError::UnsupportedMaxPosition)?
         } else {
             BAI_DEPTH
         };
 
         let format = if depth == BAI_DEPTH {
-            self.format
+            self.format.unwrap_or_default()
+        } else if let Some(Format::Bai) = self.format {
+            return Err(BuildError::InvalidFormat);
         } else {
             Format::Csi
         };
@@ -49,7 +79,7 @@ impl Builder {
             Format::Csi => Inner::Csi(csi::binning_index::Indexer::new(BAI_MIN_SHIFT, depth)),
         };
 
-        Indexer { inner }
+        Ok(Indexer { inner })
     }
 }
 
@@ -84,6 +114,34 @@ fn calculate_max_position(min_shift: u8, depth: u8) -> Option<Position> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_build() {
+        let builder = Builder::default();
+        assert!(builder.build().is_ok());
+
+        #[cfg(not(target_pointer_width = "16"))]
+        {
+            let builder =
+                Builder::default().set_max_position_hint(const { Position::new(1 << 29).unwrap() });
+            assert!(builder.build().is_ok());
+
+            let builder = Builder::default()
+                .set_format(Format::Bai)
+                .set_max_position_hint(const { Position::new(1 << 29).unwrap() });
+            assert_eq!(builder.build().err(), Some(BuildError::InvalidFormat));
+        }
+
+        #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
+        {
+            let builder = Builder::default().set_max_position_hint(Position::MAX);
+
+            assert_eq!(
+                builder.build().err(),
+                Some(BuildError::UnsupportedMaxPosition)
+            );
+        }
+    }
 
     #[test]
     fn test_fit_depth() {

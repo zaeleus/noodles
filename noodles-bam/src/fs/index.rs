@@ -71,7 +71,8 @@ where
 
     let mut indexer = Indexer::builder()
         .set_max_position_hint(max_position)
-        .build();
+        .build()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let mut start_position = reader.get_ref().virtual_position();
 

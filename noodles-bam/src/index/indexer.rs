@@ -1,4 +1,6 @@
-mod builder;
+//! BAM indexer.
+
+pub mod builder;
 
 use std::io;
 
