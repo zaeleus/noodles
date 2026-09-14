@@ -6,7 +6,7 @@ mod metadata;
 
 pub use self::{bin::Bin, index::Index, metadata::Metadata};
 
-use std::{io, num::NonZero};
+use std::io;
 
 use bit_vec::BitVec;
 use indexmap::IndexMap;
@@ -340,7 +340,7 @@ where
     }
 }
 
-const M: usize = NonZero::new(8).unwrap().get();
+const M: usize = 8;
 
 // parent of i = floor((i - 1) / M)
 fn parent_id(id: usize) -> Option<usize> {
