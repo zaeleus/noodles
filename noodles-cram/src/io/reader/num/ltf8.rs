@@ -5,6 +5,17 @@ use std::{
 
 use super::{read_u8, read_u16_be, read_u24_be, read_u32_be};
 
+/// Reads an LTF-8 integer.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::io::reader::num::read_ltf8;
+///
+/// let mut src = &[0x80, 0xaa][..];
+/// assert_eq!(read_ltf8(&mut src)?, 170);
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn read_ltf8<R>(reader: &mut R) -> io::Result<i64>
 where
     R: Read,
@@ -40,6 +51,17 @@ where
     Ok(n as i64)
 }
 
+/// Reads an LTF-8 integer and converts it to `N`.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::io::reader::num::read_ltf8_as;
+///
+/// let mut src = &[0x80, 0xaa][..];
+/// assert_eq!(read_ltf8_as::<_, u16>(&mut src)?, 170);
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn read_ltf8_as<R, N>(reader: &mut R) -> io::Result<N>
 where
     R: Read,

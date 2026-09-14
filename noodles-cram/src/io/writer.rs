@@ -5,7 +5,7 @@ mod collections;
 pub(crate) mod container;
 mod context;
 pub(crate) mod header;
-pub(crate) mod num;
+pub mod num;
 pub(crate) mod record;
 
 use std::io::{self, Write};

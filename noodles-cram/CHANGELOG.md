@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/io/reader: Add variable-length integer readers (`num::read_itf8`,
+    `num::read_itf8_as`, `num::read_ltf8`, `num::read_ltf8_as`,
+    `num::read_uint7`, and `num::read_uint7_as`) ([#411]).
+
+  * cram/io/writer: Add variable-length integer writers (`num::write_itf8`,
+    `num::write_ltf8`, and `num::write_uint7`) ([#411]).
+
+[#411]: https://github.com/zaeleus/noodles/pull/411
+
 ### Changed
 
   * cram: Update to lzma-rust2 0.20.0.

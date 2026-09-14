@@ -1,3 +1,5 @@
+//! CRAM variable-length integer writers.
+
 mod itf8;
 mod ltf8;
 mod vlq;
