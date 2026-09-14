@@ -58,7 +58,11 @@ where
 
         if sym > 0 && prev_sym == Some(sym - 1) {
             let i = sym + 1;
-            let len = frequencies[i..].iter().position(|&g| g == 0).unwrap_or(0);
+
+            let len = frequencies[i..]
+                .iter()
+                .position(|&g| g == 0)
+                .unwrap_or(ALPHABET_SIZE - i);
 
             // SAFETY: `len < ALPHABET_SIZE`.
             write_u8(writer, len as u8)?;
@@ -232,6 +236,19 @@ mod tests {
             &[
                 0x01, // sym = 0x01
                 0x8f, 0xff, // f[0x01] = 4095
+                0x00, // end
+            ],
+        )?;
+
+        t(
+            &[0xfd, 0xfe, 0xff],
+            &[
+                0xfd, // sym = 0xfd
+                0x85, 0x55, // f[0xfd] = 1365
+                0xfe, // sym = 0xfe
+                0x01, // rle = 1
+                0x85, 0x55, // f[0xfe] = 1365
+                0x85, 0x55, // f[0xff] = 1365
                 0x00, // end
             ],
         )?;
