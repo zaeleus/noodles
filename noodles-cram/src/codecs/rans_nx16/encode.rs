@@ -116,8 +116,13 @@ fn write_alphabet(dst: &mut Vec<u8>, alphabet: &[bool; ALPHABET_SIZE]) -> io::Re
 
         if sym > 0 && prev_sym == Some(sym - 1) {
             let i = sym + 1;
-            let len = alphabet[i..].iter().position(|&b| !b).unwrap_or(0);
-            // SAFETY: `len` < `ALPHABET_SIZE`.
+
+            let len = alphabet[i..]
+                .iter()
+                .position(|&b| !b)
+                .unwrap_or(ALPHABET_SIZE - i);
+
+            // SAFETY: `len < ALPHABET_SIZE`.
             write_u8(dst, len as u8)?;
             for _ in iter.by_ref().take(len) {}
         }
@@ -276,6 +281,7 @@ mod tests {
 
         t(b"abracadabra", &[b'a', b'b', 0x02, b'r', NUL])?;
         t(&[0x01], &[0x01, NUL])?;
+        t(&[0xfd, 0xfe, 0xff], &[0xfd, 0xfe, 0x01, NUL])?;
 
         Ok(())
     }
