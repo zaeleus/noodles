@@ -104,17 +104,17 @@ fn write_alphabet(dst: &mut Vec<u8>, alphabet: &[bool; ALPHABET_SIZE]) -> io::Re
     const NUL: u8 = 0x00;
 
     let mut iter = alphabet.iter().enumerate();
-    let mut prev_sym = 0;
+    let mut prev_sym = None;
 
     while let Some((sym, &a)) = iter.next() {
         if !a {
             continue;
         }
 
-        // SAFETY: `sym` < `ALPHABET_SIZE`.
+        // SAFETY: `sym < ALPHABET_SIZE`.
         write_u8(dst, sym as u8)?;
 
-        if sym > 0 && sym - 1 == prev_sym {
+        if sym > 0 && prev_sym == Some(sym - 1) {
             let i = sym + 1;
             let len = alphabet[i..].iter().position(|&b| !b).unwrap_or(0);
             // SAFETY: `len` < `ALPHABET_SIZE`.
@@ -122,7 +122,7 @@ fn write_alphabet(dst: &mut Vec<u8>, alphabet: &[bool; ALPHABET_SIZE]) -> io::Re
             for _ in iter.by_ref().take(len) {}
         }
 
-        prev_sym = sym;
+        prev_sym = Some(sym);
     }
 
     write_u8(dst, NUL)?;
@@ -259,19 +259,23 @@ mod tests {
     fn test_write_alphabet() -> io::Result<()> {
         const NUL: u8 = 0x00;
 
-        let src = b"abracadabra";
+        fn t(src: &[u8], expected: &[u8]) -> io::Result<()> {
+            let mut alphabet = [false; ALPHABET_SIZE];
 
-        let mut alphabet = [false; ALPHABET_SIZE];
+            for &sym in src {
+                alphabet[usize::from(sym)] = true;
+            }
 
-        for &sym in src {
-            alphabet[usize::from(sym)] = true;
+            let mut actual = Vec::new();
+            write_alphabet(&mut actual, &alphabet)?;
+
+            assert_eq!(actual, expected);
+
+            Ok(())
         }
 
-        let mut dst = Vec::new();
-        write_alphabet(&mut dst, &alphabet)?;
-
-        let expected = [b'a', b'b', 0x02, b'r', NUL];
-        assert_eq!(dst, expected);
+        t(b"abracadabra", &[b'a', b'b', 0x02, b'r', NUL])?;
+        t(&[0x01], &[0x01, NUL])?;
 
         Ok(())
     }

@@ -17,6 +17,9 @@
   * cram/codecs/rans_4x8/encode: Calculate remainder for RLE length if the last
     context is `0xff` in frequency writer.
 
+  * cram/codecs/rans_nx16/encode: Track whether previous symbol was written in
+    alphabet writer.
+
   * cram/io/reader/query: Include reference sequence ID when filtering records
     ([#396]).
 
