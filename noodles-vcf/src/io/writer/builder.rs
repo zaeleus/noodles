@@ -6,13 +6,14 @@ use std::{
 
 use noodles_bgzf as bgzf;
 
-use super::Writer;
+use super::{RecordOrder, Writer};
 use crate::io::CompressionMethod;
 
 /// A VCF writer builder.
 #[derive(Debug, Default)]
 pub struct Builder {
     compression_method: Option<CompressionMethod>,
+    record_order: RecordOrder,
 }
 
 impl Builder {
@@ -26,6 +27,21 @@ impl Builder {
     /// ```
     pub fn set_compression_method(mut self, compression_method: CompressionMethod) -> Self {
         self.compression_method = Some(compression_method);
+        self
+    }
+
+    /// Sets the order in which header records are written.
+    ///
+    /// The default is [`RecordOrder::Grouped`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::io::writer::{Builder, RecordOrder};
+    /// let builder = Builder::default().set_record_order(RecordOrder::AsAdded);
+    /// ```
+    pub fn set_record_order(mut self, record_order: RecordOrder) -> Self {
+        self.record_order = record_order;
         self
     }
 
@@ -77,6 +93,8 @@ impl Builder {
             Some(CompressionMethod::None) | None => Box::new(BufWriter::new(writer)),
         };
 
-        Writer::new(inner)
+        let mut writer = Writer::new(inner);
+        writer.record_order = self.record_order;
+        writer
     }
 }

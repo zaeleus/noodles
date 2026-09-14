@@ -3,10 +3,11 @@
 mod builder;
 mod header;
 mod record;
+mod record_order;
 
 use std::io::{self, Write};
 
-pub use self::builder::Builder;
+pub use self::{builder::Builder, record_order::RecordOrder};
 use self::{header::write_header, record::write_record};
 use crate::{Header, Record};
 
@@ -55,6 +56,7 @@ use crate::{Header, Record};
 #[derive(Debug)]
 pub struct Writer<W> {
     inner: W,
+    record_order: RecordOrder,
 }
 
 impl<W> Writer<W>
@@ -70,7 +72,10 @@ where
     /// let writer = vcf::io::Writer::new(Vec::new());
     /// ```
     pub fn new(inner: W) -> Self {
-        Self { inner }
+        Self {
+            inner,
+            record_order: RecordOrder::default(),
+        }
     }
 
     /// Returns a reference to the underlying writer.
@@ -127,7 +132,7 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn write_header(&mut self, header: &Header) -> io::Result<()> {
-        write_header(&mut self.inner, header)
+        write_header(&mut self.inner, header, self.record_order)
     }
 
     /// Writes a VCF record.

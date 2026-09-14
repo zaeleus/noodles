@@ -1,6 +1,6 @@
 use super::{
     AlternativeAlleles, Contigs, FileFormat, Filters, Formats, Header, Infos, OtherRecords,
-    SampleNames, StringMaps,
+    RecordKey, SampleNames, StringMaps,
     record::{
         self,
         value::{
@@ -23,6 +23,7 @@ pub struct Builder {
     contigs: Contigs,
     sample_names: SampleNames,
     other_records: OtherRecords,
+    record_order: Vec<RecordKey>,
 }
 
 impl Builder {
@@ -70,7 +71,12 @@ impl Builder {
     where
         I: Into<String>,
     {
-        self.infos.insert(id.into(), info);
+        let id = id.into();
+
+        if self.infos.insert(id.clone(), info).is_none() {
+            self.record_order.push(RecordKey::Info(id));
+        }
+
         self
     }
 
@@ -95,7 +101,12 @@ impl Builder {
     where
         I: Into<String>,
     {
-        self.filters.insert(id.into(), filter);
+        let id = id.into();
+
+        if self.filters.insert(id.clone(), filter).is_none() {
+            self.record_order.push(RecordKey::Filter(id));
+        }
+
         self
     }
 
@@ -125,7 +136,12 @@ impl Builder {
     where
         I: Into<String>,
     {
-        self.formats.insert(id.into(), format);
+        let id = id.into();
+
+        if self.formats.insert(id.clone(), format).is_none() {
+            self.record_order.push(RecordKey::Format(id));
+        }
+
         self
     }
 
@@ -157,8 +173,15 @@ impl Builder {
     where
         I: Into<String>,
     {
-        self.alternative_alleles
-            .insert(id.into(), alternative_allele);
+        let id = id.into();
+
+        if self
+            .alternative_alleles
+            .insert(id.clone(), alternative_allele)
+            .is_none()
+        {
+            self.record_order.push(RecordKey::AlternativeAllele(id));
+        }
 
         self
     }
@@ -184,7 +207,12 @@ impl Builder {
     where
         I: Into<String>,
     {
-        self.contigs.insert(id.into(), contig);
+        let id = id.into();
+
+        if self.contigs.insert(id.clone(), contig).is_none() {
+            self.record_order.push(RecordKey::Contig(id));
+        }
+
         self
     }
 
@@ -265,6 +293,10 @@ impl Builder {
         key: record::key::Other,
         value: record::Value,
     ) -> Result<Self, super::record::value::collection::AddError> {
+        if !self.other_records.contains_key(&key) {
+            self.record_order.push(RecordKey::Other(key.clone()));
+        }
+
         let collection = self
             .other_records
             .entry(key)
@@ -297,6 +329,7 @@ impl Builder {
             sample_names: self.sample_names,
             other_records: self.other_records,
             string_maps: StringMaps::default(),
+            record_order: self.record_order,
         }
     }
 }

@@ -12,7 +12,7 @@ use indexmap::IndexMap;
 pub(super) use self::record::parse_record;
 pub use self::{builder::Builder, entry::Entry, file_format_option::FileFormatOption};
 use super::{
-    AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, Record,
+    AlternativeAlleles, Contigs, Filters, Formats, Header, Infos, OtherRecords, Record, RecordKey,
     SampleNames, StringMaps,
     file_format::FileFormat,
     record::value::{
@@ -42,6 +42,7 @@ pub struct Parser {
     contigs: Contigs,
     sample_names: SampleNames,
     other_records: OtherRecords,
+    record_order: Vec<RecordKey>,
 }
 
 impl Parser {
@@ -125,14 +126,34 @@ impl Parser {
 
         match record {
             Record::FileFormat(_) => Err(ParseError::UnexpectedFileFormat),
-            Record::Info(id, info) => try_insert_info(&mut self.infos, id, info),
-            Record::Filter(id, filter) => try_insert_filter(&mut self.filters, id, filter),
-            Record::Format(id, format) => try_insert_format(&mut self.formats, id, format),
+            Record::Info(id, info) => {
+                self.record_order.push(RecordKey::Info(id.clone()));
+                try_insert_info(&mut self.infos, id, info)
+            }
+            Record::Filter(id, filter) => {
+                self.record_order.push(RecordKey::Filter(id.clone()));
+                try_insert_filter(&mut self.filters, id, filter)
+            }
+            Record::Format(id, format) => {
+                self.record_order.push(RecordKey::Format(id.clone()));
+                try_insert_format(&mut self.formats, id, format)
+            }
             Record::AlternativeAllele(id, alternative_allele) => {
+                self.record_order
+                    .push(RecordKey::AlternativeAllele(id.clone()));
                 try_insert_alternative_allele(&mut self.alternative_alleles, id, alternative_allele)
             }
-            Record::Contig(id, contig) => try_insert_contig(&mut self.contigs, id, contig),
-            Record::Other(key, value) => insert_other_record(&mut self.other_records, key, value),
+            Record::Contig(id, contig) => {
+                self.record_order.push(RecordKey::Contig(id.clone()));
+                try_insert_contig(&mut self.contigs, id, contig)
+            }
+            Record::Other(key, value) => {
+                if !self.other_records.contains_key(&key) {
+                    self.record_order.push(RecordKey::Other(key.clone()));
+                }
+
+                insert_other_record(&mut self.other_records, key, value)
+            }
         }
     }
 
@@ -168,6 +189,7 @@ impl Parser {
                 sample_names: self.sample_names,
                 other_records: self.other_records,
                 string_maps: StringMaps::default(),
+                record_order: self.record_order,
             }),
         }
     }

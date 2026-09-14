@@ -11,11 +11,28 @@
   * vcf/variant/record_buf/alternate_bases: Implement `Extend<String>` and
     `FromIterator<String>`.
 
+  * vcf/header: Add record order (`Header::record_order`).
+
+    This is the keys of the records in the order they were added. Records added
+    using the mutable accessors, e.g., `Header::infos_mut`, are not tracked.
+
+  * vcf/io/writer: Add header record order option
+    (`writer::Builder::set_record_order`).
+
+    `RecordOrder::Grouped` (default) groups records by category, which is the
+    previous behavior. `RecordOrder::AsAdded` follows `Header::record_order`,
+    which makes reading and writing a header idempotent.
+
 ### Changed
 
   * vcf/record/samples/series/value/genotype: Return error on empty input.
 
     Empty inputs now return `io::ErrorKind::UnexpectedEof`.
+
+  * vcf/header: Exclude the record order from `Header` equality.
+
+    `PartialEq` is now implemented manually. Two headers with the same records
+    remain equal regardless of the order they were added in.
 
 ## 0.93.0 - 2026-08-21
 
@@ -1277,7 +1294,6 @@
   * vcf/record/genotypes/genotype/field: Remove `Field`.
 
     Use `(Key, Option<Value>)` instead.
-
 
 ## 0.23.0 - 2022-11-29
 

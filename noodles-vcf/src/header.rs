@@ -4,11 +4,12 @@ mod builder;
 pub mod file_format;
 pub mod parser;
 pub mod record;
+mod record_key;
 pub mod string_maps;
 
 pub use self::{
     builder::Builder, file_format::FileFormat, parser::ParseError, parser::Parser, record::Record,
-    string_maps::StringMaps,
+    record_key::RecordKey, string_maps::StringMaps,
 };
 
 use std::{hash::Hash, str::FromStr};
@@ -42,7 +43,7 @@ pub type SampleNames = IndexSet<String>;
 pub type OtherRecords = IndexMap<record::key::Other, record::value::Collection>;
 
 /// A VCF header.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq)]
 pub struct Header {
     file_format: FileFormat,
     infos: Infos,
@@ -53,6 +54,23 @@ pub struct Header {
     sample_names: SampleNames,
     other_records: OtherRecords,
     string_maps: StringMaps,
+    record_order: Vec<RecordKey>,
+}
+
+// The record order describes how the records were laid out in the source, not what they are. Two
+// headers with the same records are equal regardless of the order they were added in.
+impl PartialEq for Header {
+    fn eq(&self, other: &Self) -> bool {
+        self.file_format == other.file_format
+            && self.infos == other.infos
+            && self.filters == other.filters
+            && self.formats == other.formats
+            && self.alternative_alleles == other.alternative_alleles
+            && self.contigs == other.contigs
+            && self.sample_names == other.sample_names
+            && self.other_records == other.other_records
+            && self.string_maps == other.string_maps
+    }
 }
 
 impl Header {
@@ -429,6 +447,46 @@ impl Header {
     /// ```
     pub fn other_records_mut(&mut self) -> &mut OtherRecords {
         &mut self.other_records
+    }
+
+    /// Returns the order in which records were added to the header.
+    ///
+    /// Records added using the mutable accessors, e.g., [`Self::infos_mut`], are not tracked. Keys
+    /// that no longer resolve to a record are ignored by consumers, and records missing from this
+    /// list are handled as if they were added last.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf::{
+    ///     self as vcf,
+    ///     header::{
+    ///         record::value::{Map, map::Filter},
+    ///         RecordKey,
+    ///     },
+    /// };
+    ///
+    /// let header = vcf::Header::builder()
+    ///     .add_filter("q10", Map::<Filter>::new("Quality below 10"))
+    ///     .build();
+    ///
+    /// assert_eq!(header.record_order(), [RecordKey::Filter(String::from("q10"))]);
+    /// ```
+    pub fn record_order(&self) -> &[RecordKey] {
+        &self.record_order
+    }
+
+    /// Returns a mutable reference to the order in which records were added to the header.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_vcf as vcf;
+    /// let mut header = vcf::Header::default();
+    /// header.record_order_mut().clear();
+    /// ```
+    pub fn record_order_mut(&mut self) -> &mut Vec<RecordKey> {
+        &mut self.record_order
     }
 
     /// Returns a collection of header values with the given key.
