@@ -14,8 +14,8 @@
     An RLE context was unintentionally always created for the `0x01` symbol, if
     it was part of the alphabet.
 
-  * cram/codecs/rans_4x8/encode/order_0: Calculate remainder for RLE length if
-    the last context is `0xff` in frequency writer.
+  * cram/codecs/rans_4x8/encode: Calculate remainder for RLE length if the last
+    context is `0xff` in frequency writer.
 
   * cram/io/reader/query: Include reference sequence ID when filtering records
     ([#396]).

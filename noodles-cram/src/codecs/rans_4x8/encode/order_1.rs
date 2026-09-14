@@ -95,7 +95,11 @@ where
 
         if sym > 0 && prev_sym == Some(sym - 1) {
             let i = sym + 1;
-            let len = alphabet[i..].iter().position(|&a| !a).unwrap_or(0);
+
+            let len = alphabet[i..]
+                .iter()
+                .position(|&a| !a)
+                .unwrap_or(ALPHABET_SIZE - i);
 
             // SAFETY: `len < ALPHABET_SIZE`.
             write_u8(writer, len as u8)?;
