@@ -46,17 +46,17 @@ where
     const NUL: u8 = 0x00;
 
     let mut iter = frequencies.iter().enumerate();
-    let mut prev_sym = 0;
+    let mut prev_sym = None;
 
     while let Some((sym, &f)) = iter.next() {
         if f == 0 {
             continue;
         }
 
-        // SAFETY: `sym <= ALPHABET_SIZE`.
+        // SAFETY: `sym < ALPHABET_SIZE`.
         write_u8(writer, sym as u8)?;
 
-        if sym > 0 && sym - 1 == prev_sym {
+        if sym > 0 && prev_sym == Some(sym - 1) {
             let i = sym + 1;
             let len = frequencies[i..].iter().position(|&g| g == 0).unwrap_or(0);
 
@@ -67,7 +67,7 @@ where
 
             for (sym, &g) in iter.by_ref().take(len) {
                 write_itf8(writer, i32::from(g))?;
-                prev_sym = sym;
+                prev_sym = Some(sym);
             }
 
             continue;
@@ -75,7 +75,7 @@ where
 
         write_itf8(writer, i32::from(f))?;
 
-        prev_sym = sym;
+        prev_sym = Some(sym);
     }
 
     write_u8(writer, NUL)?;
@@ -192,6 +192,49 @@ mod tests {
         ];
 
         assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_frequencies() -> io::Result<()> {
+        fn t(src: &[u8], expected: &[u8]) -> io::Result<()> {
+            let raw_frequencies = build_raw_frequencies(src);
+            let frequencies = normalize_frequencies(&raw_frequencies);
+
+            let mut actual = Vec::new();
+            write_frequencies(&mut actual, &frequencies)?;
+
+            assert_eq!(actual, expected);
+
+            Ok(())
+        }
+
+        // § 2.1.1 "Frequency table: Order-0 encoding" (2023-03-15)
+        t(
+            b"abracadabra",
+            &[
+                b'a', // sym = 'a'
+                0x87, 0x47, // f['a'] = 1863
+                b'b', // sym = 'b'
+                0x02, // rle = 2
+                0x82, 0xe8, // f['b'] = 744
+                0x81, 0x74, // f['c'] = 372
+                0x81, 0x74, // f['d'] = 372
+                b'r', // 'r'
+                0x82, 0xe8, // f['r'] = 744
+                0x00, // end
+            ],
+        )?;
+
+        t(
+            &[0x01],
+            &[
+                0x01, // sym = 0x01
+                0x8f, 0xff, // f[0x01] = 4095
+                0x00, // end
+            ],
+        )?;
 
         Ok(())
     }
