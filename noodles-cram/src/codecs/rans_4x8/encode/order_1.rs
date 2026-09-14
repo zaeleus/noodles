@@ -83,17 +83,17 @@ where
     let alphabet = build_alphabet(frequencies);
 
     let mut iter = alphabet.iter().zip(frequencies).enumerate();
-    let mut prev_sym = 0;
+    let mut prev_sym = None;
 
     while let Some((sym, (&a, f))) = iter.next() {
         if !a {
             continue;
         }
 
-        // SAFETY: `sym <= ALPHABET_SIZE`.
+        // SAFETY: `sym < ALPHABET_SIZE`.
         write_u8(writer, sym as u8)?;
 
-        if sym > 0 && sym - 1 == prev_sym {
+        if sym > 0 && prev_sym == Some(sym - 1) {
             let i = sym + 1;
             let len = alphabet[i..].iter().position(|&a| !a).unwrap_or(0);
 
@@ -104,7 +104,7 @@ where
 
             for (sym, (_, g)) in iter.by_ref().take(len) {
                 order_0::write_frequencies(writer, g)?;
-                prev_sym = sym;
+                prev_sym = Some(sym);
             }
 
             continue;
@@ -112,7 +112,7 @@ where
 
         order_0::write_frequencies(writer, f)?;
 
-        prev_sym = sym;
+        prev_sym = Some(sym);
     }
 
     write_u8(writer, NUL)?;

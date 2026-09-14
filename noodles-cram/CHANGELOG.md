@@ -8,8 +8,8 @@
 
 ### Fixed
 
-  * cram/codecs/rans_4x8/encode/order_0: Track whether previous symbol was
-    written in frequency writer.
+  * cram/codecs/rans_4x8/encode: Track whether previous symbol was written in
+    frequency writer.
 
     An RLE context was unintentionally always created for the `0x01` symbol, if
     it was part of the alphabet.
