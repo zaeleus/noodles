@@ -3,6 +3,10 @@ use std::io::{self, Write};
 use super::MISSING;
 use crate::alignment::record::{Sequence, SequenceRef, sequence_ref::FourBitPacked};
 
+// Bases are emitted in blocks rather than one at a time: a per-base `write_all` is a call and a
+// bounds check for every base of every record.
+const CHUNK_SIZE: usize = 256;
+
 pub(super) fn write_sequence<W>(
     writer: &mut W,
     read_length: usize,
@@ -39,12 +43,21 @@ fn write_four_bit_packed_sequence<W>(writer: &mut W, sequence: &FourBitPacked) -
 where
     W: Write,
 {
+    let mut buf = [0; CHUNK_SIZE];
+    let mut i = 0;
+
     for base in sequence.iter() {
         // SAFETY: `base` is guaranteed to be a valid base.
-        writer.write_all(&[base])?;
+        buf[i] = base;
+        i += 1;
+
+        if i == buf.len() {
+            writer.write_all(&buf)?;
+            i = 0;
+        }
     }
 
-    Ok(())
+    writer.write_all(&buf[..i])
 }
 
 fn write_raw_sequence<W>(writer: &mut W, sequence: &[u8]) -> io::Result<()>
@@ -55,9 +68,7 @@ where
         return Err(io::Error::from(io::ErrorKind::InvalidInput));
     }
 
-    for &b in sequence {
-        writer.write_all(&[b])?;
-    }
+    writer.write_all(sequence)?;
 
     Ok(())
 }

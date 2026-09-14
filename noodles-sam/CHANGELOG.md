@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/io/writer/record/sequence: Write the sequence in blocks.
+
+    Bases were emitted one at a time, which is a `write_all` call per base of
+    every record. Raw sequences are now written in a single call, and
+    four-bit-packed ones are unpacked into a fixed buffer first. Output is
+    unchanged.
+
 ## 0.90.0 - 2026-08-21
 
 ### Changed
