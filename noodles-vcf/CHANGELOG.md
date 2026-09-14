@@ -17,6 +17,15 @@
 
     Empty inputs now return `io::ErrorKind::UnexpectedEof`.
 
+  * vcf/io/writer/record/info: Write already-encoded fields as they are.
+
+    Fields that are already VCF text, i.e., those of a parsed `Record`, are now
+    written directly rather than decoded into values and formatted again.
+
+    This is an observable change: a float is no longer normalized, so
+    `AF=6.146e-03` is written back as it was read rather than as
+    `AF=0.006146`. Records built programmatically are unaffected.
+
 ## 0.93.0 - 2026-08-21
 
 ### Changed
@@ -1277,7 +1286,6 @@
   * vcf/record/genotypes/genotype/field: Remove `Field`.
 
     Use `(Key, Option<Value>)` instead.
-
 
 ## 0.23.0 - 2022-11-29
 
