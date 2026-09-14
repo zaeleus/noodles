@@ -48,11 +48,43 @@ pub struct Indexer {
 
 impl Indexer {
     /// Creates a BAM indexer builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::index::Indexer;
+    /// let builder = Indexer::builder();
+    /// ```
     pub fn builder() -> Builder {
         Builder::default()
     }
 
     /// Adds a record.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::index::Indexer;
+    /// use noodles_bgzf as bgzf;
+    /// use noodles_core::Position;
+    /// use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
+    ///
+    /// let mut indexer = Indexer::builder().build()?;
+    ///
+    /// let reference_sequence_id = 0;
+    /// let start = Position::try_from(8)?;
+    /// let end = Position::try_from(13)?;
+    /// let is_mapped = true;
+    /// let alignment_context = Some((reference_sequence_id, start, end, is_mapped));
+    ///
+    /// let chunk = Chunk::new(
+    ///     bgzf::VirtualPosition::from(144),
+    ///     bgzf::VirtualPosition::from(233),
+    /// );
+    ///
+    /// indexer.add_record(alignment_context, chunk)?;
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
     pub fn add_record(
         &mut self,
         alignment_context: Option<(usize, Position, Position, bool)>,
@@ -62,6 +94,15 @@ impl Indexer {
     }
 
     /// Builds a BAM index.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::index::Indexer;
+    /// let indexer = Indexer::builder().build()?;
+    /// let index = indexer.build(0);
+    /// # Ok::<_, noodles_bam::index::indexer::builder::BuildError>(())
+    /// ```
     pub fn build(self, reference_sequence_count: usize) -> Index {
         self.inner.build(reference_sequence_count)
     }
