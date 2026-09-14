@@ -1,6 +1,10 @@
 use std::{fmt, iter};
 
+use memchr::memchr_iter;
+
 use crate::variant::record::Ids as _;
+
+const DELIMITER: char = ';';
 
 /// VCF record IDs.
 #[derive(Eq, PartialEq)]
@@ -30,17 +34,24 @@ impl crate::variant::record::Ids for Ids<'_> {
     }
 
     fn len(&self) -> usize {
-        self.iter().count()
+        count(self.0)
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = &str> + '_> {
-        const DELIMITER: char = ';';
-
         if self.is_empty() {
             return Box::new(iter::empty());
         }
 
         Box::new(self.0.split(DELIMITER))
+    }
+}
+
+fn count(s: &str) -> usize {
+    if s.is_empty() {
+        0
+    } else {
+        let n = memchr_iter(DELIMITER as u8, s.as_bytes()).count();
+        n + 1
     }
 }
 
