@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bgzf/io/writer: Track state to prevent writing duplicate EOF marker
+    ([#434]).
+
+[#434]: https://github.com/zaeleus/noodles/issues/434
+
 ## 0.51.0 - 2026-08-03
 
 ### Fixed

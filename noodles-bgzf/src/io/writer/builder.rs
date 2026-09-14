@@ -45,6 +45,7 @@ impl Builder {
             staging_buf: Vec::with_capacity(MAX_BUF_SIZE),
             compression_buf: Vec::new(),
             compression_level: self.compression_level.into(),
+            is_done: false,
         }
     }
 }

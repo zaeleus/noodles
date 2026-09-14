@@ -72,6 +72,7 @@ where
     staging_buf: Vec<u8>,
     compression_buf: Vec<u8>,
     compression_level: CompressionLevelImpl,
+    is_done: bool,
 }
 
 impl<W> Writer<W>
@@ -187,14 +188,19 @@ where
     /// # Ok::<(), io::Error>(())
     /// ```
     pub fn try_finish(&mut self) -> io::Result<()> {
+        if self.is_done {
+            return Ok(());
+        }
+
         self.flush()?;
 
         let inner = self.inner.as_mut().unwrap();
-        let result = inner.write_all(&BGZF_EOF);
+        inner.write_all(&BGZF_EOF)?;
 
         self.position += BGZF_EOF.len() as u64;
+        self.is_done = true;
 
-        result
+        Ok(())
     }
 
     /// Returns the underlying writer after finishing the output stream.
@@ -233,7 +239,7 @@ where
     W: Write,
 {
     fn drop(&mut self) {
-        if self.inner.is_some() {
+        if self.inner.is_some() && !self.is_done {
             let _ = self.try_finish();
         }
     }
@@ -286,6 +292,25 @@ mod tests {
             writer.virtual_position(),
             VirtualPosition::try_from((writer.get_ref().len() as u64, 0))?
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_try_finish() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        let mut writer = Writer::new(&mut buf);
+        writer.write_all(b"noodles")?;
+        writer.try_finish()?;
+
+        let expected = writer.get_ref().len();
+
+        drop(writer);
+
+        let actual = buf.len();
+
+        assert_eq!(expected, actual);
 
         Ok(())
     }
