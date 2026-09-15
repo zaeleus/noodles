@@ -21,7 +21,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-fn read_states(src: &mut &[u8]) -> io::Result<[u32; 4]> {
+fn read_states(src: &mut &[u8]) -> io::Result<[u32; STATE_COUNT]> {
     let mut states = [0; STATE_COUNT];
 
     for state in &mut states {
