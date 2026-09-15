@@ -44,6 +44,13 @@ pub struct Builder {
 
 impl Builder {
     /// Sets the BAM index format.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::index::{Format, Indexer};
+    /// let builder = Indexer::builder().set_format(Format::Bai);
+    /// ```
     pub fn set_format(mut self, format: Format) -> Self {
         self.format = Some(format);
         self
@@ -53,12 +60,29 @@ impl Builder {
     ///
     /// This sets the maximum expected position that is used for indexing. When <= 2<sup>29</sup>,
     /// this will select a BAM index (BAI); otherwise, a coordinate-sorted index (CSI) is used.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::index::Indexer;
+    /// use noodles_core::Position;
+    ///
+    /// let builder = Indexer::builder().set_max_position_hint(Position::MIN);
+    /// ```
     pub fn set_max_position_hint(mut self, max_position_hint: Position) -> Self {
         self.max_position_hint = Some(max_position_hint);
         self
     }
 
     /// Builds a BAM indexer.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_bam::index::Indexer;
+    /// let index = Indexer::builder().build()?;
+    /// # Ok::<_, noodles_bam::index::indexer::builder::BuildError>(())
+    /// ```
     pub fn build(self) -> Result<Indexer, BuildError> {
         let depth = if let Some(n) = self.max_position_hint {
             fit_depth(n).ok_or(BuildError::UnsupportedMaxPosition)?
