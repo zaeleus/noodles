@@ -2,7 +2,7 @@ use std::io;
 
 use super::{read_states, state_cumulative_frequency, state_renormalize, state_step};
 use crate::{
-    codecs::rans_4x8::ALPHABET_SIZE,
+    codecs::rans_4x8::{ALPHABET_SIZE, STATE_COUNT},
     io::reader::num::{read_itf8_as, read_u8},
 };
 
@@ -18,9 +18,10 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
         build_cumulative_frequencies_symbols_table(&cumulative_frequencies);
 
     let mut states = read_states(src)?;
+    let (chunks, remainder) = dst.as_chunks_mut::<STATE_COUNT>();
 
-    for chunk in dst.chunks_mut(states.len()) {
-        for (d, state) in chunk.iter_mut().zip(states.iter_mut()) {
+    for chunk in chunks {
+        for (d, state) in chunk.iter_mut().zip(&mut states) {
             let f = state_cumulative_frequency(*state);
             let sym = cumulative_frequencies_symbols_table[usize::from(f)];
 
@@ -30,6 +31,17 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
             *state = state_step(*state, frequencies[i], cumulative_frequencies[i]);
             *state = state_renormalize(*state, src)?;
         }
+    }
+
+    for (d, state) in remainder.iter_mut().zip(&mut states) {
+        let f = state_cumulative_frequency(*state);
+        let sym = cumulative_frequencies_symbols_table[usize::from(f)];
+
+        *d = sym;
+
+        let i = usize::from(sym);
+        *state = state_step(*state, frequencies[i], cumulative_frequencies[i]);
+        *state = state_renormalize(*state, src)?;
     }
 
     Ok(())
