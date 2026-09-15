@@ -64,7 +64,7 @@ pub(super) fn parse_samples(
     }
 
     let field = next_field(&mut s);
-    parse_keys(header, field, &mut genotypes.keys).map_err(ParseError::InvalidKeys)?;
+    parse_keys(field, &mut genotypes.keys).map_err(ParseError::InvalidKeys)?;
 
     genotypes.values.resize(sample_count, Vec::new());
 
