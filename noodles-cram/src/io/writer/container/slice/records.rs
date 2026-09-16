@@ -231,7 +231,7 @@ impl<'a> Writer<'a> {
     }
 
     fn write_name(&mut self, name: Option<&BStr>) -> io::Result<()> {
-        const MISSING: &[u8] = &[b'*', 0x00];
+        const MISSING: &[u8] = b"*";
 
         let buf = name.map(|s| s.as_ref()).unwrap_or(MISSING);
 

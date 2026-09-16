@@ -33,6 +33,11 @@
     terminator.
 
     The terminator is removed by the byte array data series decoder.
+  
+  * cram/io/writer/container/slice/records: Remove duplicate terminator from
+    missing name.
+
+    This is added by the byte array data series encoder instead.
 
 [#396]: https://github.com/zaeleus/noodles/pull/396
 
