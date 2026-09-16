@@ -172,7 +172,7 @@ fn write_records(
         &mut core_data_writer,
         &mut external_data_writers,
         reference_sequence_context,
-    );
+    )?;
 
     for record in records {
         writer.write_record(record)?;

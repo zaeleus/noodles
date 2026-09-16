@@ -8,7 +8,9 @@ use crate::{
     container::{
         CompressionHeader, ReferenceSequenceContext, block,
         compression_header::{
+            Encoding,
             data_series_encodings::DataSeries,
+            encoding::codec::ByteArray,
             preservation_map::{substitution_matrix::Base, tag_sets},
         },
     },
@@ -47,6 +49,7 @@ pub struct Writer<'a> {
     external_data_writers: &'a mut ExternalDataWriters,
     reference_sequence_context: ReferenceSequenceContext,
     prev_alignment_start: Option<Position>,
+    resolved_tag_sets: Vec<Vec<(tag_sets::Key, &'a Encoding<ByteArray>)>>,
 }
 
 impl<'a> Writer<'a> {
@@ -55,19 +58,22 @@ impl<'a> Writer<'a> {
         core_data_writer: &'a mut BitWriter,
         external_data_writers: &'a mut ExternalDataWriters,
         reference_sequence_context: ReferenceSequenceContext,
-    ) -> Self {
+    ) -> io::Result<Self> {
         let initial_alignment_start = match reference_sequence_context {
             ReferenceSequenceContext::Some(context) => Some(context.alignment_start()),
             _ => None,
         };
 
-        Self {
+        let resolved_tag_sets = resolve_tag_sets(compression_header)?;
+
+        Ok(Self {
             compression_header,
             core_data_writer,
             external_data_writers,
             reference_sequence_context,
             prev_alignment_start: initial_alignment_start,
-        }
+            resolved_tag_sets,
+        })
     }
 
     pub fn write_record(&mut self, record: &Record) -> io::Result<()> {
@@ -350,24 +356,16 @@ impl<'a> Writer<'a> {
 
         self.write_tag_set_id(tag_set_id)?;
 
-        let tag_encodings = self.compression_header.tag_encodings();
+        let tag_set = self
+            .resolved_tag_sets
+            .get(tag_set_id)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid tag set"))?;
+
         let mut buf = Vec::new();
 
-        for (key, (_, value)) in tag_set.into_iter().zip(&record.data) {
-            let block_content_id = block::ContentId::from(key);
-
+        for ((_, encoding), (_, value)) in tag_set.iter().zip(&record.data) {
             write_value(&mut buf, &value.into())?;
-
-            tag_encodings
-                .get(&block_content_id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        WriteRecordError::MissingTagEncoding(key),
-                    )
-                })?
-                .encode(self.core_data_writer, self.external_data_writers, &buf)?;
-
+            encoding.encode(self.core_data_writer, self.external_data_writers, &buf)?;
             buf.clear();
         }
 
@@ -633,6 +631,35 @@ impl<'a> Writer<'a> {
                 quality_scores,
             )
     }
+}
+
+#[expect(clippy::type_complexity)]
+fn resolve_tag_sets(
+    compression_header: &CompressionHeader,
+) -> io::Result<Vec<Vec<(tag_sets::Key, &Encoding<ByteArray>)>>> {
+    compression_header
+        .preservation_map()
+        .tag_sets()
+        .iter()
+        .map(|tag_set| {
+            tag_set
+                .iter()
+                .map(|&key| {
+                    let id = block::ContentId::from(key);
+
+                    let encoding =
+                        compression_header.tag_encodings().get(&id).ok_or_else(|| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidData,
+                                WriteRecordError::MissingTagEncoding(key),
+                            )
+                        })?;
+
+                    Ok((key, encoding))
+                })
+                .collect()
+        })
+        .collect()
 }
 
 fn missing_data_series_encoding_error(data_series: DataSeries) -> io::Error {
