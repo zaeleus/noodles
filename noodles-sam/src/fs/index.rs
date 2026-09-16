@@ -69,7 +69,7 @@ where
         let chunk = Chunk::new(start_position, end_position);
 
         let alignment_context = match alignment_context(&header, &record)? {
-            (Some(id), Some(start), Some(end)) => {
+            Some((id, start, end)) => {
                 let is_mapped = !record.flags()?.is_unmapped();
                 Some((id, start, end, is_mapped))
             }
@@ -95,12 +95,15 @@ fn is_coordinate_sorted(header: &Header) -> bool {
 fn alignment_context(
     header: &Header,
     record: &Record,
-) -> io::Result<(Option<usize>, Option<Position>, Option<Position>)> {
-    Ok((
+) -> io::Result<Option<(usize, Position, Position)>> {
+    match (
         record.reference_sequence_id(header).transpose()?,
         record.alignment_start().transpose()?,
         record.alignment_end().transpose()?,
-    ))
+    ) {
+        (Some(id), Some(start), Some(end)) => Ok(Some((id, start, end))),
+        _ => Ok(None),
+    }
 }
 
 #[cfg(test)]
