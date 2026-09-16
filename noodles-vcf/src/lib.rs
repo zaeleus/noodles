@@ -22,8 +22,9 @@ pub mod r#async;
 
 pub mod fs;
 pub mod header;
+pub mod index;
 pub mod io;
 pub mod record;
 pub mod variant;
 
-pub use self::{header::Header, record::Record};
+pub use self::{header::Header, index::Index, record::Record};

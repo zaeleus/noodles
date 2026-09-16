@@ -4,6 +4,11 @@
 
 ### Added
 
+  * vcf/index: Add indexer (`vcf::index::Indexer`).
+
+    This is an abstraction over building a tabix (TBI) and coordinate-sorted
+    index (CSI).
+
   * vcf/variant/record_buf/convert: Add
     `RecordBuf::try_clone_from_variant_record` to clone a
     `vcf::alignment::Record` into an existing `RecordBuf`.
