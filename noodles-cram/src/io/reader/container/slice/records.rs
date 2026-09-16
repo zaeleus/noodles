@@ -12,7 +12,10 @@ use crate::{
     Record,
     container::{
         CompressionHeader, ReferenceSequenceContext, block,
-        compression_header::{data_series_encodings::DataSeries, preservation_map::tag_sets},
+        compression_header::{
+            Encoding, data_series_encodings::DataSeries, encoding::codec::ByteArray,
+            preservation_map::tag_sets,
+        },
     },
     io::BitReader,
     record::{Feature, Flags, MateFlags, feature},
@@ -45,6 +48,7 @@ pub struct Records<'c, 'ch: 'c> {
     reference_sequence_context: ReferenceSequenceContext,
     id: u64,
     prev_alignment_start: Option<Position>,
+    resolved_tag_sets: Vec<Vec<(tag_sets::Key, &'ch Encoding<ByteArray>)>>,
 }
 
 impl<'c, 'ch: 'c> Records<'c, 'ch> {
@@ -54,20 +58,23 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         external_data_readers: ExternalDataReaders<'c>,
         reference_sequence_context: ReferenceSequenceContext,
         initial_id: u64,
-    ) -> Self {
+    ) -> io::Result<Self> {
         let initial_alignment_start = match reference_sequence_context {
             ReferenceSequenceContext::Some(context) => Some(context.alignment_start()),
             _ => None,
         };
 
-        Self {
+        let resolved_tag_sets = resolve_tag_sets(compression_header)?;
+
+        Ok(Self {
             compression_header,
             core_data_reader,
             external_data_readers,
             reference_sequence_context,
             id: initial_id,
             prev_alignment_start: initial_alignment_start,
-        }
+            resolved_tag_sets,
+        })
     }
 
     pub fn read_record(&mut self, record: &mut Record<'c>) -> io::Result<()> {
@@ -327,27 +334,14 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
         let tag_set_id = self.read_tag_set_id()?;
 
         let tag_set = self
-            .compression_header
-            .preservation_map()
-            .tag_sets()
+            .resolved_tag_sets
             .get(tag_set_id)
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "missing tag set"))?;
 
         record.data.reserve(tag_set.len());
 
-        for &key in tag_set {
-            let id = block::ContentId::from(key);
-
-            let value = self
-                .compression_header
-                .tag_encodings()
-                .get(&id)
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        ReadRecordError::MissingTagEncoding(key),
-                    )
-                })?
+        for (key, encoding) in tag_set {
+            let value = encoding
                 .decode(&mut self.core_data_reader, &mut self.external_data_readers)
                 .and_then(|src| self::data::read_value(src, key.ty()))?;
 
@@ -658,6 +652,35 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
             Ok(src)
         }
     }
+}
+
+#[expect(clippy::type_complexity)]
+fn resolve_tag_sets(
+    compression_header: &CompressionHeader,
+) -> io::Result<Vec<Vec<(tag_sets::Key, &Encoding<ByteArray>)>>> {
+    compression_header
+        .preservation_map()
+        .tag_sets()
+        .iter()
+        .map(|tag_set| {
+            tag_set
+                .iter()
+                .map(|&key| {
+                    let id = block::ContentId::from(key);
+
+                    let encoding =
+                        compression_header.tag_encodings().get(&id).ok_or_else(|| {
+                            io::Error::new(
+                                io::ErrorKind::InvalidData,
+                                ReadRecordError::MissingTagEncoding(key),
+                            )
+                        })?;
+
+                    Ok((key, encoding))
+                })
+                .collect()
+        })
+        .collect()
 }
 
 fn missing_data_series_encoding_error(data_series: DataSeries) -> io::Error {

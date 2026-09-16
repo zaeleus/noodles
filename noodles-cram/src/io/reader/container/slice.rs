@@ -118,7 +118,7 @@ impl<'c> Slice<'c> {
             external_data_readers,
             reference_sequence_context,
             initial_id,
-        );
+        )?;
 
         let slice_reference_sequence = get_slice_reference_sequence(
             &reference_sequence_repository.clone(),
