@@ -15,7 +15,9 @@ use noodles_vcf as vcf;
 fn main() -> io::Result<()> {
     let src = env::args().nth(1).expect("missing src");
 
-    let index = vcf::fs::index(src)?;
+    let vcf::Index::Tabix(index) = vcf::fs::index(src)? else {
+        panic!("failed to index input as tabix");
+    };
 
     let stdout = io::stdout().lock();
     let mut writer = tabix::io::Writer::new(BufWriter::new(stdout));

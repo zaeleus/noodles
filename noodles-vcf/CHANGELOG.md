@@ -18,6 +18,10 @@
 
 ### Changed
 
+  * vcf/fs/index: Return `vcf::Index` from `index`.
+
+    `index` can return either a tabix (TBI) or coordinate-sorted index (CSI).
+
   * vcf/record/samples/series/value/genotype: Return error on empty input.
 
     Empty inputs now return `io::ErrorKind::UnexpectedEof`.

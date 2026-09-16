@@ -1,10 +1,9 @@
 use std::{fs::File, io, path::Path};
 
 use noodles_bgzf as bgzf;
-use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
-use noodles_tabix as tabix;
+use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
 
-use crate::{Record, io::Reader, variant::Record as _};
+use crate::{Index, Record, index::Indexer, io::Reader, variant::Record as _};
 
 /// Indexes a bgzipped-compressed VCF file.
 ///
@@ -15,7 +14,7 @@ use crate::{Record, io::Reader, variant::Record as _};
 /// let _index = vcf::fs::index("sample.vcf.gz")?;
 /// # Ok::<_, std::io::Error>(())
 /// ```
-pub fn index<P>(src: P) -> io::Result<tabix::Index>
+pub fn index<P>(src: P) -> io::Result<Index>
 where
     P: AsRef<Path>,
 {
@@ -26,16 +25,18 @@ where
     index_inner(&mut reader)
 }
 
-fn index_inner<R>(reader: &mut Reader<R>) -> io::Result<tabix::Index>
+fn index_inner<R>(reader: &mut Reader<R>) -> io::Result<Index>
 where
     R: bgzf::io::BufRead,
 {
     let header = reader.read_header()?;
 
-    let mut indexer = tabix::index::Indexer::default();
-    indexer.set_header(csi::binning_index::index::header::Builder::vcf().build());
-
     let mut record = Record::default();
+
+    let mut indexer = Indexer::builder()
+        .build()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
     let mut start_position = reader.get_ref().virtual_position();
 
     while reader.read_record(&mut record)? != 0 {
