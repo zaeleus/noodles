@@ -4,10 +4,10 @@
 
 ### Added
 
-  * vcf/index: Add indexer (`vcf::index::Indexer`).
+  * vcf/index: Add index (`vcf::Index`) ([#433]).
 
     This is an abstraction over building a tabix (TBI) and coordinate-sorted
-    index (CSI).
+    index (CSI). Use `vcf::index::Indexer` to create a `vcf::Index`.
 
   * vcf/variant/record_buf/convert: Add
     `RecordBuf::try_clone_from_variant_record` to clone a
@@ -15,6 +15,8 @@
 
   * vcf/variant/record_buf/alternate_bases: Implement `Extend<String>` and
     `FromIterator<String>`.
+
+[#433]: https://github.com/zaeleus/noodles/discussions/433
 
 ### Changed
 
