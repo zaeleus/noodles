@@ -1,4 +1,6 @@
-mod builder;
+//! VCF indexer.
+
+pub mod builder;
 
 use std::io;
 
@@ -79,7 +81,7 @@ impl Indexer {
     /// use noodles_csi::binning_index::index::reference_sequence::bin::Chunk;
     /// use noodles_vcf::index::Indexer;
     ///
-    /// let mut indexer = Indexer::builder().build();
+    /// let mut indexer = Indexer::builder().build()?;
     ///
     /// let reference_sequence_name = "sq0";
     /// let start = const { Position::new(8).unwrap() };
@@ -90,7 +92,7 @@ impl Indexer {
     /// );
     ///
     /// indexer.add_record(reference_sequence_name, start, end, chunk)?;
-    /// # Ok::<_, std::io::Error>(())
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
     /// ```
     pub fn add_record(
         &mut self,
@@ -114,8 +116,9 @@ impl Indexer {
     ///
     /// ```
     /// use noodles_vcf::index::Indexer;
-    /// let indexer = Indexer::builder().build();
+    /// let indexer = Indexer::builder().build()?;
     /// let index = indexer.build();
+    /// # Ok::<_, noodles_vcf::index::indexer::builder::BuildError>(())
     /// ```
     pub fn build(mut self) -> Index {
         let reference_sequence_count = self.reference_sequence_names.len();

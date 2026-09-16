@@ -1,7 +1,7 @@
 //! VCF index.
 
 mod format;
-mod indexer;
+pub mod indexer;
 
 use noodles_csi as csi;
 use noodles_tabix as tabix;
