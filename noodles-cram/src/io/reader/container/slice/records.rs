@@ -227,7 +227,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
     }
 
     fn read_name(&mut self) -> io::Result<Option<Cow<'c, [u8]>>> {
-        const MISSING: &[u8] = b"*\x00";
+        const MISSING: &[u8] = b"*";
 
         self.compression_header
             .data_series_encodings()
