@@ -364,6 +364,7 @@ impl<'c, 'ch: 'c> Records<'c, 'ch> {
 
     fn read_mapped_read(&mut self, record: &mut Record<'c>) -> io::Result<()> {
         let feature_count = self.read_feature_count()?;
+        record.features.reserve(feature_count);
 
         let mut prev_position = 0;
 
