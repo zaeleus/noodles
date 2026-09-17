@@ -9,6 +9,11 @@
     This is an abstraction over a BAM index (BAI) and coordinate-sorted index
     (CSI). Use `bam::index::Indexer` to create a `bam::Index`.
 
+  * bam/fs: Add convenience function to read BAM indices
+    (`bam::fs::read_associated_index`).
+
+    This attempts to read an associated BAI; otherwise, an associated CSI.
+
 [#433]: https://github.com/zaeleus/noodles/discussions/433
 
 ### Changed
