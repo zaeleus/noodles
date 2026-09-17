@@ -80,7 +80,7 @@ impl Builder {
     ///
     /// ```
     /// use noodles_bam::index::Indexer;
-    /// let index = Indexer::builder().build()?;
+    /// let indexer = Indexer::builder().build()?;
     /// # Ok::<_, noodles_bam::index::indexer::builder::BuildError>(())
     /// ```
     pub fn build(self) -> Result<Indexer, BuildError> {
