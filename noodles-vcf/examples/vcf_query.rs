@@ -6,22 +6,28 @@
 
 use std::{
     env,
+    fs::File,
     io::{self, BufWriter},
 };
 
+use noodles_bgzf as bgzf;
 use noodles_vcf::{self as vcf, variant::io::Write};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut args = env::args();
+    let mut args = env::args().skip(1);
 
-    let src = args.nth(1).expect("missing src");
+    let src = args.next().expect("missing src");
     let raw_region = args.next().expect("missing region");
 
-    let mut reader = vcf::io::indexed_reader::Builder::default().build_from_path(src)?;
+    let mut reader = File::open(&src)
+        .map(bgzf::io::Reader::new)
+        .map(vcf::io::Reader::new)?;
+
     let header = reader.read_header()?;
 
+    let index = vcf::fs::read_associated_index(&src)?;
     let region = raw_region.parse()?;
-    let query = reader.query(&header, &region)?;
+    let query = reader.query(&header, &index, &region)?;
 
     let stdout = io::stdout().lock();
     let mut writer = vcf::io::Writer::new(BufWriter::new(stdout));

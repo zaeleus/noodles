@@ -4,19 +4,18 @@
 //!
 //! The result matches the output `bcftools view --no-header <src> <region>`.
 
-use std::{env, path::PathBuf};
+use std::env;
 
 use futures::TryStreamExt;
 use noodles_bgzf as bgzf;
-use noodles_tabix as tabix;
 use noodles_vcf as vcf;
 use tokio::{fs::File, io};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut args = env::args();
+    let mut args = env::args().skip(1);
 
-    let src = args.nth(1).map(PathBuf::from).expect("missing src");
+    let src = args.next().expect("missing src");
     let region = args.next().map(|s| s.parse()).expect("missing region")?;
 
     let mut reader = File::open(&src)
@@ -26,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = reader.read_header().await?;
 
-    let index = tabix::r#async::fs::read(src.with_extension("gz.tbi")).await?;
+    let index = vcf::r#async::fs::read_associated_index(&src).await?;
     let mut query = reader.query(&header, &index, &region)?.records();
 
     let mut writer = vcf::r#async::io::Writer::new(io::stdout());
