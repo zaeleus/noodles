@@ -4,6 +4,11 @@
 
 ### Added
 
+  * vcf/fs: Add convenience function to read VCF indices
+    (`vcf::fs::read_associated_index`).
+
+    This attempts to read an associated TBI; otherwise, an associated CSI.
+
   * vcf/index: Add index (`vcf::Index`) ([#433]).
 
     This is an abstraction over building a tabix (TBI) and coordinate-sorted
