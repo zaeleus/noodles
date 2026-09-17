@@ -23,17 +23,18 @@
 //!
 //! ## Query records
 //!
-//! Querying allows filtering records by region. It requires an associated BAM index (BAI).
+//! Querying allows filtering records by region. It requires an associated BAM index (BAI or CSI).
 //!
 //! ```no_run
 //! # use std::fs::File;
 //! use noodles_bam as bam;
 //!
-//! let mut reader = bam::io::indexed_reader::Builder::default().build_from_path("sample.bam")?;
+//! let mut reader = File::open("sample.bam").map(bam::io::Reader::new)?;
 //! let header = reader.read_header()?;
 //!
+//! let index = bam::fs::read_associated_index("sample.bam")?;
 //! let region = "sq0:5-8".parse()?;
-//! let query = reader.query(&header, &region)?;
+//! let query = reader.query(&header, &index, &region)?;
 //!
 //! for result in query.records() {
 //!     let record = result?;

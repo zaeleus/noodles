@@ -6,20 +6,20 @@
 //!
 //! The result matches the output of `samtools idxstats <src>`.
 
-use std::{env, path::PathBuf};
+use std::env;
 
-use noodles_bam::{self as bam, bai};
-use noodles_csi::{BinningIndex, binning_index::ReferenceSequence};
+use noodles_bam as bam;
+use noodles_csi::BinningIndex;
 use tokio::{fs::File, io};
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
-    let src = env::args().nth(1).map(PathBuf::from).expect("missing src");
+    let src = env::args().nth(1).expect("missing src");
 
     let mut reader = File::open(&src).await.map(bam::r#async::io::Reader::new)?;
     let header = reader.read_header().await?;
 
-    let index = bai::r#async::fs::read(src.with_extension("bam.bai")).await?;
+    let index = bam::r#async::fs::read_associated_index(&src).await?;
 
     for ((reference_sequence_name, reference_sequence), index_reference_sequence) in header
         .reference_sequences()
