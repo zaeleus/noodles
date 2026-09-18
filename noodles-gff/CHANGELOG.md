@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * gff: Raise minimum supported Rust version (MSRV) to 1.91.0.
+
   * gff/feature/record: Change reference sequence name, source, and type to
     return `Cow<'_, BStr>` ([#407]).
 

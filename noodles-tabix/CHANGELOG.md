@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * tabix: Raise minimum supported Rust version (MSRV) to 1.91.0.
+
   * tabix/io/writer/index: Validate min shift and depth.
 
     These are now required to be the values assumed by tabix (14 and 5,

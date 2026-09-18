@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bed: Raise minimum supported Rust version (MSRV) to 1.91.0.
+
 ## 0.39.0 - 2026-08-21
 
 ### Changed

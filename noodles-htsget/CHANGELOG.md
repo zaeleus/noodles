@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * htsget: Raise minimum supported Rust version (MSRV) to 1.91.0.
+
 ## 0.12.0 - 2026-07-31
 
 ### Changed

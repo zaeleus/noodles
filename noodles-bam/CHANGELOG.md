@@ -18,6 +18,8 @@
 
 ### Changed
 
+  * bam: Raise minimum supported Rust version (MSRV) to 1.91.0.
+
   * bam/fs/index: Return `bam::Index` from `index`.
 
     `index` can return either a BAM index (BAI) or coordinate-sorted index

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam: Raise minimum supported Rust version (MSRV) to 1.91.0.
+
 ## 0.90.0 - 2026-08-21
 
 ### Changed

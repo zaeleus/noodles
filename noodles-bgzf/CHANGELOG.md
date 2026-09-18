@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+  * bgzf: Raise minimum supported Rust version (MSRV) to 1.91.0.
+
 ### Fixed
 
   * bgzf/io/writer: Track state to prevent writing duplicate EOF marker

@@ -25,6 +25,8 @@
 
 ### Changed
 
+  * vcf: Raise minimum supported Rust version (MSRV) to 1.91.0.
+
   * vcf/fs/index: Return `vcf::Index` from `index`.
 
     `index` can return either a tabix (TBI) or coordinate-sorted index (CSI),
