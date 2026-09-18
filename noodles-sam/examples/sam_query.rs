@@ -5,27 +5,34 @@
 //!
 //! The result matches the output of `samtools view <src> <region>`.
 
-use std::{env, io, path::PathBuf};
+use std::{env, fs::File, io};
 
+use noodles_bgzf as bgzf;
 use noodles_sam as sam;
 
 const UNMAPPED: &str = "*";
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut args = env::args();
+    let mut args = env::args().skip(1);
 
-    let src = args.nth(1).map(PathBuf::from).expect("missing src");
+    let src = args.next().expect("missing src");
     let raw_region = args.next().expect("missing region");
 
-    let mut reader = sam::io::indexed_reader::Builder::default().build_from_path(src)?;
+    let mut reader = File::open(&src)
+        .map(bgzf::io::Reader::new)
+        .map(sam::io::Reader::new)?;
+
     let header = reader.read_header()?;
 
+    let index = sam::fs::read_associated_index(&src)?;
+
     let records: Box<dyn Iterator<Item = io::Result<sam::Record>>> = if raw_region == UNMAPPED {
-        reader.query_unmapped().map(Box::new)?
+        reader.query_unmapped(&index).map(Box::new)?
     } else {
         let region = raw_region.parse()?;
+
         reader
-            .query(&header, &region)
+            .query(&header, &index, &region)
             .map(|query| Box::new(query.records()))?
     };
 
