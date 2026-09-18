@@ -4,15 +4,15 @@
 
 ### Added
 
+  * vcf: Add index (`vcf::Index`) ([#433]).
+
+    This is an abstraction over building a tabix (TBI) and coordinate-sorted
+    index (CSI). Use `vcf::index::Indexer` to create a `vcf::Index`.
+
   * vcf/fs: Add convenience function to read VCF indices
     (`vcf::fs::read_associated_index`).
 
     This attempts to read an associated TBI; otherwise, an associated CSI.
-
-  * vcf/index: Add index (`vcf::Index`) ([#433]).
-
-    This is an abstraction over building a tabix (TBI) and coordinate-sorted
-    index (CSI). Use `vcf::index::Indexer` to create a `vcf::Index`.
 
   * vcf/variant/record_buf/convert: Add
     `RecordBuf::try_clone_from_variant_record` to clone a
