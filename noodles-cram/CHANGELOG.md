@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * cram/fs: Add convenience function to read associated CRAM index
+    (`cram::fs::read_associated_index`).
+
 ### Changed
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.91.0.
