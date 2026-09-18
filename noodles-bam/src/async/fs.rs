@@ -5,7 +5,7 @@ use std::path::Path;
 use noodles_csi as csi;
 use tokio::io;
 
-use crate::{Index, bai, fs::path_with_added_extension};
+use crate::{Index, bai};
 
 /// Reads an associated BAM index.
 ///
@@ -28,12 +28,13 @@ where
     const BAI_EXT: &str = "bai";
     const CSI_EXT: &str = "csi";
 
-    let bai_src = path_with_added_extension(src.as_ref(), BAI_EXT);
+    let src = src.as_ref();
+    let bai_src = src.with_added_extension(BAI_EXT);
 
     match bai::r#async::fs::read(bai_src).await {
         Ok(index) => Ok(Index::Bai(index)),
         Err(e) if e.kind() == io::ErrorKind::NotFound => {
-            let csi_src = path_with_added_extension(src.as_ref(), CSI_EXT);
+            let csi_src = src.with_added_extension(CSI_EXT);
             csi::r#async::fs::read(csi_src).await.map(Index::Csi)
         }
         Err(e) => Err(e),
