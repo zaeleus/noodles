@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * util/alignment: Add index (`alignment::Index`).
+
 ### Changed
 
   * util: Raise minimum supported Rust version (MSRV) to 1.91.0.
