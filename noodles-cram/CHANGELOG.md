@@ -8,13 +8,15 @@
 
   * cram: Update to lzma-rust2 0.20.0.
 
-  * cram/crai/async: Move `read` to `fs` module.
+  * cram/crai/async: Move `read` and `write` to `fs` module.
 
 ### Deprecated
 
-  * cram/crai/async: Deprecate `crai::r#async::read`.
+  * cram/crai/async: Deprecate `crai::r#async::read` and
+    `crai::r#async::write`.
 
-    Use `crai::r#async::fs::read` instead.
+    Use `crai::r#async::fs::read` and `crai::r#async::fs::write`, respectively,
+    instead.
 
 ### Fixed
 

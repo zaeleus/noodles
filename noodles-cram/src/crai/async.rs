@@ -5,9 +5,6 @@ pub mod io;
 
 use std::path::Path;
 
-use tokio::fs::File;
-
-use self::io::Writer;
 use super::{Index, Record};
 
 /// Reads the entire contents of a CRAM index.
@@ -53,12 +50,10 @@ where
 /// # Ok(())
 /// # }
 /// ```
+#[deprecated(since = "0.100.0", note = "Use `crai::r#async::fs::write` instead.")]
 pub async fn write<P>(dst: P, index: &[Record]) -> tokio::io::Result<()>
 where
     P: AsRef<Path>,
 {
-    let mut writer = File::create(dst).await.map(Writer::new)?;
-    writer.write_index(index).await?;
-    writer.shutdown().await?;
-    Ok(())
+    fs::write(dst, index).await
 }
