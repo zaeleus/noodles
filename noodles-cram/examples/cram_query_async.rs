@@ -7,7 +7,7 @@
 use std::{env, path::PathBuf, pin::Pin};
 
 use futures::{Stream, TryStreamExt};
-use noodles_cram::{self as cram, crai};
+use noodles_cram as cram;
 use noodles_fasta::{self as fasta, repository::adapters::IndexedReader};
 use noodles_sam as sam;
 use tokio::io;
@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = reader.read_header().await?;
 
-    let index = crai::r#async::fs::read(src.with_extension("cram.crai")).await?;
+    let index = cram::r#async::fs::read_associated_index(&src).await?;
 
     let mut records: Pin<Box<dyn Stream<Item = io::Result<sam::alignment::RecordBuf>>>> =
         if raw_region == UNMAPPED {
