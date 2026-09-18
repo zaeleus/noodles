@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * sam/fs: Add convenience function to read associated SAM index
+    (`sam::fs::read_associated_index`).
+
 ### Changed
 
   * sam: Raise minimum supported Rust version (MSRV) to 1.91.0.
