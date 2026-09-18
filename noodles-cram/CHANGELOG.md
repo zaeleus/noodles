@@ -8,6 +8,14 @@
 
   * cram: Update to lzma-rust2 0.20.0.
 
+  * cram/crai/async: Move `read` to `fs` module.
+
+### Deprecated
+
+  * cram/crai/async: Deprecate `crai::r#async::read`.
+
+    Use `crai::r#async::fs::read` instead.
+
 ### Fixed
 
   * cram/codecs/rans_4x8/encode: Track whether previous symbol was written in

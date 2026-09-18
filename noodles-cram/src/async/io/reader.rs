@@ -316,7 +316,7 @@ where
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// let header = reader.read_header().await?;
     ///
-    /// let index = crai::r#async::read("sample.cram.crai").await?;
+    /// let index = crai::r#async::fs::read("sample.cram.crai").await?;
     /// let region = "sq0:8-13".parse()?;
     /// let mut query = reader.query(&header, &index, &region)?.records();
     ///
@@ -365,7 +365,7 @@ where
     /// let mut reader = File::open("sample.cram").await.map(cram::r#async::io::Reader::new)?;
     /// let header = reader.read_header().await?;
     ///
-    /// let index = crai::r#async::read("sample.cram.crai").await?;
+    /// let index = crai::r#async::fs::read("sample.cram.crai").await?;
     /// let mut query = reader.query_unmapped(&header, &index).await?;
     ///
     /// while let Some(record) = query.try_next().await? {

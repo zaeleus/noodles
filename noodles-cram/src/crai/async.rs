@@ -1,12 +1,13 @@
 //! Async CRAM index.
 
+pub mod fs;
 pub mod io;
 
 use std::path::Path;
 
 use tokio::fs::File;
 
-use self::io::{Reader, Writer};
+use self::io::Writer;
 use super::{Index, Record};
 
 /// Reads the entire contents of a CRAM index.
@@ -26,12 +27,12 @@ use super::{Index, Record};
 /// # Ok(())
 /// # }
 /// ```
+#[deprecated(since = "0.100.0", note = "Use `crai::r#async::fs::read` instead.")]
 pub async fn read<P>(src: P) -> tokio::io::Result<Index>
 where
     P: AsRef<Path>,
 {
-    let mut reader = File::open(src).await.map(Reader::new)?;
-    reader.read_index().await
+    fs::read(src).await
 }
 
 /// Writes a CRAM index to a file.

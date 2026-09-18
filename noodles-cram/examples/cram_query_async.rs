@@ -36,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let header = reader.read_header().await?;
 
-    let index = crai::r#async::read(src.with_extension("cram.crai")).await?;
+    let index = crai::r#async::fs::read(src.with_extension("cram.crai")).await?;
 
     let mut records: Pin<Box<dyn Stream<Item = io::Result<sam::alignment::RecordBuf>>>> =
         if raw_region == UNMAPPED {
