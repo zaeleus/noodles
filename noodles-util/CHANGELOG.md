@@ -9,6 +9,8 @@
   * util/alignment/fs: Add convenience function to read associated indices
     (`alignment::fs::read_associated_index`).
 
+  * util/alignment/io/reader: Add query method (`Reader::query`).
+
 ### Changed
 
   * util: Raise minimum supported Rust version (MSRV) to 1.91.0.

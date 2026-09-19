@@ -3,9 +3,12 @@ use std::pin::Pin;
 use futures::{Stream, StreamExt};
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
+use noodles_core::Region;
 use noodles_cram as cram;
 use noodles_sam as sam;
-use tokio::io::{self, AsyncRead, BufReader};
+use tokio::io::{self, AsyncRead, AsyncSeek, BufReader};
+
+use crate::alignment::Index;
 
 pub(super) enum Inner<R>
 where
@@ -67,5 +70,49 @@ where
         };
 
         records
+    }
+}
+
+impl<R> Inner<R>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    pub(super) fn query<'r, 'h: 'r, 'i: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &'i Index,
+        region: &Region,
+    ) -> io::Result<impl Stream<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
+        let records: Pin<Box<dyn Stream<Item = io::Result<_>>>> = match (self, index) {
+            (Inner::SamGz(reader), Index::Sam(idx)) => {
+                let query = reader.query(header, idx, region)?;
+
+                Box::pin(query.records().map(|result| {
+                    result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+                }))
+            }
+            (Inner::Bam(reader), Index::Bam(idx)) => {
+                let query = reader.query(header, idx, region)?;
+
+                Box::pin(query.records().map(|result| {
+                    result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+                }))
+            }
+            (Inner::Cram(reader), Index::Cram(idx)) => {
+                let query = reader.query(header, idx, region)?;
+
+                Box::pin(query.records().map(|result| {
+                    result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+                }))
+            }
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "format-index mismatch",
+                ));
+            }
+        };
+
+        Ok(records)
     }
 }

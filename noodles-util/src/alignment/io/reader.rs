@@ -3,13 +3,14 @@
 pub(crate) mod builder;
 mod inner;
 
-use std::io::{self, Read};
+use std::io::{self, Read, Seek};
 
+use noodles_core::Region;
 use noodles_sam as sam;
 
 pub use self::builder::Builder;
 use self::inner::Inner;
-use crate::alignment::Record;
+use crate::alignment::{Index, Record};
 
 /// An alignment reader.
 pub struct Reader<R>(Inner<R>);
@@ -94,5 +95,39 @@ where
         header: &'h sam::Header,
     ) -> impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r {
         self.0.records(header)
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: Read + Seek,
+{
+    /// Returns an iterator over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_util::alignment;
+    ///
+    /// let mut reader = alignment::io::reader::Builder::default().build_from_path("sample.bam")?;
+    /// let header = reader.read_header()?;
+    ///
+    /// let index = alignment::fs::read_associated_index("sample.bam")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let query = reader.query(&header, &index, &region)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn query<'r, 'h: 'r, 'i: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &'i Index,
+        region: &Region,
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
+        self.0.query(header, index, region)
     }
 }

@@ -4,11 +4,13 @@ mod builder;
 mod inner;
 
 use futures::Stream;
+use noodles_core::Region;
 use noodles_sam as sam;
-use tokio::io::{self, AsyncRead};
+use tokio::io::{self, AsyncRead, AsyncSeek};
 
 pub use self::builder::Builder;
 use self::inner::Inner;
+use crate::alignment::Index;
 
 /// An async alignment reader.
 pub struct Reader<R>(Inner<R>)
@@ -83,5 +85,45 @@ where
         header: &'h sam::Header,
     ) -> impl Stream<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r {
         self.0.records(header)
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    /// Returns a stream over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures::TryStreamExt;
+    /// use noodles_util::alignment;
+    ///
+    /// let mut reader = alignment::r#async::io::reader::Builder::default()
+    ///     .build_from_path("sample.bam")
+    ///     .await?;
+    ///
+    /// let header = reader.read_header().await?;
+    ///
+    /// let index = alignment::r#async::fs::read_associated_index("sample.bam").await?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn query<'r, 'h: 'r, 'i: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &'i Index,
+        region: &Region,
+    ) -> io::Result<impl Stream<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
+        self.0.query(header, index, region)
     }
 }

@@ -1,11 +1,12 @@
-use std::io::{self, BufReader, Read};
+use std::io::{self, BufReader, Read, Seek};
 
 use noodles_bam as bam;
 use noodles_bgzf as bgzf;
+use noodles_core::Region;
 use noodles_cram as cram;
 use noodles_sam as sam;
 
-use crate::alignment::Record;
+use crate::alignment::{Index, Record};
 
 pub(super) enum Inner<R> {
     Sam(sam::io::Reader<BufReader<R>>),
@@ -116,5 +117,49 @@ where
         };
 
         records
+    }
+}
+
+impl<R> Inner<R>
+where
+    R: Read + Seek,
+{
+    pub(super) fn query<'r, 'h: 'r, 'i: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &'i Index,
+        region: &Region,
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
+        let records: Box<dyn Iterator<Item = io::Result<_>>> = match (self, index) {
+            (Inner::SamGz(reader), Index::Sam(idx)) => {
+                let query = reader.query(header, idx, region)?;
+
+                Box::new(query.records().map(|result| {
+                    result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+                }))
+            }
+            (Inner::Bam(reader), Index::Bam(idx)) => {
+                let query = reader.query(header, idx, region)?;
+
+                Box::new(query.records().map(|result| {
+                    result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+                }))
+            }
+            (Inner::Cram(reader), Index::Cram(idx)) => {
+                let query = reader.get_mut().query(header, idx, region)?;
+
+                Box::new(query.records().map(|result| {
+                    result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+                }))
+            }
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "format-index mismatch",
+                ));
+            }
+        };
+
+        Ok(records)
     }
 }
