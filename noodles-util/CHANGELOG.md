@@ -9,7 +9,9 @@
   * util/alignment/fs: Add convenience function to read associated indices
     (`alignment::fs::read_associated_index`).
 
-  * util/alignment/io/reader: Add query method (`Reader::query`).
+  * util/alignment/io/reader: Add methods to query a given region
+    (`Reader::query`) and for unplaced, unmapped records
+    (`Reader::query_unmapped`).
 
 ### Changed
 

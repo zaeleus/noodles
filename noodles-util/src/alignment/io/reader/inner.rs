@@ -162,4 +162,42 @@ where
 
         Ok(records)
     }
+
+    pub(super) fn query_unmapped<'r, 'h: 'r, 'i: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &'i Index,
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
+        let records: Box<dyn Iterator<Item = io::Result<_>>> = match (self, index) {
+            (Inner::SamGz(reader), Index::Sam(idx)) => {
+                let query = reader.query_unmapped(idx)?;
+
+                Box::new(query.map(|result| {
+                    result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+                }))
+            }
+            (Inner::Bam(reader), Index::Bam(idx)) => {
+                let query = reader.query_unmapped(idx)?;
+
+                Box::new(query.map(|result| {
+                    result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+                }))
+            }
+            (Inner::Cram(reader), Index::Cram(idx)) => {
+                let query = reader.get_mut().query_unmapped(header, idx)?;
+
+                Box::new(query.map(|result| {
+                    result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
+                }))
+            }
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "format-index mismatch",
+                ));
+            }
+        };
+
+        Ok(records)
+    }
 }

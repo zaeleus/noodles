@@ -104,6 +104,8 @@ where
 {
     /// Returns an iterator over records that intersects the given region.
     ///
+    /// To query for unmapped records, use [`Self::query_unmapped`].
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -129,5 +131,32 @@ where
         region: &Region,
     ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
         self.0.query(header, index, region)
+    }
+
+    /// Returns an iterator of unmapped records after querying for the unmapped region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_util::alignment;
+    ///
+    /// let mut reader = alignment::io::reader::Builder::default().build_from_path("sample.bam")?;
+    /// let header = reader.read_header()?;
+    ///
+    /// let index = alignment::fs::read_associated_index("sample.bam")?;
+    /// let query = reader.query_unmapped(&header, &index)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
+    pub fn query_unmapped<'r, 'h: 'r, 'i: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &'i Index,
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
+        self.0.query_unmapped(header, index)
     }
 }

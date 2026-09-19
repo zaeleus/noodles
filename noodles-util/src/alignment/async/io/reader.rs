@@ -94,6 +94,8 @@ where
 {
     /// Returns a stream over records that intersects the given region.
     ///
+    /// To query for unmapped records, use [`Self::query_unmapped`].
+    ///
     /// # Examples
     ///
     /// ```no_run
@@ -125,5 +127,38 @@ where
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
         self.0.query(header, index, region)
+    }
+
+    /// Returns a stream of unmapped records after querying for the unmapped region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> tokio::io::Result<()> {
+    /// use futures::TryStreamExt;
+    /// use noodles_util::alignment;
+    ///
+    /// let mut reader = alignment::r#async::io::reader::Builder::default()
+    ///     .build_from_path("sample.bam")
+    ///     .await?;
+    ///
+    /// let header = reader.read_header().await?;
+    ///
+    /// let index = alignment::r#async::fs::read_associated_index("sample.bam").await?;
+    /// let mut query = reader.query_unmapped(&header, &index).await?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn query_unmapped<'r, 'h: 'r, 'i: 'r>(
+        &'r mut self,
+        header: &'h sam::Header,
+        index: &'i Index,
+    ) -> io::Result<impl Stream<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
+        self.0.query_unmapped(header, index).await
     }
 }
