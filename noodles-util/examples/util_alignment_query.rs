@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let raw_region = args.next().expect("missing region");
     let fasta_src = args.next();
 
-    let mut builder = alignment::io::indexed_reader::Builder::default();
+    let mut builder = alignment::io::reader::Builder::default();
 
     if let Some(fasta_src) = fasta_src {
         let repository = fasta::io::indexed_reader::Builder::default()
@@ -33,15 +33,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         builder = builder.set_reference_sequence_repository(repository);
     }
 
-    let mut reader = builder.build_from_path(src)?;
+    let mut reader = builder.build_from_path(&src)?;
     let header = reader.read_header()?;
+
+    let index = alignment::fs::read_associated_index(&src)?;
 
     let query: Box<dyn Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>>> =
         if raw_region == UNMAPPED {
-            reader.query_unmapped(&header).map(Box::new)?
+            reader.query_unmapped(&header, &index).map(Box::new)?
         } else {
             let region = raw_region.parse()?;
-            reader.query(&header, &region).map(Box::new)?
+            reader.query(&header, &index, &region).map(Box::new)?
         };
 
     let stdout = io::stdout().lock();
