@@ -18,6 +18,9 @@
   * util/variant/fs: Add convenience function to read associated indices
     (`variant::fs::read_associated_index`).
 
+  * util/variant/io/reader: Add method to query a given region
+    (`Reader::query`).
+
 ### Changed
 
   * util: Raise minimum supported Rust version (MSRV) to 1.91.0.

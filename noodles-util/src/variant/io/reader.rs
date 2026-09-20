@@ -3,13 +3,14 @@
 pub(crate) mod builder;
 mod inner;
 
-use std::io::{self, Read};
+use std::io::{self, Read, Seek};
 
+use noodles_core::Region;
 use noodles_vcf as vcf;
 
 pub use self::builder::Builder;
 use self::inner::Inner;
-use crate::variant::Record;
+use crate::variant::{Index, Record};
 
 /// A variant reader.
 pub struct Reader<R>(Inner<R>);
@@ -102,5 +103,39 @@ where
     /// ```
     pub fn new(reader: R) -> io::Result<Self> {
         Builder::default().build_from_reader(reader)
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: Read + Seek,
+{
+    /// Returns an iterator over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use noodles_util::variant;
+    ///
+    /// let mut reader = variant::io::reader::Builder::default().build_from_path("sample.vcf.gz")?;
+    /// let header = reader.read_header()?;
+    ///
+    /// let index = variant::fs::read_associated_index("sample.vcf.gz")?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let query = reader.query(&header, &index, &region)?;
+    ///
+    /// for result in query {
+    ///     let record = result?;
+    ///     // ...
+    /// }
+    /// # Ok::<_, Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn query<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h vcf::Header,
+        index: &Index,
+        region: &Region,
+    ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn vcf::variant::Record>>> + 'r> {
+        self.0.query(header, index, region)
     }
 }

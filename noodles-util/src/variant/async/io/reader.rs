@@ -4,12 +4,13 @@ mod builder;
 mod inner;
 
 use futures::Stream;
+use noodles_core::Region;
 use noodles_vcf as vcf;
-use tokio::io::{self, AsyncRead};
+use tokio::io::{self, AsyncRead, AsyncSeek};
 
 pub use self::builder::Builder;
 use self::inner::Inner;
-use crate::variant::Record;
+use crate::variant::{Index, Record};
 
 /// An async variant reader.
 pub struct Reader<R>(Inner<R>)
@@ -112,5 +113,45 @@ where
     /// ```
     pub async fn new(reader: R) -> io::Result<Self> {
         Builder::default().build_from_reader(reader).await
+    }
+}
+
+impl<R> Reader<R>
+where
+    R: AsyncRead + AsyncSeek + Unpin,
+{
+    /// Returns a stream over records that intersects the given region.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use futures::TryStreamExt;
+    /// use noodles_util::variant;
+    ///
+    /// let mut reader = variant::r#async::io::reader::Builder::default()
+    ///     .build_from_path("sample.vcf.gz")
+    ///     .await?;
+    ///
+    /// let header = reader.read_header().await?;
+    ///
+    /// let index = variant::r#async::fs::read_associated_index("sample.vcf.gz").await?;
+    /// let region = "sq0:8-13".parse()?;
+    /// let mut query = reader.query(&header, &index, &region)?;
+    ///
+    /// while let Some(record) = query.try_next().await? {
+    ///     // ...
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn query<'r, 'h: 'r>(
+        &'r mut self,
+        header: &'h vcf::Header,
+        index: &Index,
+        region: &Region,
+    ) -> io::Result<impl Stream<Item = io::Result<Box<dyn vcf::variant::Record>>> + 'r> {
+        self.0.query(header, index, region)
     }
 }
