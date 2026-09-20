@@ -13,6 +13,8 @@
     (`Reader::query`) and for unplaced, unmapped records
     (`Reader::query_unmapped`).
 
+  * util/variant: Add index (`variant::Index`).
+
 ### Changed
 
   * util: Raise minimum supported Rust version (MSRV) to 1.91.0.
