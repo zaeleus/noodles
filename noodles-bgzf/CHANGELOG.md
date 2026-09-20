@@ -8,6 +8,12 @@
 
 ### Fixed
 
+  * bgzf/async/io/reader/inflater: Force read completion before seek.
+
+    `tokio::io::BufReader::poll_complete` doesn't seem to call the underlying
+    reader's `poll_complete`, which can leave it busy, i.e., "other file
+    operation is pending, call poll_complete before start_seek".
+
   * bgzf/io/writer: Track state to prevent writing duplicate EOF marker
     ([#434]).
 

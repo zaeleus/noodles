@@ -4,9 +4,9 @@ use std::{
     task::{Context, Poll, ready},
 };
 
-use futures::Stream;
+use futures::{Stream, future};
 use pin_project_lite::pin_project;
-use tokio::io::{AsyncRead, AsyncSeek, AsyncSeekExt, SeekFrom};
+use tokio::io::{AsyncRead, AsyncSeek, AsyncSeekExt, ReadBuf, SeekFrom};
 use tokio_util::codec::FramedRead;
 
 use super::inflate::Inflate;
@@ -55,6 +55,10 @@ where
     R: AsyncRead + AsyncSeek + Unpin,
 {
     pub async fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
+        // Force read completion.
+        let mut buf = ReadBuf::new(&mut []);
+        future::poll_fn(|cx| Pin::new(self.inner.get_mut()).poll_read(cx, &mut buf)).await?;
+
         let cpos = pos.compressed();
         self.inner.get_mut().seek(SeekFrom::Start(cpos)).await?;
 
@@ -72,9 +76,15 @@ where
         let mut reader = this.inner.get_pin_mut();
 
         if !*this.is_seeking {
+            // Force read completion.
+            let mut buf = ReadBuf::new(&mut []);
+            ready!(reader.as_mut().poll_read(cx, &mut buf))?;
+
             ready!(reader.as_mut().poll_complete(cx))?;
+
             let cpos = pos.compressed();
             reader.as_mut().start_seek(SeekFrom::Start(cpos))?;
+
             *this.is_seeking = true;
         }
 
