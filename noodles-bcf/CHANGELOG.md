@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * bcf/fs: Add convenience function to read associated BCF index
+    (`bcf::fs::read_associated_index`).
+
 ### Changed
 
   * bcf: Raise minimum supported Rust version (MSRV) to 1.91.0.
