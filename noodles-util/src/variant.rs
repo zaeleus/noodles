@@ -3,6 +3,7 @@
 #[cfg(feature = "async")]
 pub mod r#async;
 
+pub mod fs;
 mod index;
 pub mod io;
 mod record;

@@ -15,6 +15,9 @@
 
   * util/variant: Add index (`variant::Index`).
 
+  * util/variant/fs: Add convenience function to read associated indices
+    (`variant::fs::read_associated_index`).
+
 ### Changed
 
   * util: Raise minimum supported Rust version (MSRV) to 1.91.0.
