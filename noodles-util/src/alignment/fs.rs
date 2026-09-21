@@ -33,16 +33,24 @@ pub(crate) fn detect_format_from_extension<P>(src: P) -> Option<Format>
 where
     P: AsRef<Path>,
 {
-    const SAM_EXT: &str = "sam";
-    const BAM_EXT: &str = "bam";
-    const CRAM_EXT: &str = "cram";
+    const SAM_GZ_SUFFIX: &str = ".sam.gz";
+    const BAM_SUFFIX: &str = ".bam";
+    const CRAM_SUFFIX: &str = ".cram";
 
-    src.as_ref().extension().and_then(|ext| match ext.to_str() {
-        Some(SAM_EXT) => Some(Format::Sam),
-        Some(BAM_EXT) => Some(Format::Bam),
-        Some(CRAM_EXT) => Some(Format::Cram),
-        _ => None,
-    })
+    src.as_ref()
+        .file_name()
+        .and_then(|filename| filename.to_str())
+        .and_then(|filename| {
+            if filename.ends_with(SAM_GZ_SUFFIX) {
+                Some(Format::Sam)
+            } else if filename.ends_with(BAM_SUFFIX) {
+                Some(Format::Bam)
+            } else if filename.ends_with(CRAM_SUFFIX) {
+                Some(Format::Cram)
+            } else {
+                None
+            }
+        })
 }
 
 #[cfg(test)]
@@ -52,7 +60,7 @@ mod tests {
     #[test]
     fn test_detect_format_from_extension() {
         assert_eq!(
-            detect_format_from_extension("sample.sam"),
+            detect_format_from_extension("sample.sam.gz"),
             Some(Format::Sam)
         );
         assert_eq!(
