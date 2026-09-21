@@ -34,7 +34,7 @@ where
 
     pub(super) async fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         match self {
-            Inner::Bcf(reader) => {
+            Self::Bcf(reader) => {
                 if !matches!(record, Record::Bcf(_)) {
                     *record = Record::Bcf(bcf::Record::default());
                 }
@@ -45,7 +45,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::BcfRaw(reader) => {
+            Self::BcfRaw(reader) => {
                 if !matches!(record, Record::Bcf(_)) {
                     *record = Record::Bcf(bcf::Record::default());
                 }
@@ -56,7 +56,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::Vcf(reader) => {
+            Self::Vcf(reader) => {
                 if !matches!(record, Record::Vcf(_)) {
                     *record = Record::Vcf(vcf::Record::default());
                 }
@@ -67,7 +67,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::VcfGz(reader) => {
+            Self::VcfGz(reader) => {
                 if !matches!(record, Record::Vcf(_)) {
                     *record = Record::Vcf(vcf::Record::default());
                 }
@@ -114,14 +114,14 @@ where
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Box<dyn vcf::variant::Record>>> + 'r> {
         let records: Pin<Box<dyn Stream<Item = io::Result<_>>>> = match (self, index) {
-            (Inner::VcfGz(reader), Index::Vcf(idx)) => {
+            (Self::VcfGz(reader), Index::Vcf(idx)) => {
                 let query = reader.query(header, idx, region)?;
 
                 Box::pin(query.records().map(|result| {
                     result.map(|record| Box::new(record) as Box<dyn vcf::variant::Record>)
                 }))
             }
-            (Inner::Bcf(reader), Index::Bcf(idx)) => {
+            (Self::Bcf(reader), Index::Bcf(idx)) => {
                 let query = reader.query(header, idx, region)?;
 
                 Box::pin(query.records().map(|result| {

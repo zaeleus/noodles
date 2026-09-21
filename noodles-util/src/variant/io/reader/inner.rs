@@ -29,7 +29,7 @@ where
 
     pub(super) fn read_record(&mut self, record: &mut Record) -> io::Result<usize> {
         match self {
-            Inner::Bcf(reader) => {
+            Self::Bcf(reader) => {
                 if !matches!(record, Record::Bcf(_)) {
                     *record = Record::Bcf(bcf::Record::default());
                 }
@@ -40,7 +40,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::BcfRaw(reader) => {
+            Self::BcfRaw(reader) => {
                 if !matches!(record, Record::Bcf(_)) {
                     *record = Record::Bcf(bcf::Record::default());
                 }
@@ -51,7 +51,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::Vcf(reader) => {
+            Self::Vcf(reader) => {
                 if !matches!(record, Record::Vcf(_)) {
                     *record = Record::Vcf(vcf::Record::default());
                 }
@@ -62,7 +62,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::VcfGz(reader) => {
+            Self::VcfGz(reader) => {
                 if !matches!(record, Record::Vcf(_)) {
                     *record = Record::Vcf(vcf::Record::default());
                 }
@@ -81,10 +81,10 @@ where
         header: &'a vcf::Header,
     ) -> impl Iterator<Item = io::Result<Box<dyn vcf::variant::Record>>> + 'a {
         match self {
-            Inner::Bcf(reader) => reader.variant_records(header),
-            Inner::BcfRaw(reader) => reader.variant_records(header),
-            Inner::Vcf(reader) => reader.variant_records(header),
-            Inner::VcfGz(reader) => reader.variant_records(header),
+            Self::Bcf(reader) => reader.variant_records(header),
+            Self::BcfRaw(reader) => reader.variant_records(header),
+            Self::Vcf(reader) => reader.variant_records(header),
+            Self::VcfGz(reader) => reader.variant_records(header),
         }
     }
 }
