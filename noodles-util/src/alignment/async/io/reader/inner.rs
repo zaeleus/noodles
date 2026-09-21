@@ -84,21 +84,21 @@ where
         region: &Region,
     ) -> io::Result<impl Stream<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
         let records: Pin<Box<dyn Stream<Item = io::Result<_>>>> = match (self, index) {
-            (Inner::SamGz(reader), Index::Sam(idx)) => {
+            (Self::SamGz(reader), Index::Sam(idx)) => {
                 let query = reader.query(header, idx, region)?;
 
                 Box::pin(query.records().map(|result| {
                     result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
                 }))
             }
-            (Inner::Bam(reader), Index::Bam(idx)) => {
+            (Self::Bam(reader), Index::Bam(idx)) => {
                 let query = reader.query(header, idx, region)?;
 
                 Box::pin(query.records().map(|result| {
                     result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
                 }))
             }
-            (Inner::Cram(reader), Index::Cram(idx)) => {
+            (Self::Cram(reader), Index::Cram(idx)) => {
                 let query = reader.query(header, idx, region)?;
 
                 Box::pin(query.records().map(|result| {
@@ -122,21 +122,21 @@ where
         index: &'i Index,
     ) -> io::Result<impl Stream<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
         let records: Pin<Box<dyn Stream<Item = io::Result<_>>>> = match (self, index) {
-            (Inner::SamGz(reader), Index::Sam(idx)) => {
+            (Self::SamGz(reader), Index::Sam(idx)) => {
                 let query = reader.query_unmapped(idx).await?;
 
                 Box::pin(query.map(|result| {
                     result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
                 }))
             }
-            (Inner::Bam(reader), Index::Bam(idx)) => {
+            (Self::Bam(reader), Index::Bam(idx)) => {
                 let query = reader.query_unmapped(idx).await?;
 
                 Box::pin(query.map(|result| {
                     result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
                 }))
             }
-            (Inner::Cram(reader), Index::Cram(idx)) => {
+            (Self::Cram(reader), Index::Cram(idx)) => {
                 let query = reader.query_unmapped(header, idx).await?;
 
                 Box::pin(query.map(|result| {

@@ -22,11 +22,11 @@ where
 {
     pub(super) fn read_header(&mut self) -> io::Result<sam::Header> {
         match self {
-            Inner::Sam(reader) => reader.read_header(),
-            Inner::SamGz(reader) => reader.read_header(),
-            Inner::Bam(reader) => reader.read_header(),
-            Inner::BamRaw(reader) => reader.read_header(),
-            Inner::Cram(reader) => reader.get_mut().read_header(),
+            Self::Sam(reader) => reader.read_header(),
+            Self::SamGz(reader) => reader.read_header(),
+            Self::Bam(reader) => reader.read_header(),
+            Self::BamRaw(reader) => reader.read_header(),
+            Self::Cram(reader) => reader.get_mut().read_header(),
         }
     }
 
@@ -36,7 +36,7 @@ where
         record: &mut Record,
     ) -> io::Result<usize> {
         match self {
-            Inner::Sam(reader) => {
+            Self::Sam(reader) => {
                 if !matches!(record, Record::Sam(_)) {
                     *record = Record::Sam(sam::Record::default());
                 }
@@ -47,7 +47,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::SamGz(reader) => {
+            Self::SamGz(reader) => {
                 if !matches!(record, Record::Sam(_)) {
                     *record = Record::Sam(sam::Record::default());
                 }
@@ -58,7 +58,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::Bam(reader) => {
+            Self::Bam(reader) => {
                 if !matches!(record, Record::Bam(_)) {
                     *record = Record::Bam(bam::Record::default());
                 }
@@ -69,7 +69,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::BamRaw(reader) => {
+            Self::BamRaw(reader) => {
                 if !matches!(record, Record::Bam(_)) {
                     *record = Record::Bam(bam::Record::default());
                 }
@@ -80,7 +80,7 @@ where
                     unreachable!();
                 }
             }
-            Inner::Cram(reader) => {
+            Self::Cram(reader) => {
                 if !matches!(record, Record::Cram(_)) {
                     *record = Record::Cram(sam::alignment::RecordBuf::default());
                 }
@@ -99,19 +99,19 @@ where
         header: &'h sam::Header,
     ) -> impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r {
         let records: Box<dyn Iterator<Item = io::Result<_>>> = match self {
-            Inner::Sam(reader) => Box::new(reader.records().map(|result| {
+            Self::Sam(reader) => Box::new(reader.records().map(|result| {
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             })),
-            Inner::SamGz(reader) => Box::new(reader.records().map(|result| {
+            Self::SamGz(reader) => Box::new(reader.records().map(|result| {
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             })),
-            Inner::Bam(reader) => Box::new(reader.records().map(|result| {
+            Self::Bam(reader) => Box::new(reader.records().map(|result| {
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             })),
-            Inner::BamRaw(reader) => Box::new(reader.records().map(|result| {
+            Self::BamRaw(reader) => Box::new(reader.records().map(|result| {
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             })),
-            Inner::Cram(reader) => Box::new(reader.get_mut().records(header).map(|result| {
+            Self::Cram(reader) => Box::new(reader.get_mut().records(header).map(|result| {
                 result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
             })),
         };
@@ -131,21 +131,21 @@ where
         region: &Region,
     ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
         let records: Box<dyn Iterator<Item = io::Result<_>>> = match (self, index) {
-            (Inner::SamGz(reader), Index::Sam(idx)) => {
+            (Self::SamGz(reader), Index::Sam(idx)) => {
                 let query = reader.query(header, idx, region)?;
 
                 Box::new(query.records().map(|result| {
                     result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
                 }))
             }
-            (Inner::Bam(reader), Index::Bam(idx)) => {
+            (Self::Bam(reader), Index::Bam(idx)) => {
                 let query = reader.query(header, idx, region)?;
 
                 Box::new(query.records().map(|result| {
                     result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
                 }))
             }
-            (Inner::Cram(reader), Index::Cram(idx)) => {
+            (Self::Cram(reader), Index::Cram(idx)) => {
                 let query = reader.get_mut().query(header, idx, region)?;
 
                 Box::new(query.records().map(|result| {
@@ -169,21 +169,21 @@ where
         index: &'i Index,
     ) -> io::Result<impl Iterator<Item = io::Result<Box<dyn sam::alignment::Record>>> + 'r> {
         let records: Box<dyn Iterator<Item = io::Result<_>>> = match (self, index) {
-            (Inner::SamGz(reader), Index::Sam(idx)) => {
+            (Self::SamGz(reader), Index::Sam(idx)) => {
                 let query = reader.query_unmapped(idx)?;
 
                 Box::new(query.map(|result| {
                     result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
                 }))
             }
-            (Inner::Bam(reader), Index::Bam(idx)) => {
+            (Self::Bam(reader), Index::Bam(idx)) => {
                 let query = reader.query_unmapped(idx)?;
 
                 Box::new(query.map(|result| {
                     result.map(|record| Box::new(record) as Box<dyn sam::alignment::Record>)
                 }))
             }
-            (Inner::Cram(reader), Index::Cram(idx)) => {
+            (Self::Cram(reader), Index::Cram(idx)) => {
                 let query = reader.get_mut().query_unmapped(header, idx)?;
 
                 Box::new(query.map(|result| {
