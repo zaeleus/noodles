@@ -44,3 +44,25 @@ where
         _ => None,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_detect_format_from_extension() {
+        assert_eq!(
+            detect_format_from_extension("sample.sam"),
+            Some(Format::Sam)
+        );
+        assert_eq!(
+            detect_format_from_extension("sample.bam"),
+            Some(Format::Bam)
+        );
+        assert_eq!(
+            detect_format_from_extension("sample.cram"),
+            Some(Format::Cram)
+        );
+        assert!(detect_format_from_extension("sample.txt").is_none());
+    }
+}
