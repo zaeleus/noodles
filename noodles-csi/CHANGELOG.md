@@ -355,7 +355,7 @@
 
     `Bin` no longer has a builder.
 
-  * csi/io/index_reader: Add type parameter for the index.
+  * csi/io/indexed_reader: Add type parameter for the index.
 
 ### Changed
 
