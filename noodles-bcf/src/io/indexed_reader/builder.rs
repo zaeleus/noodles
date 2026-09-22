@@ -1,12 +1,11 @@
 use std::{
-    ffi::{OsStr, OsString},
     fs::File,
     io::{self, Read},
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 use noodles_bgzf as bgzf;
-use noodles_csi::{self as csi, BinningIndex};
+use noodles_csi::BinningIndex;
 
 use super::IndexedReader;
 
@@ -50,12 +49,12 @@ impl Builder {
     {
         let src = src.as_ref();
 
-        let file = File::open(src)?;
-
         let index = match self.index {
             Some(index) => index,
-            None => read_associated_index(src)?,
+            None => crate::fs::read_associated_index(src).map(Box::new)?,
         };
+
+        let file = File::open(src)?;
 
         Ok(IndexedReader::new(file, index))
     }
@@ -81,44 +80,5 @@ impl Builder {
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing index"))?;
 
         Ok(IndexedReader::new(reader, index))
-    }
-}
-
-fn read_associated_index<P>(src: P) -> io::Result<Box<dyn BinningIndex>>
-where
-    P: AsRef<Path>,
-{
-    let index = csi::fs::read(build_index_src(src))?;
-    Ok(Box::new(index))
-}
-
-fn build_index_src<P>(src: P) -> PathBuf
-where
-    P: AsRef<Path>,
-{
-    const EXT: &str = "csi";
-    push_ext(src.as_ref().into(), EXT)
-}
-
-fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
-where
-    S: AsRef<OsStr>,
-{
-    let mut s = OsString::from(path);
-    s.push(".");
-    s.push(ext);
-    PathBuf::from(s)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_build_index_src() {
-        assert_eq!(
-            build_index_src("sample.bcf"),
-            PathBuf::from("sample.bcf.csi")
-        );
     }
 }
