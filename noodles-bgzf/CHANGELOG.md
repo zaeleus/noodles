@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * bgzf/fs: Add convenience function to read associated gzip index
+    (`bgzf::fs::read_associated_index`).
+
 ### Changed
 
   * bgzf: Raise minimum supported Rust version (MSRV) to 1.91.0.
