@@ -135,7 +135,8 @@ where
     let interval = interval.into();
 
     let start = interval.start().unwrap_or(Position::MIN);
-    let max_position = max_position(min_shift, depth)?;
+    let max_position = calculate_max_position(min_shift, depth)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "unsupported max position"))?;
 
     if start > max_position {
         return Err(io::Error::new(
@@ -156,10 +157,18 @@ where
     }
 }
 
-fn max_position(min_shift: u8, depth: u8) -> io::Result<Position> {
+fn calculate_max_position(min_shift: u8, depth: u8) -> Option<Position> {
+    const MAX_DEPTH: u8 = 10;
+
     assert!(min_shift > 0);
-    let n = 1 << (usize::from(min_shift) + 3 * usize::from(depth));
-    Position::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+
+    if depth > MAX_DEPTH {
+        None
+    } else {
+        1u64.checked_shl(u32::from(min_shift) + 3 * u32::from(depth))
+            .and_then(|n| usize::try_from(n).ok())
+            .and_then(Position::new)
+    }
 }
 
 #[cfg(test)]
@@ -167,14 +176,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_max_position() -> Result<(), Box<dyn std::error::Error>> {
-        const MIN_SHIFT: u8 = 14;
-        const DEPTH: u8 = 5;
+    fn test_calculate_max_position() {
+        #[cfg(not(target_pointer_width = "16"))]
+        assert_eq!(
+            calculate_max_position(14, 5),
+            Some(const { Position::new(1 << 29).unwrap() })
+        );
 
-        let actual = max_position(MIN_SHIFT, DEPTH)?;
-        let expected = Position::try_from(1 << 29)?;
-        assert_eq!(actual, expected);
+        #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
+        assert_eq!(
+            calculate_max_position(14, 10),
+            Some(const { Position::new(1 << 44).unwrap() })
+        );
 
-        Ok(())
+        assert!(calculate_max_position(14, 11).is_none());
     }
 }
