@@ -1,8 +1,7 @@
 use std::{
-    ffi::{OsStr, OsString},
     fs::File,
     io::{self, Read},
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 use super::IndexedReader;
@@ -27,12 +26,11 @@ impl Builder {
     where
         P: AsRef<Path>,
     {
+        let src = src.as_ref();
+
         let index = match self.index {
             Some(index) => index,
-            None => {
-                let index_src = build_index_src(&src);
-                gzi::fs::read(index_src)?
-            }
+            None => crate::fs::read_associated_index(src)?,
         };
 
         let inner = self.reader_builder.build_from_path(src)?;
@@ -52,36 +50,5 @@ impl Builder {
         let inner = self.reader_builder.build_from_reader(reader);
 
         Ok(IndexedReader { inner, index })
-    }
-}
-
-fn build_index_src<P>(src: P) -> PathBuf
-where
-    P: AsRef<Path>,
-{
-    const EXT: &str = "gzi";
-    push_ext(src.as_ref().into(), EXT)
-}
-
-fn push_ext<S>(path: PathBuf, ext: S) -> PathBuf
-where
-    S: AsRef<OsStr>,
-{
-    let mut s = OsString::from(path);
-    s.push(".");
-    s.push(ext);
-    PathBuf::from(s)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_build_index_src() {
-        assert_eq!(
-            build_index_src("noodles.gz"),
-            PathBuf::from("noodles.gz.gzi")
-        );
     }
 }
