@@ -11,7 +11,7 @@
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.91.0.
 
-  * cram: Update to lzma-rust2 0.20.0.
+  * cram: Update to lzma-rust2 0.21.0.
 
   * cram/crai/async: Move `read` and `write` to `fs` module.
 
