@@ -3,9 +3,12 @@ use std::io;
 use indexmap::IndexMap;
 use noodles_core::Position;
 
-use super::index::{
-    Header, Index, ReferenceSequence,
-    reference_sequence::{self, bin::Chunk},
+use super::{
+    calculate_max_position,
+    index::{
+        Header, Index, ReferenceSequence,
+        reference_sequence::{self, bin::Chunk},
+    },
 };
 
 /// A binning index indexer.
@@ -100,6 +103,17 @@ where
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "expected start <= end",
+            ));
+        }
+
+        let max_position = calculate_max_position(self.min_shift, self.depth).ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidInput, "unsupported max position")
+        })?;
+
+        if end > max_position {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid end bound",
             ));
         }
 
@@ -210,6 +224,22 @@ mod tests {
         let start = const { Position::new(13).unwrap() };
         let end = const { Position::new(8).unwrap() };
         let alignment_context = Some((0, start, end, true));
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(8),
+            bgzf::VirtualPosition::from(13),
+        );
+
+        assert!(matches!(
+            indexer.add_record(alignment_context, chunk),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+    }
+
+    #[test]
+    fn test_add_record_with_end_gt_max_position() {
+        let mut indexer = Indexer::<LinearIndex>::new(1, 1); // max position = 16
+
+        let alignment_context = Some((0, Position::MIN, Position::MAX, true));
         let chunk = Chunk::new(
             bgzf::VirtualPosition::from(8),
             bgzf::VirtualPosition::from(13),
