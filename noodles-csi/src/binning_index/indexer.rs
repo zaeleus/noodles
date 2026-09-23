@@ -96,6 +96,13 @@ where
             return Ok(());
         };
 
+        if start > end {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "expected start <= end",
+            ));
+        }
+
         if self.reference_sequences.is_empty() {
             self.add_reference_sequences_until(0);
         }
@@ -194,6 +201,24 @@ mod tests {
         assert!(indexer.header.is_none());
         assert!(indexer.reference_sequences.is_empty());
         assert_eq!(indexer.unplaced_unmapped_record_count, 0);
+    }
+
+    #[test]
+    fn test_add_record_with_start_gt_end() {
+        let mut indexer = Indexer::<LinearIndex>::default();
+
+        let start = const { Position::new(13).unwrap() };
+        let end = const { Position::new(8).unwrap() };
+        let alignment_context = Some((0, start, end, true));
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(8),
+            bgzf::VirtualPosition::from(13),
+        );
+
+        assert!(matches!(
+            indexer.add_record(alignment_context, chunk),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
     }
 
     #[test]

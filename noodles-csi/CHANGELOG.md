@@ -6,6 +6,9 @@
 
   * csi: Raise minimum supported Rust version (MSRV) to 1.91.0.
 
+  * csi/binning_index/indexer: Reject alignment context with start >
+    end.
+
 ### Fixed
 
   * csi/binning_index/index: Fix max position calculation to be 1-based.
