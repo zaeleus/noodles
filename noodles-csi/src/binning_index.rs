@@ -165,17 +165,11 @@ pub fn optimize_chunks(chunks: &[Chunk], min_offset: bgzf::VirtualPosition) -> V
 }
 
 fn calculate_max_position(min_shift: u8, depth: u8) -> Option<Position> {
-    const MAX_DEPTH: u8 = 10;
-
     assert!(min_shift > 0);
 
-    if depth > MAX_DEPTH {
-        None
-    } else {
-        1u64.checked_shl(u32::from(min_shift) + 3 * u32::from(depth))
-            .and_then(|n| usize::try_from(n).ok())
-            .and_then(Position::new)
-    }
+    1usize
+        .checked_shl(u32::from(min_shift) + 3 * u32::from(depth))
+        .and_then(Position::new)
 }
 
 #[cfg(test)]
@@ -274,6 +268,6 @@ mod tests {
             Some(const { Position::new(1 << 44).unwrap() })
         );
 
-        assert!(calculate_max_position(14, 11).is_none());
+        assert!(calculate_max_position(14, 17).is_none());
     }
 }
