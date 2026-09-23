@@ -7,7 +7,8 @@
 
 use std::{
     env,
-    io::{self, Read, Seek, SeekFrom, Write},
+    fs::File,
+    io::{self, Read, Write},
 };
 
 use noodles_bgzf as bgzf;
@@ -19,8 +20,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let position = args.next().expect("missing position").parse()?;
     let length = args.next().expect("missing length").parse()?;
 
-    let mut reader = bgzf::io::indexed_reader::Builder::default().build_from_path(src)?;
-    reader.seek(SeekFrom::Start(position))?;
+    let mut reader = File::open(&src).map(bgzf::io::Reader::new)?;
+
+    let index = bgzf::fs::read_associated_index(&src)?;
+    reader.seek_by_uncompressed_position(&index, position)?;
 
     let mut buf = vec![0; length];
     reader.read_exact(&mut buf)?;
