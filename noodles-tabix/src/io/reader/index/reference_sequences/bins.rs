@@ -13,7 +13,7 @@ where
 
     use crate::index::DEPTH;
 
-    const METADATA_ID: usize = Bin::metadata_id(DEPTH);
+    const METADATA_ID: usize = Bin::metadata_id(DEPTH).unwrap();
 
     let bin_count = read_bin_count(reader)?;
 

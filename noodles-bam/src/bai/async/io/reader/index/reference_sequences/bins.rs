@@ -15,7 +15,7 @@ where
 {
     use crate::bai::DEPTH;
 
-    const METADATA_ID: usize = Bin::metadata_id(DEPTH);
+    const METADATA_ID: usize = Bin::metadata_id(DEPTH).unwrap();
 
     fn duplicate_bin_error(id: usize) -> io::Result<(IndexMap<usize, Bin>, Option<Metadata>)> {
         Err(io::Error::new(

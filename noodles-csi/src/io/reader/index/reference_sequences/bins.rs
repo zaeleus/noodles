@@ -23,6 +23,8 @@ pub enum ReadError {
     Io(io::Error),
     /// The bin count is invalid.
     InvalidBinCount(num::TryFromIntError),
+    /// The depth is invalid.
+    InvalidDepth,
     /// A bin ID is invalid.
     InvalidBinId(num::TryFromIntError),
     /// A bin is duplicated.
@@ -39,6 +41,7 @@ impl error::Error for ReadError {
             Self::Io(e) => Some(e),
             Self::InvalidBinCount(e) => Some(e),
             Self::InvalidBinId(e) => Some(e),
+            Self::InvalidDepth => None,
             Self::DuplicateBin(_) => None,
             Self::InvalidMetadata(e) => Some(e),
             Self::InvalidChunks(e) => Some(e),
@@ -51,6 +54,7 @@ impl fmt::Display for ReadError {
         match self {
             Self::Io(_) => write!(f, "I/O error"),
             Self::InvalidBinCount(_) => write!(f, "invalid bin count"),
+            Self::InvalidDepth => write!(f, "invalid depth"),
             Self::InvalidBinId(_) => write!(f, "invalid bin ID"),
             Self::DuplicateBin(id) => write!(f, "duplicate bin: {id}"),
             Self::InvalidMetadata(_) => write!(f, "invalid metadata"),
@@ -78,7 +82,7 @@ where
     let mut bins = IndexMap::with_capacity(bin_count);
     let mut index = BinnedIndex::with_capacity(bin_count);
 
-    let metadata_id = Bin::metadata_id(depth);
+    let metadata_id = Bin::metadata_id(depth).ok_or(ReadError::InvalidDepth)?;
     let mut metadata = None;
 
     for _ in 0..bin_count {

@@ -10,7 +10,7 @@ where
 {
     use crate::index::DEPTH;
 
-    const METADATA_ID: usize = Bin::metadata_id(DEPTH);
+    const METADATA_ID: usize = Bin::metadata_id(DEPTH).unwrap();
     const METADATA_CHUNK_COUNT: usize = 2;
 
     let bin_id =

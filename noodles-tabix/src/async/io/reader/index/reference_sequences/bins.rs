@@ -15,7 +15,7 @@ where
 {
     use crate::index::DEPTH;
 
-    const METADATA_ID: usize = Bin::metadata_id(DEPTH);
+    const METADATA_ID: usize = Bin::metadata_id(DEPTH).unwrap();
 
     let n_bin = reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))

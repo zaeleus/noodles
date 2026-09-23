@@ -31,7 +31,9 @@ where
     let mut bins = IndexMap::with_capacity(n_bin);
     let mut index = BinnedIndex::with_capacity(n_bin);
 
-    let metadata_id = Bin::metadata_id(depth);
+    let metadata_id = Bin::metadata_id(depth)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid depth"))?;
+
     let mut metadata = None;
 
     for _ in 0..n_bin {

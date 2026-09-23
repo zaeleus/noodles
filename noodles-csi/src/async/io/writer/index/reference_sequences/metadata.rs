@@ -13,8 +13,12 @@ where
 {
     const N_CHUNK: i32 = 2;
 
-    let bin_id = u32::try_from(Bin::metadata_id(depth))
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+    let bin_id = Bin::metadata_id(depth)
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid depth"))
+        .and_then(|id| {
+            u32::try_from(id).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })?;
+
     writer.write_u32_le(bin_id).await?;
 
     let loffset = u64::from(bgzf::VirtualPosition::default());
