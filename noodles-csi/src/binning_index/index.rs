@@ -4,14 +4,13 @@ mod builder;
 pub mod header;
 pub mod reference_sequence;
 
-pub use self::{builder::Builder, header::Header, reference_sequence::ReferenceSequence};
-
 use std::io;
 
 use noodles_bgzf as bgzf;
 use noodles_core::{Position, region::Interval};
 
-use super::{BinningIndex, index::reference_sequence::bin::Chunk};
+pub use self::{builder::Builder, header::Header, reference_sequence::ReferenceSequence};
+use super::{BinningIndex, calculate_max_position, index::reference_sequence::bin::Chunk};
 
 /// A binning index.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -154,41 +153,5 @@ where
         ))
     } else {
         Ok((start, end))
-    }
-}
-
-fn calculate_max_position(min_shift: u8, depth: u8) -> Option<Position> {
-    const MAX_DEPTH: u8 = 10;
-
-    assert!(min_shift > 0);
-
-    if depth > MAX_DEPTH {
-        None
-    } else {
-        1u64.checked_shl(u32::from(min_shift) + 3 * u32::from(depth))
-            .and_then(|n| usize::try_from(n).ok())
-            .and_then(Position::new)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_calculate_max_position() {
-        #[cfg(not(target_pointer_width = "16"))]
-        assert_eq!(
-            calculate_max_position(14, 5),
-            Some(const { Position::new(1 << 29).unwrap() })
-        );
-
-        #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
-        assert_eq!(
-            calculate_max_position(14, 10),
-            Some(const { Position::new(1 << 44).unwrap() })
-        );
-
-        assert!(calculate_max_position(14, 11).is_none());
     }
 }
