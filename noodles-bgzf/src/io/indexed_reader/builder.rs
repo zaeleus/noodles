@@ -54,7 +54,7 @@ impl Builder {
         Ok(IndexedReader { inner, index })
     }
 
-    /// Builds a indexed BGZF reader from a reader.
+    /// Builds an indexed BGZF reader from a reader.
     ///
     /// # Examples
     ///
