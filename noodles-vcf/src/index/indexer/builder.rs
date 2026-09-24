@@ -128,7 +128,7 @@ fn fit_depth(max_position: Position) -> Option<u8> {
 }
 
 fn calculate_max_position(min_shift: u8, depth: u8) -> Option<Position> {
-    const MAX_DEPTH: u8 = 10;
+    const MAX_DEPTH: u8 = 9;
 
     if depth > MAX_DEPTH {
         None
@@ -202,10 +202,10 @@ mod tests {
                 Some(7)
             );
             assert_eq!(
-                fit_depth(const { Position::new(1 << 44).unwrap() }),
-                Some(10)
+                fit_depth(const { Position::new(1 << 41).unwrap() }),
+                Some(9)
             );
-            assert!(fit_depth(const { Position::new((1 << 44) + 1).unwrap() }).is_none());
+            assert!(fit_depth(const { Position::new((1 << 41) + 1).unwrap() }).is_none());
             assert!(fit_depth(Position::MAX).is_none());
         }
     }
@@ -220,10 +220,10 @@ mod tests {
 
         #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
         assert_eq!(
-            calculate_max_position(14, 10),
-            Some(const { Position::new(1 << 44).unwrap() })
+            calculate_max_position(14, 9),
+            Some(const { Position::new(1 << 41).unwrap() })
         );
 
-        assert!(calculate_max_position(14, 11).is_none());
+        assert!(calculate_max_position(14, 10).is_none());
     }
 }
