@@ -16,10 +16,7 @@ where
 {
     read_magic_number(reader).await?;
 
-    let min_shift = reader
-        .read_i32_le()
-        .await
-        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+    let min_shift = read_min_shift(reader).await?;
 
     let depth = reader
         .read_i32_le()
@@ -51,6 +48,16 @@ where
     Ok(builder.build())
 }
 
+async fn read_min_shift<R>(reader: &mut R) -> io::Result<u8>
+where
+    R: AsyncRead + Unpin,
+{
+    reader
+        .read_i32_le()
+        .await
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+}
+
 async fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> io::Result<Option<u64>>
 where
     R: AsyncRead + Unpin,
@@ -59,5 +66,30 @@ where
         Ok(n_no_coor) => Ok(Some(n_no_coor)),
         Err(ref e) if e.kind() == io::ErrorKind::UnexpectedEof => Ok(None),
         Err(e) => Err(e),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_read_min_shift() -> io::Result<()> {
+        let src = [0x0e, 0x00, 0x00, 0x00]; // min shift = 14
+        assert_eq!(read_min_shift(&mut &src[..]).await?, 14);
+
+        let src = [0xff, 0xff, 0xff, 0xff]; // min shift = -1
+        assert!(matches!(
+            read_min_shift(&mut &src[..]).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        let src = [0x00, 0x01, 0x00, 0x00]; // min shift = 256
+        assert!(matches!(
+            read_min_shift(&mut &src[..]).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
     }
 }
