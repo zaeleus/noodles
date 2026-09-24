@@ -5,10 +5,10 @@ mod reference_sequences;
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
 use self::{
-    header::read_header, magic_number::read_magic_number,
+    header::read_aux, magic_number::read_magic_number,
     reference_sequences::read_reference_sequences,
 };
-use crate::Index;
+use crate::{Index, io::MAX_DEPTH};
 
 pub(super) async fn read_index<R>(reader: &mut R) -> io::Result<Index>
 where
@@ -16,7 +16,22 @@ where
 {
     read_magic_number(reader).await?;
 
-    let (min_shift, depth, header) = read_header(reader).await?;
+    let min_shift = reader
+        .read_i32_le()
+        .await
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+
+    let depth = reader
+        .read_i32_le()
+        .await
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+
+    if depth > MAX_DEPTH {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid depth"));
+    }
+
+    let header = read_aux(reader).await?;
+
     let reference_sequences = read_reference_sequences(reader, depth).await?;
     let unplaced_unmapped_record_count = read_unplaced_unmapped_record_count(reader).await?;
 
