@@ -17,15 +17,7 @@ where
     read_magic_number(reader).await?;
 
     let min_shift = read_min_shift(reader).await?;
-
-    let depth = reader
-        .read_i32_le()
-        .await
-        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
-
-    if depth > MAX_DEPTH {
-        return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid depth"));
-    }
+    let depth = read_depth(reader).await?;
 
     let header = read_aux(reader).await?;
 
@@ -58,6 +50,22 @@ where
         .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
+async fn read_depth<R>(reader: &mut R) -> io::Result<u8>
+where
+    R: AsyncRead + Unpin,
+{
+    let depth = reader
+        .read_i32_le()
+        .await
+        .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+
+    if depth <= MAX_DEPTH {
+        Ok(depth)
+    } else {
+        Err(io::Error::new(io::ErrorKind::InvalidData, "invalid depth"))
+    }
+}
+
 async fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> io::Result<Option<u64>>
 where
     R: AsyncRead + Unpin,
@@ -87,6 +95,32 @@ mod tests {
         let src = [0x00, 0x01, 0x00, 0x00]; // min shift = 256
         assert!(matches!(
             read_min_shift(&mut &src[..]).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_read_depth() -> io::Result<()> {
+        let src = [0x00, 0x00, 0x00, 0x00]; // depth = 0
+        assert_eq!(read_depth(&mut &src[..]).await?, 0);
+
+        let src = [0x05, 0x00, 0x00, 0x00]; // depth = 5
+        assert_eq!(read_depth(&mut &src[..]).await?, 5);
+
+        let src = [0x09, 0x00, 0x00, 0x00]; // depth = 9
+        assert_eq!(read_depth(&mut &src[..]).await?, 9);
+
+        let src = [0xff, 0xff, 0xff, 0xff]; // depth = -1
+        assert!(matches!(
+            read_depth(&mut &src[..]).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        let src = [0x0a, 0x00, 0x00, 0x00]; // depth = 10
+        assert!(matches!(
+            read_depth(&mut &src[..]).await,
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
