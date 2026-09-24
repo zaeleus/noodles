@@ -165,8 +165,6 @@ pub fn optimize_chunks(chunks: &[Chunk], min_offset: bgzf::VirtualPosition) -> V
 }
 
 fn calculate_max_position(min_shift: u8, depth: u8) -> Option<Position> {
-    assert!(min_shift > 0);
-
     1usize
         .checked_shl(u32::from(min_shift) + 3 * u32::from(depth))
         .and_then(Position::new)
@@ -256,6 +254,11 @@ mod tests {
 
     #[test]
     fn test_calculate_max_position() {
+        assert_eq!(
+            calculate_max_position(0, 1),
+            Some(const { Position::new(1 << 3).unwrap() })
+        );
+
         #[cfg(not(target_pointer_width = "16"))]
         assert_eq!(
             calculate_max_position(14, 5),
