@@ -31,16 +31,19 @@ where
     ///
     /// ```
     /// use noodles_csi::binning_index::{index::reference_sequence::index::BinnedIndex, Indexer};
-    /// let indexer = Indexer::<BinnedIndex>::new(14, 5);
+    ///
+    /// let indexer = Indexer::<BinnedIndex>::new(14, 5).expect("invalid min shift and/or depth");
     /// ```
-    pub fn new(min_shift: u8, depth: u8) -> Self {
-        Self {
+    pub fn new(min_shift: u8, depth: u8) -> Option<Self> {
+        calculate_max_position(min_shift, depth)?;
+
+        Some(Self {
             min_shift,
             depth,
             header: None,
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: 0,
-        }
+        })
     }
 
     /// Sets a tabix header.
@@ -237,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_add_record_with_end_gt_max_position() {
-        let mut indexer = Indexer::<LinearIndex>::new(1, 1); // max position = 16
+        let mut indexer = Indexer::<LinearIndex>::new(1, 1).unwrap(); // max position = 16
 
         let alignment_context = Some((0, Position::MIN, Position::MAX, true));
         let chunk = Chunk::new(
@@ -355,10 +358,12 @@ mod tests {
 
     #[test]
     fn test_build_with_nonstandard_bin_factors() {
-        const MIN_SHIFT: u8 = 13;
-        const DEPTH: u8 = 8;
+        const MIN_SHIFT: u8 = 4;
+        const DEPTH: u8 = 2;
 
-        let actual = Indexer::<LinearIndex>::new(MIN_SHIFT, DEPTH).build(0);
+        let actual = Indexer::<LinearIndex>::new(MIN_SHIFT, DEPTH)
+            .unwrap()
+            .build(0);
 
         let expected = Index::builder()
             .set_min_shift(MIN_SHIFT)

@@ -22,6 +22,8 @@ pub enum BuildError {
     ///
     /// The estimated max position cannot fit in the given format.
     InvalidFormat,
+    /// The indexer input is invalid.
+    InvalidIndexerInput,
 }
 
 impl error::Error for BuildError {}
@@ -31,6 +33,7 @@ impl fmt::Display for BuildError {
         match self {
             Self::UnsupportedMaxPosition => write!(f, "unsupported max position"),
             Self::InvalidFormat => write!(f, "invalid format"),
+            Self::InvalidIndexerInput => write!(f, "invalid indexer input"),
         }
     }
 }
@@ -99,7 +102,9 @@ impl Builder {
         };
 
         let inner = match format {
-            Format::Csi => Inner::Csi(csi::binning_index::Indexer::new(TABIX_MIN_SHIFT, depth)),
+            Format::Csi => csi::binning_index::Indexer::new(TABIX_MIN_SHIFT, depth)
+                .map(Inner::Csi)
+                .ok_or(BuildError::InvalidIndexerInput)?,
             Format::Tabix => Inner::Tabix(csi::binning_index::Indexer::default()),
         };
 

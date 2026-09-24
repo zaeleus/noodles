@@ -11,6 +11,9 @@
 
     `Bin::max_id` and `Bin::metadata_id` now return `Option<usize>`.
 
+  * csi/binning_index/indexer: Validate min shift and depth on creation
+    (`Indexer::new`).
+
   * csi/binning_index/indexer: Reject alignment context with start > end and
     end > max supported position.
 
