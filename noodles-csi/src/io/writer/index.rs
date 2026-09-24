@@ -18,9 +18,7 @@ where
 {
     write_magic_number(writer)?;
 
-    let min_shift = i32::from(index.min_shift());
-    write_i32_le(writer, min_shift)?;
-
+    write_min_shift(writer, index.min_shift())?;
     write_depth(writer, index.depth())?;
 
     write_aux(writer, index.header())?;
@@ -31,6 +29,14 @@ where
     }
 
     Ok(())
+}
+
+fn write_min_shift<W>(writer: &mut W, min_shift: u8) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = i32::from(min_shift);
+    write_i32_le(writer, n)
 }
 
 fn write_depth<W>(writer: &mut W, depth: u8) -> io::Result<()>
@@ -44,6 +50,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_write_min_shift() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_min_shift(&mut buf, 14)?;
+        assert_eq!(buf, [0x0e, 0x00, 0x00, 0x00]);
+        Ok(())
+    }
 
     #[test]
     fn test_write_depth() -> io::Result<()> {

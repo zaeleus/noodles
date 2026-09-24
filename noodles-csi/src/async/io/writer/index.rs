@@ -16,9 +16,7 @@ where
 {
     write_magic_number(writer).await?;
 
-    let min_shift = i32::from(index.min_shift());
-    writer.write_i32_le(min_shift).await?;
-
+    write_min_shift(writer, index.min_shift()).await?;
     write_depth(writer, index.depth()).await?;
 
     write_aux(writer, index.header()).await?;
@@ -29,6 +27,14 @@ where
     }
 
     Ok(())
+}
+
+async fn write_min_shift<W>(writer: &mut W, min_shift: u8) -> io::Result<()>
+where
+    W: AsyncWrite + Unpin,
+{
+    let n = i32::from(min_shift);
+    writer.write_i32_le(n).await
 }
 
 async fn write_depth<W>(writer: &mut W, depth: u8) -> io::Result<()>
@@ -42,6 +48,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[tokio::test]
+    async fn test_write_min_shift() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_min_shift(&mut buf, 14).await?;
+        assert_eq!(buf, [0x0e, 0x00, 0x00, 0x00]);
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_write_depth() -> io::Result<()> {
