@@ -49,6 +49,11 @@ where
     W: Write,
     S: Samples,
 {
+    // The samples of a parsed record are already the output: the keys, a tab, then the samples.
+    if let Some(src) = samples.as_text() {
+        return writer.write_all(src.as_bytes()).map_err(WriteError::Io);
+    }
+
     write_keys(writer, samples.column_names(header)).map_err(WriteError::InvalidKeys)?;
 
     for sample in samples.iter() {
