@@ -8,7 +8,7 @@ use self::{
     header::write_aux, magic_number::write_magic_number,
     reference_sequences::write_reference_sequences,
 };
-use crate::{BinningIndex, Index};
+use crate::{BinningIndex, Index, io::MAX_DEPTH};
 
 pub(super) async fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
@@ -41,6 +41,10 @@ async fn write_depth<W>(writer: &mut W, depth: u8) -> io::Result<()>
 where
     W: AsyncWrite + Unpin,
 {
+    if depth > MAX_DEPTH {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid depth"));
+    }
+
     let n = i32::from(depth);
     writer.write_i32_le(n).await
 }
@@ -72,7 +76,11 @@ mod tests {
         t(&mut buf, 5, &[0x05, 0x00, 0x00, 0x00]).await?;
         t(&mut buf, 9, &[0x09, 0x00, 0x00, 0x00]).await?;
 
-        t(&mut buf, 10, &[0x0a, 0x00, 0x00, 0x00]).await?; // FIXME
+        buf.clear();
+        assert!(matches!(
+            write_depth(&mut buf, 10).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }

@@ -10,7 +10,7 @@ use self::{
     reference_sequences::write_reference_sequences,
 };
 use super::num::{write_i32_le, write_u64_le};
-use crate::{BinningIndex, Index};
+use crate::{BinningIndex, Index, io::MAX_DEPTH};
 
 pub(super) fn write_index<W>(writer: &mut W, index: &Index) -> io::Result<()>
 where
@@ -43,6 +43,10 @@ fn write_depth<W>(writer: &mut W, depth: u8) -> io::Result<()>
 where
     W: Write,
 {
+    if depth > MAX_DEPTH {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid depth"));
+    }
+
     let n = i32::from(depth);
     write_i32_le(writer, n)
 }
@@ -74,7 +78,11 @@ mod tests {
         t(&mut buf, 5, &[0x05, 0x00, 0x00, 0x00])?;
         t(&mut buf, 9, &[0x09, 0x00, 0x00, 0x00])?;
 
-        t(&mut buf, 10, &[0x0a, 0x00, 0x00, 0x00])?; // FIXME
+        buf.clear();
+        assert!(matches!(
+            write_depth(&mut buf, 10),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
