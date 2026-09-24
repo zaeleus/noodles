@@ -54,7 +54,7 @@ where
     /// };
     ///
     /// let header = Header::default();
-    /// let indexer = Indexer::<BinnedIndex>::new(14, 5).set_header(header);
+    /// let indexer = Indexer::<BinnedIndex>::default().set_header(header);
     /// ```
     pub fn set_header(mut self, header: Header) -> Self {
         self.header = Some(header);
@@ -73,7 +73,7 @@ where
     ///     Indexer,
     /// };
     ///
-    /// let mut indexer = Indexer::<BinnedIndex>::new(14, 5);
+    /// let mut indexer = Indexer::<BinnedIndex>::default();
     ///
     /// let reference_sequence_id = 0;
     /// let start = Position::try_from(8)?;
@@ -147,7 +147,7 @@ where
     ///
     /// ```
     /// use noodles_csi::binning_index::{index::reference_sequence::index::BinnedIndex, Indexer};
-    /// let indexer = Indexer::<BinnedIndex>::new(14, 5);
+    /// let indexer = Indexer::<BinnedIndex>::default();
     /// let index = indexer.build(0);
     /// ```
     pub fn build(mut self, reference_sequence_count: usize) -> Index<I> {
