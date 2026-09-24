@@ -1,13 +1,11 @@
 use tokio::io::{self, AsyncRead, AsyncReadExt};
 
-use crate::binning_index::index::Header;
+use crate::{binning_index::index::Header, io::MAX_DEPTH};
 
 pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<(u8, u8, Option<Header>)>
 where
     R: AsyncRead + Unpin,
 {
-    const MAX_DEPTH: u8 = 9;
-
     let min_shift = reader
         .read_i32_le()
         .await

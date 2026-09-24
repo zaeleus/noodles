@@ -14,3 +14,4 @@ pub use self::{
 };
 
 pub(crate) const MAGIC_NUMBER: [u8; 4] = *b"CSI\x01";
+pub(crate) const MAX_DEPTH: u8 = 9;

@@ -10,6 +10,8 @@ use std::{
     num,
 };
 
+use crate::io::MAX_DEPTH;
+
 pub use self::header::read_header;
 use self::{
     header::read_aux, magic_number::read_magic_number,
@@ -113,8 +115,6 @@ fn read_depth<R>(reader: &mut R) -> Result<u8, ReadError>
 where
     R: Read,
 {
-    const MAX_DEPTH: u8 = 9;
-
     let n = read_i32_le(reader)?;
     let depth = u8::try_from(n).map_err(|_| ReadError::InvalidDepth)?;
 
