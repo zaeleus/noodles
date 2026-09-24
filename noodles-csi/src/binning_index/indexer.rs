@@ -19,6 +19,7 @@ pub struct Indexer<I> {
     header: Option<Header>,
     reference_sequences: Vec<ReferenceSequence<I>>,
     unplaced_unmapped_record_count: u64,
+    max_position: Position,
 }
 
 impl<I> Indexer<I>
@@ -35,7 +36,7 @@ where
     /// let indexer = Indexer::<BinnedIndex>::new(14, 5).expect("invalid min shift and/or depth");
     /// ```
     pub fn new(min_shift: u8, depth: u8) -> Option<Self> {
-        calculate_max_position(min_shift, depth)?;
+        let max_position = calculate_max_position(min_shift, depth)?;
 
         Some(Self {
             min_shift,
@@ -43,6 +44,7 @@ where
             header: None,
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: 0,
+            max_position,
         })
     }
 
@@ -109,11 +111,7 @@ where
             ));
         }
 
-        let max_position = calculate_max_position(self.min_shift, self.depth).ok_or_else(|| {
-            io::Error::new(io::ErrorKind::InvalidInput, "unsupported max position")
-        })?;
-
-        if end > max_position {
+        if end > self.max_position {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 "invalid end bound",
@@ -198,6 +196,7 @@ where
             header: None,
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: 0,
+            max_position: const { Position::new(1 << 29).unwrap() },
         }
     }
 }
@@ -218,6 +217,10 @@ mod tests {
         assert!(indexer.header.is_none());
         assert!(indexer.reference_sequences.is_empty());
         assert_eq!(indexer.unplaced_unmapped_record_count, 0);
+        assert_eq!(
+            indexer.max_position,
+            const { Position::new(1 << 29).unwrap() }
+        );
     }
 
     #[test]
