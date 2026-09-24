@@ -6,6 +6,8 @@ pub(super) async fn read_header<R>(reader: &mut R) -> io::Result<(u8, u8, Option
 where
     R: AsyncRead + Unpin,
 {
+    const MAX_DEPTH: u8 = 9;
+
     let min_shift = reader
         .read_i32_le()
         .await
@@ -15,6 +17,10 @@ where
         .read_i32_le()
         .await
         .and_then(|n| u8::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))?;
+
+    if depth > MAX_DEPTH {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid depth"));
+    }
 
     let header = read_aux(reader).await?;
 

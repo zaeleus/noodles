@@ -30,7 +30,7 @@ pub enum ReadError {
     /// The min shift is invalid.
     InvalidMinShift(num::TryFromIntError),
     /// The depth is invalid.
-    InvalidDepth(num::TryFromIntError),
+    InvalidDepth,
     /// The header is invalid.
     InvalidHeader(header::ReadError),
     /// A reference sequence is invalid.
@@ -43,7 +43,7 @@ impl error::Error for ReadError {
             Self::Io(e) => Some(e),
             Self::InvalidMagicNumber(_) => None,
             Self::InvalidMinShift(e) => Some(e),
-            Self::InvalidDepth(e) => Some(e),
+            Self::InvalidDepth => None,
             Self::InvalidHeader(e) => Some(e),
             Self::InvalidReferenceSequences(e) => Some(e),
         }
@@ -56,7 +56,7 @@ impl fmt::Display for ReadError {
             Self::Io(_) => write!(f, "I/O error"),
             Self::InvalidMagicNumber(_) => write!(f, "invalid magic number"),
             Self::InvalidMinShift(_) => write!(f, "invalid min shift"),
-            Self::InvalidDepth(_) => write!(f, "invalid depth"),
+            Self::InvalidDepth => write!(f, "invalid depth"),
             Self::InvalidHeader(_) => write!(f, "invalid header"),
             Self::InvalidReferenceSequences(_) => write!(f, "invalid reference sequences"),
         }
@@ -113,8 +113,16 @@ fn read_depth<R>(reader: &mut R) -> Result<u8, ReadError>
 where
     R: Read,
 {
+    const MAX_DEPTH: u8 = 9;
+
     let n = read_i32_le(reader)?;
-    u8::try_from(n).map_err(ReadError::InvalidDepth)
+    let depth = u8::try_from(n).map_err(|_| ReadError::InvalidDepth)?;
+
+    if depth <= MAX_DEPTH {
+        Ok(depth)
+    } else {
+        Err(ReadError::InvalidDepth)
+    }
 }
 
 fn read_unplaced_unmapped_record_count<R>(reader: &mut R) -> Result<Option<u64>, ReadError>
@@ -154,19 +162,25 @@ mod tests {
 
     #[test]
     fn test_read_depth() -> Result<(), ReadError> {
+        let src = [0x00, 0x00, 0x00, 0x00]; // depth = 0
+        assert_eq!(read_depth(&mut &src[..])?, 0);
+
         let src = [0x05, 0x00, 0x00, 0x00]; // depth = 5
         assert_eq!(read_depth(&mut &src[..])?, 5);
+
+        let src = [0x09, 0x00, 0x00, 0x00]; // depth = 9
+        assert_eq!(read_depth(&mut &src[..])?, 9);
 
         let src = [0xff, 0xff, 0xff, 0xff]; // depth = -1
         assert!(matches!(
             read_depth(&mut &src[..]),
-            Err(ReadError::InvalidDepth(_))
+            Err(ReadError::InvalidDepth)
         ));
 
-        let src = [0x00, 0x01, 0x00, 0x00]; // depth = 256
+        let src = [0x0a, 0x00, 0x00, 0x00]; // depth = 10
         assert!(matches!(
             read_depth(&mut &src[..]),
-            Err(ReadError::InvalidDepth(_))
+            Err(ReadError::InvalidDepth)
         ));
 
         Ok(())

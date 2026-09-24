@@ -14,6 +14,10 @@
   * csi/binning_index/indexer: Reject alignment context with start > end and
     end > max supported position.
 
+  * csi/io/reader/index: Validate depth.
+
+    The maximum depth for CSI is 9.
+
 ### Fixed
 
   * csi/binning_index/index: Fix max position calculation to be 1-based.
