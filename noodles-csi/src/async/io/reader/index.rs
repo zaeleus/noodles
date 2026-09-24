@@ -126,4 +126,21 @@ mod tests {
 
         Ok(())
     }
+
+    #[tokio::test]
+    async fn test_read_unplaced_unmapped_record_count() -> io::Result<()> {
+        let src = [];
+        assert_eq!(
+            read_unplaced_unmapped_record_count(&mut &src[..]).await?,
+            None
+        );
+
+        let src = [0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+        assert_eq!(
+            read_unplaced_unmapped_record_count(&mut &src[..]).await?,
+            Some(8)
+        );
+
+        Ok(())
+    }
 }
