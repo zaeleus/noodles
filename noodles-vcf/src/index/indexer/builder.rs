@@ -87,13 +87,13 @@ impl Builder {
     /// # Ok::<_, noodles_vcf::index::indexer::builder::BuildError>(())
     /// ```
     pub fn build(self) -> Result<Indexer, BuildError> {
-        let depth = if let Some(n) = self.max_position_hint {
-            fit_depth(n).ok_or(BuildError::UnsupportedMaxPosition)?
+        let (min_shift, depth) = if let Some(n) = self.max_position_hint {
+            fit_min_shift_and_depth(n).ok_or(BuildError::UnsupportedMaxPosition)?
         } else {
-            TABIX_DEPTH
+            (TABIX_MIN_SHIFT, TABIX_DEPTH)
         };
 
-        let format = if depth == TABIX_DEPTH {
+        let format = if min_shift == TABIX_MIN_SHIFT && depth == TABIX_DEPTH {
             self.format.unwrap_or_default()
         } else if let Some(Format::Tabix) = self.format {
             return Err(BuildError::InvalidFormat);
@@ -102,7 +102,7 @@ impl Builder {
         };
 
         let inner = match format {
-            Format::Csi => csi::binning_index::Indexer::new(TABIX_MIN_SHIFT, depth)
+            Format::Csi => csi::binning_index::Indexer::new(min_shift, depth)
                 .map(Inner::Csi)
                 .ok_or(BuildError::InvalidIndexerInput)?,
             Format::Tabix => Inner::Tabix(csi::binning_index::Indexer::default()),
@@ -116,32 +116,32 @@ impl Builder {
     }
 }
 
-fn fit_depth(max_position: Position) -> Option<u8> {
-    let mut depth = TABIX_DEPTH;
+fn fit_min_shift_and_depth(max_position: Position) -> Option<(u8, u8)> {
+    const MAX_DEPTH: u8 = 9;
 
-    loop {
+    for depth in TABIX_DEPTH..=MAX_DEPTH {
         let max_index_position = calculate_max_position(TABIX_MIN_SHIFT, depth)?;
 
         if max_position <= max_index_position {
-            break;
+            return Some((TABIX_MIN_SHIFT, depth));
         }
-
-        depth += 1;
     }
 
-    Some(depth)
+    for min_shift in (TABIX_MIN_SHIFT + 1).. {
+        let max_index_position = calculate_max_position(min_shift, MAX_DEPTH)?;
+
+        if max_position <= max_index_position {
+            return Some((min_shift, MAX_DEPTH));
+        }
+    }
+
+    None
 }
 
 fn calculate_max_position(min_shift: u8, depth: u8) -> Option<Position> {
-    const MAX_DEPTH: u8 = 9;
-
-    if depth > MAX_DEPTH {
-        None
-    } else {
-        1u64.checked_shl(u32::from(min_shift) + 3 * u32::from(depth))
-            .and_then(|n| usize::try_from(n).ok())
-            .and_then(Position::new)
-    }
+    1usize
+        .checked_shl(u32::from(min_shift) + 3 * u32::from(depth))
+        .and_then(Position::new)
 }
 
 #[cfg(test)]
@@ -153,7 +153,7 @@ mod tests {
         let builder = Builder::default();
         assert!(builder.build().is_ok());
 
-        #[cfg(not(target_pointer_width = "16"))]
+        #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
         {
             let builder = Builder::default()
                 .set_max_position_hint(const { Position::new((1 << 29) + 1).unwrap() });
@@ -163,12 +163,8 @@ mod tests {
                 .set_format(Format::Tabix)
                 .set_max_position_hint(const { Position::new((1 << 29) + 1).unwrap() });
             assert_eq!(builder.build().err(), Some(BuildError::InvalidFormat));
-        }
 
-        #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
-        {
             let builder = Builder::default().set_max_position_hint(Position::MAX);
-
             assert_eq!(
                 builder.build().err(),
                 Some(BuildError::UnsupportedMaxPosition)
@@ -177,41 +173,39 @@ mod tests {
     }
 
     #[test]
-    fn test_fit_depth() {
+    fn test_fit_min_shift_and_depth() {
         #[cfg(not(target_pointer_width = "16"))]
         {
-            assert_eq!(fit_depth(Position::MIN), Some(5));
+            assert_eq!(fit_min_shift_and_depth(Position::MIN), Some((14, 5)));
 
             assert_eq!(
-                fit_depth(const { Position::new(1 << 29).unwrap() }),
-                Some(5)
-            );
-            assert_eq!(
-                fit_depth(const { Position::new((1 << 29) + 1).unwrap() }),
-                Some(6)
-            );
-            assert_eq!(
-                fit_depth(const { Position::new(u32::MAX as usize).unwrap() }),
-                Some(6)
+                fit_min_shift_and_depth(const { Position::new(1 << 29).unwrap() }),
+                Some((14, 5))
             );
         }
 
         #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
         {
             assert_eq!(
-                fit_depth(const { Position::new(1 << 32).unwrap() }),
-                Some(6)
+                fit_min_shift_and_depth(const { Position::new((1 << 29) + 1).unwrap() }),
+                Some((14, 6))
             );
             assert_eq!(
-                fit_depth(const { Position::new((1 << 32) + 1).unwrap() }),
-                Some(7)
+                fit_min_shift_and_depth(const { Position::new(1 << 41).unwrap() }),
+                Some((14, 9))
             );
             assert_eq!(
-                fit_depth(const { Position::new(1 << 41).unwrap() }),
-                Some(9)
+                fit_min_shift_and_depth(const { Position::new((1 << 41) + 1).unwrap() }),
+                Some((15, 9))
             );
-            assert!(fit_depth(const { Position::new((1 << 41) + 1).unwrap() }).is_none());
-            assert!(fit_depth(Position::MAX).is_none());
+            assert_eq!(
+                fit_min_shift_and_depth(const { Position::new(1 << 63).unwrap() }),
+                Some((36, 9))
+            );
+            assert!(
+                fit_min_shift_and_depth(const { Position::new((1 << 63) + 1).unwrap() }).is_none()
+            );
+            assert!(fit_min_shift_and_depth(Position::MAX).is_none());
         }
     }
 
@@ -224,11 +218,18 @@ mod tests {
         );
 
         #[cfg(not(any(target_pointer_width = "16", target_pointer_width = "32")))]
-        assert_eq!(
-            calculate_max_position(14, 9),
-            Some(const { Position::new(1 << 41).unwrap() })
-        );
+        {
+            assert_eq!(
+                calculate_max_position(14, 9),
+                Some(const { Position::new(1 << 41).unwrap() })
+            );
 
-        assert!(calculate_max_position(14, 10).is_none());
+            assert_eq!(
+                calculate_max_position(48, 5),
+                Some(const { Position::new(1 << 63).unwrap() })
+            );
+
+            assert!(calculate_max_position(49, 5).is_none());
+        }
     }
 }
