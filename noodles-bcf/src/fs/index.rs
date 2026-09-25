@@ -53,7 +53,9 @@ where
 
         let end = record.variant_end(&header)?;
 
-        indexer.add_record(Some((reference_sequence_id, start, end, true)), chunk)?;
+        indexer
+            .add_record(Some((reference_sequence_id, start, end, true)), chunk)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         start_position = end_position;
     }

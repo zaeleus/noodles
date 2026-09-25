@@ -1,7 +1,7 @@
 //! Binning index.
 
 pub mod index;
-mod indexer;
+pub mod indexer;
 mod reference_sequence;
 
 use std::io;

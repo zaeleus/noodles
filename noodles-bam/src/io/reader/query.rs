@@ -206,7 +206,10 @@ mod tests {
             };
 
             let chunk = Chunk::new(chunk_start, chunk_end);
-            indexer.add_record(alignment_context, chunk)?;
+
+            indexer
+                .add_record(alignment_context, chunk)
+                .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
             chunk_start = chunk_end;
         }

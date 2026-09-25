@@ -67,7 +67,10 @@ impl Indexer {
             .insert_full(reference_sequence_name.into());
 
         let alignment_context = Some((reference_sequence_id, start, end, true));
-        self.indexer.add_record(alignment_context, chunk)
+
+        self.indexer
+            .add_record(alignment_context, chunk)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     /// Builds a tabix index.

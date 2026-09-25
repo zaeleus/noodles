@@ -2,8 +2,6 @@
 
 pub mod builder;
 
-use std::io;
-
 use noodles_core::Position;
 use noodles_csi::{
     self as csi,
@@ -26,7 +24,7 @@ impl Inner {
         &mut self,
         alignment_context: Option<(usize, Position, Position, bool)>,
         chunk: Chunk,
-    ) -> io::Result<()> {
+    ) -> Result<(), csi::binning_index::indexer::AddRecordError> {
         match self {
             Self::Bai(indexer) => indexer.add_record(alignment_context, chunk),
             Self::Csi(indexer) => indexer.add_record(alignment_context, chunk),
@@ -89,7 +87,7 @@ impl Indexer {
         &mut self,
         alignment_context: Option<(usize, Position, Position, bool)>,
         chunk: Chunk,
-    ) -> io::Result<()> {
+    ) -> Result<(), csi::binning_index::indexer::AddRecordError> {
         self.inner.add_record(alignment_context, chunk)
     }
 

@@ -76,7 +76,9 @@ where
             _ => None,
         };
 
-        indexer.add_record(alignment_context, chunk)?;
+        indexer
+            .add_record(alignment_context, chunk)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         start_position = end_position;
     }

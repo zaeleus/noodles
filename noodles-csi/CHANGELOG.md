@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * csi/binning_index/indexer: Add add record error
+    (`csi::binning_index::indexer::AddRecordError`).
+
 ### Changed
 
   * csi: Raise minimum supported Rust version (MSRV) to 1.91.0.

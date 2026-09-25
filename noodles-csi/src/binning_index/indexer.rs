@@ -1,8 +1,11 @@
-use std::io;
+//! Binning index indexer.
+
+mod add_record_error;
 
 use indexmap::IndexMap;
 use noodles_core::Position;
 
+pub use self::add_record_error::AddRecordError;
 use super::{
     calculate_max_position,
     index::{
@@ -98,7 +101,7 @@ where
         &mut self,
         alignment_context: Option<(usize, Position, Position, bool)>,
         chunk: Chunk,
-    ) -> io::Result<()> {
+    ) -> Result<(), AddRecordError> {
         use std::cmp::Ordering;
 
         let Some((reference_sequence_id, start, end, is_mapped)) = alignment_context else {
@@ -107,17 +110,14 @@ where
         };
 
         if start > end {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "expected start <= end",
-            ));
+            return Err(AddRecordError::InvalidInterval { start, end });
         }
 
         if end > self.max_position {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "invalid end bound",
-            ));
+            return Err(AddRecordError::EndExceedsMaxPosition {
+                end,
+                max_position: self.max_position,
+            });
         }
 
         if self.reference_sequences.is_empty() {
@@ -129,10 +129,10 @@ where
 
         match reference_sequence_id.cmp(&current_reference_sequence_id) {
             Ordering::Less => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "invalid reference sequence ID",
-                ));
+                return Err(AddRecordError::OutOfOrderReferenceSequenceId {
+                    reference_sequence_id,
+                    current_reference_sequence_id,
+                });
             }
             Ordering::Equal => {}
             Ordering::Greater => {
@@ -142,10 +142,10 @@ where
         }
 
         if start < self.prev_start_position {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "expected start >= previous start position",
-            ));
+            return Err(AddRecordError::OutOfOrderStartPosition {
+                start,
+                prev_start_position: self.prev_start_position,
+            });
         }
 
         self.prev_start_position = start;
@@ -240,7 +240,7 @@ mod tests {
     }
 
     #[test]
-    fn test_add_record_with_start_gt_end() {
+    fn test_add_record_with_invalid_interval() {
         let mut indexer = Indexer::<LinearIndex>::default();
 
         let start = const { Position::new(13).unwrap() };
@@ -251,14 +251,14 @@ mod tests {
             bgzf::VirtualPosition::from(13),
         );
 
-        assert!(matches!(
+        assert_eq!(
             indexer.add_record(alignment_context, chunk),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
+            Err(AddRecordError::InvalidInterval { start, end })
+        );
     }
 
     #[test]
-    fn test_add_record_with_end_gt_max_position() {
+    fn test_add_record_with_end_exceeds_max_position() {
         let mut indexer = Indexer::<LinearIndex>::new(1, 1).unwrap(); // max position = 16
 
         let alignment_context = Some((0, Position::MIN, Position::MAX, true));
@@ -267,14 +267,17 @@ mod tests {
             bgzf::VirtualPosition::from(13),
         );
 
-        assert!(matches!(
+        assert_eq!(
             indexer.add_record(alignment_context, chunk),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
+            Err(AddRecordError::EndExceedsMaxPosition {
+                end: Position::MAX,
+                max_position: const { Position::new(16).unwrap() }
+            })
+        );
     }
 
     #[test]
-    fn test_add_record_with_start_lt_previous_start() -> io::Result<()> {
+    fn test_add_record_with_out_of_order_start_position() -> Result<(), AddRecordError> {
         let mut indexer = Indexer::<LinearIndex>::default();
 
         let alignment_context = Some((
@@ -306,10 +309,13 @@ mod tests {
             bgzf::VirtualPosition::from(2),
             bgzf::VirtualPosition::from(3),
         );
-        assert!(matches!(
+        assert_eq!(
             indexer.add_record(alignment_context, chunk),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
+            Err(AddRecordError::OutOfOrderStartPosition {
+                start: Position::MIN,
+                prev_start_position: const { Position::new(3).unwrap() }
+            })
+        );
 
         Ok(())
     }
