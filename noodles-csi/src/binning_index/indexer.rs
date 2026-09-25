@@ -277,6 +277,36 @@ mod tests {
     }
 
     #[test]
+    fn test_add_record_with_out_of_order_reference_sequence_id() -> Result<(), AddRecordError> {
+        let mut indexer = Indexer::<LinearIndex>::default();
+
+        let start = const { Position::new(8).unwrap() };
+        let end = const { Position::new(13).unwrap() };
+
+        let alignment_context = Some((1, start, end, true));
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(0),
+            bgzf::VirtualPosition::from(1),
+        );
+        indexer.add_record(alignment_context, chunk)?;
+
+        let alignment_context = Some((0, start, end, true));
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(1),
+            bgzf::VirtualPosition::from(2),
+        );
+        assert_eq!(
+            indexer.add_record(alignment_context, chunk),
+            Err(AddRecordError::OutOfOrderReferenceSequenceId {
+                reference_sequence_id: 0,
+                current_reference_sequence_id: 1
+            })
+        );
+
+        Ok(())
+    }
+
+    #[test]
     fn test_add_record_with_out_of_order_start_position() -> Result<(), AddRecordError> {
         let mut indexer = Indexer::<LinearIndex>::default();
 
