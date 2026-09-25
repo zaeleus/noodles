@@ -14,8 +14,9 @@
   * csi/binning_index/indexer: Validate min shift and depth on creation
     (`Indexer::new`).
 
-  * csi/binning_index/indexer: Reject alignment context with start > end and
-    end > max supported position.
+  * csi/binning_index/indexer: Reject alignment context with start > end, end >
+    max supported position, and start < previous start position within the same
+    reference sequence.
 
   * csi/io: Validate depth on read and write.
 

@@ -19,6 +19,7 @@ pub struct Indexer<I> {
     header: Option<Header>,
     reference_sequences: Vec<ReferenceSequence<I>>,
     unplaced_unmapped_record_count: u64,
+    prev_start_position: Position,
     max_position: Position,
 }
 
@@ -44,6 +45,7 @@ where
             header: None,
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: 0,
+            prev_start_position: Position::MIN,
             max_position,
         })
     }
@@ -133,8 +135,20 @@ where
                 ));
             }
             Ordering::Equal => {}
-            Ordering::Greater => self.add_reference_sequences_until(reference_sequence_id),
+            Ordering::Greater => {
+                self.prev_start_position = Position::MIN;
+                self.add_reference_sequences_until(reference_sequence_id)
+            }
         }
+
+        if start < self.prev_start_position {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "expected start >= previous start position",
+            ));
+        }
+
+        self.prev_start_position = start;
 
         let reference_sequence = &mut self.reference_sequences[reference_sequence_id];
         reference_sequence.update(self.min_shift, self.depth, start, end, is_mapped, chunk);
@@ -196,6 +210,7 @@ where
             header: None,
             reference_sequences: Vec::new(),
             unplaced_unmapped_record_count: 0,
+            prev_start_position: Position::MIN,
             max_position: const { Position::new(1 << 29).unwrap() },
         }
     }
@@ -217,6 +232,7 @@ mod tests {
         assert!(indexer.header.is_none());
         assert!(indexer.reference_sequences.is_empty());
         assert_eq!(indexer.unplaced_unmapped_record_count, 0);
+        assert_eq!(indexer.prev_start_position, Position::MIN);
         assert_eq!(
             indexer.max_position,
             const { Position::new(1 << 29).unwrap() }
@@ -255,6 +271,47 @@ mod tests {
             indexer.add_record(alignment_context, chunk),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
+    }
+
+    #[test]
+    fn test_add_record_with_start_lt_previous_start() -> io::Result<()> {
+        let mut indexer = Indexer::<LinearIndex>::default();
+
+        let alignment_context = Some((
+            0,
+            const { Position::new(5).unwrap() },
+            const { Position::new(8).unwrap() },
+            true,
+        ));
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(0),
+            bgzf::VirtualPosition::from(1),
+        );
+        indexer.add_record(alignment_context, chunk)?;
+
+        let alignment_context = Some((
+            1,
+            const { Position::new(3).unwrap() },
+            const { Position::new(8).unwrap() },
+            true,
+        ));
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(1),
+            bgzf::VirtualPosition::from(2),
+        );
+        indexer.add_record(alignment_context, chunk)?;
+
+        let alignment_context = Some((1, Position::MIN, const { Position::new(5).unwrap() }, true));
+        let chunk = Chunk::new(
+            bgzf::VirtualPosition::from(2),
+            bgzf::VirtualPosition::from(3),
+        );
+        assert!(matches!(
+            indexer.add_record(alignment_context, chunk),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
     }
 
     #[test]
