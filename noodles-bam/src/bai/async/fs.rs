@@ -44,8 +44,6 @@ where
 /// # #[tokio::main]
 /// # async fn main() -> tokio::io::Result<()> {
 /// use noodles_bam::bai;
-/// use noodles_csi as csi;
-///
 /// let index = bai::Index::default();
 /// bai::r#async::fs::write("sample.bam.bai", &index).await?;
 /// # Ok(())
