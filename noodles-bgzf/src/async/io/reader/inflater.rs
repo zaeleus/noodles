@@ -88,9 +88,17 @@ where
             *this.is_seeking = true;
         }
 
-        ready!(reader.poll_complete(cx))?;
-        *this.is_seeking = false;
+        match reader.poll_complete(cx) {
+            Poll::Ready(Ok(_)) => {}
+            Poll::Ready(Err(e)) => {
+                *this.is_seeking = false;
+                self.inner.read_buffer_mut().clear();
+                return Poll::Ready(Err(e));
+            }
+            Poll::Pending => return Poll::Pending,
+        }
 
+        *this.is_seeking = false;
         self.inner.read_buffer_mut().clear();
 
         Poll::Ready(Ok(pos))

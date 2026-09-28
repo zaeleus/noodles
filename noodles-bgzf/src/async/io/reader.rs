@@ -175,21 +175,27 @@ where
         let stream = self.stream.take().expect("missing stream");
         let mut blocks = stream.into_inner();
 
-        blocks.seek(pos).await?;
+        if let Err(e) = blocks.seek(pos).await {
+            let stream = blocks.try_buffered(self.worker_count.get());
+            self.stream.replace(stream);
+            return Err(e);
+        }
 
         let mut stream = blocks.try_buffered(self.worker_count.get());
-        let block = stream.try_next().await?;
-
+        let item = stream.try_next().await;
         self.stream.replace(stream);
 
-        self.block = match block {
+        let (block, position) = match item? {
             Some(mut block) => {
-                self.position = cpos + block.size();
                 block.set_position(cpos);
-                block
+                let size = block.size();
+                (block, cpos + size)
             }
-            None => Block::default(),
+            None => (Block::default(), cpos),
         };
+
+        self.block = block;
+        self.position = position;
 
         let data = self.block.data_mut();
 
@@ -218,7 +224,12 @@ where
                 SeekState::Seek(mut blocks) => {
                     match Pin::new(&mut blocks).poll_seek(cx, pos) {
                         Poll::Ready(Ok(_)) => {}
-                        Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
+                        Poll::Ready(Err(e)) => {
+                            let stream = blocks.try_buffered(self.worker_count.get());
+                            self.stream.replace(stream);
+                            self.seek_state = Some(SeekState::Init);
+                            return Poll::Ready(Err(e));
+                        }
                         Poll::Pending => {
                             self.seek_state = Some(SeekState::Seek(blocks));
                             return Poll::Pending;
@@ -241,21 +252,28 @@ where
 
                     self.stream.replace(stream);
 
-                    self.block = match item {
+                    let (block, position) = match item {
                         Some(Ok(mut block)) => {
-                            self.position = cpos + block.size();
                             block.set_position(cpos);
-                            block
+                            let size = block.size();
+                            (block, cpos + size)
                         }
-                        Some(Err(e)) => return Poll::Ready(Err(e)),
-                        None => Block::default(),
+                        Some(Err(e)) => {
+                            self.seek_state = Some(SeekState::Init);
+                            return Poll::Ready(Err(e));
+                        }
+                        None => (Block::default(), cpos),
                     };
+
+                    self.block = block;
+                    self.position = position;
 
                     let data = self.block.data_mut();
 
                     if usize::from(upos) <= data.len() {
                         data.set_position(usize::from(upos));
                     } else {
+                        self.seek_state = Some(SeekState::Init);
                         return Poll::Ready(Err(io::Error::from(io::ErrorKind::InvalidInput)));
                     }
 
