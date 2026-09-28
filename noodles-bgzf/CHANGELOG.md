@@ -13,6 +13,10 @@
 
 ### Fixed
 
+  * bgzf/async/io/reader: Validate uncompressed position after seeking.
+
+    The uncompressed position cannot be > the block's data length.
+
   * bgzf/async/io/reader/inflater: Force read completion before seek.
 
     `tokio::io::BufReader::poll_complete` doesn't seem to call the underlying
