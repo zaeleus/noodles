@@ -186,8 +186,7 @@ where
         self.stream.replace(stream);
 
         let (block, position) = match item? {
-            Some(mut block) => {
-                block.set_position(cpos);
+            Some(block) => {
                 let size = block.size();
                 (block, cpos + size)
             }
@@ -196,6 +195,8 @@ where
 
         self.block = block;
         self.position = position;
+
+        self.block.set_position(cpos);
 
         let data = self.block.data_mut();
 
@@ -253,8 +254,7 @@ where
                     self.stream.replace(stream);
 
                     let (block, position) = match item {
-                        Some(Ok(mut block)) => {
-                            block.set_position(cpos);
+                        Some(Ok(block)) => {
                             let size = block.size();
                             (block, cpos + size)
                         }
@@ -267,6 +267,8 @@ where
 
                     self.block = block;
                     self.position = position;
+
+                    self.block.set_position(cpos);
 
                     let data = self.block.data_mut();
 
