@@ -7,7 +7,7 @@ use std::{
 
 use crossbeam_channel::{Receiver, Sender};
 
-use super::Block;
+use super::{Block, reader::frame::block_initialize};
 use crate::{VirtualPosition, gzi};
 
 type BufferedRx = Receiver<io::Result<Buffer>>;
@@ -240,14 +240,20 @@ where
             panic!("invalid state");
         };
 
-        while let Some(mut buffer) = recv_buffer(read_rx)? {
-            buffer.block.set_position(self.position);
-            self.position += buffer.block.size();
+        loop {
+            if let Some(mut buffer) = recv_buffer(read_rx)? {
+                buffer.block.set_position(self.position);
+                self.position += buffer.block.size();
 
-            let prev_buffer = mem::replace(&mut self.buffer, buffer);
-            recycle_tx.send(prev_buffer).ok();
+                let prev_buffer = mem::replace(&mut self.buffer, buffer);
+                recycle_tx.send(prev_buffer).ok();
 
-            if self.buffer.block.data().len() > 0 {
+                if self.buffer.block.data().len() > 0 {
+                    break;
+                }
+            } else {
+                block_initialize(&mut self.buffer.block, 0, 0);
+                self.buffer.block.set_position(self.position);
                 break;
             }
         }
