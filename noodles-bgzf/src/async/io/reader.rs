@@ -17,7 +17,10 @@ use tokio::io::{AsyncBufRead, AsyncRead, AsyncSeek, ReadBuf};
 
 pub use self::builder::Builder;
 use self::inflater::Inflater;
-use crate::{VirtualPosition, gzi, io::Block};
+use crate::{
+    VirtualPosition, gzi,
+    io::{Block, reader::frame::block_initialize},
+};
 
 enum SeekState<R>
 where
@@ -364,7 +367,11 @@ where
                         }
                     }
                     Some(Err(e)) => return Poll::Ready(Err(e)),
-                    None => return Poll::Ready(Ok(&[])),
+                    None => {
+                        block_initialize(this.block, 0, 0);
+                        this.block.set_position(*this.position);
+                        break;
+                    }
                 }
             }
         }
