@@ -21,7 +21,7 @@ const NON_WORKER_COUNT: usize = 2;
 enum State<R> {
     Paused((R, rayon::ThreadPool)),
     Running {
-        reader_handle: JoinHandle<Result<(R, rayon::ThreadPool), ReadError<R>>>,
+        reader_handle: JoinHandle<(R, rayon::ThreadPool)>,
         read_rx: ReadRx,
         recycle_tx: RecycleTx,
     },
@@ -92,16 +92,15 @@ impl<R> MultithreadedReader<R> {
             State::Paused((inner, _)) => Ok(inner),
             State::Running {
                 reader_handle,
+                read_rx,
                 recycle_tx,
-                ..
             } => {
                 drop(recycle_tx);
 
-                reader_handle
-                    .join()
-                    .unwrap()
-                    .map(|(inner, _)| inner)
-                    .map_err(|e| e.1)
+                let err = read_rx_drain(&read_rx);
+                let (inner, _) = reader_handle.join().unwrap();
+
+                if let Some(e) = err { Err(e) } else { Ok(inner) }
             }
             State::Done => panic!("invalid state"),
         }
@@ -210,8 +209,8 @@ where
 
         let State::Running {
             reader_handle,
+            read_rx,
             recycle_tx,
-            ..
         } = state
         else {
             panic!("invalid state");
@@ -220,10 +219,9 @@ where
         drop(recycle_tx);
 
         // Discard read errors.
-        let (inner, pool) = match reader_handle.join().unwrap() {
-            Ok((inner, pool)) => (inner, pool),
-            Err(ReadError((inner, pool), _)) => (inner, pool),
-        };
+        let _ = read_rx_drain(&read_rx);
+
+        let (inner, pool) = reader_handle.join().unwrap();
 
         self.state = State::Paused((inner, pool));
     }
@@ -358,22 +356,20 @@ where
 
 fn recv_buffer(read_rx: &ReadRx) -> io::Result<Option<Buffer>> {
     if let Ok(buffered_rx) = read_rx.recv()
-        && let Ok(buffer) = buffered_rx.recv()
+        && let Ok(result) = buffered_rx.recv()
     {
-        return buffer.map(Some);
+        return result.map(Some);
     }
 
     Ok(None)
 }
-
-struct ReadError<R>((R, rayon::ThreadPool), io::Error);
 
 fn spawn_reader<R>(
     mut reader: R,
     pool: rayon::ThreadPool,
     read_tx: ReadTx,
     recycle_rx: RecycleRx,
-) -> JoinHandle<Result<(R, rayon::ThreadPool), ReadError<R>>>
+) -> JoinHandle<(R, rayon::ThreadPool)>
 where
     R: Read + Send + 'static,
 {
@@ -384,7 +380,12 @@ where
             match read_frame_into(&mut reader, &mut buffer.buf) {
                 Ok(result) if result.is_none() => break,
                 Ok(_) => {}
-                Err(e) => return Err(ReadError((reader, pool), e)),
+                Err(e) => {
+                    let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
+                    let _ = buffered_tx.send(Err(e));
+                    let _ = read_tx.send(buffered_rx);
+                    break;
+                }
             }
 
             let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
@@ -399,8 +400,20 @@ where
             }
         }
 
-        Ok((reader, pool))
+        (reader, pool)
     })
+}
+
+fn read_rx_drain(read_rx: &ReadRx) -> Option<io::Error> {
+    let mut err = None;
+
+    while let Ok(buffered_rx) = read_rx.recv() {
+        if let Ok(Err(e)) = buffered_rx.recv() {
+            err.get_or_insert(e);
+        }
+    }
+
+    err
 }
 
 #[cfg(test)]
@@ -409,6 +422,22 @@ mod tests {
 
     use super::*;
     use crate::io::Seek;
+
+    #[test]
+    fn test_fill_buf_with_frame_reader_error() {
+        static DATA: &[u8] = &[
+            // EOF block with invalid BSIZE (255)
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0xff, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ];
+
+        let mut reader = MultithreadedReader::new(Cursor::new(DATA));
+
+        assert!(matches!(
+            reader.fill_buf(),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+    }
 
     #[test]
     fn test_seek_to_virtual_position_with_uncompressed_position_gt_data_len()

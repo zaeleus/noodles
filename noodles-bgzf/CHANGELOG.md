@@ -11,6 +11,10 @@
 
   * bgzf: Raise minimum supported Rust version (MSRV) to 1.91.0.
 
+  * bgzf/io/multithreaded_reader: Return frame reader error on read.
+
+    This error was previously only returned on finish.
+
 ### Fixed
 
   * bgzf/async/io/reader: Validate uncompressed position after seeking.
