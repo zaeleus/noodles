@@ -187,7 +187,13 @@ where
 
         self.read_block()?;
 
-        self.block.data_mut().set_position(usize::from(upos));
+        let data = self.block.data_mut();
+
+        if usize::from(upos) <= data.len() {
+            data.set_position(usize::from(upos));
+        } else {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
 
         Ok(pos)
     }
@@ -396,6 +402,30 @@ mod tests {
 
         assert_eq!(buf, b"dles");
         assert_eq!(reader.virtual_position(), eof);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_seek_with_uncompressed_position_gt_data_len()
+    -> Result<(), crate::virtual_position::TryFromU64U16TupleError> {
+        #[rustfmt::skip]
+        let data = [
+            // block 0 (b"noodles")
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x22, 0x00, 0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00, 0xa1,
+            0x58, 0x2a, 0x80, 0x07, 0x00, 0x00, 0x00,
+            // EOF block
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ];
+
+        let mut reader = Reader::new(Cursor::new(&data));
+
+        assert!(matches!(
+            reader.seek(VirtualPosition::try_from((0, 8))?),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }

@@ -24,6 +24,10 @@
     This prevents the last block from unintentionally being reused on
     subsequent reads with buffers >= 64 KiB.
 
+  * bgzf/io/reader: Validate uncompressed position after seeking.
+
+    The uncompressed position cannot be > the block's data length.
+
   * bgzf/io/writer: Track state to prevent writing duplicate EOF marker
     ([#434]).
 
