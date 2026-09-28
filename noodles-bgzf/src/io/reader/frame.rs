@@ -131,7 +131,7 @@ fn parse_frame(src: &[u8]) -> io::Result<(u64, &[u8], u32, usize)> {
     Ok((block_size, cdata, crc32, isize))
 }
 
-fn block_initialize(block: &mut Block, block_size: u64, isize: usize) {
+pub(super) fn block_initialize(block: &mut Block, block_size: u64, isize: usize) {
     block.set_size(block_size);
 
     let data = block.data_mut();

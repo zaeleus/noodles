@@ -7,6 +7,7 @@ pub use self::builder::Builder;
 
 use std::io::{self, BufRead, Read, Seek, SeekFrom};
 
+use self::frame::block_initialize;
 use super::Block;
 use crate::{BGZF_MAX_ISIZE, VirtualPosition, gzi};
 
@@ -129,13 +130,19 @@ where
     {
         use self::frame::read_frame_into;
 
-        while read_frame_into(&mut self.inner, &mut self.buf)?.is_some() {
-            f(&self.buf, &mut self.block)?;
+        loop {
+            if read_frame_into(&mut self.inner, &mut self.buf)?.is_some() {
+                f(&self.buf, &mut self.block)?;
 
-            self.block.set_position(self.position);
-            self.position += self.block.size();
+                self.block.set_position(self.position);
+                self.position += self.block.size();
 
-            if self.block.data().len() > 0 {
+                if self.block.data().len() > 0 {
+                    break;
+                }
+            } else {
+                block_initialize(&mut self.block, 0, 0);
+                self.block.set_position(self.position);
                 break;
             }
         }
@@ -337,6 +344,25 @@ mod tests {
         reader.read_to_end(&mut buf)?;
 
         assert_eq!(buf, b"noodlesbgzf");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_with_missing_eof_and_buf_len_gte_bgzf_max_isize() -> io::Result<()> {
+        #[rustfmt::skip]
+        let data = [
+            // block 0 (b"noodles")
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x22, 0x00, 0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00, 0xa1,
+            0x58, 0x2a, 0x80, 0x07, 0x00, 0x00, 0x00,
+        ];
+
+        let mut reader = Reader::new(&data[..]);
+
+        let mut buf = vec![0; BGZF_MAX_ISIZE];
+        assert_eq!(reader.read(&mut buf)?, 7);
+        assert_eq!(reader.read(&mut buf)?, 0);
 
         Ok(())
     }

@@ -19,10 +19,16 @@
     reader's `poll_complete`, which can leave it busy, i.e., "other file
     operation is pending, call poll_complete before start_seek".
 
+  * bgzf/io/reader: Reset block on EOF ([#435]).
+
+    This prevents the last block from unintentionally being reused on
+    subsequent reads with buffers >= 64 KiB.
+
   * bgzf/io/writer: Track state to prevent writing duplicate EOF marker
     ([#434]).
 
 [#434]: https://github.com/zaeleus/noodles/issues/434
+[#435]: https://github.com/zaeleus/noodles/issues/435
 
 ## 0.51.0 - 2026-08-03
 
