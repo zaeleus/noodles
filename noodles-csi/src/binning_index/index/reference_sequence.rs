@@ -92,10 +92,11 @@ where
     {
         let (start, end) = resolve_interval(min_shift, depth, interval)?;
 
-        let max_bin_id = Bin::max_id(depth)
+        let bin_count = Bin::max_id(depth)
+            .and_then(|n| n.checked_add(1))
             .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "invalid depth"))?;
 
-        let mut region_bins = BitVec::from_elem(max_bin_id, false);
+        let mut region_bins = BitVec::from_elem(bin_count, false);
 
         reg2bins(start, end, min_shift, depth, &mut region_bins);
 
@@ -538,12 +539,12 @@ mod tests {
         const DEPTH: u8 = 2;
 
         fn t(start: Position, end: Position, expected_bin_ids: &[usize]) {
-            let max_bin_id = const { Bin::max_id(DEPTH).unwrap() };
+            let bin_count = Bin::max_id(DEPTH).and_then(|n| n.checked_add(1)).unwrap();
 
-            let mut actual = BitVec::from_elem(max_bin_id, false);
+            let mut actual = BitVec::from_elem(bin_count, false);
             reg2bins(start, end, MIN_SHIFT, DEPTH, &mut actual);
 
-            let mut expected = BitVec::from_elem(max_bin_id, false);
+            let mut expected = BitVec::from_elem(bin_count, false);
 
             for &bin_id in expected_bin_ids {
                 expected.set(bin_id, true);

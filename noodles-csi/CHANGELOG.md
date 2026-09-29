@@ -33,6 +33,10 @@
 
     This now allows querying with position 2^29.
 
+  * csi/binning_index/index/reference_sequence/bin: Fix max ID calculation.
+
+    This previously was equivalent to and used as the bin count.
+
 ## 0.61.0 - 2026-08-21
 
 ### Changed
