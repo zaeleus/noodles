@@ -50,11 +50,7 @@ pub fn read_metadata<R>(reader: &mut R) -> Result<Metadata, ReadError>
 where
     R: Read,
 {
-    let n_chunk = read_u32_le(reader)?;
-
-    if n_chunk != METADATA_CHUNK_COUNT {
-        return Err(ReadError::InvalidChunkCount(n_chunk));
-    }
+    read_chunk_count(reader)?;
 
     let ref_beg = read_u64_le(reader).map(bgzf::VirtualPosition::from)?;
     let ref_end = read_u64_le(reader).map(bgzf::VirtualPosition::from)?;
@@ -63,6 +59,19 @@ where
     let n_unmapped = read_u64_le(reader)?;
 
     Ok(Metadata::new(ref_beg, ref_end, n_mapped, n_unmapped))
+}
+
+fn read_chunk_count<R>(reader: &mut R) -> Result<(), ReadError>
+where
+    R: Read,
+{
+    let n = read_u32_le(reader)?;
+
+    if n == METADATA_CHUNK_COUNT {
+        Ok(())
+    } else {
+        Err(ReadError::InvalidChunkCount(n))
+    }
 }
 
 #[cfg(test)]
@@ -95,15 +104,20 @@ mod tests {
     }
 
     #[test]
-    fn test_read_metadata_with_invalid_chunk_count() {
-        let data = [
-            0x01, 0x00, 0x00, 0x00, // n_chunk = 1
-        ];
-        let mut reader = &data[..];
+    fn test_read_chunk_count() {
+        assert!(read_chunk_count(&mut &[0x02, 0x00, 0x00, 0x00][..]).is_ok());
 
         assert!(matches!(
-            read_metadata(&mut reader),
-            Err(ReadError::InvalidChunkCount(1))
+            read_chunk_count(&mut io::empty()),
+            Err(ReadError::Io(e)) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+        assert!(matches!(
+            read_chunk_count(&mut &[0x00, 0x00, 0x00, 0x00][..]),
+            Err(ReadError::InvalidChunkCount(0))
+        ));
+        assert!(matches!(
+            read_chunk_count(&mut &[0x08, 0x00, 0x00, 0x00][..]),
+            Err(ReadError::InvalidChunkCount(8))
         ));
     }
 }
