@@ -210,4 +210,28 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_read_bin_count() -> Result<(), ReadError> {
+        assert_eq!(read_bin_count(&mut &[0x00, 0x00, 0x00, 0x00][..])?, 0);
+        assert_eq!(read_bin_count(&mut &[0x08, 0x00, 0x00, 0x00][..])?, 8);
+
+        #[cfg(not(target_pointer_width = "16"))]
+        assert_eq!(
+            read_bin_count(&mut &[0xff, 0xff, 0xff, 0x7f][..])?,
+            i32::MAX as usize
+        );
+
+        assert!(matches!(
+            read_bin_count(&mut io::empty()),
+            Err(ReadError::Io(e)) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        assert!(matches!(
+            read_bin_count(&mut &[0xff, 0xff, 0xff, 0xff][..]),
+            Err(ReadError::InvalidBinCount(_))
+        ));
+
+        Ok(())
+    }
 }
