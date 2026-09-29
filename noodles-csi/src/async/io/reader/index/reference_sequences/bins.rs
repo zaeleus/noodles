@@ -15,15 +15,6 @@ pub(super) async fn read_bins<R>(
 where
     R: AsyncRead + Unpin,
 {
-    fn duplicate_bin_error(
-        id: usize,
-    ) -> io::Result<(IndexMap<usize, Bin>, BinnedIndex, Option<Metadata>)> {
-        Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("duplicate bin ID: {id}"),
-        ))
-    }
-
     let n_bin = reader.read_i32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
@@ -46,21 +37,22 @@ where
             .await
             .map(bgzf::VirtualPosition::from)?;
 
-        if id == metadata_id {
+        let is_duplicate = if id == metadata_id {
             let m = read_metadata(reader).await?;
-
-            if metadata.replace(m).is_some() {
-                return duplicate_bin_error(id);
-            }
+            metadata.replace(m).is_some()
         } else {
+            index.insert(id, loffset);
+
             let chunks = read_chunks(reader).await?;
             let bin = Bin::new(chunks);
+            bins.insert(id, bin).is_some()
+        };
 
-            if bins.insert(id, bin).is_some() {
-                return duplicate_bin_error(id);
-            }
-
-            index.insert(id, loffset);
+        if is_duplicate {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("duplicate bin ID: {id}"),
+            ));
         }
     }
 
