@@ -92,7 +92,6 @@ where
             Poll::Ready(Ok(_)) => {}
             Poll::Ready(Err(e)) => {
                 *this.is_seeking = false;
-                self.inner.read_buffer_mut().clear();
                 return Poll::Ready(Err(e));
             }
             Poll::Pending => return Poll::Pending,
