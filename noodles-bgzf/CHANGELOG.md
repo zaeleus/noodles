@@ -40,6 +40,8 @@
     This prevents the last block from unintentionally being reused on
     subsequent reads with buffers >= 64 KiB.
 
+  * bgzf/io/reader: Reset block if read fails after seek.
+
   * bgzf/io/reader: Validate uncompressed position after seeking.
 
     The uncompressed position cannot be > the block's data length.

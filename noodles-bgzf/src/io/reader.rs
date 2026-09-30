@@ -185,7 +185,11 @@ where
         self.inner.seek(SeekFrom::Start(cpos))?;
         self.position = cpos;
 
-        self.read_block()?;
+        if let Err(e) = self.read_block() {
+            block_initialize(&mut self.block, 0, 0);
+            self.block.set_position(cpos);
+            return Err(e);
+        }
 
         let data = self.block.data_mut();
 
