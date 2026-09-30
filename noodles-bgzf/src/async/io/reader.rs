@@ -187,18 +187,24 @@ where
         let item = stream.try_next().await;
         self.stream.replace(stream);
 
-        let (block, position) = match item? {
-            Some(block) => {
-                let size = block.size();
-                (block, cpos + size)
+        match item {
+            Ok(Some(block)) => {
+                self.position = cpos + block.size();
+                self.block = block;
+                self.block.set_position(cpos);
             }
-            None => (Block::default(), cpos),
+            Ok(None) => {
+                self.position = cpos;
+                block_initialize(&mut self.block, 0, 0);
+                self.block.set_position(cpos);
+            }
+            Err(e) => {
+                self.position = cpos;
+                block_initialize(&mut self.block, 0, 0);
+                self.block.set_position(cpos);
+                return Err(e);
+            }
         };
-
-        self.block = block;
-        self.position = position;
-
-        self.block.set_position(cpos);
 
         let data = self.block.data_mut();
 
@@ -256,22 +262,27 @@ where
 
                     self.stream.replace(stream);
 
-                    let (block, position) = match item {
+                    match item {
                         Some(Ok(block)) => {
-                            let size = block.size();
-                            (block, cpos + size)
+                            self.position = cpos + block.size();
+                            self.block = block;
+                            self.block.set_position(cpos);
                         }
                         Some(Err(e)) => {
+                            self.position = cpos;
+                            block_initialize(&mut self.block, 0, 0);
+                            self.block.set_position(cpos);
+
                             self.seek_state = Some(SeekState::Init);
+
                             return Poll::Ready(Err(e));
                         }
-                        None => (Block::default(), cpos),
+                        None => {
+                            self.position = cpos;
+                            block_initialize(&mut self.block, 0, 0);
+                            self.block.set_position(cpos);
+                        }
                     };
-
-                    self.block = block;
-                    self.position = position;
-
-                    self.block.set_position(cpos);
 
                     let data = self.block.data_mut();
 
