@@ -21,7 +21,7 @@
 
     The uncompressed position cannot be > the block's data length.
 
-  * bgzf/async/io/reader: Reset stream on seek error.
+  * bgzf/async/io/reader: Keep buffered stream on seek error.
 
   * bgzf/async/io/reader: Always reinitialize seek state when done.
 

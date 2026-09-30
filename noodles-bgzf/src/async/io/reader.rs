@@ -27,7 +27,7 @@ where
     R: AsyncRead,
 {
     Init,
-    Seek(Inflater<R>),
+    Seek(TryBuffered<Inflater<R>>),
     Finish(TryBuffered<Inflater<R>>),
     Done,
 }
@@ -175,14 +175,13 @@ where
     pub async fn seek(&mut self, pos: VirtualPosition) -> io::Result<VirtualPosition> {
         let (cpos, upos) = pos.into();
 
-        let stream = self.stream.take().expect("missing stream");
-        let mut blocks = stream.into_inner();
+        let stream = self.stream.as_mut().expect("missing stream");
+        let blocks = stream.get_mut();
 
-        if let Err(e) = blocks.seek(pos).await {
-            let stream = blocks.try_buffered(self.worker_count.get());
-            self.stream.replace(stream);
-            return Err(e);
-        }
+        blocks.seek(pos).await?;
+
+        let stream = self.stream.take().expect("missing stream");
+        let blocks = stream.into_inner();
 
         let mut stream = blocks.try_buffered(self.worker_count.get());
         let item = stream.try_next().await;
@@ -222,26 +221,27 @@ where
             self.seek_state = match self.seek_state.take().unwrap() {
                 SeekState::Init => {
                     let stream = self.stream.take().expect("missing stream");
-                    let blocks = stream.into_inner();
-                    Some(SeekState::Seek(blocks))
+                    Some(SeekState::Seek(stream))
                 }
-                SeekState::Seek(mut blocks) => {
-                    match Pin::new(&mut blocks).poll_seek(cx, pos) {
-                        Poll::Ready(Ok(_)) => {}
-                        Poll::Ready(Err(e)) => {
+                SeekState::Seek(mut stream) => {
+                    let blocks = Pin::new(&mut stream).get_pin_mut();
+
+                    match blocks.poll_seek(cx, pos) {
+                        Poll::Ready(Ok(_)) => {
+                            let blocks = stream.into_inner();
                             let stream = blocks.try_buffered(self.worker_count.get());
+                            Some(SeekState::Finish(stream))
+                        }
+                        Poll::Ready(Err(e)) => {
                             self.stream.replace(stream);
                             self.seek_state = Some(SeekState::Init);
                             return Poll::Ready(Err(e));
                         }
                         Poll::Pending => {
-                            self.seek_state = Some(SeekState::Seek(blocks));
+                            self.seek_state = Some(SeekState::Seek(stream));
                             return Poll::Pending;
                         }
                     }
-
-                    let stream = blocks.try_buffered(self.worker_count.get());
-                    Some(SeekState::Finish(stream))
                 }
                 SeekState::Finish(mut stream) => {
                     let (cpos, upos) = pos.into();
