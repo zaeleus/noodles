@@ -29,7 +29,7 @@ where
     Init,
     Seek(Inflater<R>),
     Finish(TryBuffered<Inflater<R>>),
-    Done(VirtualPosition),
+    Done,
 }
 
 pin_project! {
@@ -282,16 +282,11 @@ where
                         return Poll::Ready(Err(io::Error::from(io::ErrorKind::InvalidInput)));
                     }
 
-                    Some(SeekState::Done(pos))
+                    self.seek_state = Some(SeekState::Done);
+
+                    return Poll::Ready(Ok(pos));
                 }
-                SeekState::Done(p) => {
-                    if pos == p {
-                        self.seek_state = Some(SeekState::Done(pos));
-                        return Poll::Ready(Ok(pos));
-                    } else {
-                        Some(SeekState::Init)
-                    }
-                }
+                SeekState::Done => Some(SeekState::Init),
             };
         }
     }
@@ -387,7 +382,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
+    use std::{future, io::Cursor};
 
     use tokio::io::AsyncReadExt;
 
@@ -477,6 +472,42 @@ mod tests {
             reader.seek(VirtualPosition::try_from((0, 8))?).await,
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_poll_seek() -> io::Result<()> {
+        #[rustfmt::skip]
+        let data = [
+            // block 0 (b"noodles")
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x22, 0x00, 0xcb, 0xcb, 0xcf, 0x4f, 0xc9, 0x49, 0x2d, 0x06, 0x00, 0xa1,
+            0x58, 0x2a, 0x80, 0x07, 0x00, 0x00, 0x00,
+            // EOF block
+            0x1f, 0x8b, 0x08, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x06, 0x00, 0x42, 0x43,
+            0x02, 0x00, 0x1b, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        ];
+
+        let mut reader = Reader::new(Cursor::new(&data));
+
+        future::poll_fn(|cx| Pin::new(&mut &mut reader).poll_seek(cx, VirtualPosition::MIN))
+            .await?;
+
+        assert_eq!(reader.virtual_position(), VirtualPosition::MIN);
+
+        let mut buf = Vec::new();
+        reader.read_to_end(&mut buf).await?;
+        assert_eq!(buf, b"noodles");
+
+        future::poll_fn(|cx| Pin::new(&mut &mut reader).poll_seek(cx, VirtualPosition::MIN))
+            .await?;
+
+        assert_eq!(reader.virtual_position(), VirtualPosition::MIN);
+
+        buf.clear();
+        reader.read_to_end(&mut buf).await?;
+        assert_eq!(buf, b"noodles");
 
         Ok(())
     }

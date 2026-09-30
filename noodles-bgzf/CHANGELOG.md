@@ -23,6 +23,8 @@
 
   * bgzf/async/io/reader: Reset stream on seek error.
 
+  * bgzf/async/io/reader: Always reinitialize seek state when done.
+
   * bgzf/async/io/reader/inflater: Force read completion before seek.
 
     `tokio::io::BufReader::poll_complete` doesn't seem to call the underlying

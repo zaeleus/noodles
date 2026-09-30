@@ -4,7 +4,7 @@ use futures::TryStreamExt;
 use tokio::io::AsyncRead;
 
 use super::{Inflater, Reader, SeekState};
-use crate::{VirtualPosition, io::Block};
+use crate::io::Block;
 
 /// An async BGZF reader builder.
 #[derive(Default)]
@@ -53,7 +53,7 @@ impl Builder {
             block: Block::default(),
             position: 0,
             worker_count,
-            seek_state: Some(SeekState::Done(VirtualPosition::default())),
+            seek_state: Some(SeekState::Done),
         }
     }
 }
