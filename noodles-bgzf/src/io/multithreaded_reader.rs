@@ -330,7 +330,11 @@ where
         self.get_mut().seek(SeekFrom::Start(cpos))?;
         self.position = cpos;
 
-        self.read_block()?;
+        if let Err(e) = self.read_block() {
+            block_initialize(&mut self.buffer.block, 0, 0);
+            self.buffer.block.set_position(cpos);
+            return Err(e);
+        }
 
         let data = self.buffer.block.data_mut();
 
