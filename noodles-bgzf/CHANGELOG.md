@@ -31,6 +31,11 @@
     reader's `poll_complete`, which can leave it busy, i.e., "other file
     operation is pending, call poll_complete before start_seek".
 
+  * bgzf/async/io/reader/inflater: Confirm frame reader EOF.
+
+    `tokio_util::codec::FramedRead` returns `None` after an error, which needs
+    to be distinguished from a `None` for EOF.
+
   * bgzf/io/multithreaded_reader: Validate uncompressed position after seeking.
 
     The uncompressed position cannot be > the block's data length.

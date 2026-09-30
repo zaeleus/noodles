@@ -111,10 +111,63 @@ where
     type Item = io::Result<Inflate>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        match ready!(self.project().inner.poll_next(cx)) {
+        let mut this = self.project();
+
+        match ready!(this.inner.as_mut().poll_next(cx)) {
             Some(Ok(buf)) => Poll::Ready(Some(Ok(Inflate::new(buf)))),
             Some(Err(e)) => Poll::Ready(Some(Err(e))),
-            None => Poll::Ready(None),
+            None => match ready!(this.inner.as_mut().poll_next(cx)) {
+                Some(Ok(buf)) => Poll::Ready(Some(Ok(Inflate::new(buf)))),
+                Some(Err(e)) => Poll::Ready(Some(Err(e))),
+                None => Poll::Ready(None),
+            },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::StreamExt;
+
+    use super::*;
+    use crate::io::writer::BGZF_EOF;
+
+    #[tokio::test]
+    async fn test_poll_next() -> io::Result<()> {
+        struct R {
+            i: usize,
+        }
+
+        impl AsyncRead for R {
+            fn poll_read(
+                mut self: Pin<&mut Self>,
+                _cx: &mut Context<'_>,
+                buf: &mut ReadBuf<'_>,
+            ) -> Poll<io::Result<()>> {
+                self.i += 1;
+
+                match self.i {
+                    1 => Poll::Ready(Err(io::Error::other(""))),
+                    2 => {
+                        buf.put_slice(&BGZF_EOF);
+                        Poll::Ready(Ok(()))
+                    }
+                    _ => Poll::Ready(Ok(())),
+                }
+            }
+        }
+
+        let mut inflater = Inflater::new(R { i: 0 });
+
+        assert!(matches!(
+            inflater.next().await,
+            Some(Err(e)) if e.kind() == io::ErrorKind::Other
+        ));
+
+        assert!(matches!(inflater.next().await, Some(Ok(_))));
+
+        assert!(inflater.next().await.is_none());
+
+        Ok(())
     }
 }
