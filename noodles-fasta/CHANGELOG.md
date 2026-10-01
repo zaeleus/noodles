@@ -555,12 +555,6 @@
 
 ### Changed
 
-  * fasta: Sync dependencies.
-
-### Unreleased
-
-## Changed
-
   * fasta: Split indexed reader from reader.
 
     `reader::Builder` no longer attempts to load associated indices. This
