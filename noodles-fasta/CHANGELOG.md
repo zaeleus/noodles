@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+  * fasta/fs: Add convenience function to read associated FASTA index
+    (`fasta::fs::read_associated_index`).
+
 ## 0.67.0 - 2026-10-01
 
 ### Changed
