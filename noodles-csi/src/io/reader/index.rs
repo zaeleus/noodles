@@ -43,7 +43,7 @@ impl error::Error for ReadError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Io(e) => Some(e),
-            Self::InvalidMagicNumber(_) => None,
+            Self::InvalidMagicNumber(e) => Some(e),
             Self::InvalidMinShift(e) => Some(e),
             Self::InvalidDepth => None,
             Self::InvalidHeader(e) => Some(e),
