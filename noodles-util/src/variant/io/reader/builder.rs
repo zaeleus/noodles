@@ -192,9 +192,10 @@ mod tests {
         use std::io::Write;
 
         fn t(mut src: &[u8], compression_method: Option<CompressionMethod>, expected: Format) {
-            assert!(
-                matches!(detect_format(&mut src, compression_method), Ok(value) if value == expected)
-            );
+            assert!(matches!(
+                detect_format(&mut src, compression_method),
+                Ok(value) if value == expected
+            ));
         }
 
         let header = vcf::Header::default();
