@@ -58,7 +58,7 @@ where
         self.0.read_header().await
     }
 
-    /// Returns an iterator over records starting from the current stream position.
+    /// Returns a stream over records starting from the current stream position.
     ///
     /// # Examples
     ///
