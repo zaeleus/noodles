@@ -39,10 +39,18 @@ fn write_raw_quality_scores<W>(writer: &mut W, quality_scores: &[u8]) -> io::Res
 where
     W: Write,
 {
+    const CHUNK_SIZE: usize = 256;
+
+    let mut buf = [0; CHUNK_SIZE];
+
     if quality_scores.iter().all(|&n| is_valid_score(n)) {
-        for &n in quality_scores {
-            let m = encode(n);
-            writer.write_all(&[m])?;
+        for chunk in quality_scores.chunks(CHUNK_SIZE) {
+            for (&s, d) in chunk.iter().zip(&mut buf) {
+                *d = encode(s);
+            }
+
+            let len = chunk.len();
+            writer.write_all(&buf[..len])?;
         }
 
         Ok(())
@@ -196,12 +204,20 @@ mod tests {
 
     #[test]
     fn test_write_raw_quality_scores() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, src: &[u8], expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_raw_quality_scores(buf, src)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
         let mut buf = Vec::new();
 
-        buf.clear();
-        let quality_scores = [45, 35, 43, 50];
-        write_raw_quality_scores(&mut buf, &quality_scores)?;
-        assert_eq!(buf, b"NDLS");
+        t(&mut buf, &[45, 35, 43, 50], b"NDLS")?;
+
+        let src = [45, 35, 43, 50].repeat(96);
+        let expected = b"NDLS".repeat(96);
+        t(&mut buf, &src, &expected)?;
 
         buf.clear();
         let quality_scores = [255];
