@@ -39,12 +39,45 @@ fn write_four_bit_packed_sequence<W>(writer: &mut W, sequence: &FourBitPacked) -
 where
     W: Write,
 {
-    for base in sequence.iter() {
-        // SAFETY: `base` is guaranteed to be a valid base.
-        writer.write_all(&[base])?;
+    let src = sequence.as_ref();
+    let base_count = sequence.len();
+
+    let pair_count = base_count / 2;
+    let (pairs, rest) = src.split_at(src.len().min(pair_count));
+
+    for &n in pairs {
+        let bases = decode_bases(n);
+        writer.write_all(&bases)?;
+    }
+
+    if !base_count.is_multiple_of(2)
+        && let Some(&n) = rest.first()
+    {
+        let [b, _] = decode_bases(n);
+        writer.write_all(&[b])?;
     }
 
     Ok(())
+}
+
+const CODES: [[u8; 2]; 256] = build_codes();
+
+const fn build_codes() -> [[u8; 2]; 256] {
+    const BASES: [u8; 16] = *b"=ACMGRSVTWYHKDBN";
+
+    let mut table = [[0u8; 2]; 256];
+    let mut i = 0;
+
+    while i < 256 {
+        table[i] = [BASES[i >> 4], BASES[i & 0xf]];
+        i += 1;
+    }
+
+    table
+}
+
+fn decode_bases(n: u8) -> [u8; 2] {
+    CODES[usize::from(n)]
 }
 
 fn write_raw_sequence<W>(writer: &mut W, sequence: &[u8]) -> io::Result<()>
@@ -127,10 +160,23 @@ mod tests {
 
     #[test]
     fn test_write_four_bit_packed_sequence() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, sequence: &FourBitPacked, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_four_bit_packed_sequence(buf, sequence)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
         let mut buf = Vec::new();
-        let sequence = FourBitPacked::new(&[0x12, 0x48], 4); // ACGT
-        write_four_bit_packed_sequence(&mut buf, &sequence)?;
-        assert_eq!(buf, b"ACGT");
+
+        t(&mut buf, &FourBitPacked::new(&[0x12, 0x40], 3), b"ACG")?;
+        t(&mut buf, &FourBitPacked::new(&[0x12, 0x48], 4), b"ACGT")?;
+        t(
+            &mut buf,
+            &FourBitPacked::new(&[0x12, 0x48, 0x00], 4),
+            b"ACGT",
+        )?;
+
         Ok(())
     }
 
