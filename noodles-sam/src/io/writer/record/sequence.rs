@@ -51,15 +51,11 @@ fn write_raw_sequence<W>(writer: &mut W, sequence: &[u8]) -> io::Result<()>
 where
     W: Write,
 {
-    if !sequence.iter().all(|&b| is_valid_base(b)) {
-        return Err(io::Error::from(io::ErrorKind::InvalidInput));
+    if sequence.iter().all(|&b| is_valid_base(b)) {
+        writer.write_all(sequence)
+    } else {
+        Err(io::Error::from(io::ErrorKind::InvalidInput))
     }
-
-    for &b in sequence {
-        writer.write_all(&[b])?;
-    }
-
-    Ok(())
 }
 
 fn write_generic_sequence<W, S>(writer: &mut W, sequence: S) -> io::Result<()>
