@@ -39,15 +39,23 @@ fn write_four_bit_packed_sequence<W>(writer: &mut W, sequence: &FourBitPacked) -
 where
     W: Write,
 {
+    const CHUNK_SIZE: usize = 128;
+
     let src = sequence.as_ref();
     let base_count = sequence.len();
 
     let pair_count = base_count / 2;
     let (pairs, rest) = src.split_at(src.len().min(pair_count));
 
-    for &n in pairs {
-        let bases = decode_bases(n);
-        writer.write_all(&bases)?;
+    let mut buf = [0; CHUNK_SIZE * 2];
+
+    for chunk in pairs.chunks(CHUNK_SIZE) {
+        for (&s, d) in chunk.iter().zip(buf.as_chunks_mut().0) {
+            *d = decode_bases(s);
+        }
+
+        let len = chunk.len() * 2;
+        writer.write_all(&buf[..len])?;
     }
 
     if !base_count.is_multiple_of(2)
@@ -176,6 +184,10 @@ mod tests {
             &FourBitPacked::new(&[0x12, 0x48, 0x00], 4),
             b"ACGT",
         )?;
+
+        let src = [0x12, 0x48].repeat(96);
+        let expected = b"ACGT".repeat(96);
+        t(&mut buf, &FourBitPacked::new(&src, 384), &expected)?;
 
         Ok(())
     }
