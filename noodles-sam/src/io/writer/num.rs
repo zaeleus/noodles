@@ -79,3 +79,28 @@ where
     let buf = lexical_core::write_with_options::<_, FORMAT>(n, &mut dst, &OPTIONS);
     writer.write_all(buf)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write_f32() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, n: f32, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_f32(buf, n)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, -1.0, b"-1")?;
+        t(&mut buf, -0.5, b"-0.5")?;
+        t(&mut buf, 0.0, b"0")?;
+        t(&mut buf, 0.5, b"0.5")?;
+        t(&mut buf, 1.0, b"1")?;
+
+        Ok(())
+    }
+}
