@@ -71,13 +71,11 @@ where
 {
     const FORMAT: u128 = lexical_core::format::STANDARD;
 
-    let mut dst = [0; f32::FORMATTED_SIZE_DECIMAL];
-
-    let options = lexical_core::WriteFloatOptionsBuilder::new()
+    const OPTIONS: lexical_core::WriteFloatOptions = lexical_core::WriteFloatOptionsBuilder::new()
         .trim_floats(true)
-        .build()
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+        .build_strict();
 
-    let buf = lexical_core::write_with_options::<_, FORMAT>(n, &mut dst, &options);
+    let mut dst = [0; f32::FORMATTED_SIZE_DECIMAL];
+    let buf = lexical_core::write_with_options::<_, FORMAT>(n, &mut dst, &OPTIONS);
     writer.write_all(buf)
 }
