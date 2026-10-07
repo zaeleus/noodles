@@ -3,6 +3,7 @@ mod subtype;
 use std::io::{self, Write};
 
 use self::subtype::write_subtype;
+use super::write_float;
 use crate::{
     alignment::record::data::field::value::{Array, array::Subtype},
     io::writer::num,
@@ -74,7 +75,8 @@ where
 
             for result in values.iter() {
                 let n = result?;
-                write!(writer, ",{n}")?;
+                writer.write_all(&[DELIMITER])?;
+                write_float(writer, n)?;
             }
         }
     }
@@ -152,6 +154,13 @@ pub(super) mod tests {
             &Array::Float(Box::new(T::new(&[8.0, 13.0]))),
             b"f,8,13",
         )?;
+
+        buf.clear();
+        let array = Array::Float(Box::new(T::new(&[f32::NAN])));
+        assert!(matches!(
+            write_array(&mut buf, &array),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }

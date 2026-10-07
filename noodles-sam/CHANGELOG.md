@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/io/writer/record/data/field/value/array: Validate float values.
+
+    Float values now must be finite.
+
 ## 0.91.0 - 2026-10-01
 
 ### Added
