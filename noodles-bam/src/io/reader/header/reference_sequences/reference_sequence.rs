@@ -57,7 +57,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_reference_sequence() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_read_reference_sequence() -> io::Result<()> {
         let src = [
             0x04, 0x00, 0x00, 0x00, // l_name = 4
             0x73, 0x71, 0x30, 0x00, // name = "sq0\x00"
@@ -70,16 +70,6 @@ mod tests {
             Map::<ReferenceSequence>::new(const { NonZero::new(8).unwrap() }),
         );
         assert_eq!(actual, expected);
-
-        let src = [
-            0x04, 0x00, 0x00, 0x00, // l_name = 4
-            0x73, 0x71, 0x30, 0x00, // name = "sq0\x00"
-            0x00, 0x00, 0x00, 0x00, // l_ref = 0
-        ];
-        assert!(matches!(
-            read_reference_sequence(&mut &src[..]),
-            Err(e) if e.kind() == io::ErrorKind::InvalidData
-        ));
 
         Ok(())
     }
@@ -112,6 +102,32 @@ mod tests {
         ];
         assert!(matches!(
             read_name(&mut &src[..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_length() -> io::Result<()> {
+        assert_eq!(
+            read_length(&mut &[0x01, 0x00, 0x00, 0x00][..])?,
+            NonZero::<usize>::MIN
+        );
+
+        #[cfg(not(target_pointer_width = "16"))]
+        assert_eq!(
+            read_length(&mut &[0xff, 0xff, 0xff, 0xff][..])?,
+            const { NonZero::new(u32::MAX as usize).unwrap() }
+        );
+
+        assert!(matches!(
+            read_length(&mut io::empty()),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        assert!(matches!(
+            read_length(&mut &[0x00, 0x00, 0x00, 0x00][..]),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

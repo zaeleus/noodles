@@ -106,4 +106,30 @@ mod tests {
 
         Ok(())
     }
+
+    #[tokio::test]
+    async fn test_read_length() -> io::Result<()> {
+        assert_eq!(
+            read_length(&mut &[0x01, 0x00, 0x00, 0x00][..]).await?,
+            NonZero::<usize>::MIN
+        );
+
+        #[cfg(not(target_pointer_width = "16"))]
+        assert_eq!(
+            read_length(&mut &[0xff, 0xff, 0xff, 0xff][..]).await?,
+            const { NonZero::new(u32::MAX as usize).unwrap() }
+        );
+
+        assert!(matches!(
+            read_length(&mut io::empty()).await,
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        assert!(matches!(
+            read_length(&mut &[0x00, 0x00, 0x00, 0x00][..]).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
 }
