@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::io::{self, Write};
 
 use bstr::ByteSlice;
@@ -28,7 +26,7 @@ const NUL: u8 = 0x00;
 
 type Tag = [u8; 2];
 
-fn write_field<W>(writer: &mut W, src: &mut &[u8]) -> io::Result<()>
+pub(super) fn write_field<W>(writer: &mut W, src: &mut &[u8]) -> io::Result<()>
 where
     W: Write,
 {
