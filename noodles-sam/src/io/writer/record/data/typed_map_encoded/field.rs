@@ -19,6 +19,17 @@ const ARRAY_TYPE_VALUE: u8 = b'B';
 
 type Tag = [u8; 2];
 
+fn read_tag(src: &mut &[u8]) -> io::Result<Tag> {
+    let buf = split_off_first_chunk(src).ok_or_else(unexpected_eof)?;
+
+    // § 1.5 "The alignment section: optional fields" (2025-08-12): "`[A-Za-z][A-Za-z0-9]`".
+    if buf[0].is_ascii_alphabetic() && buf[1].is_ascii_alphanumeric() {
+        Ok(*buf)
+    } else {
+        Err(io::Error::from(io::ErrorKind::InvalidInput))
+    }
+}
+
 fn write_array_field<W>(writer: &mut W, src: &mut &[u8], tag: Tag) -> io::Result<()>
 where
     W: Write,
@@ -257,9 +268,15 @@ fn read_u8(src: &mut &[u8]) -> io::Result<u8> {
 }
 
 fn read_u32_le(src: &mut &[u8]) -> io::Result<u32> {
-    let (buf, rest) = src.split_first_chunk().ok_or_else(unexpected_eof)?;
+    split_off_first_chunk(src)
+        .map(|buf| u32::from_le_bytes(*buf))
+        .ok_or_else(unexpected_eof)
+}
+
+fn split_off_first_chunk<'a, const N: usize>(src: &mut &'a [u8]) -> Option<&'a [u8; N]> {
+    let (chunk, rest) = src.split_first_chunk()?;
     *src = rest;
-    Ok(u32::from_le_bytes(*buf))
+    Some(chunk)
 }
 
 fn unexpected_eof() -> io::Error {
@@ -269,6 +286,23 @@ fn unexpected_eof() -> io::Error {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_read_tag() -> io::Result<()> {
+        assert_eq!(read_tag(&mut &b"NH"[..])?, *b"NH");
+
+        assert!(matches!(
+            read_tag(&mut &[][..]),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        assert!(matches!(
+            read_tag(&mut &b"n\t"[..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
 
     #[test]
     fn test_write_array_field() -> io::Result<()> {
