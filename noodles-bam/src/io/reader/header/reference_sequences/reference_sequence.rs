@@ -85,7 +85,19 @@ mod tests {
     }
 
     #[test]
-    fn test_read_name() {
+    fn test_read_name() -> io::Result<()> {
+        let src = [
+            0x04, 0x00, 0x00, 0x00, // l_name = 4
+            0x73, 0x71, 0x30, 0x00, // name = "sq0\x00"
+        ];
+        let actual = read_name(&mut &src[..])?;
+        assert_eq!(actual, b"sq0");
+
+        assert!(matches!(
+            read_name(&mut io::empty()),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
         let src = [
             0x00, 0x00, 0x00, 0x00, // l_name = 0
         ];
@@ -93,5 +105,16 @@ mod tests {
             read_name(&mut &src[..]),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
+
+        let src = [
+            0x03, 0x00, 0x00, 0x00, // l_name = 3
+            0x73, 0x71, 0x30, // name = "sq0"
+        ];
+        assert!(matches!(
+            read_name(&mut &src[..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
     }
 }
