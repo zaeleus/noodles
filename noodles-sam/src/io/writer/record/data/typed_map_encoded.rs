@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 mod field;
 
 use std::io::{self, Write};

@@ -3,17 +3,20 @@ mod typed_map_encoded;
 
 use std::io::{self, Write};
 
-use self::field::write_field;
-use crate::alignment::record::Data;
+use self::{field::write_field, typed_map_encoded::write_typed_map_encoded_data};
+use crate::alignment::record::{Data, DataRef};
 
 const SEPARATOR: u8 = b'\t';
 
-pub(super) fn write_data<'r, W, D>(writer: &mut W, data: D) -> io::Result<()>
+pub(super) fn write_data<W>(writer: &mut W, data: DataRef<'_>) -> io::Result<()>
 where
     W: Write,
-    D: Data<'r>,
 {
-    write_generic_data(writer, data)?;
+    match data {
+        DataRef::TypedMapEncoded(src) => write_typed_map_encoded_data(writer, src)?,
+        DataRef::Data(data) => write_generic_data(writer, data)?,
+    }
+
     Ok(())
 }
 
@@ -50,7 +53,8 @@ mod tests {
         .into_iter()
         .collect();
 
-        write_data(&mut buf, &data)?;
+        let d = DataRef::Data(Box::new(&data));
+        write_data(&mut buf, d)?;
 
         assert_eq!(buf, b"\tNH:i:1\tCO:Z:noodles");
 
