@@ -9,13 +9,13 @@ pub(super) async fn read_reference_sequences<R>(reader: &mut R) -> io::Result<Re
 where
     R: AsyncRead + Unpin,
 {
-    let n_ref = reader.read_u32_le().await.and_then(|n| {
+    let reference_sequence_count = reader.read_u32_le().await.and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut reference_sequences = ReferenceSequences::with_capacity(n_ref);
+    let mut reference_sequences = ReferenceSequences::new();
 
-    for _ in 0..n_ref {
+    for _ in 0..reference_sequence_count {
         let (name, reference_sequence) = read_reference_sequence(reader).await?;
         reference_sequences.insert(name, reference_sequence);
     }

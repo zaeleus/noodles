@@ -11,18 +11,13 @@ pub(super) fn read_reference_sequences<R>(reader: &mut R) -> io::Result<Referenc
 where
     R: Read,
 {
-    let n_ref = read_u32_le(reader).and_then(|n| {
+    let reference_sequence_count = read_u32_le(reader).and_then(|n| {
         usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })?;
 
-    let mut reference_sequences = ReferenceSequences::with_capacity(n_ref);
-
-    for _ in 0..n_ref {
-        let (name, reference_sequence) = read_reference_sequence(reader)?;
-        reference_sequences.insert(name, reference_sequence);
-    }
-
-    Ok(reference_sequences)
+    (0..reference_sequence_count)
+        .map(|_| read_reference_sequence(reader))
+        .collect()
 }
 
 #[cfg(test)]

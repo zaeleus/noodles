@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bam/io/reader/header/reference_sequences: Avoid reserving reference
+    sequences with count ([#436]).
+
+    This no longer trusts the reference sequence count to be the capacity for
+    the reference sequences.
+
+[#436]: https://github.com/zaeleus/noodles/issues/436
+
 ## 0.96.0 - 2026-10-01
 
 ### Added
