@@ -307,7 +307,7 @@ impl sam::alignment::Record for Record {
 
     fn data_ref(&self) -> sam::alignment::record::DataRef<'_> {
         let src = self.data().as_bytes();
-        sam::alignment::record::DataRef::FieldEncoded(src)
+        sam::alignment::record::DataRef::TypedMapEncoded(src)
     }
 }
 

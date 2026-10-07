@@ -13,12 +13,12 @@ const NUL: u8 = 0x00;
 
 pub(super) fn write_data(dst: &mut Vec<u8>, data: DataRef<'_>) -> io::Result<()> {
     match data {
-        DataRef::FieldEncoded(src) => write_field_encoded_data(dst, src),
+        DataRef::TypedMapEncoded(src) => write_typed_map_encoded_data(dst, src),
         DataRef::Data(d) => write_generic_data(dst, d),
     }
 }
 
-fn write_field_encoded_data(dst: &mut Vec<u8>, src: &[u8]) -> io::Result<()> {
+fn write_typed_map_encoded_data(dst: &mut Vec<u8>, src: &[u8]) -> io::Result<()> {
     if is_valid(src)? {
         dst.extend(src);
         Ok(())
@@ -189,17 +189,17 @@ mod tests {
     }
 
     #[test]
-    fn test_write_field_encoded_data() -> io::Result<()> {
+    fn test_write_typed_map_encoded_data() -> io::Result<()> {
         let mut dst = Vec::new();
 
         dst.clear();
         let src = [];
-        write_field_encoded_data(&mut dst, &src)?;
+        write_typed_map_encoded_data(&mut dst, &src)?;
         assert_eq!(dst, src);
 
         dst.clear();
         let src = [b'N', b'H', b'C', 0x01]; // NH:C:1
-        write_field_encoded_data(&mut dst, &src)?;
+        write_typed_map_encoded_data(&mut dst, &src)?;
         assert_eq!(dst, src);
 
         dst.clear();
@@ -225,7 +225,7 @@ mod tests {
             // ZQ:B:f,0
             b'Z', b'Q', b'B', b'f', 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         ];
-        write_field_encoded_data(&mut dst, &src)?;
+        write_typed_map_encoded_data(&mut dst, &src)?;
         assert_eq!(dst, src);
 
         Ok(())
