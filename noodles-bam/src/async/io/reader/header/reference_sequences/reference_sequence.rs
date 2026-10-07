@@ -24,17 +24,22 @@ async fn read_name<R>(reader: &mut R) -> io::Result<BString>
 where
     R: AsyncRead + Unpin,
 {
-    let l_name = reader.read_u32_le().await.and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let len = read_u32_le_as_nonzero_usize(reader).await?;
 
-    let mut c_name = vec![0; l_name];
+    let mut c_name = vec![0; len.get()];
     reader.read_exact(&mut c_name).await?;
 
     bytes_with_nul_to_bstring(&c_name)
 }
 
 async fn read_length<R>(reader: &mut R) -> io::Result<NonZero<usize>>
+where
+    R: AsyncRead + Unpin,
+{
+    read_u32_le_as_nonzero_usize(reader).await
+}
+
+async fn read_u32_le_as_nonzero_usize<R>(reader: &mut R) -> io::Result<NonZero<usize>>
 where
     R: AsyncRead + Unpin,
 {
@@ -66,5 +71,16 @@ mod tests {
         assert_eq!(actual, expected);
 
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_read_name() {
+        let src = [
+            0x00, 0x00, 0x00, 0x00, // l_name = 0
+        ];
+        assert!(matches!(
+            read_name(&mut &src[..]).await,
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 }

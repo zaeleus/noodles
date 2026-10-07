@@ -26,11 +26,9 @@ fn read_name<R>(reader: &mut R) -> io::Result<BString>
 where
     R: Read,
 {
-    let l_name = read_u32_le(reader).and_then(|n| {
-        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-    })?;
+    let len = read_u32_le_as_nonzero_usize(reader)?;
 
-    let mut c_name = vec![0; l_name];
+    let mut c_name = vec![0; len.get()];
     reader.read_exact(&mut c_name)?;
 
     bytes_with_nul_to_bstring(&c_name)
@@ -40,8 +38,15 @@ fn read_length<R>(reader: &mut R) -> io::Result<NonZero<usize>>
 where
     R: Read,
 {
-    read_u32_le(reader).and_then(|len| {
-        usize::try_from(len)
+    read_u32_le_as_nonzero_usize(reader)
+}
+
+fn read_u32_le_as_nonzero_usize<R>(reader: &mut R) -> io::Result<NonZero<usize>>
+where
+    R: Read,
+{
+    read_u32_le(reader).and_then(|n| {
+        usize::try_from(n)
             .and_then(NonZero::try_from)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     })
@@ -77,5 +82,16 @@ mod tests {
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_read_name() {
+        let src = [
+            0x00, 0x00, 0x00, 0x00, // l_name = 0
+        ];
+        assert!(matches!(
+            read_name(&mut &src[..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 }
