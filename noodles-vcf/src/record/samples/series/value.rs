@@ -23,7 +23,9 @@ pub(crate) fn parse_value<'a>(
 
     const MISSING: &str = ".";
 
-    if src == MISSING {
+    if src.is_empty() {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "empty value"));
+    } else if src == MISSING {
         return Ok(None);
     } else if key == key::GENOTYPE {
         return Ok(Some(parse_genotype_value(src)));
@@ -209,6 +211,11 @@ mod tests {
                 .collect(),
             )),
         )?;
+
+        assert!(matches!(
+            parse_value("", &header, "I32"),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         assert!(matches!(
             parse_value("0", &header, "I32_INVALID"),
