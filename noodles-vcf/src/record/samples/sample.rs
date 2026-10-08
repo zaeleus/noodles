@@ -39,8 +39,14 @@ impl<'s> Sample<'s> {
         header: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<(&str, Option<Value<'s>>)>> + '_> {
         const DELIMITER: char = ':';
+        const MISSING: &str = ".";
 
-        if self.as_ref().is_empty() {
+        if self.src.is_empty() {
+            Box::new(iter::once(Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "empty field",
+            ))))
+        } else if self.src == MISSING {
             Box::new(iter::empty())
         } else {
             Box::new(
@@ -130,5 +136,30 @@ mod tests {
         assert!(matches!(iter.next(), Some(Ok(("GQ", None)))));
 
         assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_iter_with_missing_field() {
+        let header = Header::default();
+
+        let keys = Keys::new("GT:GQ");
+        let sample = Sample::new(".", keys);
+        let mut iter = sample.iter(&header);
+
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_iter_with_empty_src() {
+        let header = Header::default();
+
+        let keys = Keys::new("GT:GQ");
+        let sample = Sample::new("", keys);
+        let mut iter = sample.iter(&header);
+
+        assert!(matches!(
+            iter.next(),
+            Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 }

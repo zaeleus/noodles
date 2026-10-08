@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * vcf/record/samples/sample: Reject empty fields ([#438]).
+
+[#438]: https://github.com/zaeleus/noodles/issues/438
+
 ## 0.94.0 - 2026-10-01
 
 ### Added

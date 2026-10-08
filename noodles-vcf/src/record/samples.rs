@@ -131,7 +131,6 @@ impl crate::variant::record::Samples for Samples<'_> {
 
 fn parse_sample<'r>(src: &mut &'r str, keys: Keys<'r>) -> Sample<'r> {
     const DELIMITER: u8 = b'\t';
-    const MISSING: &str = ".";
 
     let buf = match src.as_bytes().iter().position(|&b| b == DELIMITER) {
         Some(i) => {
@@ -146,11 +145,7 @@ fn parse_sample<'r>(src: &mut &'r str, keys: Keys<'r>) -> Sample<'r> {
         }
     };
 
-    if buf == MISSING {
-        Sample::new("", keys)
-    } else {
-        Sample::new(buf, keys)
-    }
+    Sample::new(buf, keys)
 }
 
 #[cfg(test)]
@@ -210,7 +205,7 @@ mod tests {
         let actual: Vec<_> = samples.iter().collect();
         let expected = [
             Sample::new("0|0:13", samples.keys()),
-            Sample::new("", samples.keys()),
+            Sample::new(".", samples.keys()),
         ];
         assert_eq!(actual, expected);
     }
