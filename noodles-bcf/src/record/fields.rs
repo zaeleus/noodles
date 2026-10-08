@@ -215,7 +215,7 @@ impl Default for Fields {
         ];
 
         let bounds = Bounds {
-            ids_range: 24..24,
+            ids_range: 25..25,
             reference_bases_range: 26..27,
             alternate_bases_end: 27,
             filters_end: 28,
