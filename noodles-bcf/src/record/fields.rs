@@ -192,7 +192,8 @@ fn consume_integers(buf: &mut &[u8], offset: usize) -> io::Result<usize> {
     let start = offset + (prev_buf_len - buf.len());
     let end = start + len;
 
-    *buf = &buf[len..];
+    buf.split_off(..len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     Ok(end)
 }
@@ -250,6 +251,43 @@ mod tests {
 
         assert!(matches!(
             consume_string(&mut &[0x17][..], 0),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_consume_integers() -> io::Result<()> {
+        fn t(mut src: &[u8], expected: usize) -> io::Result<()> {
+            let actual = consume_integers(&mut src, 0)?;
+            assert_eq!(actual, expected);
+            Ok(())
+        }
+
+        t(&[0x00], 1)?;
+        t(&[0x01], 1)?;
+        t(&[0x11, 0x05], 2)?;
+        t(&[0x21, 0x05, 0x08], 3)?;
+        t(&[0x02], 1)?;
+        t(&[0x12, 0x79, 0x01], 3)?;
+        t(&[0x22, 0x79, 0x01, 0x62, 0x02], 5)?;
+        t(&[0x03], 1)?;
+        t(&[0x13, 0x11, 0x25, 0x01, 0x00], 5)?;
+        t(&[0x23, 0x11, 0x25, 0x01, 0x00, 0x31, 0xda, 0x01, 0x00], 9)?;
+
+        assert!(matches!(
+            consume_integers(&mut &[0x05][..], 0),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        assert!(matches!(
+            consume_integers(&mut &[0x07][..], 0),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        assert!(matches!(
+            consume_integers(&mut &[0x11][..], 0),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 

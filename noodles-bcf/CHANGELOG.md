@@ -4,7 +4,7 @@
 
 ### Fixed
 
-  * bcf/record/fields: Check for EOF when consuming string field ([#437]).
+  * bcf/record/fields: Check for EOF when consuming fields ([#437]).
 
 [#437]: https://github.com/zaeleus/noodles/issues/437
 
