@@ -5,7 +5,7 @@ use crate::{Header, variant::RecordBuf};
 
 /// An iterator over records of a VCF reader.
 ///
-/// This is created by calling [`Reader::records`].
+/// This is created by calling [`Reader::record_bufs`].
 pub struct RecordBufs<'r, 'h, R> {
     inner: &'r mut Reader<R>,
     header: &'h Header,
