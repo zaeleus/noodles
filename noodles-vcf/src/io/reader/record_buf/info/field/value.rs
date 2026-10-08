@@ -24,6 +24,8 @@ pub enum ParseError {
     InvalidCharacter,
     /// The string value is invalid.
     InvalidString(str::Utf8Error),
+    /// A value is empty.
+    EmptyValue,
 }
 
 impl error::Error for ParseError {
@@ -48,6 +50,7 @@ impl fmt::Display for ParseError {
             ParseError::InvalidFlag => write!(f, "invalid flag"),
             ParseError::InvalidCharacter => write!(f, "invalid character"),
             ParseError::InvalidString(_) => write!(f, "invalid string"),
+            ParseError::EmptyValue => write!(f, "empty value"),
         }
     }
 }
@@ -79,6 +82,7 @@ fn parse_i32_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
         .map(|t| match t {
             MISSING => Ok(None),
+            _ if t.is_empty() => Err(ParseError::EmptyValue),
             _ => t.parse().map(Some).map_err(ParseError::InvalidInteger),
         })
         .collect::<Result<_, _>>()
@@ -95,6 +99,7 @@ fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
         .map(|t| match t {
             MISSING => Ok(None),
+            _ if t.is_empty() => Err(ParseError::EmptyValue),
             _ => t.parse().map(Some).map_err(ParseError::InvalidFloat),
         })
         .collect::<Result<_, _>>()
@@ -130,6 +135,7 @@ fn parse_char_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
         .map(|t| match t {
             MISSING => Ok(None),
+            _ if t.is_empty() => Err(ParseError::EmptyValue),
             _ => parse_raw_char(t).map(Some),
         })
         .collect::<Result<_, _>>()
@@ -150,6 +156,7 @@ fn parse_string_array(s: &str) -> Result<Value, ParseError> {
     s.split(DELIMITER)
         .map(|t| match t {
             MISSING => Ok(None),
+            _ if t.is_empty() => Err(ParseError::EmptyValue),
             _ => parse_raw_string(t).map(Some),
         })
         .collect::<Result<_, _>>()
@@ -179,9 +186,15 @@ mod tests {
             parse_value(Number::Count(2), Type::Integer, "8,13"),
             Ok(Value::from(vec![Some(8), Some(13)])),
         );
+
         assert_eq!(
             parse_value(Number::Count(2), Type::Integer, "8,."),
             Ok(Value::from(vec![Some(8), None])),
+        );
+
+        assert_eq!(
+            parse_value(Number::Count(2), Type::Integer, ","),
+            Err(ParseError::EmptyValue)
         );
     }
 
@@ -204,9 +217,15 @@ mod tests {
             parse_value(Number::Count(2), Type::Float, "0.333,0.667"),
             Ok(Value::from(vec![Some(0.333), Some(0.667)]))
         );
+
         assert_eq!(
             parse_value(Number::Count(2), Type::Float, "0.333,."),
             Ok(Value::from(vec![Some(0.333), None]))
+        );
+
+        assert_eq!(
+            parse_value(Number::Count(2), Type::Float, ","),
+            Err(ParseError::EmptyValue)
         );
     }
 
@@ -265,6 +284,11 @@ mod tests {
             parse_value(Number::Count(4), Type::Character, "n,d,%25,."),
             Ok(Value::from(vec![Some('n'), Some('d'), Some('%'), None]))
         );
+
+        assert_eq!(
+            parse_value(Number::Count(2), Type::Character, ","),
+            Err(ParseError::EmptyValue)
+        );
     }
 
     #[test]
@@ -281,6 +305,7 @@ mod tests {
             parse_value(Number::Count(1), Type::String, "noodles"),
             Ok(Value::from("noodles"))
         );
+
         assert_eq!(
             parse_value(Number::Count(1), Type::String, "8%25"),
             Ok(Value::from("8%"))
@@ -293,16 +318,23 @@ mod tests {
                 Some(String::from("vcf"))
             ]))
         );
+
         assert_eq!(
             parse_value(Number::Count(2), Type::String, "noodles,."),
             Ok(Value::from(vec![Some(String::from("noodles")), None]))
         );
+
         assert_eq!(
             parse_value(Number::Count(2), Type::String, "8%25,13%25"),
             Ok(Value::from(vec![
                 Some(String::from("8%")),
                 Some(String::from("13%"))
             ]))
+        );
+
+        assert_eq!(
+            parse_value(Number::Count(2), Type::String, ","),
+            Err(ParseError::EmptyValue)
         );
     }
 }

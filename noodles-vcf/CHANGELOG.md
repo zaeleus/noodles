@@ -6,6 +6,9 @@
 
   * vcf/io/reader/record_buf: Percent-decode info and sample character values.
 
+  * vcf/io/reader/record_buf/info/field/value: Reject empty values in array
+    values.
+
   * vcf/io/reader/record_buf/samples: Reject trailing fields.
 
   * vcf/record/samples/sample: Reject empty fields ([#438]).
