@@ -6,6 +6,9 @@
 
   * vcf/io/reader/record_buf/samples: Reject trailing fields.
 
+  * vcf/io/reader/record_buf/samples/values/value: Percent-decode character
+    values.
+
   * vcf/record/samples/sample: Reject empty fields ([#438]).
 
     Sample fields can now be parsed as empty, which is a value that

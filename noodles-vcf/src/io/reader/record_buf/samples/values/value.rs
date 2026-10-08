@@ -2,7 +2,7 @@ use std::{error, fmt, num, str};
 
 use crate::{
     header::record::value::map::format::{Number, Type},
-    io::reader::record_buf::{MISSING, value},
+    io::reader::record_buf::{MISSING, value::percent_decode},
     variant::record_buf::samples::sample::{
         Value,
         value::{Array, genotype},
@@ -109,7 +109,8 @@ fn parse_f32_array(s: &str) -> Result<Value, ParseError> {
 }
 
 fn parse_raw_char(s: &str) -> Result<char, ParseError> {
-    let mut chars = s.chars();
+    let t = percent_decode(s).map_err(|_| ParseError::InvalidCharacter)?;
+    let mut chars = t.chars();
 
     if let Some(c) = chars.next()
         && chars.next().is_none()
@@ -135,7 +136,7 @@ fn parse_char_array(s: &str) -> Result<Value, ParseError> {
 }
 
 fn parse_raw_string(s: &str) -> Result<String, ParseError> {
-    value::percent_decode(s)
+    percent_decode(s)
         .map(|t| t.into())
         .map_err(ParseError::InvalidString)
 }
@@ -226,6 +227,11 @@ mod tests {
         );
 
         assert_eq!(
+            parse_value(Number::Count(1), Type::Character, "%25"),
+            Ok(Value::from('%'))
+        );
+
+        assert_eq!(
             parse_value(Number::Count(4), Type::Character, "n,d,l,s"),
             Ok(Value::from(vec![
                 Some('n'),
@@ -236,8 +242,8 @@ mod tests {
         );
 
         assert_eq!(
-            parse_value(Number::Count(4), Type::Character, "n,d,l,."),
-            Ok(Value::from(vec![Some('n'), Some('d'), Some('l'), None]))
+            parse_value(Number::Count(4), Type::Character, "n,d,%25,."),
+            Ok(Value::from(vec![Some('n'), Some('d'), Some('%'), None]))
         );
     }
 
