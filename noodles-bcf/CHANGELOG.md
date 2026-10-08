@@ -6,6 +6,10 @@
 
   * bcf/record/fields: Check for EOF when consuming fields ([#437]).
 
+  * bcf/record/fields: Reject records with no alleles.
+
+    The reference allele is always required.
+
 [#437]: https://github.com/zaeleus/noodles/issues/437
 
 ## 0.92.0 - 2026-10-01

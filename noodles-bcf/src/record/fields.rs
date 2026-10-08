@@ -1,6 +1,6 @@
 mod bounds;
 
-use std::{io, mem};
+use std::{io, mem, num::NonZero};
 
 use self::bounds::Bounds;
 use super::{
@@ -135,7 +135,9 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
 
     let src = &buf[bounds::ALLELE_COUNT_RANGE];
     // SAFETY: `src` is 2 bytes.
-    let allele_count = usize::from(u16::from_le_bytes(src.try_into().unwrap()));
+    let n = u16::from_le_bytes(src.try_into().unwrap());
+    let allele_count =
+        NonZero::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     let mut i = IDS_START_INDEX;
     let mut buf = &buf[i..];
@@ -148,7 +150,7 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     bounds.reference_bases_range = start..end;
     i = end;
 
-    for _ in 0..(allele_count - 1) {
+    for _ in 0..(allele_count.get() - 1) {
         let (_, end) = consume_string(&mut buf, i)?;
         i = end;
     }
@@ -268,6 +270,35 @@ mod tests {
         assert_eq!(actual, expected);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_index_with_no_alleles() {
+        let src = [
+            0x00, 0x00, 0x00, 0x00, // chrom = 0
+            0x00, 0x00, 0x00, 0x00, // pos = 0 (0-based)
+            0x01, 0x00, 0x00, 0x00, // rlen = 1
+            0x01, 0x00, 0x80, 0x7f, // qual = None
+            0x00, 0x00, // n_info = 0
+            0x00, 0x00, // n_allele = 0
+            0x00, 0x00, 0x00, // n_sample = 0
+            0x00, // n_fmt = 0
+            0x07, // ids = []
+            0x07, // ref = "", alt = []
+            0x00, // filters = []
+        ];
+
+        let mut bounds = Bounds {
+            ids_range: 0..0,
+            reference_bases_range: 0..0,
+            alternate_bases_end: 0,
+            filters_end: 0,
+        };
+
+        assert!(matches!(
+            index(&src, &mut bounds),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
