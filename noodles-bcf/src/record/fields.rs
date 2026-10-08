@@ -129,25 +129,6 @@ impl Fields {
 fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     const IDS_START_INDEX: usize = bounds::FORMAT_KEY_COUNT_INDEX + 1;
 
-    fn consume_integers(buf: &mut &[u8], offset: usize) -> io::Result<usize> {
-        let prev_buf_len = buf.len();
-
-        let len = match read_type(buf)? {
-            None => 0,
-            Some(Type::Int8(n)) => mem::size_of::<i8>() * n,
-            Some(Type::Int16(n)) => mem::size_of::<i16>() * n,
-            Some(Type::Int32(n)) => mem::size_of::<i32>() * n,
-            _ => return Err(io::Error::from(io::ErrorKind::InvalidData)),
-        };
-
-        let start = offset + (prev_buf_len - buf.len());
-        let end = start + len;
-
-        *buf = &buf[len..];
-
-        Ok(end)
-    }
-
     if buf.len() < IDS_START_INDEX {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
     }
@@ -195,6 +176,25 @@ fn consume_string(buf: &mut &[u8], offset: usize) -> io::Result<(usize, usize)> 
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     Ok((start, end))
+}
+
+fn consume_integers(buf: &mut &[u8], offset: usize) -> io::Result<usize> {
+    let prev_buf_len = buf.len();
+
+    let len = match read_type(buf)? {
+        None => 0,
+        Some(Type::Int8(n)) => mem::size_of::<i8>() * n,
+        Some(Type::Int16(n)) => mem::size_of::<i16>() * n,
+        Some(Type::Int32(n)) => mem::size_of::<i32>() * n,
+        _ => return Err(io::Error::from(io::ErrorKind::InvalidData)),
+    };
+
+    let start = offset + (prev_buf_len - buf.len());
+    let end = start + len;
+
+    *buf = &buf[len..];
+
+    Ok(end)
 }
 
 impl Default for Fields {
