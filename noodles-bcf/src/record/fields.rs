@@ -3,7 +3,10 @@ mod bounds;
 use std::{io, mem};
 
 use self::bounds::Bounds;
-use super::{AlternateBases, Filters, Ids, Info, ReferenceBases, Samples};
+use super::{
+    AlternateBases, Filters, Ids, Info, ReferenceBases, Samples,
+    value::{Type, read_type},
+};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
@@ -124,25 +127,7 @@ impl Fields {
 }
 
 fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
-    use super::value::{Type, read_type};
-
     const IDS_START_INDEX: usize = bounds::FORMAT_KEY_COUNT_INDEX + 1;
-
-    // [start, end)
-    fn consume_string(buf: &mut &[u8], offset: usize) -> io::Result<(usize, usize)> {
-        let prev_buf_len = buf.len();
-
-        let Some(Type::String(len)) = read_type(buf)? else {
-            return Err(io::Error::from(io::ErrorKind::InvalidData));
-        };
-
-        let start = offset + (prev_buf_len - buf.len());
-        let end = start + len;
-
-        *buf = &buf[len..];
-
-        Ok((start, end))
-    }
 
     fn consume_integers(buf: &mut &[u8], offset: usize) -> io::Result<usize> {
         let prev_buf_len = buf.len();
@@ -193,6 +178,22 @@ fn index(buf: &[u8], bounds: &mut Bounds) -> io::Result<()> {
     bounds.filters_end = end;
 
     Ok(())
+}
+
+// [start, end)
+fn consume_string(buf: &mut &[u8], offset: usize) -> io::Result<(usize, usize)> {
+    let prev_buf_len = buf.len();
+
+    let Some(Type::String(len)) = read_type(buf)? else {
+        return Err(io::Error::from(io::ErrorKind::InvalidData));
+    };
+
+    let start = offset + (prev_buf_len - buf.len());
+    let end = start + len;
+
+    *buf = &buf[len..];
+
+    Ok((start, end))
 }
 
 impl Default for Fields {
