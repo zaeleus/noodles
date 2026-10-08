@@ -11,8 +11,6 @@ use crate::{Header, variant::record_buf::Samples};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
     /// The input is unexpected.
-    ///
-    /// The header has no samples, but the record has unexpected data.
     UnexpectedInput,
     /// The keys are invalid.
     InvalidKeys(keys::ParseError),
@@ -73,7 +71,11 @@ pub(super) fn parse_samples(
         parse_values(header, &genotypes.keys, field, values).map_err(ParseError::InvalidValues)?;
     }
 
-    Ok(())
+    if s.is_empty() {
+        Ok(())
+    } else {
+        Err(ParseError::UnexpectedInput)
+    }
 }
 
 #[cfg(test)]
@@ -128,6 +130,11 @@ mod tests {
         );
 
         let header = Header::builder().add_sample_name("sample0").build();
+
+        assert_eq!(
+            parse_samples(&header, "GT\t0|0\t0|0", &mut genotypes),
+            Err(ParseError::UnexpectedInput)
+        );
 
         assert!(matches!(
             parse_samples(&header, "\t0|0", &mut genotypes),
