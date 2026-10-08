@@ -4,7 +4,7 @@ mod keys;
 mod sample;
 pub mod series;
 
-use std::{io, iter};
+use std::io;
 
 pub use self::{keys::Keys, sample::Sample, series::Series};
 use crate::Header;
@@ -63,15 +63,11 @@ impl<'r> Samples<'r> {
 
     /// Returns an iterator over samples.
     pub fn iter(&self) -> impl Iterator<Item = Sample<'r>> + '_ {
-        let (_, mut src) = self.0.split_once(DELIMITER).unwrap_or_default();
-
-        iter::from_fn(move || {
-            if src.is_empty() {
-                None
-            } else {
-                Some(parse_sample(&mut src, self.keys()))
-            }
-        })
+        self.0
+            .split_once(DELIMITER)
+            .into_iter()
+            .flat_map(|(_, src)| src.split(DELIMITER))
+            .map(|s| Sample::new(s, self.keys()))
     }
 }
 
@@ -129,25 +125,6 @@ impl crate::variant::record::Samples for Samples<'_> {
     }
 }
 
-fn parse_sample<'r>(src: &mut &'r str, keys: Keys<'r>) -> Sample<'r> {
-    const DELIMITER: u8 = b'\t';
-
-    let buf = match src.as_bytes().iter().position(|&b| b == DELIMITER) {
-        Some(i) => {
-            let (buf, rest) = src.split_at(i);
-            *src = &rest[1..];
-            buf
-        }
-        None => {
-            let (buf, rest) = src.split_at(src.len());
-            *src = rest;
-            buf
-        }
-    };
-
-    Sample::new(buf, keys)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -201,11 +178,23 @@ mod tests {
         let samples = Samples::new("");
         assert!(samples.iter().next().is_none());
 
+        let samples = Samples::new("GT:GQ");
+        assert!(samples.iter().next().is_none());
+
         let samples = Samples::new("GT:GQ\t0|0:13\t.");
         let actual: Vec<_> = samples.iter().collect();
         let expected = [
             Sample::new("0|0:13", samples.keys()),
             Sample::new(".", samples.keys()),
+        ];
+        assert_eq!(actual, expected);
+
+        let samples = Samples::new("GT:GQ\t\t0|0:13\t");
+        let actual: Vec<_> = samples.iter().collect();
+        let expected = [
+            Sample::new("", samples.keys()),
+            Sample::new("0|0:13", samples.keys()),
+            Sample::new("", samples.keys()),
         ];
         assert_eq!(actual, expected);
     }

@@ -6,6 +6,9 @@
 
   * vcf/record/samples/sample: Reject empty fields ([#438]).
 
+    Sample fields can now be parsed as empty, which is a value that
+    subsequently fails.
+
 [#438]: https://github.com/zaeleus/noodles/issues/438
 
 ## 0.94.0 - 2026-10-01
