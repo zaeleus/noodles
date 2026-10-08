@@ -246,7 +246,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse_value(Number::Count(2), Type::Character, "n,d,l,s"),
+            parse_value(Number::Count(4), Type::Character, "n,d,l,s"),
             Ok(Value::from(vec![
                 Some('n'),
                 Some('d'),
@@ -255,7 +255,7 @@ mod tests {
             ]))
         );
         assert_eq!(
-            parse_value(Number::Count(2), Type::Character, "n,d,l,."),
+            parse_value(Number::Count(4), Type::Character, "n,d,l,."),
             Ok(Value::from(vec![Some('n'), Some('d'), Some('l'), None]))
         );
     }
