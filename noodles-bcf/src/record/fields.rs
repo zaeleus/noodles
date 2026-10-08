@@ -234,6 +234,43 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_index() -> io::Result<()> {
+        let src = [
+            0x00, 0x00, 0x00, 0x00, // chrom = 0
+            0x00, 0x00, 0x00, 0x00, // pos = 0 (0-based)
+            0x01, 0x00, 0x00, 0x00, // rlen = 1
+            0x01, 0x00, 0x80, 0x7f, // qual = None
+            0x00, 0x00, // n_info = 0
+            0x01, 0x00, // n_allele = 1
+            0x00, 0x00, 0x00, // n_sample = 0
+            0x00, // n_fmt = 0
+            0x07, // ids = []
+            0x17, b'N', // ref = N, alt = []
+            0x00, // filters = []
+        ];
+
+        let mut actual = Bounds {
+            ids_range: 0..0,
+            reference_bases_range: 0..0,
+            alternate_bases_end: 0,
+            filters_end: 0,
+        };
+
+        index(&src, &mut actual)?;
+
+        let expected = Bounds {
+            ids_range: 25..25,
+            reference_bases_range: 26..27,
+            alternate_bases_end: 27,
+            filters_end: 28,
+        };
+
+        assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
     fn test_consume_string() -> io::Result<()> {
         fn t(mut src: &[u8], expected: (usize, usize)) -> io::Result<()> {
             let actual = consume_string(&mut src, 0)?;
