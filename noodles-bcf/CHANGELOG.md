@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bcf/record/fields: Check for EOF when consuming string field ([#437]).
+
+[#437]: https://github.com/zaeleus/noodles/issues/437
+
 ## 0.92.0 - 2026-10-01
 
 ### Added

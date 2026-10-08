@@ -191,7 +191,8 @@ fn consume_string(buf: &mut &[u8], offset: usize) -> io::Result<(usize, usize)> 
     let start = offset + (prev_buf_len - buf.len());
     let end = start + len;
 
-    *buf = &buf[len..];
+    buf.split_off(..len)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
 
     Ok((start, end))
 }
@@ -224,5 +225,34 @@ impl Default for Fields {
             samples_buf: Vec::new(),
             bounds,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_consume_string() -> io::Result<()> {
+        fn t(mut src: &[u8], expected: (usize, usize)) -> io::Result<()> {
+            let actual = consume_string(&mut src, 0)?;
+            assert_eq!(actual, expected);
+            Ok(())
+        }
+
+        t(&[0x07], (1, 1))?;
+        t(&[0x47, b'n', b'd', b'l', b's'], (1, 5))?;
+
+        assert!(matches!(
+            consume_string(&mut &[0x01][..], 0),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        assert!(matches!(
+            consume_string(&mut &[0x17][..], 0),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        Ok(())
     }
 }
