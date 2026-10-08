@@ -210,7 +210,7 @@ impl Default for Fields {
             0x00, 0x00, 0x00, // n_sample = 0
             0x00, // n_fmt = 0
             0x07, // ids = []
-            0x17, b'N', // ref = N
+            0x17, b'N', // ref = N, alt = []
             0x00, // filters = []
         ];
 
