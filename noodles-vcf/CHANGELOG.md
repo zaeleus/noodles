@@ -4,10 +4,9 @@
 
 ### Fixed
 
-  * vcf/io/reader/record_buf/samples: Reject trailing fields.
+  * vcf/io/reader/record_buf: Percent-decode info and sample character values.
 
-  * vcf/io/reader/record_buf/samples/values/value: Percent-decode character
-    values.
+  * vcf/io/reader/record_buf/samples: Reject trailing fields.
 
   * vcf/record/samples/sample: Reject empty fields ([#438]).
 
