@@ -4,7 +4,7 @@
 
 ### Fixed
 
-  * vcf: Reject empty values in info array values.
+  * vcf: Reject empty values in info and sample array values.
 
   * vcf/io/reader/record_buf: Percent-decode info and sample character values.
 
