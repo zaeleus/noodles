@@ -44,6 +44,8 @@ where
     W: Write,
     S: Sample,
 {
+    let mut is_empty = true;
+
     for (i, result) in sample.iter(header).enumerate() {
         let (_, value) = result.map_err(WriteError::Io)?;
 
@@ -55,6 +57,12 @@ where
             Some(v) => write_value(writer, header, &v).map_err(WriteError::InvalidValue)?,
             None => writer.write_all(MISSING).map_err(WriteError::Io)?,
         }
+
+        is_empty = false;
+    }
+
+    if is_empty {
+        writer.write_all(MISSING).map_err(WriteError::Io)?;
     }
 
     Ok(())
@@ -107,6 +115,11 @@ mod tests {
         let values = [Some(Value::from("0|0")), Some(Value::from(8))];
         let sample = SampleBuf::new(&keys, &values);
         t(&mut buf, &header, sample, b"0|0:8")?;
+
+        let keys = [String::from(key::GENOTYPE)].into_iter().collect();
+        let values = [];
+        let sample = SampleBuf::new(&keys, &values);
+        t(&mut buf, &header, sample, b".")?;
 
         Ok(())
     }

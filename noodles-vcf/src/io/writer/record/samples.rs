@@ -111,6 +111,12 @@ mod tests {
         );
         t(&mut buf, &header, &genotypes, b"GT:GQ\t0|0:13\t0/1:8")?;
 
+        let genotypes = SamplesBuf::new(
+            [String::from(key::GENOTYPE)].into_iter().collect(),
+            vec![vec![Some(Value::from("0|0"))], vec![]],
+        );
+        t(&mut buf, &header, &genotypes, b"GT\t0|0\t.")?;
+
         Ok(())
     }
 }

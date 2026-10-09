@@ -10,6 +10,8 @@
 
   * vcf/io/reader/record_buf/samples: Reject trailing fields.
 
+  * vcf/io/writer/record/samples/sample: Write missing value for empty samples.
+
   * vcf/record/samples/sample: Reject empty fields ([#438]).
 
     Sample fields can now be parsed as empty, which is a value that
