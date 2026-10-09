@@ -27,6 +27,9 @@ impl<'a> Values<'a, i32> for &'a str {
             Box::new(self.split(DELIMITER).map(|s| {
                 match s {
                     MISSING => Ok(None),
+                    _ if s.is_empty() => {
+                        Err(io::Error::new(io::ErrorKind::InvalidData, "empty value"))
+                    }
                     _ => s
                         .parse()
                         .map(Some)
@@ -49,6 +52,9 @@ impl<'a> Values<'a, f32> for &'a str {
             Box::new(self.split(DELIMITER).map(|s| {
                 match s {
                     MISSING => Ok(None),
+                    _ if s.is_empty() => {
+                        Err(io::Error::new(io::ErrorKind::InvalidData, "empty value"))
+                    }
                     _ => s
                         .parse()
                         .map(Some)
@@ -73,6 +79,9 @@ impl<'a> Values<'a, char> for &'a str {
             Box::new(self.split(DELIMITER).map(|s| {
                 match s {
                     MISSING => Ok(None),
+                    _ if s.is_empty() => {
+                        Err(io::Error::new(io::ErrorKind::InvalidData, "empty value"))
+                    }
                     _ => percent_decode(s)
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
                         .and_then(|t| {
@@ -107,6 +116,9 @@ impl<'a> Values<'a, Cow<'a, str>> for &'a str {
             Box::new(self.split(DELIMITER).map(|s| {
                 match s {
                     MISSING => Ok(None),
+                    _ if s.is_empty() => {
+                        Err(io::Error::new(io::ErrorKind::InvalidData, "empty value"))
+                    }
                     _ => percent_decode(s)
                         .map(Some)
                         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)),
@@ -150,6 +162,16 @@ mod tests {
         assert_eq!(iter.next().transpose()?, Some(None));
         assert!(iter.next().transpose()?.is_none());
 
+        let src = ",";
+        let values: Box<dyn Values<'_, i32>> = Box::new(src);
+        assert_eq!(values.len(), 2);
+
+        let mut iter = values.iter();
+        assert!(matches!(
+            iter.next().transpose(),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
         Ok(())
     }
 
@@ -171,6 +193,16 @@ mod tests {
         assert_eq!(iter.next().transpose()?, Some(Some(13.0)));
         assert_eq!(iter.next().transpose()?, Some(None));
         assert!(iter.next().transpose()?.is_none());
+
+        let src = ",";
+        let values: Box<dyn Values<'_, f32>> = Box::new(src);
+        assert_eq!(values.len(), 2);
+
+        let mut iter = values.iter();
+        assert!(matches!(
+            iter.next().transpose(),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
@@ -194,6 +226,16 @@ mod tests {
         assert_eq!(iter.next().transpose()?, Some(None));
         assert!(iter.next().transpose()?.is_none());
 
+        let src = ",";
+        let values: Box<dyn Values<'_, char>> = Box::new(src);
+        assert_eq!(values.len(), 2);
+
+        let mut iter = values.iter();
+        assert!(matches!(
+            iter.next().transpose(),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
         Ok(())
     }
 
@@ -215,6 +257,16 @@ mod tests {
         assert_eq!(iter.next().transpose()?, Some(Some(Cow::from("b:c"))));
         assert_eq!(iter.next().transpose()?, Some(None));
         assert!(iter.next().transpose()?.is_none());
+
+        let src = ",";
+        let values: Box<dyn Values<'_, Cow<'_, str>>> = Box::new(src);
+        assert_eq!(values.len(), 2);
+
+        let mut iter = values.iter();
+        assert!(matches!(
+            iter.next().transpose(),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
