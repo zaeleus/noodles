@@ -23,6 +23,8 @@ pub enum ParseError {
     ///
     /// There are unexpectedly more values than keys.
     UnexpectedValue,
+    /// A value is empty.
+    EmptyValue,
 }
 
 impl error::Error for ParseError {
@@ -40,6 +42,7 @@ impl fmt::Display for ParseError {
             Self::Empty => f.write_str("empty input"),
             Self::InvalidValue(_) => f.write_str("invalid value"),
             Self::UnexpectedValue => f.write_str("unexpected value"),
+            Self::EmptyValue => f.write_str("empty value"),
         }
     }
 }
@@ -53,6 +56,7 @@ pub(super) fn parse_values(
     use crate::header::record::value::map::format::definition::definition;
 
     const DELIMITER: char = ':';
+    const EMPTY: &str = "";
 
     if s.is_empty() {
         return Err(ParseError::Empty);
@@ -65,6 +69,7 @@ pub(super) fn parse_values(
     for (key, raw_value) in keys.as_ref().iter().zip(&mut raw_values) {
         let value = match raw_value {
             MISSING => None,
+            EMPTY => return Err(ParseError::EmptyValue),
             _ => {
                 if key == key::GENOTYPE {
                     parse_genotype_value(raw_value)
@@ -207,6 +212,13 @@ mod tests {
         assert_eq!(
             parse_values(&header, &keys, "0|0:13", &mut values),
             Err(ParseError::UnexpectedValue)
+        );
+
+        let keys = [String::from(key::GENOTYPE)].into_iter().collect();
+        values.clear();
+        assert_eq!(
+            parse_values(&header, &keys, ":", &mut values),
+            Err(ParseError::EmptyValue)
         );
 
         Ok(())
