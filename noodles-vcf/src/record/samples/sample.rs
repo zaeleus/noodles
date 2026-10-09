@@ -49,12 +49,30 @@ impl<'s> Sample<'s> {
         } else if self.src == MISSING {
             Box::new(iter::empty())
         } else {
-            Box::new(
-                self.keys
-                    .iter()
-                    .zip(self.src.split(DELIMITER))
-                    .map(|(key, s)| parse_value(s, header, key).map(|value| (key, value))),
-            )
+            let mut keys = self.keys.iter();
+            let mut values = self.src.split(DELIMITER);
+            let mut has_unexpected_value = false;
+
+            Box::new(iter::from_fn(move || {
+                if has_unexpected_value {
+                    return None;
+                }
+
+                match (keys.next(), values.next()) {
+                    (Some(key), Some(s)) => {
+                        Some(parse_value(s, header, key).map(|value| (key, value)))
+                    }
+                    (None, Some(_)) => {
+                        has_unexpected_value = true;
+
+                        Some(Err(io::Error::new(
+                            io::ErrorKind::InvalidData,
+                            "unexpected value",
+                        )))
+                    }
+                    _ => None,
+                }
+            }))
         }
     }
 }
@@ -161,5 +179,26 @@ mod tests {
             iter.next(),
             Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
         ));
+    }
+
+    #[test]
+    fn test_iter_with_unexpected_value() {
+        let header = Header::default();
+
+        let keys = Keys::new("GT");
+        let sample = Sample::new("0|0:13", keys);
+        let mut iter = sample.iter(&header);
+
+        assert!(matches!(
+            iter.next(),
+            Some(Ok(("GT", Some(Value::Genotype(_)))))
+        ));
+
+        assert!(matches!(
+            iter.next(),
+            Some(Err(e)) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        assert!(iter.next().is_none());
     }
 }
