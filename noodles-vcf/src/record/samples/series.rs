@@ -31,7 +31,7 @@ impl crate::variant::record::samples::Series for Series<'_> {
         i: usize,
     ) -> Option<Option<io::Result<Value<'a>>>> {
         let sample = self.samples.iter().nth(i)?;
-        sample.get_index(header, self.i)
+        sample.get_index(header, self.i).or(Some(None))
     }
 
     fn iter<'a, 'h: 'a>(
@@ -71,7 +71,7 @@ mod tests {
     fn test_get() {
         let header = Header::default();
 
-        let samples = Samples::new("GT:GQ\t0|0:13\t0/1:8");
+        let samples = Samples::new("GT:GQ\t0|0:13\t0/1:8\t1|1\t.");
         let series = Series::new(key::CONDITIONAL_GENOTYPE_QUALITY, &samples, 1);
 
         assert!(matches!(
@@ -84,6 +84,9 @@ mod tests {
             Some(Some(Ok(Value::Integer(8))))
         ));
 
-        assert!(series.get(&header, 2).is_none());
+        assert!(matches!(series.get(&header, 2), Some(None)));
+        assert!(matches!(series.get(&header, 3), Some(None)));
+
+        assert!(series.get(&header, 4).is_none());
     }
 }

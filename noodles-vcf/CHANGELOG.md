@@ -15,6 +15,8 @@
     Sample fields can now be parsed as empty, which is a value that
     subsequently fails.
 
+  * vcf/record/samples/series: Handle dropped values in `Series::get`.
+
   * vcf/record/samples/series/value: Reject empty values.
 
 [#438]: https://github.com/zaeleus/noodles/issues/438
