@@ -15,6 +15,7 @@ pub(super) fn parse_value<'a>(
     use crate::header::record::value::map::info::definition::definition;
 
     const MISSING: &str = ".";
+    const EMPTY: &str = "";
 
     let definition = header
         .infos()
@@ -30,6 +31,7 @@ pub(super) fn parse_value<'a>(
 
     match raw_value {
         Some(MISSING) => Ok(None),
+        Some(EMPTY) => Err(io::Error::new(io::ErrorKind::InvalidData, "empty value")),
         Some(v) => value::parse_value(v, number, ty).map(Some),
         None if ty == Type::Flag => Ok(Some(Value::Flag)),
         None => Err(io::Error::new(io::ErrorKind::InvalidData, "missing value")),
