@@ -27,6 +27,15 @@ pub trait Info {
         &'a self,
         header: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a>;
+
+    /// Returns the fields as VCF text, if they are already in that form.
+    ///
+    /// A writer can hand these straight to its output instead of decoding every value only to
+    /// format it again.
+    #[doc(hidden)]
+    fn as_text(&self) -> Option<&str> {
+        None
+    }
 }
 
 impl Info for Box<dyn Info + '_> {
@@ -51,5 +60,9 @@ impl Info for Box<dyn Info + '_> {
         header: &'h Header,
     ) -> Box<dyn Iterator<Item = io::Result<(&'a str, Option<Value<'a>>)>> + 'a> {
         (**self).iter(header)
+    }
+
+    fn as_text(&self) -> Option<&str> {
+        (**self).as_text()
     }
 }
