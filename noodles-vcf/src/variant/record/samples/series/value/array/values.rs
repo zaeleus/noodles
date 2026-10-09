@@ -71,8 +71,6 @@ impl<'a> Values<'a, char> for &'a str {
     }
 
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<char>>> + '_> {
-        const MISSING: &str = ".";
-
         if self.is_empty() {
             Box::new(iter::empty())
         } else {
