@@ -13,6 +13,8 @@ use crate::{
 pub enum ParseError {
     /// The key is empty.
     EmptyKey,
+    /// A value is empty.
+    EmptyValue(String),
     /// A value is missing.
     MissingValue(String),
     /// A value is invalid.
@@ -24,6 +26,7 @@ impl ParseError {
     pub fn key(&self) -> Option<&str> {
         match self {
             Self::EmptyKey => None,
+            Self::EmptyValue(key) => Some(key),
             Self::MissingValue(key) => Some(key),
             Self::InvalidValue(key, _) => Some(key),
         }
@@ -43,6 +46,7 @@ impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::EmptyKey => write!(f, "empty key"),
+            ParseError::EmptyValue(_) => write!(f, "empty value"),
             ParseError::MissingValue(_) => write!(f, "missing value"),
             ParseError::InvalidValue(..) => write!(f, "invalid value"),
         }
@@ -51,6 +55,8 @@ impl fmt::Display for ParseError {
 
 pub(super) fn parse_field(header: &Header, s: &str) -> Result<(String, Option<Value>), ParseError> {
     use crate::header::record::value::map::info::definition::definition;
+
+    const EMPTY: &str = "";
 
     let (key, raw_value) = split_field(s)?;
 
@@ -67,6 +73,7 @@ pub(super) fn parse_field(header: &Header, s: &str) -> Result<(String, Option<Va
 
         match raw_value {
             Some(MISSING) => None,
+            Some(EMPTY) => return Err(ParseError::EmptyValue(key.into())),
             Some(v) => parse_value(number, ty, v)
                 .map(Some)
                 .map_err(|e| ParseError::InvalidValue(key.into(), e))?,
@@ -137,6 +144,11 @@ mod tests {
             parse_field(&header, "H3"),
             Ok((String::from(key::IS_IN_HAP_MAP_3), Some(Value::Flag)))
         );
+
+        assert!(matches!(
+            parse_field(&header, "NS="),
+            Err(ParseError::EmptyValue(s)) if s == key::SAMPLES_WITH_DATA_COUNT
+        ));
 
         assert!(matches!(
             parse_field(&header, "NS=n"),
