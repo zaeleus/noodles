@@ -4,9 +4,7 @@ use std::{error, fmt};
 
 use self::value::parse_value;
 use crate::{
-    Header,
-    header::record::value::map::info::{Number, Type},
-    io::reader::record_buf::MISSING,
+    Header, header::record::value::map::info::Type, io::reader::record_buf::MISSING,
     variant::record_buf::info::field::Value,
 };
 
@@ -62,31 +60,18 @@ pub(super) fn parse_field(header: &Header, s: &str) -> Result<(String, Option<Va
         .map(|info| (info.number(), info.ty()))
         .or_else(|| definition(header.file_format(), key).map(|(n, t, _)| (n, t)));
 
-    let value = if let Some((number, ty)) = definition {
-        if matches!(ty, Type::Flag) {
-            match raw_value.unwrap_or_default() {
-                MISSING => None,
-                t => parse_value(number, ty, t)
-                    .map(Some)
-                    .map_err(|e| ParseError::InvalidValue(key.into(), e))?,
-            }
-        } else if let Some(t) = raw_value {
-            match t {
-                MISSING => None,
-                _ => parse_value(number, ty, t)
-                    .map(Some)
-                    .map_err(|e| ParseError::InvalidValue(key.into(), e))?,
-            }
-        } else {
-            return Err(ParseError::MissingValue(key.into()));
-        }
+    let value = if definition.is_none() && raw_value.is_none() {
+        Some(Value::Flag)
     } else {
+        let (number, ty) = definition.unwrap_or_default();
+
         match raw_value {
             Some(MISSING) => None,
-            Some(t) => parse_value(Number::Count(1), Type::String, t)
+            Some(v) => parse_value(number, ty, v)
                 .map(Some)
                 .map_err(|e| ParseError::InvalidValue(key.into(), e))?,
-            None => Some(Value::Flag),
+            None if ty == Type::Flag => Some(Value::Flag),
+            None => return Err(ParseError::MissingValue(key.into())),
         }
     };
 
@@ -111,11 +96,24 @@ fn split_field(s: &str) -> Result<(&str, Option<&str>), ParseError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::record::info::field::key;
+    use crate::{
+        header::record::value::{
+            Map,
+            map::{Info, info::Number},
+        },
+        variant::record::info::field::key,
+    };
 
     #[test]
     fn test_parse_field() {
-        let header = Header::default();
+        let header = Header::builder()
+            .add_info("I32", Map::<Info>::new(Number::Count(1), Type::Integer, ""))
+            .build();
+
+        assert_eq!(
+            parse_field(&header, "FLAG"),
+            Ok((String::from("FLAG"), Some(Value::Flag)))
+        );
 
         assert_eq!(
             parse_field(&header, "NS=2"),
@@ -125,14 +123,29 @@ mod tests {
             ))
         );
 
+        assert_eq!(
+            parse_field(&header, "I32=2"),
+            Ok((String::from("I32"), Some(Value::Integer(2))))
+        );
+
+        assert_eq!(
+            parse_field(&header, "NS=."),
+            Ok((String::from(key::SAMPLES_WITH_DATA_COUNT), None))
+        );
+
+        assert_eq!(
+            parse_field(&header, "H3"),
+            Ok((String::from(key::IS_IN_HAP_MAP_3), Some(Value::Flag)))
+        );
+
         assert!(matches!(
-            parse_field(&header, "NS="),
+            parse_field(&header, "NS=n"),
             Err(ParseError::InvalidValue(s, _)) if s == key::SAMPLES_WITH_DATA_COUNT
         ));
 
         assert!(matches!(
-            parse_field(&header, "NS=ndls"),
-            Err(ParseError::InvalidValue(s, _)) if s == key::SAMPLES_WITH_DATA_COUNT
+            parse_field(&header, "NS"),
+            Err(ParseError::MissingValue(s)) if s == key::SAMPLES_WITH_DATA_COUNT
         ));
     }
 
