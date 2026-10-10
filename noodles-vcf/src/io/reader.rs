@@ -7,10 +7,6 @@ pub(crate) mod record;
 pub mod record_buf;
 mod record_bufs;
 
-use self::record::read_record;
-pub(crate) use self::record_buf::parse_record_buf;
-pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
-
 use std::{
     io::{self, BufRead},
     iter,
@@ -20,7 +16,9 @@ use noodles_bgzf as bgzf;
 use noodles_core::Region;
 use noodles_csi::BinningIndex;
 
-use self::header::read_header;
+pub(crate) use self::record_buf::parse_record_buf;
+pub use self::{builder::Builder, query::Query, record_bufs::RecordBufs};
+use self::{header::read_header, record::read_record};
 use crate::{Header, Record, variant::RecordBuf};
 
 /// A VCF reader.
