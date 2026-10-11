@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * cram: Update to lzma-rust2 0.22.0.
+
 ## 0.100.0 - 2026-10-01
 
 ### Added
