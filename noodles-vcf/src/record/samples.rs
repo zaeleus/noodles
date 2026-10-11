@@ -11,7 +11,7 @@ use crate::Header;
 
 const DELIMITER: char = '\t';
 
-/// VCF record genotypes.
+/// VCF record samples.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Samples<'r>(&'r str);
 
@@ -20,7 +20,7 @@ impl<'r> Samples<'r> {
         Self(buf)
     }
 
-    /// Returns whether there may be any genotypes.
+    /// Returns whether there are any samples.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
