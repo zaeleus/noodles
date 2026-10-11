@@ -471,25 +471,18 @@ sq0\t1\t.\tA\t.\t.\tPASS\t.
 
     #[test]
     fn test_read_line() -> io::Result<()> {
+        fn t(buf: &mut String, mut src: &[u8], expected: &str) -> io::Result<()> {
+            buf.clear();
+            read_line(&mut src, buf)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
         let mut buf = String::new();
 
-        let data = b"noodles\n";
-        let mut reader = &data[..];
-        buf.clear();
-        read_line(&mut reader, &mut buf)?;
-        assert_eq!(buf, "noodles");
-
-        let data = b"noodles\r\n";
-        let mut reader = &data[..];
-        buf.clear();
-        read_line(&mut reader, &mut buf)?;
-        assert_eq!(buf, "noodles");
-
-        let data = b"noodles";
-        let mut reader = &data[..];
-        buf.clear();
-        read_line(&mut reader, &mut buf)?;
-        assert_eq!(buf, "noodles");
+        t(&mut buf, b"noodles\n", "noodles")?;
+        t(&mut buf, b"noodles\r\n", "noodles")?;
+        t(&mut buf, b"noodles", "noodles")?;
 
         Ok(())
     }
