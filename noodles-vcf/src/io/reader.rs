@@ -392,9 +392,6 @@ where
     }
 }
 
-// Reads all bytes until a line feed ('\n') or EOF is reached.
-//
-// The buffer will not include the trailing newline ('\n' or '\r\n').
 fn read_line<R>(reader: &mut R, buf: &mut String) -> io::Result<usize>
 where
     R: BufRead,
@@ -402,9 +399,9 @@ where
     const LINE_FEED: char = '\n';
     const CARRIAGE_RETURN: char = '\r';
 
-    match reader.read_line(buf) {
-        Ok(0) => Ok(0),
-        Ok(n) => {
+    match reader.read_line(buf)? {
+        0 => Ok(0),
+        n => {
             if buf.ends_with(LINE_FEED) {
                 buf.pop();
 
@@ -415,7 +412,6 @@ where
 
             Ok(n)
         }
-        Err(e) => Err(e),
     }
 }
 
