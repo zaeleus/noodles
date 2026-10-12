@@ -1,10 +1,14 @@
 use std::{
     io::{self, BufRead},
-    str,
+    mem,
 };
 
-use super::read_line;
+use memchr::memchr2;
+
 use crate::Record;
+
+const LINE_FEED: u8 = b'\n';
+const CARRIAGE_RETURN: u8 = b'\r';
 
 pub(crate) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
@@ -12,46 +16,49 @@ where
 {
     let fields = record.fields_mut();
 
-    let buf = &mut fields.buf;
+    let mut buf = mem::take(&mut fields.buf).into_bytes();
     buf.clear();
 
     let bounds = &mut fields.bounds;
 
     let mut len = 0;
 
-    len += read_required_field(reader, buf)?;
+    len += read_required_field(reader, &mut buf)?;
     bounds.reference_sequence_name_end = buf.len();
 
-    len += read_required_field(reader, buf)?;
+    len += read_required_field(reader, &mut buf)?;
     bounds.variant_start_end = buf.len();
 
-    len += read_required_field(reader, buf)?;
+    len += read_required_field(reader, &mut buf)?;
     bounds.ids_end = buf.len();
 
-    len += read_required_field(reader, buf)?;
+    len += read_required_field(reader, &mut buf)?;
     bounds.reference_bases_end = buf.len();
 
-    len += read_required_field(reader, buf)?;
+    len += read_required_field(reader, &mut buf)?;
     bounds.alternate_bases_end = buf.len();
 
-    len += read_required_field(reader, buf)?;
+    len += read_required_field(reader, &mut buf)?;
     bounds.quality_score_end = buf.len();
 
-    len += read_required_field(reader, buf)?;
+    len += read_required_field(reader, &mut buf)?;
     bounds.filters_end = buf.len();
 
-    let (n, is_eol) = read_last_required_field(reader, buf)?;
+    let (n, is_eol) = read_last_required_field(reader, &mut buf)?;
     len += n;
     bounds.info_end = buf.len();
 
     if !is_eol {
-        len += read_line(reader, buf)?;
+        len += read_line(reader, &mut buf)?;
     }
+
+    fields.buf =
+        String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(len)
 }
 
-fn read_required_field<R>(reader: &mut R, dst: &mut String) -> io::Result<usize>
+fn read_required_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
@@ -64,30 +71,26 @@ where
     }
 }
 
-fn read_last_required_field<R>(reader: &mut R, dst: &mut String) -> io::Result<(usize, bool)>
+fn read_last_required_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<(usize, bool)>
 where
     R: BufRead,
 {
     read_field(reader, dst)
 }
 
-fn read_field<R>(reader: &mut R, dst: &mut String) -> io::Result<(usize, bool)>
+fn read_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<(usize, bool)>
 where
     R: BufRead,
 {
-    use memchr::memchr2;
-
     const DELIMITER: u8 = b'\t';
-    const LINE_FEED: u8 = b'\n';
-    const CARRIAGE_RETURN: char = '\r';
 
     let mut r#match = None;
     let mut len = 0;
 
-    loop {
+    while r#match.is_none() {
         let src = reader.fill_buf()?;
 
-        if r#match.is_some() || src.is_empty() {
+        if src.is_empty() {
             break;
         }
 
@@ -99,8 +102,7 @@ where
             None => (src, src.len()),
         };
 
-        let s = str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        dst.push_str(s);
+        dst.extend(buf);
 
         len += n;
 
@@ -109,11 +111,31 @@ where
 
     let is_eol = matches!(r#match, Some(LINE_FEED));
 
-    if is_eol && dst.ends_with(CARRIAGE_RETURN) {
+    if is_eol && dst.ends_with(&[CARRIAGE_RETURN]) {
         dst.pop();
     }
 
     Ok((len, is_eol))
+}
+
+fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    match reader.read_until(LINE_FEED, buf)? {
+        0 => Ok(0),
+        n => {
+            if buf.ends_with(&[LINE_FEED]) {
+                buf.pop();
+
+                if buf.ends_with(&[CARRIAGE_RETURN]) {
+                    buf.pop();
+                }
+            }
+
+            Ok(n)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -145,6 +167,24 @@ mod tests {
             read_record(&mut src, &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_line() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, mut src: &[u8], expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            read_line(&mut src, buf)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, b"noodles\n", b"noodles")?;
+        t(&mut buf, b"noodles\r\n", b"noodles")?;
+        t(&mut buf, b"noodles", b"noodles")?;
 
         Ok(())
     }
