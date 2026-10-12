@@ -114,16 +114,21 @@ mod tests {
 
     #[test]
     fn test_read_record() -> io::Result<()> {
-        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n"[..];
         let mut record = Record::default();
+
+        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n"[..];
         read_record(&mut src, &mut record)?;
         assert_eq!(record.fields().buf, b"*4*0255**00**");
         assert_eq!(record.fields().bounds, Bounds::default());
 
         let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\r\n"[..];
-        let mut record = Record::default();
         read_record(&mut src, &mut record)?;
         assert_eq!(record.fields().buf, b"*4*0255**00**");
+        assert_eq!(record.fields().bounds, Bounds::default());
+
+        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tNH:i:0\n"[..];
+        read_record(&mut src, &mut record)?;
+        assert_eq!(record.fields().buf, b"*4*0255**00**NH:i:0");
         assert_eq!(record.fields().bounds, Bounds::default());
 
         let mut src = &b"\n"[..];
