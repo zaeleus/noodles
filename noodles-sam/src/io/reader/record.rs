@@ -3,6 +3,8 @@ use std::io::{self, BufRead};
 use super::read_line;
 use crate::Record;
 
+use memchr::memchr2;
+
 pub(crate) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
@@ -14,37 +16,25 @@ where
 
     let bounds = &mut fields.bounds;
 
+    let ends = [
+        &mut bounds.name_end,
+        &mut bounds.flags_end,
+        &mut bounds.reference_sequence_name_end,
+        &mut bounds.alignment_start_end,
+        &mut bounds.mapping_quality_end,
+        &mut bounds.cigar_end,
+        &mut bounds.mate_reference_sequence_name_end,
+        &mut bounds.mate_alignment_start_end,
+        &mut bounds.template_length_end,
+        &mut bounds.sequence_end,
+    ];
+
     let mut len = 0;
 
-    len += read_required_field(reader, buf)?;
-    bounds.name_end = buf.len();
-
-    len += read_required_field(reader, buf)?;
-    bounds.flags_end = buf.len();
-
-    len += read_required_field(reader, buf)?;
-    bounds.reference_sequence_name_end = buf.len();
-
-    len += read_required_field(reader, buf)?;
-    bounds.alignment_start_end = buf.len();
-
-    len += read_required_field(reader, buf)?;
-    bounds.mapping_quality_end = buf.len();
-
-    len += read_required_field(reader, buf)?;
-    bounds.cigar_end = buf.len();
-
-    len += read_required_field(reader, buf)?;
-    bounds.mate_reference_sequence_name_end = buf.len();
-
-    len += read_required_field(reader, buf)?;
-    bounds.mate_alignment_start_end = buf.len();
-
-    len += read_required_field(reader, buf)?;
-    bounds.template_length_end = buf.len();
-
-    len += read_required_field(reader, buf)?;
-    bounds.sequence_end = buf.len();
+    for end in ends {
+        len += read_required_field(reader, buf)?;
+        *end = buf.len();
+    }
 
     let (n, is_eol) = read_last_required_field(reader, buf)?;
     len += n;
@@ -81,8 +71,6 @@ fn read_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<(usize, bool)>
 where
     R: BufRead,
 {
-    use memchr::memchr2;
-
     const DELIMITER: u8 = b'\t';
     const LINE_FEED: u8 = b'\n';
     const CARRIAGE_RETURN: u8 = b'\r';
@@ -90,10 +78,10 @@ where
     let mut r#match = None;
     let mut len = 0;
 
-    loop {
+    while r#match.is_none() {
         let src = reader.fill_buf()?;
 
-        if r#match.is_some() || src.is_empty() {
+        if src.is_empty() {
             break;
         }
 
