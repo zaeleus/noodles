@@ -65,13 +65,16 @@ where
     Ok(())
 }
 
-// § 1.6.1.7 "Fixed fields: FILTER" (2023-08-23): "...no whitespace or semicolons permitted..."
+// § 1.6.1.7 "Fixed fields: FILTER" (2026-02-25): "...no whitespace or semicolons permitted..."
 fn is_valid(s: &str) -> bool {
+    // "'0' is reserved and must not be used as a filter String."
+    const ZERO: &str = "0";
+
     fn is_valid_char(c: char) -> bool {
         !c.is_whitespace() && c != ';'
     }
 
-    s.chars().all(is_valid_char)
+    s != ZERO && s.chars().all(is_valid_char)
 }
 
 #[cfg(test)]
@@ -122,6 +125,7 @@ mod tests {
         assert!(is_valid("PASS"));
         assert!(is_valid("q10"));
 
+        assert!(!is_valid("0"));
         assert!(!is_valid("q 10"));
         assert!(!is_valid("q10;"));
     }

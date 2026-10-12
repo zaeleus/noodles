@@ -10,6 +10,10 @@
 
   * vcf/io/reader/record_buf/samples: Reject trailing fields.
 
+  * vcf/io/writer/record/filters: Reject "0" as a filter name.
+
+    "0" is reserved and cannot be used.
+
   * vcf/io/writer/record/reference_bases: Reject empty reference bases.
 
   * vcf/io/writer/record/samples/sample: Write missing value for empty samples.
