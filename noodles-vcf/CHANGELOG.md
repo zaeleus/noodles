@@ -10,6 +10,8 @@
 
   * vcf/io/reader/record_buf/samples: Reject trailing fields.
 
+  * vcf/io/writer/record/reference_bases: Reject empty reference bases.
+
   * vcf/io/writer/record/samples/sample: Write missing value for empty samples.
 
   * vcf/record/samples/sample: Reject empty fields ([#438]).

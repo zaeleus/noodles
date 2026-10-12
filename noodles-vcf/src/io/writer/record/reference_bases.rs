@@ -10,6 +10,8 @@ use crate::variant::record::ReferenceBases;
 pub enum WriteError {
     /// I/O error.
     Io(io::Error),
+    /// There are no reference bases.
+    Empty,
     /// A reference base is invalid.
     InvalidReferenceBase(u8),
 }
@@ -18,6 +20,7 @@ impl error::Error for WriteError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Io(e) => Some(e),
+            Self::Empty => None,
             Self::InvalidReferenceBase(_) => None,
         }
     }
@@ -27,6 +30,7 @@ impl fmt::Display for WriteError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Io(_) => write!(f, "I/O error"),
+            Self::Empty => write!(f, "empty input"),
             Self::InvalidReferenceBase(b) => {
                 write!(f, "invalid reference base: {}", char::from(*b))
             }
@@ -42,6 +46,10 @@ where
     W: Write,
     B: ReferenceBases,
 {
+    if reference_bases.is_empty() {
+        return Err(WriteError::Empty);
+    }
+
     for result in reference_bases.iter() {
         let base = result
             .map_err(WriteError::Io)
@@ -82,19 +90,24 @@ mod tests {
 
     #[test]
     fn test_write_reference_bases() -> Result<(), WriteError> {
+        fn t(buf: &mut Vec<u8>, reference_bases: &str, expected: &[u8]) -> Result<(), WriteError> {
+            buf.clear();
+            write_reference_bases(buf, reference_bases)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
         let mut buf = Vec::new();
 
-        buf.clear();
-        write_reference_bases(&mut buf, "A")?;
-        assert_eq!(buf, b"A");
+        t(&mut buf, "A", b"A")?;
+        t(&mut buf, "R", b"A")?;
+        t(&mut buf, "AC", b"AC")?;
 
         buf.clear();
-        write_reference_bases(&mut buf, "R")?;
-        assert_eq!(buf, b"A");
-
-        buf.clear();
-        write_reference_bases(&mut buf, "AC")?;
-        assert_eq!(buf, b"AC");
+        assert!(matches!(
+            write_reference_bases(&mut buf, ""),
+            Err(WriteError::Empty)
+        ));
 
         buf.clear();
         assert!(matches!(
