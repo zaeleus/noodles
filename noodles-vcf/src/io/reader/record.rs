@@ -21,28 +21,22 @@ where
 
     let bounds = &mut fields.bounds;
 
+    let ends = [
+        &mut bounds.reference_sequence_name_end,
+        &mut bounds.variant_start_end,
+        &mut bounds.ids_end,
+        &mut bounds.reference_bases_end,
+        &mut bounds.alternate_bases_end,
+        &mut bounds.quality_score_end,
+        &mut bounds.filters_end,
+    ];
+
     let mut len = 0;
 
-    len += read_required_field(reader, &mut buf)?;
-    bounds.reference_sequence_name_end = buf.len();
-
-    len += read_required_field(reader, &mut buf)?;
-    bounds.variant_start_end = buf.len();
-
-    len += read_required_field(reader, &mut buf)?;
-    bounds.ids_end = buf.len();
-
-    len += read_required_field(reader, &mut buf)?;
-    bounds.reference_bases_end = buf.len();
-
-    len += read_required_field(reader, &mut buf)?;
-    bounds.alternate_bases_end = buf.len();
-
-    len += read_required_field(reader, &mut buf)?;
-    bounds.quality_score_end = buf.len();
-
-    len += read_required_field(reader, &mut buf)?;
-    bounds.filters_end = buf.len();
+    for end in ends {
+        len += read_required_field(reader, &mut buf)?;
+        *end = buf.len();
+    }
 
     let (n, is_eol) = read_last_required_field(reader, &mut buf)?;
     len += n;
