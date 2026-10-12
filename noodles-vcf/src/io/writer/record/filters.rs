@@ -6,7 +6,7 @@ use std::{
 use super::MISSING;
 use crate::{Header, variant::record::Filters};
 
-/// An error returns when filters fail to write.
+/// An error returned when filters fail to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

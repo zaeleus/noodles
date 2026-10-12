@@ -9,7 +9,7 @@ use self::field::write_field;
 use super::MISSING;
 use crate::{Header, variant::record::Info};
 
-/// An error returns when info fields fail to write.
+/// An error returned when info fields fail to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

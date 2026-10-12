@@ -9,7 +9,7 @@ use std::{
 use self::{keys::write_keys, sample::write_sample};
 use crate::{Header, variant::record::Samples};
 
-/// An error returns when samples fail to write.
+/// An error returned when samples fail to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

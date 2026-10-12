@@ -9,7 +9,7 @@ use std::{
 use self::{key::write_key, value::write_value};
 use crate::{io::writer::record::MISSING, variant::record::info::field::Value};
 
-/// An error returns when an info field fails to write.
+/// An error returned when an info field fails to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

@@ -6,7 +6,7 @@ use std::{
 use super::{write_character, write_float, write_integer, write_string};
 use crate::{io::writer::record::MISSING, variant::record::info::field::value::Array};
 
-/// An error returns when an info field array value fails to write.
+/// An error returned when an info field array value fails to write.
 #[derive(Debug)]
 pub enum WriteError {
     // I/O error.

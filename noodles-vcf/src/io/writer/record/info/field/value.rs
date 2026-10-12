@@ -15,7 +15,7 @@ use self::{
 };
 use crate::variant::record::info::field::Value;
 
-/// An error returns when an info field value fails to write.
+/// An error returned when an info field value fails to write.
 #[derive(Debug)]
 pub enum WriteError {
     // I/O error.

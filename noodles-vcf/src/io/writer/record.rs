@@ -23,7 +23,7 @@ use crate::{Header, variant::Record};
 
 const MISSING: &[u8] = b".";
 
-/// An error returns when a record fails to write.
+/// An error returned when a record fails to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

@@ -16,7 +16,7 @@ use self::{
 };
 use crate::{Header, variant::record::samples::series::Value};
 
-/// An error returns when a sample value fails to write.
+/// An error returned when a sample value fails to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

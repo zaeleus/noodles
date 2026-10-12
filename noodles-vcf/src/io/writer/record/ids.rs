@@ -6,7 +6,7 @@ use std::{
 use super::MISSING;
 use crate::variant::record::Ids;
 
-/// An error returns when IDs fails to write.
+/// An error returned when IDs fail to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

@@ -8,7 +8,7 @@ use std::{
 use self::value::write_value;
 use crate::{Header, io::writer::record::MISSING, variant::record::samples::Sample};
 
-/// An error returns when a record sample fail to write.
+/// An error returned when a record sample fails to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

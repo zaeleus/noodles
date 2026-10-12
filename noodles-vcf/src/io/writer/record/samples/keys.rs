@@ -5,7 +5,7 @@ use std::{
 
 use crate::variant::record::samples::keys::key;
 
-/// An error returns when record samples keys fail to write.
+/// An error returned when record samples keys fail to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

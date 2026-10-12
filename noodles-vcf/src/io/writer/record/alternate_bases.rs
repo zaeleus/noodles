@@ -6,7 +6,7 @@ use std::{
 use super::MISSING;
 use crate::variant::record::AlternateBases;
 
-/// An error returns when alternate bases fail to write.
+/// An error returned when alternate bases fail to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.

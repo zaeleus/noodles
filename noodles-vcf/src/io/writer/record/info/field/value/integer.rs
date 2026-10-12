@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-/// An error returns when an info field integer value fails to write.
+/// An error returned when an info field integer value fails to write.
 #[derive(Debug)]
 pub enum WriteError {
     // I/O error.

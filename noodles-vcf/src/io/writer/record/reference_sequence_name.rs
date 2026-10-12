@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-/// An error returns when a reference sequence name fails to write.
+/// An error returned when a reference sequence name fails to write.
 #[derive(Debug)]
 pub enum WriteError {
     /// I/O error.
