@@ -42,15 +42,15 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ParseError::InvalidNumberForType(number, ty) => {
+            Self::InvalidNumberForType(number, ty) => {
                 write!(f, "invalid number {number:?} for type {ty:?}")
             }
-            ParseError::InvalidInteger(_) => write!(f, "invalid integer"),
-            ParseError::InvalidFloat(_) => write!(f, "invalid float"),
-            ParseError::InvalidFlag => write!(f, "invalid flag"),
-            ParseError::InvalidCharacter => write!(f, "invalid character"),
-            ParseError::InvalidString(_) => write!(f, "invalid string"),
-            ParseError::EmptyValue => write!(f, "empty value"),
+            Self::InvalidInteger(_) => write!(f, "invalid integer"),
+            Self::InvalidFloat(_) => write!(f, "invalid float"),
+            Self::InvalidFlag => write!(f, "invalid flag"),
+            Self::InvalidCharacter => write!(f, "invalid character"),
+            Self::InvalidString(_) => write!(f, "invalid string"),
+            Self::EmptyValue => write!(f, "empty value"),
         }
     }
 }
