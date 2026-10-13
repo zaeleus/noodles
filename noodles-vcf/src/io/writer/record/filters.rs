@@ -74,7 +74,7 @@ fn is_valid(s: &str) -> bool {
         !c.is_whitespace() && c != ';'
     }
 
-    s != ZERO && s.chars().all(is_valid_char)
+    !s.is_empty() && s != ZERO && s.chars().all(is_valid_char)
 }
 
 #[cfg(test)]
@@ -125,6 +125,7 @@ mod tests {
         assert!(is_valid("PASS"));
         assert!(is_valid("q10"));
 
+        assert!(!is_valid(""));
         assert!(!is_valid("0"));
         assert!(!is_valid("q 10"));
         assert!(!is_valid("q10;"));

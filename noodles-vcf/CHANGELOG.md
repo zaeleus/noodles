@@ -12,7 +12,7 @@
 
   * vcf/io/writer/record: Reject empty values.
 
-    This includes alternate bases, IDs, and reference bases.
+    This includes alternate bases, filters, IDs, and reference bases.
 
   * vcf/io/writer/record/filters: Reject "0" as a filter name.
 
