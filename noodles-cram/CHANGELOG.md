@@ -7,6 +7,22 @@
   * cram/fs: Add convenience function to read associated CRAM index
     (`cram::fs::read_associated_index`).
 
+### Added
+
+  * cram/container: Add block module (`container::block`).
+
+    This exposes `block::CompressionMethod`, `block::ContentType`, and
+    `block::ContentId`, which were already written as public items.
+
+  * cram/io/reader/container/slice: Add raw blocks iterator
+    (`Slice::blocks`).
+
+    Unlike `Slice::decode_blocks`, this decodes nothing and does not require
+    the block content types to be what the specification expects, which makes
+    it usable to inspect or validate a container.
+
+  * cram/io/reader: Add container block (`io::reader::Block`).
+
 ### Changed
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.91.0.

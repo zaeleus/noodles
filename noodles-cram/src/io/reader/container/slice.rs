@@ -1,7 +1,7 @@
 mod header;
 pub mod records;
 
-use std::{borrow::Cow, io, sync::Arc};
+use std::{borrow::Cow, io, iter, sync::Arc};
 
 use noodles_core::Position;
 use noodles_fasta as fasta;
@@ -11,7 +11,10 @@ use self::{
     header::read_header,
     records::{ExternalDataReaders, Records},
 };
-use super::read_block_as;
+use super::{
+    block::{Block, read_block},
+    read_block_as,
+};
 use crate::{
     Record, calculate_normalized_sequence_digest,
     container::{
@@ -35,6 +38,54 @@ pub struct Slice<'c> {
 impl<'c> Slice<'c> {
     pub(crate) fn header(&self) -> &Header {
         &self.header
+    }
+
+    /// Returns an iterator over the raw blocks in this slice.
+    ///
+    /// This is the core data block followed by the external data blocks, as they appear in the
+    /// stream. Each block carries its compression method, content type, content ID, uncompressed
+    /// size, and compressed source, and can be decoded using [`Block::decode`].
+    ///
+    /// Unlike [`Self::decode_blocks`], this does not decode anything and does not require the
+    /// content types to be what the specification expects, which is what makes it usable to
+    /// inspect or validate a container.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use std::{fs::File, io};
+    /// use noodles_cram::{self as cram, io::reader::Container};
+    ///
+    /// let mut reader = File::open("sample.cram").map(cram::io::Reader::new)?;
+    /// reader.read_header()?;
+    ///
+    /// let mut container = Container::default();
+    ///
+    /// while reader.read_container(&mut container)? != 0 {
+    ///     for result in container.slices() {
+    ///         let slice = result?;
+    ///
+    ///         for result in slice.blocks() {
+    ///             let block = result?;
+    ///             println!("{:?} {}", block.content_type, block.uncompressed_size);
+    ///         }
+    ///     }
+    /// }
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn blocks(&self) -> impl Iterator<Item = io::Result<Block<'c>>> + use<'c, '_> {
+        let block_count = self.header.block_count();
+        let mut src = self.src;
+        let mut i = 0;
+
+        iter::from_fn(move || {
+            if i < block_count {
+                i += 1;
+                Some(read_block(&mut src))
+            } else {
+                None
+            }
+        })
     }
 
     #[allow(clippy::type_complexity)]
@@ -423,6 +474,55 @@ mod tests {
 
     use super::*;
     use crate::record::Flags;
+
+    #[test]
+    fn test_blocks() -> io::Result<()> {
+        use crate::container::{
+            ReferenceSequenceContext,
+            block::{CompressionMethod, ContentType},
+        };
+
+        // An external data block with a content ID of 1 and the data b"ndls".
+        const SRC: [u8; 13] = [
+            0x00, // compression method = none (0)
+            0x04, // content type = external data (4)
+            0x01, // block content ID = 1
+            0x04, // size in bytes = 4
+            0x04, // raw size in bytes = 4
+            0x6e, 0x64, 0x6c, 0x73, // data = b"ndls"
+            0xd7, 0x12, 0x46, 0x3e, // CRC32 = 3e4612d7
+        ];
+
+        let header = Header {
+            reference_sequence_context: ReferenceSequenceContext::None,
+            record_count: 0,
+            record_counter: 0,
+            block_count: 1,
+            block_content_ids: vec![1],
+            embedded_reference_bases_block_content_id: None,
+            reference_md5: None,
+            optional_tags: Vec::new(),
+        };
+
+        let slice = Slice {
+            header,
+            src: &SRC[..],
+        };
+
+        let blocks: Vec<_> = slice.blocks().collect::<io::Result<_>>()?;
+
+        assert_eq!(blocks.len(), 1);
+
+        let block = &blocks[0];
+        assert_eq!(block.compression_method, CompressionMethod::None);
+        assert_eq!(block.content_type, ContentType::ExternalData);
+        assert_eq!(block.content_id, 1);
+        assert_eq!(block.uncompressed_size, 4);
+        assert_eq!(block.src, b"ndls");
+        assert_eq!(*block.decode()?, b"ndls"[..]);
+
+        Ok(())
+    }
 
     #[test]
     fn test_resolve_mates() -> io::Result<()> {

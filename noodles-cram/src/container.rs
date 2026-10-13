@@ -1,6 +1,6 @@
 //! CRAM container and fields.
 
-pub(crate) mod block;
+pub mod block;
 pub mod block_content_encoder_map;
 pub mod compression_header;
 mod header;
