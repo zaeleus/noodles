@@ -1,5 +1,17 @@
 use std::io::{self, Write};
 
+/// Writes a 7-bit variable-length quantity (`uint7`).
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::io::writer::num::write_uint7;
+///
+/// let mut dst = Vec::new();
+/// write_uint7(&mut dst, 128)?;
+/// assert_eq!(dst, [0x81, 0x00]);
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn write_uint7<W>(writer: &mut W, mut n: u32) -> io::Result<()>
 where
     W: Write,
