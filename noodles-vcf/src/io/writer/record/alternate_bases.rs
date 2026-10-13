@@ -68,7 +68,7 @@ fn is_valid(s: &str) -> bool {
         !c.is_whitespace() && c != ','
     }
 
-    s.chars().all(is_valid_char)
+    !s.is_empty() && s.chars().all(is_valid_char)
 }
 
 #[cfg(test)]
@@ -117,6 +117,7 @@ mod tests {
         assert!(is_valid("C[1:1["));
         assert!(is_valid("]1:0]A"));
 
+        assert!(!is_valid(""));
         assert!(!is_valid("C,"));
         assert!(!is_valid("G T"));
     }
