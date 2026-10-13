@@ -43,13 +43,9 @@ pub fn read_site(
 
     *record.quality_score_mut() = read_qual(src)?;
 
-    let n_info = read_u16_le(src).map(usize::from)?;
-    let n_allele = read_u16_le(src).map(usize::from)?;
-
-    let n_fmt_sample = read_u32_le(src)?;
-    let n_fmt = usize::from((n_fmt_sample >> 24) as u8);
-    let n_sample = usize::try_from(n_fmt_sample & 0xffffff)
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+    let n_info = read_info_field_count(src)?;
+    let n_allele = read_allele_count(src)?;
+    let (n_fmt, n_sample) = read_key_and_sample_counts(src)?;
 
     *record.ids_mut() = read_id(src)?;
 
@@ -85,4 +81,23 @@ pub fn read_site(
 fn read_rlen(src: &mut &[u8]) -> io::Result<usize> {
     read_i32_le(src)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
+}
+
+fn read_info_field_count(src: &mut &[u8]) -> io::Result<usize> {
+    read_u16_le(src).map(usize::from)
+}
+
+fn read_allele_count(src: &mut &[u8]) -> io::Result<usize> {
+    read_u16_le(src).map(usize::from)
+}
+
+fn read_key_and_sample_counts(src: &mut &[u8]) -> io::Result<(usize, usize)> {
+    let n_fmt_sample = read_u32_le(src)?;
+
+    let n_fmt = usize::from((n_fmt_sample >> 24) as u8);
+
+    let n_sample = usize::try_from(n_fmt_sample & 0xffffff)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    Ok((n_fmt, n_sample))
 }
