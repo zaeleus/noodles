@@ -41,6 +41,8 @@ where
     W: Write,
     B: AlternateBases,
 {
+    const DELIMITER: &[u8] = b",";
+
     if alternate_bases.is_empty() {
         writer.write_all(MISSING).map_err(WriteError::Io)?;
     } else {
@@ -48,7 +50,7 @@ where
             let bases = result.map_err(WriteError::Io)?;
 
             if i > 0 {
-                writer.write_all(b",").map_err(WriteError::Io)?;
+                writer.write_all(DELIMITER).map_err(WriteError::Io)?;
             }
 
             if is_valid(bases) {
