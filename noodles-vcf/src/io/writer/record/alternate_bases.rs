@@ -48,11 +48,11 @@ where
             let bases = result.map_err(WriteError::Io)?;
 
             if i > 0 {
-                write!(writer, ",").map_err(WriteError::Io)?;
+                writer.write_all(b",").map_err(WriteError::Io)?;
             }
 
             if is_valid(bases) {
-                write!(writer, "{bases}").map_err(WriteError::Io)?;
+                writer.write_all(bases.as_bytes()).map_err(WriteError::Io)?;
             } else {
                 return Err(WriteError::InvalidAlternateBases(bases.into()));
             }
