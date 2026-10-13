@@ -7,6 +7,16 @@
   * cram/fs: Add convenience function to read associated CRAM index
     (`cram::fs::read_associated_index`).
 
+### Added
+
+  * cram/codecs/rans_4x8: Add decoder (`decode`) and encoder (`encode`)
+    ([#412]).
+
+  * cram/codecs/rans_nx16: Add decoder (`decode`) and encoder (`encode`)
+    ([#412]).
+
+[#412]: https://github.com/zaeleus/noodles/pull/412
+
 ### Changed
 
   * cram: Raise minimum supported Rust version (MSRV) to 1.91.0.
