@@ -82,7 +82,7 @@ pub fn read_site(
     Ok((n_fmt, n_sample))
 }
 
-pub fn read_rlen(src: &mut &[u8]) -> io::Result<usize> {
+fn read_rlen(src: &mut &[u8]) -> io::Result<usize> {
     read_i32_le(src)
         .and_then(|n| usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
