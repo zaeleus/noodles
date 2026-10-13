@@ -9,7 +9,7 @@ use crate::{io::writer::record::MISSING, variant::record::info::field::value::Ar
 /// An error returned when an info field array value fails to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// An integer is invalid.
     InvalidInteger(super::integer::WriteError),

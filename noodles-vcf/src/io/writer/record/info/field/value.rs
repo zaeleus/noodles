@@ -18,7 +18,7 @@ use crate::variant::record::info::field::Value;
 /// An error returned when an info field value fails to write.
 #[derive(Debug)]
 pub enum WriteError {
-    // I/O error.
+    /// I/O error.
     Io(io::Error),
     /// The integer is invalid.
     InvalidInteger(integer::WriteError),
