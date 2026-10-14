@@ -4,6 +4,8 @@
 
 ### Fixed
 
+  * bcf/record/codec/decoder: Reject records with no alleles.
+
   * bcf/record/fields: Check for EOF when consuming fields ([#437]).
 
   * bcf/record/fields: Reject records with no alleles.

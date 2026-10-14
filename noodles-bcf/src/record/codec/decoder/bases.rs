@@ -1,14 +1,17 @@
-use std::io;
+use std::{io, num::NonZero};
 
 use noodles_vcf::variant::record_buf::AlternateBases;
 
 use super::read_value;
 use crate::record::codec::Value;
 
-pub(crate) fn read_ref_alt(src: &mut &[u8], len: usize) -> io::Result<(String, AlternateBases)> {
-    let mut alleles = Vec::with_capacity(len);
+pub(crate) fn read_ref_alt(
+    src: &mut &[u8],
+    len: NonZero<usize>,
+) -> io::Result<(String, AlternateBases)> {
+    let mut alleles = Vec::with_capacity(len.get());
 
-    for _ in 0..len {
+    for _ in 0..len.get() {
         match read_value(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))? {
             Some(Value::String(Some(s))) => alleles.push(s),
             Some(Value::String(None)) => alleles.push("."),
@@ -21,6 +24,7 @@ pub(crate) fn read_ref_alt(src: &mut &[u8], len: usize) -> io::Result<(String, A
         }
     }
 
+    // SAFETY: `len > 0`.
     let (raw_reference_bases, raw_alternate_bases) = alleles.split_at(1);
 
     let reference_bases = raw_reference_bases

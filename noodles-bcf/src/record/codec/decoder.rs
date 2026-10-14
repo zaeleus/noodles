@@ -10,7 +10,7 @@ mod samples;
 mod string_map;
 mod value;
 
-use std::io;
+use std::{io, num::NonZero};
 
 use noodles_vcf as vcf;
 
@@ -87,8 +87,10 @@ fn read_info_field_count(src: &mut &[u8]) -> io::Result<usize> {
     read_u16_le(src).map(usize::from)
 }
 
-fn read_allele_count(src: &mut &[u8]) -> io::Result<usize> {
-    read_u16_le(src).map(usize::from)
+fn read_allele_count(src: &mut &[u8]) -> io::Result<NonZero<usize>> {
+    read_u16_le(src).and_then(|n| {
+        NonZero::try_from(usize::from(n)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    })
 }
 
 fn read_key_and_sample_counts(src: &mut &[u8]) -> io::Result<(usize, usize)> {
@@ -100,4 +102,29 @@ fn read_key_and_sample_counts(src: &mut &[u8]) -> io::Result<(usize, usize)> {
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok((n_fmt, n_sample))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_allele_count() -> io::Result<()> {
+        assert_eq!(
+            read_allele_count(&mut &[0x01, 0x00][..])?,
+            NonZero::<usize>::MIN
+        );
+
+        assert_eq!(
+            read_allele_count(&mut &[0xff, 0xff][..])?,
+            const { NonZero::new(u16::MAX as usize).unwrap() }
+        );
+
+        assert!(matches!(
+            read_allele_count(&mut &[0x00, 0x00][..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
 }
