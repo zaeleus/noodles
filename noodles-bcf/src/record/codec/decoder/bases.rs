@@ -40,3 +40,36 @@ pub(crate) fn read_ref_alt(
 
     Ok((reference_bases, alternate_bases))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_ref_alt() -> io::Result<()> {
+        let src = [0x17, 0x41]; // ref = A
+        let actual = read_ref_alt(&mut &src[..], NonZero::<usize>::MIN)?;
+        let expected = (String::from("A"), AlternateBases::default());
+        assert_eq!(actual, expected);
+
+        let src = [
+            0x17, 0x41, // ref = A
+            0x17, 0x43, // alt = C
+        ];
+        let actual = read_ref_alt(&mut &src[..], const { NonZero::new(2).unwrap() })?;
+        let expected = (String::from("A"), [String::from("C")].into_iter().collect());
+        assert_eq!(actual, expected);
+
+        assert!(matches!(
+            read_ref_alt(&mut &[][..], NonZero::<usize>::MIN),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        assert!(matches!(
+            read_ref_alt(&mut &[0x11, 0x00][..], NonZero::<usize>::MIN),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+}
