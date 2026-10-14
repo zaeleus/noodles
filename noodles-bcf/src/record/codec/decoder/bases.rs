@@ -24,13 +24,11 @@ pub(crate) fn read_ref_alt(
         }
     }
 
-    // SAFETY: `len > 0`.
-    let (raw_reference_bases, raw_alternate_bases) = alleles.split_at(1);
+    let (raw_reference_bases, raw_alternate_bases) = alleles
+        .split_first()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing reference bases"))?;
 
-    let reference_bases = raw_reference_bases
-        .first()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing reference bases"))
-        .map(|&s| s.into())?;
+    let reference_bases = raw_reference_bases.to_string();
 
     let alternate_bases = raw_alternate_bases
         .iter()
