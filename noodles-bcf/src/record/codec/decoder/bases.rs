@@ -29,14 +29,7 @@ pub(crate) fn read_ref_alt(
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing reference bases"))?;
 
     let reference_bases = raw_reference_bases.to_string();
-
-    let alternate_bases = raw_alternate_bases
-        .iter()
-        .map(|s| {
-            s.parse()
-                .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })
-        .collect::<Result<_, _>>()?;
+    let alternate_bases = raw_alternate_bases.iter().map(|s| s.to_string()).collect();
 
     Ok((reference_bases, alternate_bases))
 }
