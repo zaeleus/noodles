@@ -67,6 +67,14 @@ impl sam::alignment::Record for Record {
         }
     }
 
+    fn cigar_ref(&self) -> sam::alignment::record::CigarRef<'_> {
+        match self {
+            Record::Sam(record) => sam::alignment::Record::cigar_ref(record),
+            Record::Bam(record) => sam::alignment::Record::cigar_ref(record),
+            Record::Cram(record) => sam::alignment::Record::cigar_ref(record),
+        }
+    }
+
     fn mate_reference_sequence_id<'r, 'h: 'r>(
         &'r self,
         header: &'h sam::Header,
@@ -104,6 +112,14 @@ impl sam::alignment::Record for Record {
         }
     }
 
+    fn sequence_ref(&self) -> sam::alignment::record::SequenceRef<'_> {
+        match self {
+            Record::Sam(record) => sam::alignment::Record::sequence_ref(record),
+            Record::Bam(record) => sam::alignment::Record::sequence_ref(record),
+            Record::Cram(record) => sam::alignment::Record::sequence_ref(record),
+        }
+    }
+
     fn quality_scores(&self) -> Box<dyn sam::alignment::record::QualityScores + '_> {
         match self {
             Self::Sam(record) => sam::alignment::Record::quality_scores(record),
@@ -112,11 +128,27 @@ impl sam::alignment::Record for Record {
         }
     }
 
+    fn quality_scores_ref(&self) -> sam::alignment::record::QualityScoresRef<'_> {
+        match self {
+            Record::Sam(record) => sam::alignment::Record::quality_scores_ref(record),
+            Record::Bam(record) => sam::alignment::Record::quality_scores_ref(record),
+            Record::Cram(record) => sam::alignment::Record::quality_scores_ref(record),
+        }
+    }
+
     fn data(&self) -> Box<dyn sam::alignment::record::Data<'_> + '_> {
         match self {
             Self::Sam(record) => sam::alignment::Record::data(record),
             Self::Bam(record) => sam::alignment::Record::data(record),
             Self::Cram(record) => sam::alignment::Record::data(record),
+        }
+    }
+
+    fn data_ref(&self) -> sam::alignment::record::DataRef<'_> {
+        match self {
+            Record::Sam(record) => sam::alignment::Record::data_ref(record),
+            Record::Bam(record) => sam::alignment::Record::data_ref(record),
+            Record::Cram(record) => sam::alignment::Record::data_ref(record),
         }
     }
 }
