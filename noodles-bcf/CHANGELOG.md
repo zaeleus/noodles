@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.93.0 - 2026-10-15
+
+### Changed
+
+  * bcf: Sync dependencies.
 
 ### Fixed
 
