@@ -27,6 +27,8 @@ fn vcf_4_0_write_genotype<W>(writer: &mut W, genotype: &dyn Genotype) -> io::Res
 where
     W: Write,
 {
+    let mut is_empty = true;
+
     for (i, result) in genotype.iter().enumerate() {
         let (position, phasing) = result?;
 
@@ -35,22 +37,35 @@ where
         }
 
         write_position(writer, position)?;
+
+        is_empty = false;
     }
 
-    Ok(())
+    if is_empty {
+        Err(io::Error::new(io::ErrorKind::InvalidInput, "empty input"))
+    } else {
+        Ok(())
+    }
 }
 
 fn vcf_4_4_write_genotype<W>(writer: &mut W, genotype: &dyn Genotype) -> io::Result<()>
 where
     W: Write,
 {
+    let mut is_empty = true;
+
     for result in genotype.iter() {
         let (position, phasing) = result?;
         write_phasing(writer, phasing)?;
         write_position(writer, position)?;
+        is_empty = false;
     }
 
-    Ok(())
+    if is_empty {
+        Err(io::Error::new(io::ErrorKind::InvalidInput, "empty input"))
+    } else {
+        Ok(())
+    }
 }
 
 fn write_phasing<W>(writer: &mut W, phasing: Phasing) -> io::Result<()>
@@ -82,7 +97,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::variant::record_buf::samples::sample::value::genotype::Allele;
+    use crate::variant::record_buf::samples::sample::value::{
+        Genotype as GenotypeBuf, genotype::Allele,
+    };
 
     #[test]
     fn test_vcf_4_0_write_genotype() -> Result<(), Box<dyn std::error::Error>> {
@@ -139,6 +156,13 @@ mod tests {
         .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"./.");
+
+        buf.clear();
+        let genotype = GenotypeBuf::default();
+        assert!(matches!(
+            write_genotype(&mut buf, &header, &&genotype),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
@@ -198,6 +222,13 @@ mod tests {
         .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"/./.");
+
+        buf.clear();
+        let genotype = GenotypeBuf::default();
+        assert!(matches!(
+            write_genotype(&mut buf, &header, &&genotype),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
