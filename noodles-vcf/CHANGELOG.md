@@ -9,6 +9,8 @@
     This includes info string values, info array values, sample string values,
     sample array values, and sample genotype values.
 
+  * vcf/io/writer/record/samples/keys: Write missing value for empty keys.
+
 ## 0.95.0 - 2026-10-15
 
 ### Fixed

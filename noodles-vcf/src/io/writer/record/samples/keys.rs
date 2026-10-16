@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-use crate::variant::record::samples::keys::key;
+use crate::{io::writer::record::MISSING, variant::record::samples::keys::key};
 
 /// An error returned when record samples keys fail to write.
 #[derive(Debug)]
@@ -45,6 +45,8 @@ where
 {
     const DELIMITER: &[u8] = b":";
 
+    let mut is_empty = true;
+
     for (i, result) in keys.enumerate() {
         let key = result.map_err(WriteError::Io)?;
 
@@ -57,6 +59,12 @@ where
         }
 
         write_key(writer, key)?;
+
+        is_empty = false;
+    }
+
+    if is_empty {
+        writer.write_all(MISSING).map_err(WriteError::Io)?;
     }
 
     Ok(())
@@ -96,6 +104,11 @@ mod tests {
     #[test]
     fn test_write_keys() -> Result<(), WriteError> {
         let mut buf = Vec::new();
+
+        buf.clear();
+        let keys = [];
+        write_keys(&mut buf, keys.into_iter())?;
+        assert_eq!(buf, b".");
 
         buf.clear();
         let keys = [Ok("GT")];
