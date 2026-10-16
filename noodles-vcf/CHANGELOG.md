@@ -4,9 +4,10 @@
 
 ### Fixed
 
-  * vcf/io/writer/record/info/field/value: Reject empty values.
+  * vcf/io/writer/record: Reject empty values.
 
-    This includes string and arrays.
+    This includes info string values, info array values, and sample string
+    values.
 
 ## 0.95.0 - 2026-10-15
 

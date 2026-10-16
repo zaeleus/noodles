@@ -10,6 +10,10 @@ pub(super) fn write_string<W>(writer: &mut W, s: &str) -> io::Result<()>
 where
     W: Write,
 {
+    if s.is_empty() {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "empty input"));
+    }
+
     if s.as_bytes() == MISSING {
         let t = percent_encode_byte(MISSING[0]);
         writer.write_all(t.as_bytes())?;
@@ -54,6 +58,12 @@ mod tests {
         t(&mut buf, "ndls", b"ndls")?;
         t(&mut buf, "n=d:ls.;", b"n=d%3Als.;")?;
         t(&mut buf, ".", b"%2E")?;
+
+        buf.clear();
+        assert!(matches!(
+            write_string(&mut buf, ""),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
