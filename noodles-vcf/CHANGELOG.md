@@ -6,8 +6,8 @@
 
   * vcf/io/writer/record: Reject empty values.
 
-    This includes info string values, info array values, and sample string
-    values.
+    This includes info string values, info array values, sample string values,
+    and sample array values.
 
 ## 0.95.0 - 2026-10-15
 

@@ -11,6 +11,8 @@ use crate::{io::writer::record::MISSING, variant::record::samples::series::value
 pub enum WriteError {
     /// I/O error.
     Io(io::Error),
+    /// The input is empty.
+    Empty,
     /// An integer is invalid.
     InvalidInteger(super::integer::WriteError),
 }
@@ -19,6 +21,7 @@ impl error::Error for WriteError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Io(e) => Some(e),
+            Self::Empty => None,
             Self::InvalidInteger(e) => Some(e),
         }
     }
@@ -28,6 +31,7 @@ impl fmt::Display for WriteError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Io(_) => write!(f, "I/O error"),
+            Self::Empty => write!(f, "empty input"),
             Self::InvalidInteger(_) => write!(f, "invalid integer"),
         }
     }
@@ -37,6 +41,8 @@ pub(super) fn write_array<W>(writer: &mut W, array: &Array) -> Result<(), WriteE
 where
     W: Write,
 {
+    let mut is_empty = true;
+
     match array {
         Array::Integer(values) => {
             for (i, result) in values.iter().enumerate() {
@@ -49,6 +55,8 @@ where
                 } else {
                     writer.write_all(MISSING).map_err(WriteError::Io)?;
                 }
+
+                is_empty = false;
             }
         }
         Array::Float(values) => {
@@ -62,6 +70,8 @@ where
                 } else {
                     writer.write_all(MISSING).map_err(WriteError::Io)?;
                 }
+
+                is_empty = false;
             }
         }
         Array::Character(values) => {
@@ -75,6 +85,8 @@ where
                 } else {
                     writer.write_all(MISSING).map_err(WriteError::Io)?;
                 }
+
+                is_empty = false;
             }
         }
         Array::String(values) => {
@@ -88,11 +100,17 @@ where
                 } else {
                     writer.write_all(MISSING).map_err(WriteError::Io)?;
                 }
+
+                is_empty = false;
             }
         }
     }
 
-    Ok(())
+    if is_empty {
+        Err(WriteError::Empty)
+    } else {
+        Ok(())
+    }
 }
 
 fn write_separator<W>(writer: &mut W) -> io::Result<()>
@@ -148,6 +166,34 @@ mod tests {
             None,
         ]);
         t(&mut buf, &array, b"noodles,;,=,%3A,.")?;
+
+        buf.clear();
+        let array = ArrayBuf::Integer(Vec::new());
+        assert!(matches!(
+            write_array(&mut buf, &(&array).into()),
+            Err(WriteError::Empty)
+        ));
+
+        buf.clear();
+        let array = ArrayBuf::Float(Vec::new());
+        assert!(matches!(
+            write_array(&mut buf, &(&array).into()),
+            Err(WriteError::Empty)
+        ));
+
+        buf.clear();
+        let array = ArrayBuf::Character(Vec::new());
+        assert!(matches!(
+            write_array(&mut buf, &(&array).into()),
+            Err(WriteError::Empty)
+        ));
+
+        buf.clear();
+        let array = ArrayBuf::String(Vec::new());
+        assert!(matches!(
+            write_array(&mut buf, &(&array).into()),
+            Err(WriteError::Empty)
+        ));
 
         Ok(())
     }
