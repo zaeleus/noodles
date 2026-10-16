@@ -4,7 +4,9 @@
 
 ### Fixed
 
-  * vcf/io/writer/record/info/field/value/string: Reject empty value.
+  * vcf/io/writer/record/info/field/value: Reject empty values.
+
+    This includes string and arrays.
 
 ## 0.95.0 - 2026-10-15
 
