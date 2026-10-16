@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * vcf/io/writer/record/info/field/value/string: Reject empty value.
+
 ## 0.95.0 - 2026-10-15
 
 ### Fixed
