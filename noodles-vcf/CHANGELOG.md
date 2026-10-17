@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+  * vcf/record/samples: Add `Samples::len` to return the sample count.
+
 ### Fixed
 
   * vcf/io/writer/record: Reject empty values.

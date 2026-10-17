@@ -25,6 +25,11 @@ impl<'r> Samples<'r> {
         self.0.is_empty()
     }
 
+    /// Returns the number of samples.
+    pub fn len(&self) -> usize {
+        self.iter().count()
+    }
+
     /// Returns the keys.
     pub fn keys(&self) -> Keys<'r> {
         let (src, _) = self.0.split_once(DELIMITER).unwrap_or_default();
@@ -83,7 +88,7 @@ impl crate::variant::record::Samples for Samples<'_> {
     }
 
     fn len(&self) -> usize {
-        self.iter().count()
+        self.len()
     }
 
     fn column_names<'a, 'h: 'a>(
@@ -133,6 +138,14 @@ mod tests {
     fn test_is_empty() {
         assert!(Samples::new("").is_empty());
         assert!(!Samples::new("GT:GQ\t0|0:13").is_empty());
+    }
+
+    #[test]
+    fn test_len() {
+        assert_eq!(Samples::new("").len(), 0);
+        assert_eq!(Samples::new("GT:GQ\t0|0:13").len(), 1);
+        assert_eq!(Samples::new(".\t.").len(), 1);
+        assert_eq!(Samples::new(".\t.\t.").len(), 2);
     }
 
     #[test]
