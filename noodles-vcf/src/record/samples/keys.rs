@@ -1,12 +1,18 @@
 use std::iter;
 
+const EMPTY: &str = "";
+const MISSING: &str = ".";
+
 /// VCF record samples keys.
 #[derive(Debug, Eq, PartialEq)]
 pub struct Keys<'a>(&'a str);
 
 impl<'a> Keys<'a> {
     pub(super) fn new(src: &'a str) -> Self {
-        Self(src)
+        match src {
+            MISSING => Self(EMPTY),
+            _ => Self(src),
+        }
     }
 
     /// Returns an iterator over keys.
@@ -42,6 +48,9 @@ mod tests {
     #[test]
     fn test_iter() {
         let genotypes = Keys::new("");
+        assert!(genotypes.iter().next().is_none());
+
+        let genotypes = Keys::new(".");
         assert!(genotypes.iter().next().is_none());
 
         let keys = Keys::new("GT:GQ");
