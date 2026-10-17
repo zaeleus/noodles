@@ -117,7 +117,7 @@ where
 
     let samples = record.samples().map_err(WriteError::Io)?;
 
-    if !samples.is_empty() {
+    if !header.sample_names().is_empty() || !samples.is_empty() {
         write_separator(writer)?;
         write_samples(writer, header, samples).map_err(WriteError::InvalidSamples)?;
     }
@@ -156,5 +156,51 @@ mod tests {
         assert_eq!(buf, b"sq0\t1\t.\tA\t.\t.\t.\t.\n");
 
         Ok(())
+    }
+
+    #[test]
+    fn test_write_record_with_sample_count_mismatch() {
+        use crate::variant::{
+            record::samples::keys::key,
+            record_buf::{Samples, samples::sample::Value},
+        };
+
+        let mut buf = Vec::new();
+
+        let header = Header::builder().add_sample_name("sample0").build();
+        let record = RecordBuf::builder()
+            .set_reference_sequence_name("sq0")
+            .set_variant_start(Position::MIN)
+            .set_reference_bases("A")
+            .build();
+        assert!(matches!(
+            write_record(&mut buf, &header, &record),
+            Err(WriteError::InvalidSamples(
+                samples::WriteError::SampleCountMismatch {
+                    actual: 0,
+                    expected: 1
+                }
+            ))
+        ));
+
+        let header = Header::default();
+        let record = RecordBuf::builder()
+            .set_reference_sequence_name("sq0")
+            .set_variant_start(Position::MIN)
+            .set_reference_bases("A")
+            .set_samples(Samples::new(
+                [String::from(key::GENOTYPE)].into_iter().collect(),
+                vec![vec![Some(Value::from("0|0"))]],
+            ))
+            .build();
+        assert!(matches!(
+            write_record(&mut buf, &header, &record),
+            Err(WriteError::InvalidSamples(
+                samples::WriteError::SampleCountMismatch {
+                    actual: 1,
+                    expected: 0
+                }
+            ))
+        ));
     }
 }

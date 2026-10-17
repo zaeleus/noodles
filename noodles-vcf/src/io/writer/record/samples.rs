@@ -18,6 +18,13 @@ pub enum WriteError {
     InvalidKeys(keys::WriteError),
     /// A sample is invalid.
     InvalidSample(sample::WriteError),
+    /// The sample count does not match the number of samples in the header.
+    SampleCountMismatch {
+        /// The actual sample count.
+        actual: usize,
+        /// The expected sample count.
+        expected: usize,
+    },
 }
 
 impl error::Error for WriteError {
@@ -26,6 +33,7 @@ impl error::Error for WriteError {
             Self::Io(e) => Some(e),
             Self::InvalidKeys(e) => Some(e),
             Self::InvalidSample(e) => Some(e),
+            Self::SampleCountMismatch { .. } => None,
         }
     }
 }
@@ -36,6 +44,10 @@ impl fmt::Display for WriteError {
             Self::Io(_) => write!(f, "I/O error"),
             Self::InvalidKeys(_) => write!(f, "invalid keys"),
             Self::InvalidSample(_) => write!(f, "invalid sample"),
+            Self::SampleCountMismatch { actual, expected } => write!(
+                f,
+                "sample count mismatch: expected {expected}, got {actual}"
+            ),
         }
     }
 }
@@ -51,9 +63,21 @@ where
 {
     write_keys(writer, samples.column_names(header)).map_err(WriteError::InvalidKeys)?;
 
+    let mut actual_sample_count = 0;
+
     for sample in samples.iter() {
         write_separator(writer)?;
         write_sample(writer, header, sample).map_err(WriteError::InvalidSample)?;
+        actual_sample_count += 1;
+    }
+
+    let expected_sample_count = header.sample_names().len();
+
+    if actual_sample_count != expected_sample_count {
+        return Err(WriteError::SampleCountMismatch {
+            actual: actual_sample_count,
+            expected: expected_sample_count,
+        });
     }
 
     Ok(())
@@ -88,15 +112,19 @@ mod tests {
             Ok(())
         }
 
-        let header = Header::default();
         let mut buf = Vec::new();
 
+        let header = Header::builder().add_sample_name("sample0").build();
         let genotypes = SamplesBuf::new(
             [String::from(key::GENOTYPE)].into_iter().collect(),
             vec![vec![Some(Value::from("0|0"))]],
         );
         t(&mut buf, &header, &genotypes, b"GT\t0|0")?;
 
+        let header = Header::builder()
+            .add_sample_name("sample0")
+            .add_sample_name("sample1")
+            .build();
         let genotypes = SamplesBuf::new(
             [
                 String::from(key::GENOTYPE),
@@ -111,11 +139,29 @@ mod tests {
         );
         t(&mut buf, &header, &genotypes, b"GT:GQ\t0|0:13\t0/1:8")?;
 
+        let header = Header::builder()
+            .add_sample_name("sample0")
+            .add_sample_name("sample1")
+            .build();
         let genotypes = SamplesBuf::new(
             [String::from(key::GENOTYPE)].into_iter().collect(),
             vec![vec![Some(Value::from("0|0"))], vec![]],
         );
         t(&mut buf, &header, &genotypes, b"GT\t0|0\t.")?;
+
+        buf.clear();
+        let header = Header::default();
+        let genotypes = SamplesBuf::new(
+            [String::from(key::GENOTYPE)].into_iter().collect(),
+            vec![vec![Some(Value::from("0|0"))]],
+        );
+        assert!(matches!(
+            write_samples(&mut buf, &header, &genotypes),
+            Err(WriteError::SampleCountMismatch {
+                actual: 1,
+                expected: 0
+            })
+        ));
 
         Ok(())
     }

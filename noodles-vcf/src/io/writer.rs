@@ -204,7 +204,7 @@ mod tests {
             record_buf::{Samples, samples::sample::Value},
         };
 
-        let header = Header::default();
+        let header = Header::builder().add_sample_name("sample0").build();
 
         let samples = Samples::new(
             [

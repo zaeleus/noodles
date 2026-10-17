@@ -13,6 +13,11 @@
     This includes info string values, info array values, sample string values,
     sample array values, and sample genotype values.
 
+  * vcf/io/writer/record/samples: Validate sample count.
+
+    The number of samples written must now match the number of samples in the
+    header.
+
   * vcf/io/writer/record/samples/keys: Write missing value for empty keys.
 
 ## 0.95.0 - 2026-10-15
