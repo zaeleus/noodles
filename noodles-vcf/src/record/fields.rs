@@ -75,22 +75,7 @@ impl Fields {
     }
 
     pub(super) fn samples(&self) -> &str {
-        const DELIMITER: char = '\t';
-
-        let src = &self.buf[self.bounds.samples_range()];
-
-        let is_missing = || {
-            src.split(DELIMITER)
-                .next()
-                .map(|s| s == MISSING)
-                .unwrap_or_default()
-        };
-
-        if src.is_empty() || is_missing() {
-            ""
-        } else {
-            src
-        }
+        &self.buf[self.bounds.samples_range()]
     }
 }
 
@@ -100,5 +85,28 @@ impl Default for Fields {
             buf: String::from(".1.N...."),
             bounds: Bounds::default(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_samples() {
+        let fields = Fields::default();
+        assert!(fields.samples().is_empty());
+
+        let fields = Fields {
+            buf: String::from(".1.N....GT\t0|0"),
+            ..Default::default()
+        };
+        assert_eq!(fields.samples(), "GT\t0|0");
+
+        let fields = Fields {
+            buf: String::from(".1.N.....\t."),
+            ..Default::default()
+        };
+        assert_eq!(fields.samples(), ".\t.");
     }
 }
