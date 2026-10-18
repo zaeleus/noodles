@@ -6,6 +6,16 @@
 
   * vcf/record/samples: Add `Samples::len` to return the sample count.
 
+### Changed
+
+  * vcf/io/writer/record/reference_sequence_name: Relax validation for VCF <
+    4.3.
+
+    VCF 4.2 does not have constraints on reference sequence names. This still
+    disallows empty names and names including whitespace. See _The Variant Call
+    Format (VCF) Version 4.2 Specification_ § 1.2.7 "Contig field format"
+    (2025-11-05).
+
 ### Fixed
 
   * vcf/io/writer/record: Reject empty values.

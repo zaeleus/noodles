@@ -87,7 +87,7 @@ where
         .reference_sequence_name(header)
         .map_err(WriteError::Io)?;
 
-    write_reference_sequence_name(writer, reference_sequence_name)
+    write_reference_sequence_name(writer, header.file_format(), reference_sequence_name)
         .map_err(WriteError::InvalidReferenceSequenceName)?;
 
     write_separator(writer)?;
