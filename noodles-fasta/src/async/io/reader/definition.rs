@@ -1,7 +1,10 @@
 use tokio::io::{self, AsyncBufRead};
 
 use super::read_line;
-use crate::{io::reader::definition::parse_definition, record::Definition};
+use crate::{
+    io::reader::definition::{is_comment, parse_definition},
+    record::Definition,
+};
 
 pub(super) async fn read_definition<R>(
     reader: &mut R,
@@ -11,22 +14,30 @@ pub(super) async fn read_definition<R>(
 where
     R: AsyncBufRead + Unpin,
 {
-    buf.clear();
+    let mut len = 0;
 
-    match read_line(reader, buf).await? {
-        0 => Ok(0),
-        n => {
-            let (name, description) = parse_definition(buf)?;
+    loop {
+        buf.clear();
 
-            let description = if description.is_empty() {
-                None
-            } else {
-                Some(description.into())
-            };
-
-            *definition = Definition::new(name, description);
-
-            Ok(n)
+        match read_line(reader, buf).await? {
+            0 => return Ok(0),
+            n if is_comment(buf) => len += n,
+            n => {
+                len += n;
+                break;
+            }
         }
     }
+
+    let (name, description) = parse_definition(buf)?;
+
+    let description = if description.is_empty() {
+        None
+    } else {
+        Some(description.into())
+    };
+
+    *definition = Definition::new(name, description);
+
+    Ok(len)
 }

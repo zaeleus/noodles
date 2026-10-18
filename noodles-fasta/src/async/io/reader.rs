@@ -181,6 +181,18 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_read_definition_with_leading_comments() -> io::Result<()> {
+        let data = b";comment\n;\n>sq0\nACGT\n";
+        let mut reader = Reader::new(&data[..]);
+
+        let mut definition = Definition::default();
+        assert_eq!(reader.read_definition(&mut definition).await?, 16);
+        assert_eq!(definition.name(), "sq0");
+
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn test_read_line() -> io::Result<()> {
         async fn t(buf: &mut Vec<u8>, mut src: &[u8], expected: &[u8]) -> io::Result<()> {
             buf.clear();

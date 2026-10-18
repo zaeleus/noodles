@@ -11,24 +11,41 @@ pub(super) fn read_definition<R>(
 where
     R: BufRead,
 {
-    buf.clear();
+    let mut len = 0;
 
-    match read_line(reader, buf)? {
-        0 => Ok(0),
-        n => {
-            let (name, description) = parse_definition(buf)?;
+    loop {
+        buf.clear();
 
-            let description = if description.is_empty() {
-                None
-            } else {
-                Some(description.into())
-            };
-
-            *definition = Definition::new(name, description);
-
-            Ok(n)
+        match read_line(reader, buf)? {
+            0 => return Ok(0),
+            n if is_comment(buf) => len += n,
+            n => {
+                len += n;
+                break;
+            }
         }
     }
+
+    let (name, description) = parse_definition(buf)?;
+
+    let description = if description.is_empty() {
+        None
+    } else {
+        Some(description.into())
+    };
+
+    *definition = Definition::new(name, description);
+
+    Ok(len)
+}
+
+/// Returns whether a line is a comment.
+///
+/// Lines starting with `;` before a definition are comments in the original (Pearson) FASTA
+/// format.
+pub(crate) fn is_comment(line: &[u8]) -> bool {
+    const PREFIX: u8 = b';';
+    line.first().is_some_and(|&b| b == PREFIX)
 }
 
 pub(crate) fn parse_definition(mut src: &[u8]) -> io::Result<(&[u8], &[u8])> {

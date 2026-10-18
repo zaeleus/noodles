@@ -312,6 +312,25 @@ mod tests {
     }
 
     #[test]
+    fn test_read_definition_with_leading_comments() -> io::Result<()> {
+        let data = b";comment\n;\n>sq0\nACGT\n>sq1\nNNNN\n";
+        let mut reader = Reader::new(&data[..]);
+
+        let mut definition = Definition::default();
+        assert_eq!(reader.read_definition(&mut definition)?, 16);
+        assert_eq!(definition.name(), "sq0");
+
+        let mut sequence = Vec::new();
+        reader.read_sequence(&mut sequence)?;
+        assert_eq!(sequence, b"ACGT");
+
+        reader.read_definition(&mut definition)?;
+        assert_eq!(definition.name(), "sq1");
+
+        Ok(())
+    }
+
+    #[test]
     fn test_read_line() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, mut src: &[u8], expected: &[u8]) -> io::Result<()> {
             buf.clear();

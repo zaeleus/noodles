@@ -135,14 +135,21 @@ where
     }
 
     fn read_definition(&mut self) -> io::Result<Option<Definition>> {
-        use super::reader::definition::parse_definition;
+        use super::reader::definition::{is_comment, parse_definition};
 
         let mut buf = Vec::new();
 
-        match read_line(&mut self.inner, &mut buf) {
-            Ok(0) => return Ok(None),
-            Ok(n) => self.offset += n as u64,
-            Err(e) => return Err(e),
+        loop {
+            buf.clear();
+
+            match read_line(&mut self.inner, &mut buf)? {
+                0 => return Ok(None),
+                n => self.offset += n as u64,
+            }
+
+            if !is_comment(&buf) {
+                break;
+            }
         }
 
         let (name, description) = parse_definition(&buf)?;
@@ -266,6 +273,27 @@ impl From<IndexError> for io::Error {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_index_record_with_leading_comments() -> Result<(), IndexError> {
+        let data = b";comment\n;\n>sq0\nACGT\n>sq1\nNNNN\nNN\n";
+        let mut indexer = Indexer::new(&data[..]);
+
+        let line_base_count = const { NonZero::new(4).unwrap() };
+        let line_width = const { NonZero::new(5).unwrap() };
+
+        assert_eq!(
+            indexer.index_record()?,
+            Some(Record::new("sq0", 4, 16, line_base_count, line_width))
+        );
+        assert_eq!(
+            indexer.index_record()?,
+            Some(Record::new("sq1", 6, 26, line_base_count, line_width))
+        );
+        assert!(indexer.index_record()?.is_none());
+
+        Ok(())
+    }
 
     #[test]
     fn test_index_record_with_invalid_line_bases() {
