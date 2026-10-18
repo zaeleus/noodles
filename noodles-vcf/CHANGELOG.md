@@ -16,6 +16,13 @@
     Format (VCF) Version 4.2 Specification_ § 1.2.7 "Contig field format"
     (2025-11-05).
 
+  * vcf/io/writer/record/reference_sequence_name: Reject reserved symbolic
+    allele names.
+
+    See _The Variant Call Format Specification: VCFv4.5 and BCFv2.2_ § 1.4.7
+    "Contig field format" (2026-02-25): "The contig names must not use a
+    reserved symbolic allele name."
+
 ### Fixed
 
   * vcf/io/writer/record: Reject empty values.

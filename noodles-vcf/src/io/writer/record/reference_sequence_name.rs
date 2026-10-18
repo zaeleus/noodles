@@ -6,6 +6,7 @@ use std::{
 use crate::header::FileFormat;
 
 const VCF_4_3: FileFormat = FileFormat::new(4, 3);
+const VCF_4_4: FileFormat = FileFormat::new(4, 4);
 
 /// An error returned when a reference sequence name fails to write.
 #[derive(Debug)]
@@ -75,8 +76,25 @@ fn is_valid(file_format: FileFormat, s: &str) -> bool {
             .map(|c| c != '*' && c != '=' && is_valid_char(c))
             .unwrap_or_default();
 
-        is_valid_first_char && chars.all(is_valid_char)
+        is_valid_first_char
+            && chars.all(is_valid_char)
+            && !is_reserved_symbolic_allele_name(file_format, s)
     }
+}
+
+fn is_reserved_symbolic_allele_name(file_format: FileFormat, s: &str) -> bool {
+    let mut is_reserved = matches!(
+        s,
+        "DEL" | "INS" | "DUP" | "INV" | "CNV" | "DUP:TANDEM" | "DEL:ME" | "INS:ME" | "NON_REF"
+    );
+
+    is_reserved = if file_format < VCF_4_4 {
+        is_reserved || s == "BND"
+    } else {
+        is_reserved || s == "CNV:TR"
+    };
+
+    is_reserved
 }
 
 // § 1.4.7 "Contig field format" (2025-11-05): "`[0-9A-Za-z!#$%&+./:;?@^_|~-][0-9A-Za-z!#$%&*+./:;=?@^_|~-]*`".
@@ -144,6 +162,7 @@ mod tests {
         assert!(is_valid(VCF_4_2, "*sq0"));
         assert!(is_valid(VCF_4_2, "=sq0"));
         assert!(!is_valid(VCF_4_2, "\t"));
+        assert!(is_valid(VCF_4_2, "DEL"));
 
         assert!(is_valid(VCF_4_3, "sq0"));
         assert!(!is_valid(VCF_4_3, ""));
@@ -153,5 +172,33 @@ mod tests {
         assert!(!is_valid(VCF_4_3, "*sq0"));
         assert!(!is_valid(VCF_4_3, "=sq0"));
         assert!(!is_valid(VCF_4_3, "\t"));
+        assert!(!is_valid(VCF_4_3, "DEL"));
+    }
+
+    #[test]
+    fn test_is_reserved_symbolic_allele_name() {
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "DEL"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "INS"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "DUP"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "INV"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "CNV"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "BND"));
+        assert!(!is_reserved_symbolic_allele_name(VCF_4_3, "CNV:TR"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "DUP:TANDEM"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "DEL:ME"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "INS:ME"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_3, "NON_REF"));
+
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "DEL"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "INS"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "DUP"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "INV"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "CNV"));
+        assert!(!is_reserved_symbolic_allele_name(VCF_4_4, "BND"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "CNV:TR"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "DUP:TANDEM"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "DEL:ME"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "INS:ME"));
+        assert!(is_reserved_symbolic_allele_name(VCF_4_4, "NON_REF"));
     }
 }
