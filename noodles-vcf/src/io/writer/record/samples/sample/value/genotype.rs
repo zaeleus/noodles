@@ -16,49 +16,23 @@ pub(super) fn write_genotype<W>(
 where
     W: Write,
 {
-    if header.file_format() < VCF_4_4 {
-        vcf_4_0_write_genotype(writer, genotype)
-    } else {
-        vcf_4_4_write_genotype(writer, genotype)
-    }
-}
-
-fn vcf_4_0_write_genotype<W>(writer: &mut W, genotype: &dyn Genotype) -> io::Result<()>
-where
-    W: Write,
-{
-    let mut is_empty = true;
-
-    for (i, result) in genotype.iter().enumerate() {
-        let (position, phasing) = result?;
-
-        if i > 0 {
-            write_phasing(writer, phasing)?;
-        }
-
-        write_position(writer, position)?;
-
-        is_empty = false;
-    }
-
-    if is_empty {
-        Err(io::Error::new(io::ErrorKind::InvalidInput, "empty input"))
-    } else {
-        Ok(())
-    }
-}
-
-fn vcf_4_4_write_genotype<W>(writer: &mut W, genotype: &dyn Genotype) -> io::Result<()>
-where
-    W: Write,
-{
     let alleles: Vec<_> = genotype.iter().collect::<io::Result<_>>()?;
+    write_alleles(writer, header.file_format(), &alleles)
+}
 
-    let Some(&(first_position, first_phasing)) = alleles.first() else {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "empty input"));
-    };
+fn write_alleles<W>(
+    writer: &mut W,
+    file_format: FileFormat,
+    alleles: &[(Option<usize>, Phasing)],
+) -> io::Result<()>
+where
+    W: Write,
+{
+    let (&(first_position, first_phasing), rest) = alleles
+        .split_first()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "empty input"))?;
 
-    let is_implicitly_unphased = alleles[1..]
+    let is_implicitly_unphased = rest
         .iter()
         .any(|&(_, phasing)| phasing == Phasing::Unphased);
 
@@ -68,13 +42,20 @@ where
         Phasing::Phased
     };
 
-    if first_phasing != implicit_phasing {
+    if file_format < VCF_4_4 {
+        if first_phasing != implicit_phasing {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "invalid phasing",
+            ));
+        }
+    } else if first_phasing != implicit_phasing {
         write_phasing(writer, first_phasing)?;
     }
 
     write_position(writer, first_position)?;
 
-    for &(position, phasing) in &alleles[1..] {
+    for &(position, phasing) in rest {
         write_phasing(writer, phasing)?;
         write_position(writer, position)?;
     }
@@ -131,6 +112,15 @@ mod tests {
         assert_eq!(buf, b"0");
 
         buf.clear();
+        let genotype = &[Allele::new(Some(0), Phasing::Unphased)]
+            .into_iter()
+            .collect();
+        assert!(matches!(
+            write_genotype(&mut buf, &header, &genotype),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        buf.clear();
         let genotype = &[
             Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
@@ -153,6 +143,30 @@ mod tests {
         buf.clear();
         let genotype = &[
             Allele::new(Some(0), Phasing::Unphased),
+            Allele::new(Some(1), Phasing::Phased),
+        ]
+        .into_iter()
+        .collect();
+        assert!(matches!(
+            write_genotype(&mut buf, &header, &genotype),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        buf.clear();
+        let genotype = &[
+            Allele::new(Some(0), Phasing::Phased),
+            Allele::new(Some(1), Phasing::Unphased),
+        ]
+        .into_iter()
+        .collect();
+        assert!(matches!(
+            write_genotype(&mut buf, &header, &genotype),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        buf.clear();
+        let genotype = &[
+            Allele::new(Some(0), Phasing::Unphased),
             Allele::new(Some(1), Phasing::Unphased),
             Allele::new(Some(2), Phasing::Phased),
         ]
@@ -160,6 +174,19 @@ mod tests {
         .collect();
         write_genotype(&mut buf, &header, &genotype)?;
         assert_eq!(buf, b"0/1|2");
+
+        buf.clear();
+        let genotype = &[
+            Allele::new(Some(0), Phasing::Phased),
+            Allele::new(Some(1), Phasing::Unphased),
+            Allele::new(Some(2), Phasing::Phased),
+        ]
+        .into_iter()
+        .collect();
+        assert!(matches!(
+            write_genotype(&mut buf, &header, &genotype),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         buf.clear();
         let genotype = &[

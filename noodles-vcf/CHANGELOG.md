@@ -29,6 +29,9 @@
     This previously always wrote the first phasing indicator, but if it can be
     inferred, it is now omitted.
 
+  * vcf/io/writer/record/samples/sample/value/genotype: Validate first phasing
+    for VCF < 4.4.
+
 ### Fixed
 
   * vcf/io/writer/record: Reject empty values.
