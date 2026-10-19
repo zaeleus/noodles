@@ -23,6 +23,12 @@
     "Contig field format" (2026-02-25): "The contig names must not use a
     reserved symbolic allele name."
 
+  * vcf/io/writer/record/samples/sample/value/genotype: Omit optional first
+    phasing indicator.
+
+    This previously always wrote the first phasing indicator, but if it can be
+    inferred, it is now omitted.
+
 ### Fixed
 
   * vcf/io/writer/record: Reject empty values.

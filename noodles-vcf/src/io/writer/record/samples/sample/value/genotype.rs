@@ -52,20 +52,34 @@ fn vcf_4_4_write_genotype<W>(writer: &mut W, genotype: &dyn Genotype) -> io::Res
 where
     W: Write,
 {
-    let mut is_empty = true;
+    let alleles: Vec<_> = genotype.iter().collect::<io::Result<_>>()?;
 
-    for result in genotype.iter() {
-        let (position, phasing) = result?;
+    let Some(&(first_position, first_phasing)) = alleles.first() else {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "empty input"));
+    };
+
+    let is_implicitly_unphased = alleles[1..]
+        .iter()
+        .any(|&(_, phasing)| phasing == Phasing::Unphased);
+
+    let implicit_phasing = if is_implicitly_unphased {
+        Phasing::Unphased
+    } else {
+        Phasing::Phased
+    };
+
+    if first_phasing != implicit_phasing {
+        write_phasing(writer, first_phasing)?;
+    }
+
+    write_position(writer, first_position)?;
+
+    for &(position, phasing) in &alleles[1..] {
         write_phasing(writer, phasing)?;
         write_position(writer, position)?;
-        is_empty = false;
     }
 
-    if is_empty {
-        Err(io::Error::new(io::ErrorKind::InvalidInput, "empty input"))
-    } else {
-        Ok(())
-    }
+    Ok(())
 }
 
 fn write_phasing<W>(writer: &mut W, phasing: Phasing) -> io::Result<()>
@@ -180,7 +194,14 @@ mod tests {
             .into_iter()
             .collect();
         write_genotype(&mut buf, &header, &genotype)?;
-        assert_eq!(buf, b"|0");
+        assert_eq!(buf, b"0");
+
+        buf.clear();
+        let genotype = &[Allele::new(Some(0), Phasing::Unphased)]
+            .into_iter()
+            .collect();
+        write_genotype(&mut buf, &header, &genotype)?;
+        assert_eq!(buf, b"/0");
 
         buf.clear();
         let genotype = &[
@@ -190,7 +211,7 @@ mod tests {
         .into_iter()
         .collect();
         write_genotype(&mut buf, &header, &genotype)?;
-        assert_eq!(buf, b"/0/1");
+        assert_eq!(buf, b"0/1");
 
         buf.clear();
         let genotype = &[
@@ -200,7 +221,27 @@ mod tests {
         .into_iter()
         .collect();
         write_genotype(&mut buf, &header, &genotype)?;
-        assert_eq!(buf, b"|0|1");
+        assert_eq!(buf, b"0|1");
+
+        buf.clear();
+        let genotype = &[
+            Allele::new(Some(0), Phasing::Unphased),
+            Allele::new(Some(1), Phasing::Phased),
+        ]
+        .into_iter()
+        .collect();
+        write_genotype(&mut buf, &header, &genotype)?;
+        assert_eq!(buf, b"/0|1");
+
+        buf.clear();
+        let genotype = &[
+            Allele::new(Some(0), Phasing::Phased),
+            Allele::new(Some(1), Phasing::Unphased),
+        ]
+        .into_iter()
+        .collect();
+        write_genotype(&mut buf, &header, &genotype)?;
+        assert_eq!(buf, b"|0/1");
 
         buf.clear();
         let genotype = &[
@@ -211,7 +252,18 @@ mod tests {
         .into_iter()
         .collect();
         write_genotype(&mut buf, &header, &genotype)?;
-        assert_eq!(buf, b"/0/1|2");
+        assert_eq!(buf, b"0/1|2");
+
+        buf.clear();
+        let genotype = &[
+            Allele::new(Some(0), Phasing::Phased),
+            Allele::new(Some(1), Phasing::Unphased),
+            Allele::new(Some(2), Phasing::Phased),
+        ]
+        .into_iter()
+        .collect();
+        write_genotype(&mut buf, &header, &genotype)?;
+        assert_eq!(buf, b"|0/1|2");
 
         buf.clear();
         let genotype = &[
@@ -221,7 +273,7 @@ mod tests {
         .into_iter()
         .collect();
         write_genotype(&mut buf, &header, &genotype)?;
-        assert_eq!(buf, b"/./.");
+        assert_eq!(buf, b"./.");
 
         buf.clear();
         let genotype = GenotypeBuf::default();
