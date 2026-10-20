@@ -48,6 +48,10 @@
 
   * vcf/io/writer/record/samples/keys: Write missing value for empty keys.
 
+### Removed
+
+  * vcf/record/samples: Remove `AsRef<str>` implementation.
+
 ## 0.95.0 - 2026-10-15
 
 ### Fixed

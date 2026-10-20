@@ -76,12 +76,6 @@ impl<'r> Samples<'r> {
     }
 }
 
-impl AsRef<str> for Samples<'_> {
-    fn as_ref(&self) -> &str {
-        self.0
-    }
-}
-
 impl crate::variant::record::Samples for Samples<'_> {
     fn is_empty(&self) -> bool {
         self.0.is_empty()
