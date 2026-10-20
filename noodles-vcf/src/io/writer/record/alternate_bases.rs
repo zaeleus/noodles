@@ -64,13 +64,36 @@ where
     Ok(())
 }
 
-// § 1.6.1.5 "Fixed fields: ALT" (2023-08-23): "...no whitespace, commas..."
 fn is_valid(s: &str) -> bool {
-    fn is_valid_char(c: char) -> bool {
-        !c.is_whitespace() && c != ','
+    if s.is_empty() {
+        false
+    } else if let Some(t) = strip_symbolic_allele_delimiters(s) {
+        is_valid_symbolic_allele(t)
+    } else {
+        s.chars().all(is_valid_char)
     }
+}
 
-    !s.is_empty() && s.chars().all(is_valid_char)
+// § 1.6.1.5 "Fixed fields: ALT" (2026-02-25): "no whitespace, commas...".
+fn is_valid_char(c: char) -> bool {
+    !c.is_whitespace() && c != ','
+}
+
+fn strip_symbolic_allele_delimiters(s: &str) -> Option<&str> {
+    const PREFIX: char = '<';
+    const SUFFIX: char = '>';
+
+    s.strip_prefix(PREFIX).and_then(|t| t.strip_suffix(SUFFIX))
+}
+
+fn is_valid_symbolic_allele(s: &str) -> bool {
+    !s.is_empty() && s.chars().all(is_valid_symbolic_allele_char)
+}
+
+// § 1.6.1.5 "Fixed fields: ALT" (2026-02-25): "no [...] angle-brackets are permitted in the ID
+// String itself".
+fn is_valid_symbolic_allele_char(c: char) -> bool {
+    is_valid_char(c) && !matches!(c, '<' | '>')
 }
 
 #[cfg(test)]
@@ -118,9 +141,34 @@ mod tests {
         assert!(is_valid("<NON_REF>"));
         assert!(is_valid("C[1:1["));
         assert!(is_valid("]1:0]A"));
+        assert!(is_valid("C[<sq0>:1["));
 
         assert!(!is_valid(""));
         assert!(!is_valid("C,"));
         assert!(!is_valid("G T"));
+        assert!(!is_valid("<>"));
+        assert!(!is_valid("<D<E>L>"));
+    }
+
+    #[test]
+    fn test_is_valid_symbolic_allele() {
+        assert!(is_valid_symbolic_allele("DEL"));
+        assert!(is_valid_symbolic_allele("*"));
+
+        assert!(!is_valid_symbolic_allele(""));
+        assert!(!is_valid_symbolic_allele("D,L"));
+        assert!(!is_valid_symbolic_allele("D L"));
+        assert!(!is_valid_symbolic_allele("D<E>L"));
+    }
+
+    #[test]
+    fn test_is_valid_symbolic_allele_char() {
+        assert!(is_valid_symbolic_allele_char('N'));
+        assert!(is_valid_symbolic_allele_char('*'));
+
+        assert!(!is_valid_symbolic_allele_char(' '));
+        assert!(!is_valid_symbolic_allele_char(','));
+        assert!(!is_valid_symbolic_allele_char('<'));
+        assert!(!is_valid_symbolic_allele_char('>'));
     }
 }
