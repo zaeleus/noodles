@@ -52,6 +52,8 @@
 
   * vcf/record/samples: Remove `AsRef<str>` implementation.
 
+    `Samples` no longer holds a single underlying buffer.
+
 ## 0.95.0 - 2026-10-15
 
 ### Fixed

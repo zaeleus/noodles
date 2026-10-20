@@ -9,20 +9,26 @@ use std::io;
 pub use self::{keys::Keys, sample::Sample, series::Series};
 use crate::Header;
 
-const DELIMITER: char = '\t';
+pub(super) const DELIMITER: char = '\t';
 
 /// VCF record samples.
 #[derive(Debug, Eq, PartialEq)]
-pub struct Samples<'r>(&'r str);
+pub struct Samples<'r> {
+    keys_src: &'r str,
+    values_src: &'r str,
+}
 
 impl<'r> Samples<'r> {
-    pub(super) fn new(buf: &'r str) -> Self {
-        Self(buf)
+    pub(super) fn new(keys_src: &'r str, values_src: &'r str) -> Self {
+        Self {
+            keys_src,
+            values_src,
+        }
     }
 
     /// Returns whether there are any samples.
     pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.values_src.is_empty()
     }
 
     /// Returns the number of samples.
@@ -32,8 +38,7 @@ impl<'r> Samples<'r> {
 
     /// Returns the keys.
     pub fn keys(&self) -> Keys<'r> {
-        let (src, _) = self.0.split_once(DELIMITER).unwrap_or_default();
-        Keys::new(src)
+        Keys::new(self.keys_src)
     }
 
     /// Returns the sample with the given sample name.
@@ -68,17 +73,21 @@ impl<'r> Samples<'r> {
 
     /// Returns an iterator over samples.
     pub fn iter(&self) -> impl Iterator<Item = Sample<'r>> + '_ {
-        self.0
-            .split_once(DELIMITER)
-            .into_iter()
-            .flat_map(|(_, src)| src.split(DELIMITER))
+        let src = if self.values_src.is_empty() {
+            None
+        } else {
+            Some(self.values_src)
+        };
+
+        src.into_iter()
+            .flat_map(|s| s.split(DELIMITER))
             .map(|s| Sample::new(s, self.keys()))
     }
 }
 
 impl crate::variant::record::Samples for Samples<'_> {
     fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.is_empty()
     }
 
     fn len(&self) -> usize {
@@ -130,16 +139,16 @@ mod tests {
 
     #[test]
     fn test_is_empty() {
-        assert!(Samples::new("").is_empty());
-        assert!(!Samples::new("GT:GQ\t0|0:13").is_empty());
+        assert!(Samples::new("", "").is_empty());
+        assert!(!Samples::new("GT:GQ", "0|0:13").is_empty());
     }
 
     #[test]
     fn test_len() {
-        assert_eq!(Samples::new("").len(), 0);
-        assert_eq!(Samples::new("GT:GQ\t0|0:13").len(), 1);
-        assert_eq!(Samples::new(".\t.").len(), 1);
-        assert_eq!(Samples::new(".\t.\t.").len(), 2);
+        assert_eq!(Samples::new("", "").len(), 0);
+        assert_eq!(Samples::new("GT:GQ", "0|0:13").len(), 1);
+        assert_eq!(Samples::new(".", ".").len(), 1);
+        assert_eq!(Samples::new(".", ".\t.").len(), 2);
     }
 
     #[test]
@@ -150,7 +159,7 @@ mod tests {
             .add_sample_name("sample2")
             .build();
 
-        let samples = Samples::new("GT\t0|0\t1/1\t.");
+        let samples = Samples::new("GT", "0|0\t1/1\t.");
 
         let actual = samples.get(&header, "sample0");
         let expected = Sample::new("0|0", samples.keys());
@@ -161,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_get_index() {
-        let samples = Samples::new("GT\t0|0\t1/1\t.");
+        let samples = Samples::new("GT", "0|0\t1/1\t.");
         let actual = samples.get_index(0);
         let expected = Sample::new("0|0", samples.keys());
         assert_eq!(actual, Some(expected));
@@ -173,22 +182,22 @@ mod tests {
     fn test_select() {
         use crate::variant::record::samples::keys::key;
 
-        let samples = Samples::new("");
+        let samples = Samples::new("", "");
         assert!(samples.select(key::CONDITIONAL_GENOTYPE_QUALITY).is_none());
 
-        let samples = Samples::new("GT:GQ\t0|0:13\t.");
+        let samples = Samples::new("GT:GQ", "0|0:13\t.");
         assert!(samples.select(key::CONDITIONAL_GENOTYPE_QUALITY).is_some());
     }
 
     #[test]
     fn test_iter() {
-        let samples = Samples::new("");
+        let samples = Samples::new("", "");
         assert!(samples.iter().next().is_none());
 
-        let samples = Samples::new("GT:GQ");
+        let samples = Samples::new("GT:GQ", "");
         assert!(samples.iter().next().is_none());
 
-        let samples = Samples::new("GT:GQ\t0|0:13\t.");
+        let samples = Samples::new("GT:GQ", "0|0:13\t.");
         let actual: Vec<_> = samples.iter().collect();
         let expected = [
             Sample::new("0|0:13", samples.keys()),
@@ -196,7 +205,7 @@ mod tests {
         ];
         assert_eq!(actual, expected);
 
-        let samples = Samples::new("GT:GQ\t\t0|0:13\t");
+        let samples = Samples::new("GT:GQ", "\t0|0:13\t");
         let actual: Vec<_> = samples.iter().collect();
         let expected = [
             Sample::new("", samples.keys()),

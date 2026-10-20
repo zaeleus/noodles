@@ -58,7 +58,7 @@ mod tests {
     fn test_name() {
         let header = Header::default();
 
-        let samples = Samples::new("GT:GQ\t0|0:13\t0/1:8");
+        let samples = Samples::new("GT:GQ", "0|0:13\t0/1:8");
         let series = Series::new(key::CONDITIONAL_GENOTYPE_QUALITY, &samples, 1);
 
         assert!(matches!(
@@ -71,7 +71,7 @@ mod tests {
     fn test_get() {
         let header = Header::default();
 
-        let samples = Samples::new("GT:GQ\t0|0:13\t0/1:8\t1|1\t.");
+        let samples = Samples::new("GT:GQ", "0|0:13\t0/1:8\t1|1\t.");
         let series = Series::new(key::CONDITIONAL_GENOTYPE_QUALITY, &samples, 1);
 
         assert!(matches!(

@@ -73,7 +73,13 @@ impl Record {
 
     /// Returns the samples.
     pub fn samples(&self) -> Samples<'_> {
-        Samples::new(self.0.samples())
+        let src = self.0.samples();
+
+        if let Some((keys_src, values_src)) = src.split_once(samples::DELIMITER) {
+            Samples::new(keys_src, values_src)
+        } else {
+            Samples::new(src, "")
+        }
     }
 }
 
