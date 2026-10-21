@@ -5,10 +5,19 @@ use crate::Record;
 
 use memchr::memchr2;
 
+const LINE_FEED: u8 = b'\n';
+const CARRIAGE_RETURN: u8 = b'\r';
+
+const SEPARATOR: u8 = b'\t';
+
 pub(crate) fn read_record<R>(reader: &mut R, record: &mut Record) -> io::Result<usize>
 where
     R: BufRead,
 {
+    if is_eof(reader)? {
+        return Ok(0);
+    }
+
     let fields = record.fields_mut();
 
     let buf = &mut fields.buf;
@@ -36,58 +45,79 @@ where
         *end = buf.len();
     }
 
-    let (n, is_eol) = read_last_required_field(reader, buf)?;
+    let (n, terminator) = read_last_required_field(reader, buf)?;
     len += n;
     bounds.quality_scores_end = buf.len();
 
-    if !is_eol {
+    if matches!(terminator, Terminator::Separator) {
         len += read_line(reader, buf)?;
     }
 
     Ok(len)
 }
 
+fn is_eof<R>(reader: &mut R) -> io::Result<bool>
+where
+    R: BufRead,
+{
+    reader.fill_buf().map(|src| src.is_empty())
+}
+
 fn read_required_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
 where
     R: BufRead,
 {
-    let (len, is_eol) = read_field(reader, dst)?;
+    let (len, terminator) = read_field(reader, dst)?;
 
-    if is_eol {
-        Err(io::Error::new(io::ErrorKind::InvalidData, "unexpected EOL"))
-    } else {
-        Ok(len)
+    match terminator {
+        Terminator::Separator => Ok(len),
+        Terminator::Eol => Err(io::Error::new(io::ErrorKind::InvalidData, "unexpected EOL")),
+        Terminator::None => Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
     }
 }
 
-fn read_last_required_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<(usize, bool)>
+fn read_last_required_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<(usize, Terminator)>
 where
     R: BufRead,
 {
     read_field(reader, dst)
 }
 
-fn read_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<(usize, bool)>
+#[derive(Clone, Copy)]
+enum Terminator {
+    Separator,
+    Eol,
+    None,
+}
+
+impl Terminator {
+    fn is_eol(self) -> bool {
+        matches!(self, Terminator::Eol)
+    }
+}
+
+fn read_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<(usize, Terminator)>
 where
     R: BufRead,
 {
-    const DELIMITER: u8 = b'\t';
-    const LINE_FEED: u8 = b'\n';
-    const CARRIAGE_RETURN: u8 = b'\r';
-
-    let mut r#match = None;
+    let mut terminator = Terminator::None;
     let mut len = 0;
 
-    while r#match.is_none() {
+    while matches!(terminator, Terminator::None) {
         let src = reader.fill_buf()?;
 
         if src.is_empty() {
             break;
         }
 
-        let (buf, n) = match memchr2(DELIMITER, LINE_FEED, src) {
+        let (buf, n) = match memchr2(SEPARATOR, LINE_FEED, src) {
             Some(i) => {
-                r#match = Some(src[i]);
+                terminator = match src[i] {
+                    SEPARATOR => Terminator::Separator,
+                    LINE_FEED => Terminator::Eol,
+                    _ => unreachable!(),
+                };
+
                 (&src[..i], i + 1)
             }
             None => (src, src.len()),
@@ -98,13 +128,11 @@ where
         reader.consume(n);
     }
 
-    let is_eol = matches!(r#match, Some(LINE_FEED));
-
-    if is_eol && dst.ends_with(&[CARRIAGE_RETURN]) {
+    if terminator.is_eol() && dst.ends_with(&[CARRIAGE_RETURN]) {
         dst.pop();
     }
 
-    Ok((len, is_eol))
+    Ok((len, terminator))
 }
 
 #[cfg(test)]
@@ -115,6 +143,8 @@ mod tests {
     #[test]
     fn test_read_record() -> io::Result<()> {
         let mut record = Record::default();
+
+        assert_eq!(read_record(&mut io::empty(), &mut record)?, 0);
 
         let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n"[..];
         read_record(&mut src, &mut record)?;
