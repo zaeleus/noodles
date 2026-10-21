@@ -159,53 +159,50 @@ mod tests {
 
         assert_eq!(read_record(&mut io::empty(), &mut record)?, 0);
 
-        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n"[..];
-        read_record(&mut src, &mut record)?;
-        assert_eq!(record.fields().buf, b"*4*0255**00**");
-        assert_eq!(record.fields().bounds, Bounds::default());
+        read_record(
+            &mut &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\n"[..],
+            &mut record,
+        )?;
+        assert_eq!(record, Record::default());
 
-        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\r\n"[..];
-        read_record(&mut src, &mut record)?;
-        assert_eq!(record.fields().buf, b"*4*0255**00**");
-        assert_eq!(record.fields().bounds, Bounds::default());
+        read_record(
+            &mut &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\r\n"[..],
+            &mut record,
+        )?;
+        assert_eq!(record, Record::default());
 
-        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*"[..];
-        read_record(&mut src, &mut record)?;
-        assert_eq!(record.fields().buf, b"*4*0255**00**");
-        assert_eq!(record.fields().bounds, Bounds::default());
+        read_record(&mut &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*"[..], &mut record)?;
+        assert_eq!(record, Record::default());
 
-        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tNH:i:0\n"[..];
-        read_record(&mut src, &mut record)?;
+        read_record(
+            &mut &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tNH:i:0\n"[..],
+            &mut record,
+        )?;
         assert_eq!(record.fields().buf, b"*4*0255**00**NH:i:0");
         assert_eq!(record.fields().bounds, Bounds::default());
 
-        let mut src = &b"\n"[..];
         assert!(matches!(
-            read_record(&mut src, &mut record),
+            read_record(&mut &b"\n"[..], &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
-        let mut src = &b"*\t"[..];
         assert!(matches!(
-            read_record(&mut src, &mut record),
+            read_record(&mut &b"*\t"[..], &mut record),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
         ));
 
-        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t"[..];
         assert!(matches!(
-            read_record(&mut src, &mut record),
+            read_record(&mut &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t"[..], &mut record),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
         ));
 
-        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\t"[..];
         assert!(matches!(
-            read_record(&mut src, &mut record),
+            read_record(&mut &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\t"[..], &mut record),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
         ));
 
-        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\t\n"[..];
         assert!(matches!(
-            read_record(&mut src, &mut record),
+            read_record(&mut &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\t\n"[..], &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
