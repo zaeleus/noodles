@@ -5,7 +5,7 @@ use std::{
 
 use memchr::memchr2;
 
-use crate::Record;
+use crate::{Record, record::fields::Bounds};
 
 const LINE_FEED: u8 = b'\n';
 const CARRIAGE_RETURN: u8 = b'\r';
@@ -25,8 +25,18 @@ where
     let mut buf = mem::take(&mut fields.buf).into_bytes();
     buf.clear();
 
-    let bounds = &mut fields.bounds;
+    let len = read_record_inner(reader, &mut buf, &mut fields.bounds)?;
 
+    fields.buf =
+        String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+
+    Ok(len)
+}
+
+fn read_record_inner<R>(reader: &mut R, dst: &mut Vec<u8>, bounds: &mut Bounds) -> io::Result<usize>
+where
+    R: BufRead,
+{
     let ends = [
         &mut bounds.reference_sequence_name_end,
         &mut bounds.variant_start_end,
@@ -40,25 +50,25 @@ where
     let mut len = 0;
 
     for end in ends {
-        len += read_required_field(reader, &mut buf)?;
-        *end = buf.len();
+        len += read_required_field(reader, dst)?;
+        *end = dst.len();
     }
 
-    let (n, terminator) = read_last_required_field(reader, &mut buf)?;
+    let (n, terminator) = read_last_required_field(reader, dst)?;
     len += n;
-    bounds.info_end = buf.len();
+    bounds.info_end = dst.len();
 
     bounds.samples_keys_end = if matches!(terminator, Terminator::Separator) {
-        len += read_required_field(reader, &mut buf)?;
+        len += read_required_field(reader, dst)?;
 
-        let end = buf.len();
+        let end = dst.len();
 
-        len += match read_line(reader, &mut buf)? {
+        len += match read_line(reader, dst)? {
             0 => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
             n => n,
         };
 
-        if buf[end..].is_empty() {
+        if dst[end..].is_empty() {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "missing samples values",
@@ -67,11 +77,8 @@ where
 
         end
     } else {
-        buf.len()
+        dst.len()
     };
-
-    fields.buf =
-        String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     Ok(len)
 }
