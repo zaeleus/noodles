@@ -60,6 +60,15 @@ pub trait Samples {
 
     /// Returns an iterator over samples.
     fn iter(&self) -> Box<dyn Iterator<Item = Box<dyn Sample + '_>> + '_>;
+
+    /// Returns the samples as VCF text, if they are already in that form.
+    ///
+    /// A writer can hand these straight to its output instead of decoding every value only to
+    /// format it again.
+    #[doc(hidden)]
+    fn as_text(&self) -> Option<&str> {
+        None
+    }
 }
 
 impl Samples for Box<dyn Samples + '_> {
@@ -92,5 +101,9 @@ impl Samples for Box<dyn Samples + '_> {
 
     fn iter(&self) -> Box<dyn Iterator<Item = Box<dyn Sample + '_>> + '_> {
         (**self).iter()
+    }
+
+    fn as_text(&self) -> Option<&str> {
+        (**self).as_text()
     }
 }
