@@ -80,7 +80,13 @@ fn read_last_required_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<
 where
     R: BufRead,
 {
-    read_field(reader, dst)
+    let (len, terminator) = read_field(reader, dst)?;
+
+    if len == 0 {
+        return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    }
+
+    Ok((len, terminator))
 }
 
 #[derive(Clone, Copy)]
@@ -156,6 +162,11 @@ mod tests {
         assert_eq!(record.fields().buf, b"*4*0255**00**");
         assert_eq!(record.fields().bounds, Bounds::default());
 
+        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*"[..];
+        read_record(&mut src, &mut record)?;
+        assert_eq!(record.fields().buf, b"*4*0255**00**");
+        assert_eq!(record.fields().bounds, Bounds::default());
+
         let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\tNH:i:0\n"[..];
         read_record(&mut src, &mut record)?;
         assert_eq!(record.fields().buf, b"*4*0255**00**NH:i:0");
@@ -165,6 +176,18 @@ mod tests {
         assert!(matches!(
             read_record(&mut src, &mut record),
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
+        let mut src = &b"*\t"[..];
+        assert!(matches!(
+            read_record(&mut src, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
+        ));
+
+        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t"[..];
+        assert!(matches!(
+            read_record(&mut src, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
         ));
 
         Ok(())
