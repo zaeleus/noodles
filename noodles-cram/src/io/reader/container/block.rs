@@ -11,16 +11,50 @@ use crate::{
     io::reader::num::{read_itf8, read_itf8_as, read_u32_le},
 };
 
+/// A raw CRAM container block.
+///
+/// This is a block as it appears in the stream. Its CRC32 has been verified, but its data is
+/// still encoded: use [`Self::decode`] to decompress it.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Block<'c> {
+    /// The method used to compress the data.
     pub compression_method: CompressionMethod,
+    /// What the block holds.
     pub content_type: ContentType,
+    /// The block content ID.
+    ///
+    /// This associates an external data block with a data series.
     pub content_id: ContentId,
+    /// The size of the data after decoding, in bytes.
     pub uncompressed_size: usize,
+    /// The compressed data.
     pub src: &'c [u8],
 }
 
 impl<'c> Block<'c> {
+    /// Decodes the block data.
+    ///
+    /// Data compressed with [`CompressionMethod::None`] is borrowed rather than copied.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use noodles_cram::{
+    ///     container::block::{CompressionMethod, ContentType},
+    ///     io::reader::Block,
+    /// };
+    ///
+    /// let block = Block {
+    ///     compression_method: CompressionMethod::None,
+    ///     content_type: ContentType::ExternalData,
+    ///     content_id: 1,
+    ///     uncompressed_size: 4,
+    ///     src: b"ndls",
+    /// };
+    ///
+    /// assert_eq!(*block.decode()?, b"ndls"[..]);
+    /// # Ok::<_, std::io::Error>(())
+    /// ```
     pub fn decode(&self) -> io::Result<Cow<'c, [u8]>> {
         use crate::codecs::{aac, bzip2, fqzcomp, gzip, lzma, name_tokenizer, rans_4x8, rans_nx16};
 
@@ -54,7 +88,7 @@ impl<'c> Block<'c> {
     }
 }
 
-fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
+pub(crate) fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     let original_src = *src;
 
     let mut compression_method = read_compression_method(src)?;
@@ -98,7 +132,10 @@ fn read_block<'c>(src: &mut &'c [u8]) -> io::Result<Block<'c>> {
     })
 }
 
-pub fn read_block_as<'c>(src: &mut &'c [u8], content_type: ContentType) -> io::Result<Block<'c>> {
+pub(crate) fn read_block_as<'c>(
+    src: &mut &'c [u8],
+    content_type: ContentType,
+) -> io::Result<Block<'c>> {
     let block = read_block(src)?;
     validate_content_type(block.content_type, content_type)?;
     Ok(block)
