@@ -50,7 +50,14 @@ where
     bounds.quality_scores_end = buf.len();
 
     if matches!(terminator, Terminator::Separator) {
-        len += read_line(reader, buf)?;
+        len += match read_line(reader, buf)? {
+            0 => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
+            n => n,
+        };
+
+        if buf[bounds.quality_scores_end..].is_empty() {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "missing data"));
+        }
     }
 
     Ok(len)
@@ -188,6 +195,18 @@ mod tests {
         assert!(matches!(
             read_record(&mut src, &mut record),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
+        ));
+
+        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\t"[..];
+        assert!(matches!(
+            read_record(&mut src, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
+        ));
+
+        let mut src = &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\t\n"[..];
+        assert!(matches!(
+            read_record(&mut src, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
         Ok(())

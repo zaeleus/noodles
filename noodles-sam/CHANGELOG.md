@@ -6,6 +6,8 @@
 
   * sam/io/reader/record: Return error when a required field is truncated.
 
+  * sam/io/reader/record: Reject empty data.
+
 ## 0.92.0 - 2026-10-15
 
 ### Changed
