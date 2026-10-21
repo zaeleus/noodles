@@ -8,6 +8,8 @@
 
 ### Changed
 
+  * vcf/io/reader/record: Return error when a required field is truncated.
+
   * vcf/io/writer/record/alternate_bases: Validate symbolic allele names.
 
   * vcf/io/writer/record/reference_sequence_name: Relax validation for VCF <
