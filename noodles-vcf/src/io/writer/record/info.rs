@@ -43,6 +43,17 @@ where
 {
     const DELIMITER: &[u8] = b";";
 
+    // The fields of a parsed record are already the output. An empty set of fields is still
+    // written as missing rather than as nothing.
+    if let Some(src) = info.as_text() {
+        let buf = if src.is_empty() {
+            MISSING
+        } else {
+            src.as_bytes()
+        };
+        return writer.write_all(buf).map_err(WriteError::Io);
+    }
+
     if info.is_empty() {
         writer.write_all(MISSING).map_err(WriteError::Io)?;
     } else {
