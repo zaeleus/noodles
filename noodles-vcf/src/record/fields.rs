@@ -74,8 +74,12 @@ impl Fields {
         }
     }
 
-    pub(super) fn samples(&self) -> &str {
-        &self.buf[self.bounds.samples_range()]
+    pub(super) fn samples_keys(&self) -> &str {
+        &self.buf[self.bounds.samples_keys_range()]
+    }
+
+    pub(super) fn samples_values(&self) -> &str {
+        &self.buf[self.bounds.samples_values_range()]
     }
 }
 
@@ -95,18 +99,27 @@ mod tests {
     #[test]
     fn test_samples() {
         let fields = Fields::default();
-        assert!(fields.samples().is_empty());
+        assert!(fields.samples_keys().is_empty());
+        assert!(fields.samples_values().is_empty());
 
         let fields = Fields {
-            buf: String::from(".1.N....GT\t0|0"),
-            ..Default::default()
+            buf: String::from(".1.N....GT0|0"),
+            bounds: Bounds {
+                samples_keys_end: 10,
+                ..Default::default()
+            },
         };
-        assert_eq!(fields.samples(), "GT\t0|0");
+        assert_eq!(fields.samples_keys(), "GT");
+        assert_eq!(fields.samples_values(), "0|0");
 
         let fields = Fields {
-            buf: String::from(".1.N.....\t."),
-            ..Default::default()
+            buf: String::from(".1.N......"),
+            bounds: Bounds {
+                samples_keys_end: 9,
+                ..Default::default()
+            },
         };
-        assert_eq!(fields.samples(), ".\t.");
+        assert_eq!(fields.samples_keys(), ".");
+        assert_eq!(fields.samples_values(), ".");
     }
 }

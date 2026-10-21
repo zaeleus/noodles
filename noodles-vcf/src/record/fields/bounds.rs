@@ -10,6 +10,7 @@ pub struct Bounds {
     pub quality_score_end: usize,
     pub filters_end: usize,
     pub info_end: usize,
+    pub samples_keys_end: usize,
 }
 
 impl Bounds {
@@ -45,8 +46,12 @@ impl Bounds {
         self.filters_end..self.info_end
     }
 
-    pub fn samples_range(&self) -> RangeFrom<usize> {
-        self.info_end..
+    pub fn samples_keys_range(&self) -> Range<usize> {
+        self.info_end..self.samples_keys_end
+    }
+
+    pub fn samples_values_range(&self) -> RangeFrom<usize> {
+        self.samples_keys_end..
     }
 }
 
@@ -61,6 +66,7 @@ impl Default for Bounds {
             quality_score_end: 6,
             filters_end: 7,
             info_end: 8,
+            samples_keys_end: 8,
         }
     }
 }
@@ -80,6 +86,7 @@ mod tests {
         assert_eq!(bounds.quality_score_range(), 5..6);
         assert_eq!(bounds.filters_range(), 6..7);
         assert_eq!(bounds.info_range(), 7..8);
-        assert_eq!(bounds.samples_range(), 8..);
+        assert_eq!(bounds.samples_keys_range(), 8..8);
+        assert_eq!(bounds.samples_values_range(), 8..);
     }
 }

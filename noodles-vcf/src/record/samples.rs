@@ -9,7 +9,7 @@ use std::io;
 pub use self::{keys::Keys, sample::Sample, series::Series};
 use crate::Header;
 
-pub(super) const DELIMITER: char = '\t';
+const DELIMITER: char = '\t';
 
 /// VCF record samples.
 #[derive(Debug, Eq, PartialEq)]

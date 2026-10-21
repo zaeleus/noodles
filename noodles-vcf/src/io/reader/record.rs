@@ -48,9 +48,27 @@ where
     len += n;
     bounds.info_end = buf.len();
 
-    if matches!(terminator, Terminator::Separator) {
-        len += read_line(reader, &mut buf)?;
-    }
+    bounds.samples_keys_end = if matches!(terminator, Terminator::Separator) {
+        len += read_required_field(reader, &mut buf)?;
+
+        let end = buf.len();
+
+        len += match read_line(reader, &mut buf)? {
+            0 => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
+            n => n,
+        };
+
+        if buf[end..].is_empty() {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "missing samples values",
+            ));
+        }
+
+        end
+    } else {
+        buf.len()
+    };
 
     fields.buf =
         String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
@@ -193,8 +211,14 @@ mod tests {
 
         let mut src = &b".\t1\t.\tN\t.\t.\t.\t.\tGT\t.\n"[..];
         read_record(&mut src, &mut record)?;
-        assert_eq!(record.fields().buf, ".1.N....GT\t.");
-        assert_eq!(record.fields().bounds, Bounds::default());
+        assert_eq!(record.fields().buf, ".1.N....GT.");
+        assert_eq!(
+            record.fields().bounds,
+            Bounds {
+                samples_keys_end: 10,
+                ..Default::default()
+            }
+        );
 
         let mut src = &b"\n"[..];
         assert!(matches!(
@@ -212,6 +236,30 @@ mod tests {
         assert!(matches!(
             read_record(&mut src, &mut record),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
+        ));
+
+        let mut src = &b".\t1\t.\tN\t.\t.\t.\t.\t"[..];
+        assert!(matches!(
+            read_record(&mut src, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        let mut src = &b".\t1\t.\tN\t.\t.\t.\t.\tGT"[..];
+        assert!(matches!(
+            read_record(&mut src, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        let mut src = &b".\t1\t.\tN\t.\t.\t.\t.\tGT\t"[..];
+        assert!(matches!(
+            read_record(&mut src, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        let mut src = &b".\t1\t.\tN\t.\t.\t.\t.\tGT\t\n"[..];
+        assert!(matches!(
+            read_record(&mut src, &mut record),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
         Ok(())
