@@ -9,6 +9,20 @@ use std::io;
 use super::{ALPHABET_SIZE, Flags};
 use crate::io::reader::num::{read_u8, read_u32_le, read_uint7_as};
 
+/// Decodes a rANS Nx16 stream.
+///
+/// `uncompressed_size` is only used when the stream does not store one itself, i.e., when
+/// `Flags::NO_SIZE` is set.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::codecs::rans_nx16::{Flags, decode, encode};
+///
+/// let src = encode(Flags::empty(), b"noodles")?;
+/// assert_eq!(decode(&src, 7)?, b"noodles");
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn decode(mut src: &[u8], mut uncompressed_size: usize) -> io::Result<Vec<u8>> {
     let flags = read_flags(&mut src)?;
 

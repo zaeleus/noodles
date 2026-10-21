@@ -4,8 +4,7 @@ mod decode;
 mod encode;
 mod order;
 
-pub use self::order::Order;
-pub(crate) use self::{decode::decode, encode::encode};
+pub use self::{decode::decode, encode::encode, order::Order};
 
 // § 2.2 "rANS entropy encoding" (2023-03-15)
 const ALPHABET_SIZE: usize = 256; // b
