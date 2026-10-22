@@ -69,10 +69,7 @@ where
         };
 
         if dst[end..].is_empty() {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "missing samples values",
-            ));
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "missing fields"));
         }
 
         end
@@ -94,10 +91,17 @@ fn read_required_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize
 where
     R: BufRead,
 {
+    let prev_end = dst.len();
     let (len, terminator) = read_field(reader, dst)?;
 
     match terminator {
-        Terminator::Separator => Ok(len),
+        Terminator::Separator => {
+            if dst[prev_end..].is_empty() {
+                Err(io::Error::new(io::ErrorKind::InvalidData, "missing field"))
+            } else {
+                Ok(len)
+            }
+        }
         Terminator::Eol => Err(io::Error::new(io::ErrorKind::InvalidData, "unexpected EOL")),
         Terminator::None => Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
     }
@@ -107,10 +111,13 @@ fn read_last_required_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<
 where
     R: BufRead,
 {
+    let prev_end = dst.len();
     let (len, terminator) = read_field(reader, dst)?;
 
     if len == 0 {
         return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+    } else if dst[prev_end..].is_empty() {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "missing field"));
     }
 
     Ok((len, terminator))
@@ -226,6 +233,11 @@ mod tests {
         ));
 
         assert!(matches!(
+            read_record(&mut &b"\t"[..], &mut record),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
+        assert!(matches!(
             read_record(&mut &b".\t"[..], &mut record),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
         ));
@@ -233,6 +245,11 @@ mod tests {
         assert!(matches!(
             read_record(&mut &b".\t1\t.\tN\t.\t.\t.\t"[..], &mut record),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof,
+        ));
+
+        assert!(matches!(
+            read_record(&mut &b".\t1\t.\tN\t.\t.\t.\t\n"[..], &mut record),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
         assert!(matches!(

@@ -8,7 +8,7 @@
 
 ### Changed
 
-  * vcf/io/reader/record: Return error when a required field is truncated.
+  * vcf/io/reader/record: Reject empty and truncated fields.
 
   * vcf/io/reader/record: Require records with samples keys to also include
     samples values.
