@@ -139,3 +139,45 @@ fn next_field<'a>(s: &mut &'a str) -> &'a str {
 
     field
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::variant::{record::samples::keys::key, record_buf::Samples};
+
+    use super::*;
+
+    #[test]
+    fn test_parse_record_buf() -> Result<(), ParseError> {
+        let mut record = RecordBuf::default();
+
+        let header = Header::default();
+        parse_record_buf(".\t1\t.\tN\t.\t.\t.\t.", &header, &mut record)?;
+        assert_eq!(record, RecordBuf::default());
+
+        let header = Header::builder().add_sample_name("sample1").build();
+        parse_record_buf(".\t1\t.\tN\t.\t.\t.\t.\tGT\t.", &header, &mut record)?;
+        let expected = RecordBuf::builder()
+            .set_samples(Samples::new(
+                [String::from(key::GENOTYPE)].into_iter().collect(),
+                vec![vec![]],
+            ))
+            .build();
+        assert_eq!(record, expected);
+
+        assert!(matches!(
+            parse_record_buf("\t", &Header::default(), &mut record),
+            Err(ParseError::InvalidPosition(_))
+        ));
+
+        assert!(matches!(
+            parse_record_buf(".\t", &Header::default(), &mut record),
+            Err(ParseError::InvalidPosition(_))
+        ));
+
+        // FIXME
+        parse_record_buf(".\t1\t.\tN\t.\t.\t.\t.\t", &Header::default(), &mut record)?;
+        assert_eq!(record, RecordBuf::default());
+
+        Ok(())
+    }
+}
