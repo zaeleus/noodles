@@ -16,6 +16,8 @@
   * vcf/io/reader/record_buf/samples: Require samples if separator is present
     after INFO field.
 
+  * vcf/io/reader/record_buf/samples: Reject trailing separator.
+
   * vcf/io/writer/record/alternate_bases: Validate symbolic allele names.
 
   * vcf/io/writer/record/reference_sequence_name: Relax validation for VCF <

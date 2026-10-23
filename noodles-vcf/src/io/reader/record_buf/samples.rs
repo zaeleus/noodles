@@ -4,7 +4,7 @@ mod values;
 use std::{error, fmt};
 
 use self::{keys::parse_keys, values::parse_values};
-use super::next_field;
+use super::{last_next_field, next_field};
 use crate::{Header, variant::record_buf::Samples};
 
 /// An error when raw VCF record genotypes fail to parse.
@@ -69,12 +69,15 @@ pub(super) fn parse_samples(
 
     genotypes.values.resize(sample_count, Vec::new());
 
+    let mut is_eof = false;
+
     for values in &mut genotypes.values {
-        let field = next_field(&mut s);
+        let (field, _is_eof) = last_next_field(&mut s);
         parse_values(header, &genotypes.keys, field, values).map_err(ParseError::InvalidValues)?;
+        is_eof = _is_eof;
     }
 
-    if s.is_empty() {
+    if is_eof {
         Ok(())
     } else {
         Err(ParseError::UnexpectedInput)
@@ -135,6 +138,11 @@ mod tests {
         );
 
         let header = Header::builder().add_sample_name("sample0").build();
+
+        assert_eq!(
+            parse_samples(&header, "GT\t0|0\t", &mut genotypes),
+            Err(ParseError::UnexpectedInput)
+        );
 
         assert_eq!(
             parse_samples(&header, "GT\t0|0\t0|0", &mut genotypes),
