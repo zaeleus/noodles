@@ -21,12 +21,14 @@ use self::{
 };
 use crate::{Header, variant::RecordBuf};
 
+const SEPARATOR: char = '\t';
 const MISSING: &str = ".";
 
 /// An error when a raw VCF record fails to parse.
-#[allow(clippy::enum_variant_names)]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// Unexpected EOF.
+    UnexpectedEof,
     /// The position is invalid.
     InvalidPosition(position::ParseError),
     /// The IDs are invalid.
@@ -48,6 +50,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::UnexpectedEof => None,
             Self::InvalidPosition(e) => Some(e),
             Self::InvalidIds(e) => Some(e),
             Self::InvalidReferenceBases(e) => Some(e),
@@ -63,6 +66,7 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::UnexpectedEof => write!(f, "unexpected EOF"),
             Self::InvalidPosition(_) => write!(f, "invalid position"),
             Self::InvalidIds(_) => write!(f, "invalid IDs"),
             Self::InvalidReferenceBases(_) => write!(f, "invalid reference bases"),
@@ -118,26 +122,41 @@ pub(crate) fn parse_record_buf(
     }
 
     record.info_mut().clear();
-    let field = next_field(&mut s);
+    let (field, is_eof) = last_next_field(&mut s);
     if field != MISSING {
         parse_info(header, field, record.info_mut()).map_err(ParseError::InvalidInfo)?;
     }
 
-    parse_samples(header, s, record.samples_mut()).map_err(ParseError::InvalidSamples)?;
+    if !is_eof {
+        parse_samples(header, s, record.samples_mut()).map_err(ParseError::InvalidSamples)?;
+    } else if !header.sample_names().is_empty() {
+        return Err(ParseError::UnexpectedEof);
+    } else {
+        record.samples_mut().clear();
+    }
 
     Ok(())
 }
 
 fn next_field<'a>(s: &mut &'a str) -> &'a str {
-    const DELIMITER: char = '\t';
-
     let (field, rest) = s
-        .split_once(DELIMITER)
+        .split_once(SEPARATOR)
         .unwrap_or_else(|| s.split_at(s.len()));
 
     *s = rest;
 
     field
+}
+
+fn last_next_field<'a>(s: &mut &'a str) -> (&'a str, bool) {
+    let ((field, rest), is_eof) = s
+        .split_once(SEPARATOR)
+        .map(|parts| (parts, false))
+        .unwrap_or_else(|| (s.split_at(s.len()), true));
+
+    *s = rest;
+
+    (field, is_eof)
 }
 
 #[cfg(test)]
@@ -174,9 +193,16 @@ mod tests {
             Err(ParseError::InvalidPosition(_))
         ));
 
-        // FIXME
-        parse_record_buf(".\t1\t.\tN\t.\t.\t.\t.\t", &Header::default(), &mut record)?;
-        assert_eq!(record, RecordBuf::default());
+        assert!(matches!(
+            parse_record_buf(".\t1\t.\tN\t.\t.\t.\t.\t", &Header::default(), &mut record),
+            Err(ParseError::InvalidSamples(_))
+        ));
+
+        let header = Header::builder().add_sample_name("sample1").build();
+        assert!(matches!(
+            parse_record_buf(".\t1\t.\tN\t.\t.\t.\t.", &header, &mut record),
+            Err(ParseError::UnexpectedEof)
+        ));
 
         Ok(())
     }

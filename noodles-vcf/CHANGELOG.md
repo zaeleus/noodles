@@ -13,6 +13,9 @@
   * vcf/io/reader/record: Require records with samples keys to also include
     samples values.
 
+  * vcf/io/reader/record_buf/samples: Require samples if separator is present
+    after INFO field.
+
   * vcf/io/writer/record/alternate_bases: Validate symbolic allele names.
 
   * vcf/io/writer/record/reference_sequence_name: Relax validation for VCF <

@@ -10,6 +10,8 @@ use crate::{Header, variant::record_buf::Samples};
 /// An error when raw VCF record genotypes fail to parse.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ParseError {
+    /// The input is empty.
+    Empty,
     /// The input is unexpected.
     UnexpectedInput,
     /// The keys are invalid.
@@ -21,6 +23,7 @@ pub enum ParseError {
 impl error::Error for ParseError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
+            Self::Empty => None,
             Self::UnexpectedInput => None,
             Self::InvalidKeys(e) => Some(e),
             Self::InvalidValues(e) => Some(e),
@@ -31,6 +34,7 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            ParseError::Empty => write!(f, "empty input"),
             ParseError::UnexpectedInput => write!(f, "unexpected input"),
             ParseError::InvalidKeys(_) => write!(f, "invalid keys"),
             ParseError::InvalidValues(_) => write!(f, "invalid values"),
@@ -43,18 +47,17 @@ pub(super) fn parse_samples(
     mut s: &str,
     genotypes: &mut Samples,
 ) -> Result<(), ParseError> {
+    if s.is_empty() {
+        return Err(ParseError::Empty);
+    }
+
     genotypes.keys.as_mut().clear();
 
     let sample_count = header.sample_names().len();
 
     if sample_count == 0 {
         genotypes.values.clear();
-
-        if s.is_empty() {
-            return Ok(());
-        } else {
-            return Err(ParseError::UnexpectedInput);
-        }
+        return Err(ParseError::UnexpectedInput);
     }
 
     for values in &mut genotypes.values {
@@ -91,10 +94,6 @@ mod tests {
 
         let mut genotypes = Samples::default();
 
-        let header = Header::default();
-        parse_samples(&header, "", &mut genotypes)?;
-        assert!(genotypes.is_empty());
-
         let header = Header::builder().add_sample_name("sample0").build();
         parse_samples(&header, "GT\t0|0", &mut genotypes)?;
         let expected = Samples::new(
@@ -122,6 +121,12 @@ mod tests {
             vec![vec![Some(Value::from(8))], vec![Some(Value::from(13))]],
         );
         assert_eq!(genotypes, expected);
+
+        let header = Header::default();
+        assert_eq!(
+            parse_samples(&header, "", &mut genotypes),
+            Err(ParseError::Empty)
+        );
 
         let header = Header::default();
         assert_eq!(
