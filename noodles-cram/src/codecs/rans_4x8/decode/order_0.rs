@@ -99,6 +99,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_decode_rejects_oversized_frequency_tables() {
+        // 'a' = 4095 and 'c' = f, with no states following: a total of 4096 is valid (and reading
+        // the states fails), but 4097 is not.
+        for (f, expected) in [
+            (0x01, io::ErrorKind::UnexpectedEof),
+            (0x02, io::ErrorKind::InvalidData),
+        ] {
+            let src = [b'a', 0x8f, 0xff, b'c', f, 0x00];
+            let mut dst = [0; 8];
+            let actual = decode(&mut &src[..], &mut dst).unwrap_err().kind();
+            assert_eq!(actual, expected, "f = {f}");
+        }
+    }
+
+    #[test]
     fn test_read_frequencies() -> io::Result<()> {
         let src = [
             b'a', // symbol = 'a'

@@ -80,3 +80,23 @@ fn read_frequencies(src: &mut &[u8]) -> io::Result<[u32; ALPHABET_SIZE]> {
 
     Ok(frequencies)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_decode_rejects_oversized_frequency_tables() {
+        // Alphabet {'a', 'c'}; 'a' = 4095 and 'c' = f, with no states following: a total of 4096
+        // is valid (and reading the states fails), but 4097 is not.
+        for (f, expected) in [
+            (0x01, io::ErrorKind::UnexpectedEof),
+            (0x02, io::ErrorKind::InvalidData),
+        ] {
+            let src = [b'a', b'c', 0x00, 0x9f, 0x7f, f];
+            let mut dst = [0; 8];
+            let actual = decode(&mut &src[..], &mut dst, 4).unwrap_err().kind();
+            assert_eq!(actual, expected, "f = {f}");
+        }
+    }
+}
