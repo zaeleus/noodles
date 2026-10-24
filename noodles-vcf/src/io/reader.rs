@@ -443,7 +443,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_read_record() -> io::Result<()> {
+    fn test_read_record_buf() -> io::Result<()> {
         static DATA: &[u8] = b"\
 ##fileformat=VCFv4.3
 ##fileDate=20200501
