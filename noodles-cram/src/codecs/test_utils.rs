@@ -1,10 +1,8 @@
 //! Shared codec test helpers.
 //!
-//! `fixtures/` holds streams encoded by htscodecs 1.6.7 (`rans_compress` and `rans_compress_4x16`)
-//! with their decoded bytes: `qual.bin` for `*-qual-*` and [`sparse`] for `*-mid-*`,
-//! `*-big-*` and `*-wide-*`. `r4x16-*` files are named by their flags byte.
+//! See `fixtures/README.md` for the htscodecs fixtures.
 
-/// A 64-bit LCG, matching the fixture generator's `next()`.
+/// A 64-bit LCG, as used to generate the fixture inputs.
 pub(crate) struct Rng(pub(crate) u64);
 
 impl Rng {

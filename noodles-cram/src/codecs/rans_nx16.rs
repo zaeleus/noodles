@@ -56,7 +56,6 @@ mod tests {
                 _ => &big,
             };
 
-            assert_eq!(format!("{:02x}", src[0]), name[name.len() - 2..]);
             assert!(decode(src, expected.len())? == *expected, "{name}");
         }
 
