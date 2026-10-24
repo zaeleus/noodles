@@ -376,13 +376,6 @@ fn get_slice_reference_sequence<'c>(
         return Ok(None);
     };
 
-    if context.alignment_span() == 0 {
-        if let Some(expected_md5) = slice_header.reference_md5() {
-            validate_sequence(&[], expected_md5)?;
-        }
-        return Ok(None);
-    }
-
     let external_reference_sequence_is_required = compression_header
         .preservation_map()
         .external_reference_sequence_is_required();
