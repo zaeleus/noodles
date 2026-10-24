@@ -417,6 +417,9 @@ mod tests {
         dst
     }
 
+    // `names.bin` holds 35 NUL-terminated read names. `tok3-rans.bin` and `tok3-arith.bin` are
+    // `names.bin` encoded by htscodecs 1.6.7 `tok3_encode_names` at level 9, with rANS Nx16 and
+    // the adaptive arithmetic coder, respectively, as the inner codec.
     #[test]
     fn test_decode_htscodecs_fixtures() -> io::Result<()> {
         let expected = include_bytes!("../fixtures/names.bin");
