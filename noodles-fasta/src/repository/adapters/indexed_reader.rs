@@ -54,7 +54,8 @@ where
             return Some(self.reader.query(&Region::new(name, interval)));
         };
 
-        // Stop at the indexed length. A query past it would read into the next record.
+        // Stop at the indexed length. A query that starts past it would seek into the next record,
+        // e.g., `sq0:13-14` of a 10-base `sq0` would return bases of the next sequence.
         let start = interval.start().unwrap_or(Position::MIN);
         let end = interval
             .end()
