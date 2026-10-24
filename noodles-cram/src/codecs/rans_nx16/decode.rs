@@ -205,9 +205,8 @@ fn apply_step(state: u32, step: u32, bits: u32) -> u32 {
 #[inline(always)]
 fn renormalize_states<const N: usize>(states: &mut [u32; N], src: &mut &[u8]) -> io::Result<()> {
     if let Some((window, _)) = src.split_at_checked(2 * N) {
-        // Fast path: enough input for every state to read, so no per-state EOF handling. Whether
-        // a state renormalizes is data dependent and poorly predicted, so this is branchless:
-        // every state loads the next two bytes, and only the states that need them use them.
+        // With enough input for every state, there is no per-state EOF handling. Every state loads
+        // the next two bytes, and only the states that need them use them.
         // `n <= 2 * i` before state `i`, so the loads stay within `window`.
         let mut n = 0;
 

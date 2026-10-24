@@ -41,8 +41,7 @@ const TABLE_SIZE: usize = 1 << NORMALIZATION_BITS;
 ///
 /// `symbols` maps each cumulative frequency slot to its symbol, and `frequencies` is indexed by
 /// symbol and packs `frequency << 16 | cumulative_frequency`. (rANS Nx16 instead packs per slot;
-/// see its `SymbolTable`.) At 5 KiB per table, this stays cache-resident and cheap to build for
-/// small blocks.
+/// see its `SymbolTable`.)
 fn build_table(
     row: &[u16; ALPHABET_SIZE],
     symbols: &mut [u8; TABLE_SIZE],
@@ -129,7 +128,6 @@ fn renormalize_states(states: &mut [u32; STATE_COUNT], src: &mut &[u8]) -> io::R
             s = (s << (8 * r0)) | (u32::from(window[k & 7]) & r0.wrapping_neg());
             k += r0 as usize;
 
-            // A second byte is rarely needed, so this branch predicts well.
             if s < LOWER_BOUND {
                 s = (s << 8) | u32::from(window[k & 7]);
                 k += 1;

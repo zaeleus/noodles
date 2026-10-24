@@ -37,8 +37,7 @@ impl Rows {
 
 /// Decoding tables (see [`build_table`]) for every context with frequencies, stored
 /// contiguously. Contexts without frequencies share an empty table (index 0), which decodes
-/// like the all-zero row it represents. Quality scores can use around a hundred contexts, so the
-/// compact per-context layout matters here.
+/// like the all-zero row it represents.
 struct Tables {
     symbols: Vec<[u8; TABLE_SIZE]>,
     frequencies: Vec<[u32; ALPHABET_SIZE]>,
@@ -109,9 +108,7 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
             *prev_sym = sym;
         }
 
-        // Keep the four independent state calculations ahead of the ordered byte reads. The
-        // renormalization is branchless, since order-1 quality contexts make the per-state
-        // renormalization branch unpredictable.
+        // The state steps are independent, so they run ahead of the ordered renormalization reads.
         renormalize_states(&mut states, src)?;
     }
 

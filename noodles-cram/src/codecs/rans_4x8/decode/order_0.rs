@@ -27,8 +27,6 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
         }
 
         // The state steps are independent, so they run ahead of the ordered renormalization reads.
-        // Unlike order-1, the plain byte loop is faster here than the branchless
-        // renormalization.
         for state in &mut states {
             *state = state_renormalize(*state, src)?;
         }
