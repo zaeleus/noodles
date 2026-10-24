@@ -41,12 +41,4 @@ mod tests {
 
         Ok(())
     }
-    #[test]
-    fn test_order_0_dispatch_boundary() -> io::Result<()> {
-        for len in [4095, 4096, 4097] {
-            let src = sparse(len, 3, 32);
-            assert_eq!(decode(&encode(Order::Zero, &src)?)?, src);
-        }
-        Ok(())
-    }
 }

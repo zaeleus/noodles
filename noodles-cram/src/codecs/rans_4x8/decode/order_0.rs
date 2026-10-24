@@ -9,17 +9,10 @@ use crate::{
 };
 
 type Frequencies = [u16; ALPHABET_SIZE]; // F
-type CumulativeFrequencies = Frequencies;
-type CumulativeFrequenciesSymbolsTable = [u8; TABLE_SIZE];
 
 pub fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
     let frequencies = read_frequencies(src)?;
     validate_frequencies(&frequencies)?;
-
-    // Small blocks retain the original order-0 lookup and avoid packed-table setup.
-    if dst.len() < TABLE_SIZE {
-        return decode_small(src, dst, &frequencies);
-    }
 
     let mut symbols = [0; TABLE_SIZE];
     let mut packed_frequencies = [0; ALPHABET_SIZE];
@@ -47,78 +40,6 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8]) -> io::Result<()> {
     }
 
     Ok(())
-}
-
-fn decode_small(src: &mut &[u8], dst: &mut [u8], frequencies: &Frequencies) -> io::Result<()> {
-    let cumulative_frequencies = build_cumulative_frequencies(frequencies);
-
-    let cumulative_frequencies_symbols_table =
-        build_cumulative_frequencies_symbols_table(&cumulative_frequencies);
-
-    let mut states = read_states(src)?;
-    let (chunks, remainder) = dst.as_chunks_mut::<STATE_COUNT>();
-
-    for chunk in chunks {
-        for (d, state) in chunk.iter_mut().zip(&mut states) {
-            let f = (*state & 0x0fff) as u16;
-            let sym = cumulative_frequencies_symbols_table[usize::from(f)];
-
-            *d = sym;
-
-            let i = usize::from(sym);
-            *state = u32::from(frequencies[i])
-                .wrapping_mul(*state >> NORMALIZATION_BITS)
-                .wrapping_add(*state & 0x0fff)
-                .wrapping_sub(u32::from(cumulative_frequencies[i]));
-            *state = state_renormalize(*state, src)?;
-        }
-    }
-
-    for (d, state) in remainder.iter_mut().zip(&mut states) {
-        let f = (*state & 0x0fff) as u16;
-        let sym = cumulative_frequencies_symbols_table[usize::from(f)];
-
-        *d = sym;
-
-        let i = usize::from(sym);
-        *state = u32::from(frequencies[i])
-            .wrapping_mul(*state >> NORMALIZATION_BITS)
-            .wrapping_add(*state & 0x0fff)
-            .wrapping_sub(u32::from(cumulative_frequencies[i]));
-        *state = state_renormalize(*state, src)?;
-    }
-
-    Ok(())
-}
-
-fn build_cumulative_frequencies(frequencies: &Frequencies) -> CumulativeFrequencies {
-    let mut cumulative_frequencies = [0; ALPHABET_SIZE];
-
-    let mut f = cumulative_frequencies[0];
-
-    for (next_f, g) in cumulative_frequencies[1..].iter_mut().zip(frequencies) {
-        *next_f = f + g;
-        f = *next_f;
-    }
-
-    cumulative_frequencies
-}
-
-fn build_cumulative_frequencies_symbols_table(
-    cumulative_freqs: &CumulativeFrequencies,
-) -> CumulativeFrequenciesSymbolsTable {
-    let mut table = [0; 4096];
-    let mut sym = 0;
-
-    for (f, g) in (0u16..).zip(&mut table) {
-        while sym < u8::MAX && f >= cumulative_freqs[usize::from(sym + 1)] {
-            sym += 1;
-        }
-
-        *g = sym;
-    }
-
-    table
 }
 
 pub(super) fn read_frequencies(src: &mut &[u8]) -> io::Result<Frequencies> {
