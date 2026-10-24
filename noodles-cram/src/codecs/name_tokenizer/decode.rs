@@ -1,173 +1,317 @@
 mod header;
 
-use std::io::{self, BufRead, Cursor, Write};
+use std::{io, ops::Range};
 
 use self::header::{CompressionMethod, read_header};
 use super::Type;
 use crate::{
     codecs::{aac, rans_nx16},
-    io::{
-        reader::num::{read_u8, read_u32_le, read_uint7_as},
-        writer::num::write_u8,
-    },
+    io::reader::num::{read_u8, read_uint7_as},
 };
 
+const NUL: u8 = 0x00;
+
 pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
-    const NUL: u8 = 0x00;
+    // Bounds up-front reservations; the declared sizes are not trusted for allocation.
+    const MAX_INITIAL_CAPACITY: usize = 1 << 20;
 
     let (uncompressed_size, name_count, compression_method) = read_header(&mut src)?;
 
-    let mut b = decode_token_byte_streams(&mut src, compression_method, name_count)?;
-
-    let mut names = vec![Vec::new(); name_count];
-    let mut tokens = vec![vec![None; 128]; name_count];
-
-    let mut dst = Vec::with_capacity(uncompressed_size);
-
-    for i in 0..name_count {
-        let name = decode_single_name(&mut b, &mut names, &mut tokens, i)?;
-        dst.write_all(&name)?;
-        write_u8(&mut dst, NUL)?;
+    // As in htscodecs, a block holds at least one name.
+    if name_count == 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid tok3 name count",
+        ));
     }
 
-    Ok(dst)
+    let mut b = decode_token_byte_streams(&mut src, compression_method, name_count)?;
+
+    let mut decoder = NameDecoder {
+        dst: Vec::with_capacity(uncompressed_size.min(MAX_INITIAL_CAPACITY)),
+        names: Vec::with_capacity(name_count.min(MAX_INITIAL_CAPACITY)),
+        tokens: Vec::new(),
+    };
+
+    for n in 0..name_count {
+        decoder.decode_name(&mut b, n)?;
+    }
+
+    Ok(decoder.dst)
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+/// A decoded token.
+///
+/// Strings are ranges of the output, so tokens are small and copied rather than cloned.
+#[derive(Clone, Copy, Debug)]
 enum Token {
     Char(u8),
-    String(Vec<u8>),
+    String(usize, usize),
     Digits(u32),
     PaddedDigits(u32, u8),
     Nop,
 }
 
-#[derive(Clone, Debug, Default)]
-struct TokenReader {
-    type_reader: Cursor<Vec<u8>>,
-    string_reader: Cursor<Vec<u8>>,
-    char_reader: Cursor<Vec<u8>>,
-    digits0_reader: Cursor<Vec<u8>>,
-    dz_len_reader: Cursor<Vec<u8>>,
-    dup_reader: Cursor<Vec<u8>>,
-    diff_reader: Cursor<Vec<u8>>,
-    digits_reader: Cursor<Vec<u8>>,
-    delta_reader: Cursor<Vec<u8>>,
-    delta0_reader: Cursor<Vec<u8>>,
+/// A decoded name: its bytes in the output (excluding the NUL), and its tokens in the token
+/// arena. Token `t` (1-based) of the name is `tokens[t - 1]`; later positions have no token.
+#[derive(Clone, Debug)]
+struct Name {
+    bytes: Range<usize>,
+    tokens: Range<usize>,
 }
 
+struct NameDecoder {
+    dst: Vec<u8>,
+    names: Vec<Name>,
+    tokens: Vec<Token>,
+}
+
+impl NameDecoder {
+    fn decode_name(&mut self, b: &mut [TokenReader], n: usize) -> io::Result<()> {
+        let b0 = b
+            .first_mut()
+            .ok_or_else(|| invalid_data("missing token streams"))?;
+        let ty = b0.read_type()?;
+        let dist = b0.read_distance(ty)?;
+        let m = n
+            .checked_sub(dist)
+            .ok_or_else(|| invalid_data("invalid name distance"))?;
+
+        let start = self.dst.len();
+
+        // A name can reference itself (distance 0), in which case it has no previous tokens.
+        let prev = self.names.get(m).cloned().unwrap_or(Name {
+            bytes: 0..0,
+            tokens: 0..0,
+        });
+
+        let tokens = if ty == Type::Dup {
+            self.dst.extend_from_within(prev.bytes);
+            prev.tokens
+        } else {
+            let tokens_start = self.tokens.len();
+            let prev_tokens = &prev.tokens;
+
+            for (t, streams) in b.iter_mut().enumerate().skip(1) {
+                let i = prev_tokens.start + t - 1;
+                let prev_token = (i < prev_tokens.end).then(|| self.tokens[i]);
+
+                let Some(token) = streams.read_token(prev_token, &mut self.dst)? else {
+                    break;
+                };
+
+                self.tokens.push(token);
+            }
+
+            // Every name ends with an end token. Running out of token positions first is an error.
+            if self.tokens.len() - tokens_start == b.len().saturating_sub(1) {
+                return Err(invalid_data("missing name end token"));
+            }
+
+            tokens_start..self.tokens.len()
+        };
+
+        self.names.push(Name {
+            bytes: start..self.dst.len(),
+            tokens,
+        });
+
+        self.dst.push(NUL);
+
+        Ok(())
+    }
+}
+
+/// A token byte stream.
+///
+/// Bytes past `buf` up to `len` read as `fill`. This represents the implicit type stream of a new
+/// token position (its type, then a match for every other name) without allocating a byte per
+/// name. Invariant: `len >= buf.len()`, and `len > buf.len()` only for an implicit type stream in
+/// its own position (explicit streams come from [`Stream::new`], and duplicates are
+/// materialized), which is why only `read_u8` reads `fill`.
+#[derive(Clone, Debug, Default)]
+struct Stream {
+    buf: Vec<u8>,
+    len: usize,
+    fill: u8,
+    pos: usize,
+}
+
+impl Stream {
+    fn new(buf: Vec<u8>) -> Self {
+        Self {
+            len: buf.len(),
+            buf,
+            fill: 0,
+            pos: 0,
+        }
+    }
+
+    fn read_u8(&mut self) -> io::Result<u8> {
+        let n = match self.buf.get(self.pos) {
+            Some(&n) => n,
+            None if self.pos < self.len => self.fill,
+            None => return Err(unexpected_eof()),
+        };
+
+        self.pos += 1;
+
+        Ok(n)
+    }
+
+    // Implicit streams are only read as types, so multi-byte reads use `buf` directly.
+    fn read_u32_le(&mut self) -> io::Result<u32> {
+        let buf = self
+            .buf
+            .get(self.pos..)
+            .and_then(|buf| buf.first_chunk())
+            .ok_or_else(unexpected_eof)?;
+
+        self.pos += 4;
+
+        Ok(u32::from_le_bytes(*buf))
+    }
+
+    /// Reads a NUL-terminated string, without the NUL.
+    ///
+    /// Unterminated input at the end of the stream drops its last byte, as the delimiter would
+    /// have been.
+    fn read_string(&mut self) -> &[u8] {
+        let rest = self.buf.get(self.pos..).unwrap_or_default();
+
+        match rest.iter().position(|&b| b == NUL) {
+            Some(i) => {
+                self.pos += i + 1;
+                &rest[..i]
+            }
+            None => {
+                self.pos = self.buf.len();
+                rest.split_last().map(|(_, s)| s).unwrap_or_default()
+            }
+        }
+    }
+}
+
+/// The streams of one token position, indexed by type (`Type::Type` through `Type::Delta0`).
+#[derive(Debug, Default)]
+struct TokenReader {
+    streams: [Stream; STREAM_TYPE_COUNT],
+}
+
+const STREAM_TYPE_COUNT: usize = Type::Delta0 as usize + 1;
+
 impl TokenReader {
-    fn get(&self, ty: Type) -> &Cursor<Vec<u8>> {
-        match ty {
-            Type::Type => &self.type_reader,
-            Type::String => &self.string_reader,
-            Type::Char => &self.char_reader,
-            Type::Digits0 => &self.digits0_reader,
-            Type::Dup => &self.dup_reader,
-            Type::Diff => &self.diff_reader,
-            Type::Digits => &self.digits_reader,
-            Type::Delta => &self.delta_reader,
-            Type::Delta0 => &self.delta0_reader,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
-        }
+    fn get_mut(&mut self, ty: Type) -> io::Result<&mut Stream> {
+        self.streams
+            .get_mut(usize::from(ty))
+            .ok_or_else(|| invalid_data(format!("invalid token stream type: {ty:?}")))
     }
 
-    fn get_mut(&mut self, ty: Type) -> &mut Cursor<Vec<u8>> {
-        match ty {
-            Type::Type => &mut self.type_reader,
-            Type::String => &mut self.string_reader,
-            Type::Char => &mut self.char_reader,
-            Type::Digits0 => &mut self.digits0_reader,
-            Type::Dup => &mut self.dup_reader,
-            Type::Diff => &mut self.diff_reader,
-            Type::DZLen => &mut self.dz_len_reader,
-            Type::Digits => &mut self.digits_reader,
-            Type::Delta => &mut self.delta_reader,
-            Type::Delta0 => &mut self.delta0_reader,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
-        }
-    }
-
-    fn set(&mut self, ty: Type, buf: Vec<u8>) {
-        match ty {
-            Type::Type => *self.type_reader.get_mut() = buf,
-            Type::String => *self.string_reader.get_mut() = buf,
-            Type::Char => *self.char_reader.get_mut() = buf,
-            Type::Digits0 => *self.digits0_reader.get_mut() = buf,
-            Type::Dup => *self.dup_reader.get_mut() = buf,
-            Type::Diff => *self.diff_reader.get_mut() = buf,
-            Type::DZLen => *self.dz_len_reader.get_mut() = buf,
-            Type::Digits => *self.digits_reader.get_mut() = buf,
-            Type::Delta => *self.delta_reader.get_mut() = buf,
-            Type::Delta0 => *self.delta0_reader.get_mut() = buf,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
-        }
+    /// Returns the stream of `ty`, which must be a stream type. For a constant `ty`, this is a
+    /// fixed offset with no bounds check.
+    #[inline(always)]
+    fn stream(&mut self, ty: Type) -> &mut Stream {
+        &mut self.streams[usize::from(ty)]
     }
 
     fn read_type(&mut self) -> io::Result<Type> {
-        read_u8(&mut self.type_reader).and_then(|n| {
-            Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        self.stream(Type::Type)
+            .read_u8()
+            .and_then(|n| Type::try_from(n).map_err(invalid_data))
     }
 
     fn read_distance(&mut self, ty: Type) -> io::Result<usize> {
-        assert!(matches!(ty, Type::Dup | Type::Diff));
+        let reader = match ty {
+            Type::Dup | Type::Diff => self.stream(ty),
+            _ => return Err(invalid_data(format!("invalid name type: {ty:?}"))),
+        };
 
-        read_u32_le(self.get_mut(ty)).and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        reader
+            .read_u32_le()
+            .and_then(|n| usize::try_from(n).map_err(invalid_data))
     }
 
-    fn read_token(&mut self, prev_token: Option<&Token>) -> io::Result<Option<Token>> {
-        match self.read_type()? {
-            Type::Char => {
-                let c = read_u8(&mut self.char_reader)?;
-                Ok(Some(Token::Char(c)))
-            }
+    /// Reads the next token at this position, appending its bytes to `dst`.
+    ///
+    /// Returns `None` at the end of the name.
+    fn read_token(
+        &mut self,
+        prev_token: Option<Token>,
+        dst: &mut Vec<u8>,
+    ) -> io::Result<Option<Token>> {
+        let token = match self.read_type()? {
+            Type::Char => Token::Char(self.stream(Type::Char).read_u8()?),
             Type::String => {
-                let mut buf = Vec::new();
-                self.string_reader.read_until(0x00, &mut buf)?;
-                buf.pop();
-                Ok(Some(Token::String(buf)))
+                let start = dst.len();
+                dst.extend_from_slice(self.stream(Type::String).read_string());
+                return Ok(Some(Token::String(start, dst.len())));
             }
-            Type::Digits => {
-                let d = read_u32_le(&mut self.digits_reader)?;
-                Ok(Some(Token::Digits(d)))
-            }
+            Type::Digits => Token::Digits(self.stream(Type::Digits).read_u32_le()?),
             Type::Digits0 => {
-                let d = read_u32_le(&mut self.digits0_reader)?;
-                let l = read_u8(&mut self.dz_len_reader)?;
-                Ok(Some(Token::PaddedDigits(d, l)))
+                let d = self.stream(Type::Digits0).read_u32_le()?;
+                let l = self.stream(Type::DZLen).read_u8()?;
+                Token::PaddedDigits(d, l)
             }
             Type::Delta => {
-                let delta = read_u8(&mut self.delta_reader).map(u32::from)?;
+                let delta = self.stream(Type::Delta).read_u8().map(u32::from)?;
 
                 match prev_token {
-                    Some(Token::Digits(n)) => Ok(Some(Token::Digits(n + delta))),
-                    _ => Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("invalid previous token: {prev_token:?}"),
-                    )),
+                    Some(Token::Digits(n)) => Token::Digits(n.wrapping_add(delta)),
+                    _ => return Err(invalid_previous_token(prev_token)),
                 }
             }
             Type::Delta0 => {
-                let delta = read_u8(&mut self.delta0_reader).map(u32::from)?;
+                let delta = self.stream(Type::Delta0).read_u8().map(u32::from)?;
 
                 match prev_token {
                     Some(Token::PaddedDigits(n, width)) => {
-                        Ok(Some(Token::PaddedDigits(n + delta, *width)))
+                        Token::PaddedDigits(n.wrapping_add(delta), width)
                     }
-                    _ => Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("invalid previous token: {prev_token:?}"),
-                    )),
+                    _ => return Err(invalid_previous_token(prev_token)),
                 }
             }
-            Type::Match => Ok(prev_token.cloned()),
-            Type::End => Ok(None),
-            _ => Ok(Some(Token::Nop)),
+            Type::Match => match prev_token {
+                Some(token) => token,
+                None => return Ok(None),
+            },
+            Type::End => return Ok(None),
+            _ => Token::Nop,
+        };
+
+        match token {
+            Token::Char(c) => dst.push(c),
+            Token::String(start, end) => dst.extend_from_within(start..end),
+            Token::Digits(d) => write_digits(dst, d, 0),
+            Token::PaddedDigits(d, width) => write_digits(dst, d, usize::from(width)),
+            Token::Nop => {}
+        }
+
+        Ok(Some(token))
+    }
+}
+
+/// Writes `n` in decimal, left-padded with zeros to at least `width` digits.
+fn write_digits(dst: &mut Vec<u8>, mut n: u32, width: usize) {
+    let mut buf = [0; 10];
+    let mut i = buf.len();
+
+    loop {
+        i -= 1;
+        buf[i] = b'0' + (n % 10) as u8;
+        n /= 10;
+
+        if n == 0 {
+            break;
         }
     }
+
+    let digits = &buf[i..];
+
+    if width > digits.len() {
+        dst.resize(dst.len() + width - digits.len(), b'0');
+    }
+
+    dst.extend_from_slice(digits);
 }
 
 fn decode_token_byte_streams(
@@ -175,8 +319,7 @@ fn decode_token_byte_streams(
     compression_method: CompressionMethod,
     n_names: usize,
 ) -> io::Result<Vec<TokenReader>> {
-    let mut b = Vec::new();
-    let mut t = -1;
+    let mut b: Vec<TokenReader> = Vec::new();
 
     while !src.is_empty() {
         let ttype = read_u8(src)?;
@@ -184,89 +327,54 @@ fn decode_token_byte_streams(
         let tok_new = ttype & 0x80 != 0;
         let tok_dup = ttype & 0x40 != 0;
 
-        let ty =
-            Type::try_from(ttype).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let ty = Type::try_from(ttype).map_err(invalid_data)?;
 
         if tok_new {
-            t += 1;
+            let mut reader = TokenReader::default();
 
-            b.push(TokenReader::default());
-
-            if ty != Type::Type {
-                let mut buf = vec![u8::from(Type::Match); n_names];
-                buf[0] = u8::from(ty);
-                b[t as usize].set(Type::Type, buf);
+            if ty != Type::Type && n_names > 0 {
+                *reader.stream(Type::Type) = Stream {
+                    buf: vec![u8::from(ty)],
+                    len: n_names,
+                    fill: u8::from(Type::Match),
+                    pos: 0,
+                };
             }
+
+            b.push(reader);
         }
 
-        if tok_dup {
+        let stream = if tok_dup {
             let dup_pos = read_u8(src).map(usize::from)?;
 
-            let dup_type = read_u8(src).and_then(|n| {
-                Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })?;
+            let dup_type = read_u8(src).and_then(|n| Type::try_from(n).map_err(invalid_data))?;
 
-            let buf = b[dup_pos].get(dup_type).get_ref().clone();
-            b[t as usize].set(ty, buf);
+            let mut stream = b
+                .get_mut(dup_pos)
+                .ok_or_else(|| invalid_data("invalid duplicate token stream position"))?
+                .get_mut(dup_type)?
+                .clone();
+
+            // The duplicate can be read as any type, so an implicit stream is materialized.
+            stream.buf.resize(stream.len, stream.fill);
+
+            stream
         } else {
             let compressed_size = read_uint7_as(src)?;
             let buf = split_off(src, compressed_size)?;
 
-            let buf = match compression_method {
+            Stream::new(match compression_method {
                 CompressionMethod::RansNx16 => rans_nx16::decode(buf, 0)?,
                 CompressionMethod::AdaptiveArithmeticCoder => aac::decode(buf, 0)?,
-            };
+            })
+        };
 
-            b[t as usize].set(ty, buf);
-        }
+        *b.last_mut()
+            .ok_or_else(|| invalid_data("token stream before first token position"))?
+            .get_mut(ty)? = stream;
     }
 
     Ok(b)
-}
-
-fn decode_single_name(
-    b: &mut [TokenReader],
-    names: &mut [Vec<u8>],
-    tokens: &mut [Vec<Option<Token>>],
-    n: usize,
-) -> io::Result<Vec<u8>> {
-    let ty = b[0].read_type()?;
-    let dist = b[0].read_distance(ty)?;
-
-    let m = n - dist;
-
-    #[allow(clippy::assigning_clones)]
-    if ty == Type::Dup {
-        names[n] = names[m].clone();
-        tokens[n] = tokens[m].clone();
-        return Ok(names[n].clone());
-    }
-
-    let mut t = 1;
-
-    loop {
-        let prev_token = tokens[m][t].as_ref();
-
-        if let Some(token) = b[t].read_token(prev_token)? {
-            match &token {
-                Token::Char(c) => names[n].push(*c),
-                Token::String(s) => names[n].extend(s),
-                Token::Digits(d) => write!(names[n], "{d}")?,
-                Token::PaddedDigits(d, l) => {
-                    write!(names[n], "{:0width$}", d, width = usize::from(*l))?
-                }
-                Token::Nop => {}
-            }
-
-            tokens[n][t] = Some(token);
-        } else {
-            break;
-        }
-
-        t += 1;
-    }
-
-    Ok(names[n].clone())
 }
 
 fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
@@ -274,9 +382,138 @@ fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
 }
 
+fn invalid_data<E>(e: E) -> io::Error
+where
+    E: Into<Box<dyn std::error::Error + Send + Sync>>,
+{
+    io::Error::new(io::ErrorKind::InvalidData, e)
+}
+
+fn invalid_previous_token(prev_token: Option<Token>) -> io::Error {
+    invalid_data(format!("invalid previous token: {prev_token:?}"))
+}
+
+fn unexpected_eof() -> io::Error {
+    io::Error::from(io::ErrorKind::UnexpectedEof)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::codecs::name_tokenizer::encode;
+
+    fn build_header(name_count: u32) -> Vec<u8> {
+        let mut dst = 0u32.to_le_bytes().to_vec(); // uncompressed size
+        dst.extend(name_count.to_le_bytes());
+        dst.push(0x00); // rANS Nx16
+        dst
+    }
+
+    /// Builds an uncompressed (rANS Nx16 CAT) token byte stream.
+    fn build_stream(ttype: u8, data: &[u8]) -> Vec<u8> {
+        let len = u8::try_from(data.len()).unwrap();
+        let mut dst = vec![ttype, len + 2, 0x20, len];
+        dst.extend(data);
+        dst
+    }
+
+    // `names.bin` holds 35 NUL-terminated read names. `tok3-rans.bin` and `tok3-arith.bin` are
+    // `names.bin` encoded by htscodecs 1.6.7 `tok3_encode_names` at level 9, with rANS Nx16 and
+    // the adaptive arithmetic coder, respectively, as the inner codec.
+    #[test]
+    fn test_decode_htscodecs_fixtures() -> io::Result<()> {
+        let expected = include_bytes!("../fixtures/names.bin");
+
+        for src in [
+            &include_bytes!("../fixtures/tok3-rans.bin")[..],
+            &include_bytes!("../fixtures/tok3-arith.bin")[..],
+        ] {
+            assert_eq!(decode(src)?, expected);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_more_than_127_token_positions() -> io::Result<()> {
+        let mut expected = b"a:".repeat(80);
+        expected.push(0);
+        let src = encode(&expected)?;
+        assert_eq!(decode(&src)?, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_with_duplicate_of_implicit_type_stream() -> io::Result<()> {
+        let src = [
+            build_header(3),
+            // token 0: types = [diff; 3], distances = [0, 1, 1]
+            build_stream(0x80, &[0x06, 0x06, 0x06]),
+            build_stream(0x06, &[0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]),
+            // token 1: types = [string, match, match] (implicit), strings = dup(1, type)
+            vec![0xc1, 0x01, 0x00],
+            // token 2: types = [end; 3]
+            build_stream(0x80, &[0x0c, 0x0c, 0x0c]),
+        ]
+        .concat();
+
+        assert_eq!(decode(&src)?, b"\x01\x0a\0\x01\x0a\0\x01\x0a\0");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_with_no_names() {
+        let src = [build_header(0), build_stream(0x86, &[])].concat();
+        assert!(matches!(
+            decode(&src),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+    }
+
+    #[test]
+    fn test_decode_with_duplicate_of_dz_len_stream() -> io::Result<()> {
+        let src = [
+            build_header(2),
+            // token 0: types = [diff; 2], distances = [0, 1]
+            build_stream(0x80, &[0x06, 0x06]),
+            build_stream(0x06, &[0, 0, 0, 0, 1, 0, 0, 0]),
+            // token 1: types = [digits0, match] (implicit), digits = [7], lengths = [3]
+            build_stream(0x83, &[7, 0, 0, 0]),
+            build_stream(0x04, &[3]),
+            // token 2: types = [digits0, match] (implicit), digits = [8], lengths = dup(1, dzlen)
+            build_stream(0x83, &[8, 0, 0, 0]),
+            vec![0x44, 0x01, 0x04],
+            // token 3: types = [end; 2]
+            build_stream(0x80, &[0x0c, 0x0c]),
+        ]
+        .concat();
+
+        assert_eq!(decode(&src)?, b"007008\x00007008\x00");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_with_invalid_names() {
+        fn t(streams: &[Vec<u8>]) {
+            let mut src = build_header(1);
+            src.extend(streams.concat());
+            assert!(matches!(decode(&src), Err(e) if e.kind() == io::ErrorKind::InvalidData));
+        }
+
+        // token 0: types = [diff] (implicit), distances = [0]
+        let token_0 = build_stream(0x86, &[0, 0, 0, 0]);
+        // token 1: types = [end]
+        let token_1 = build_stream(0x80, &[0x0c]);
+
+        // missing end token (token 1: types = [char] (implicit), chars = [n])
+        t(&[token_0.clone(), build_stream(0x82, b"n")]);
+        // distance out of range (token 0: distances = [1])
+        t(&[build_stream(0x86, &[1, 0, 0, 0]), token_1.clone()]);
+        // duplicate position out of range (token 1: strings = dup(9, string))
+        t(&[token_0, token_1, vec![0x41, 0x09, 0x01]]);
+    }
 
     #[test]
     fn test_decode() -> io::Result<()> {
