@@ -193,15 +193,9 @@ struct TokenReader {
 const STREAM_TYPE_COUNT: usize = Type::Delta0 as usize + 1;
 
 impl TokenReader {
-    fn get(&self, ty: Type) -> io::Result<&Stream> {
-        self.streams
-            .get(ty as usize)
-            .ok_or_else(|| invalid_data(format!("invalid token stream type: {ty:?}")))
-    }
-
     fn get_mut(&mut self, ty: Type) -> io::Result<&mut Stream> {
         self.streams
-            .get_mut(ty as usize)
+            .get_mut(usize::from(ty))
             .ok_or_else(|| invalid_data(format!("invalid token stream type: {ty:?}")))
     }
 
@@ -209,12 +203,7 @@ impl TokenReader {
     /// fixed offset with no bounds check.
     #[inline(always)]
     fn stream(&mut self, ty: Type) -> &mut Stream {
-        &mut self.streams[ty as usize]
-    }
-
-    fn set(&mut self, ty: Type, stream: Stream) -> io::Result<()> {
-        *self.get_mut(ty)? = stream;
-        Ok(())
+        &mut self.streams[usize::from(ty)]
     }
 
     fn read_type(&mut self) -> io::Result<Type> {
@@ -353,9 +342,9 @@ fn decode_token_byte_streams(
             let dup_type = read_u8(src).and_then(|n| Type::try_from(n).map_err(invalid_data))?;
 
             let mut stream = b
-                .get(dup_pos)
+                .get_mut(dup_pos)
                 .ok_or_else(|| invalid_data("invalid duplicate token stream position"))?
-                .get(dup_type)?
+                .get_mut(dup_type)?
                 .clone();
 
             // The duplicate can be read as any type, so an implicit stream is materialized.
@@ -372,9 +361,9 @@ fn decode_token_byte_streams(
             })
         };
 
-        b.last_mut()
+        *b.last_mut()
             .ok_or_else(|| invalid_data("token stream before first token position"))?
-            .set(ty, stream)?;
+            .get_mut(ty)? = stream;
     }
 
     Ok(b)
