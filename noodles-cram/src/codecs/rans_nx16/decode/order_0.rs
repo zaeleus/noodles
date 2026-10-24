@@ -7,17 +7,6 @@ const NORMALIZATION_BITS: u32 = 12;
 
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
     let frequencies = read_frequencies(src)?;
-    // Small blocks retain the original lookup without allocating per-slot tables.
-    if dst.len() < (1 << NORMALIZATION_BITS) {
-        return match state_count {
-            4 => decode_small::<4>(src, dst, &frequencies),
-            32 => decode_small::<32>(src, dst, &frequencies),
-            _ => Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "invalid rANS Nx16 state count",
-            )),
-        };
-    }
     let table = SymbolTable::new(&frequencies, NORMALIZATION_BITS)?;
 
     match state_count {
@@ -28,43 +17,6 @@ pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result
             "invalid rANS Nx16 state count",
         )),
     }
-}
-
-fn decode_small<const N: usize>(
-    src: &mut &[u8],
-    dst: &mut [u8],
-    frequencies: &[u32; ALPHABET_SIZE],
-) -> io::Result<()> {
-    let mut cumulative = [0; ALPHABET_SIZE];
-    let mut total = 0u64;
-    for (c, &f) in cumulative.iter_mut().zip(frequencies) {
-        *c = total as u32;
-        total += u64::from(f);
-        if total > (1 << NORMALIZATION_BITS) {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid rANS Nx16 frequency table",
-            ));
-        }
-    }
-    let mut states = read_states::<N>(src)?;
-    for chunk in dst.chunks_mut(N) {
-        for (d, state) in chunk.iter_mut().zip(&mut states) {
-            let f = *state & ((1 << NORMALIZATION_BITS) - 1);
-            let mut sym = 0u8;
-            while sym < u8::MAX && f >= cumulative[usize::from(sym + 1)] {
-                sym += 1;
-            }
-            *d = sym;
-            let i = usize::from(sym);
-            *state = frequencies[i]
-                .wrapping_mul(*state >> NORMALIZATION_BITS)
-                .wrapping_add(f)
-                .wrapping_sub(cumulative[i]);
-            *state = state_renormalize(*state, src)?;
-        }
-    }
-    Ok(())
 }
 
 fn decode_with_states<const N: usize>(

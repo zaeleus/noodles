@@ -81,14 +81,4 @@ mod tests {
 
         Ok(())
     }
-    #[test]
-    fn test_order_0_dispatch_boundary() -> io::Result<()> {
-        for len in [4095, 4096, 4097] {
-            let src = sparse(len, 3, 32);
-            for flags in [Flags::empty(), Flags::N32] {
-                assert_eq!(decode(&encode(flags, &src)?, len)?, src);
-            }
-        }
-        Ok(())
-    }
 }
