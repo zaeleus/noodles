@@ -302,12 +302,10 @@ mod tests {
     use std::io::Cursor;
 
     use noodles_core::Position;
-    use noodles_sam::alignment::{
-        io::Write as _,
-        record::{
-            Flags,
-            cigar::{Op, op::Kind},
-        },
+    use noodles_fasta as fasta;
+    use noodles_sam::alignment::record::{
+        Flags,
+        cigar::{Op, op::Kind},
     };
 
     use super::*;
@@ -331,6 +329,7 @@ mod tests {
                 .set_alignment_start(Position::new(i + 1).unwrap())
                 .set_cigar([Op::new(Kind::Match, 4)].into_iter().collect())
                 .set_sequence(b"AAAA".to_vec().into())
+                .set_quality_scores(vec![30; 4].into())
                 .build();
             writer.write_alignment_record(&header, &record)?;
         }
