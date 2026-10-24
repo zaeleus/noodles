@@ -34,10 +34,10 @@ impl error::Error for ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ParseError::Empty => write!(f, "empty input"),
-            ParseError::UnexpectedInput => write!(f, "unexpected input"),
-            ParseError::InvalidKeys(_) => write!(f, "invalid keys"),
-            ParseError::InvalidValues(_) => write!(f, "invalid values"),
+            Self::Empty => write!(f, "empty input"),
+            Self::UnexpectedInput => write!(f, "unexpected input"),
+            Self::InvalidKeys(_) => write!(f, "invalid keys"),
+            Self::InvalidValues(_) => write!(f, "invalid values"),
         }
     }
 }
