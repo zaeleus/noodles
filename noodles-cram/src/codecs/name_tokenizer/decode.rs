@@ -17,6 +17,14 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
 
     let (uncompressed_size, name_count, compression_method) = read_header(&mut src)?;
 
+    // As in htscodecs, a block holds at least one name.
+    if name_count == 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid tok3 name count",
+        ));
+    }
+
     let mut b = decode_token_byte_streams(&mut src, compression_method, name_count)?;
 
     let mut decoder = NameDecoder {
@@ -452,11 +460,12 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_with_no_names() -> io::Result<()> {
+    fn test_decode_with_no_names() {
         let src = [build_header(0), build_stream(0x86, &[])].concat();
-        assert!(decode(&src)?.is_empty());
-
-        Ok(())
+        assert!(matches!(
+            decode(&src),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
