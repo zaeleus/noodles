@@ -117,10 +117,7 @@ impl Repository {
 
         // Ranges are not cached: a sorted file's slices read mostly disjoint spans, so a later
         // slice would rarely find its span already read.
-        match adapter.get_range(name, interval)? {
-            Ok(record) => Some(Ok(Arc::new(record.into_sequence()))),
-            Err(e) => Some(Err(e)),
-        }
+        Some(adapter.get_range(name, interval)?.map(Arc::new))
     }
 
     /// Returns the number of cached sequences.
@@ -214,10 +211,10 @@ mod tests {
             Some(Ok(Record::new(Definition::new(name, None), sequence)))
         }
 
-        fn get_range(&mut self, name: &[u8], _: Interval) -> Option<io::Result<Record>> {
+        fn get_range(&mut self, name: &[u8], _: Interval) -> Option<io::Result<Sequence>> {
             self.1.wait();
             self.1.wait();
-            self.get(name)
+            Some(self.get(name)?.map(Record::into_sequence))
         }
     }
 
