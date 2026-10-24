@@ -30,6 +30,7 @@ mod tests {
         let qual = include_bytes!("fixtures/qual.bin").to_vec();
         // `mid` has 12-bit order-1 frequencies.
         let (mid, big) = (sparse(8000, 1024, 8), sparse(70001, 2048, 4));
+        let wide = sparse(4099, 16, 32);
 
         // Named by flags: ORDER = 0x01, N32 = 0x04, STRIPE = 0x08, CAT = 0x20, RLE = 0x40 and
         // PACK = 0x80.
@@ -45,10 +46,13 @@ mod tests {
             r4x16!("qual-c0"),
             r4x16!("mid-01"),
             r4x16!("big-05"),
+            r4x16!("wide-00"),
+            r4x16!("wide-04"),
         ] {
             let expected = match &name[..3] {
                 "qua" => &qual,
                 "mid" => &mid,
+                "wid" => &wide,
                 _ => &big,
             };
 

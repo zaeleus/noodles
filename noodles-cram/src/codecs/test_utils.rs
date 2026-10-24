@@ -1,8 +1,8 @@
 //! Shared codec test helpers.
 //!
 //! `fixtures/` holds streams encoded by htscodecs 1.6.7 (`rans_compress` and `rans_compress_4x16`)
-//! with their decoded bytes: `qual.bin` for `*-qual-*` and [`sparse`] for `*-mid-*` and
-//! `*-big-*`. `r4x16-*` files are named by their flags byte.
+//! with their decoded bytes: `qual.bin` for `*-qual-*` and [`sparse`] for `*-mid-*`,
+//! `*-big-*` and `*-wide-*`. `r4x16-*` files are named by their flags byte.
 
 /// A 64-bit LCG, matching the fixture generator's `next()`.
 pub(crate) struct Rng(pub(crate) u64);
@@ -19,7 +19,8 @@ impl Rng {
 
 /// Mostly `A`, with about every `k`-th byte drawn from the `n` letters from `A`.
 ///
-/// `sparse(8000, 1024, 8)` is the `mid` fixture input, and `sparse(70001, 2048, 4)` the `big` one.
+/// `sparse(8000, 1024, 8)` is the `mid` fixture input, `sparse(70001, 2048, 4)` the `big` one, and
+/// `sparse(4099, 16, 32)` the `wide` one.
 pub(crate) fn sparse(len: usize, k: usize, n: usize) -> Vec<u8> {
     let mut rng = Rng(1);
 

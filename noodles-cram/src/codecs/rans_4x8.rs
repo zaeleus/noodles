@@ -25,6 +25,7 @@ mod tests {
         assert_eq!(decode(include_bytes!("fixtures/r4x8-qual-o0.bin"))?, qual);
         assert_eq!(decode(include_bytes!("fixtures/r4x8-qual-o1.bin"))?, qual);
         assert!(decode(include_bytes!("fixtures/r4x8-big-o1.bin"))? == sparse(70001, 2048, 4));
+        assert!(decode(include_bytes!("fixtures/r4x8-wide-o0.bin"))? == sparse(4099, 16, 32));
         Ok(())
     }
 
