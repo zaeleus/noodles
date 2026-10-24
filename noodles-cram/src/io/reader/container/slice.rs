@@ -147,33 +147,28 @@ impl<'c> Slice<'c> {
             record.header = Some(header);
 
             if needs_reference_sequence(record) {
-                record.reference_sequence = match &slice_reference_sequence {
+                if has_many_external_reference_sequences {
                     // These are set once all records are read, so that each reference sequence
                     // can be read once for the span of its records.
-                    _ if has_many_external_reference_sequences => {
-                        record.reference_sequence(header).transpose()?;
-                        None
-                    }
-                    // A record reading outside a partial reference sequence uses the whole one.
-                    Some(ReferenceSequence::ExternalRange {
-                        reference_start,
-                        sequence,
-                    }) if !reads_reference_within(record, *reference_start, sequence.len()) => {
-                        if whole_slice_reference_sequence.is_none() {
-                            whole_slice_reference_sequence = Some(get_slice_reference_sequence(
-                                &reference_sequence_repository,
-                                header,
-                                compression_header,
-                                &self.header,
-                                external_data_srcs,
-                                false,
-                            )?);
-                        }
+                    record.reference_sequence(header).transpose()?;
+                } else if let Some(reference_sequence) = &slice_reference_sequence {
+                    record.reference_sequence =
+                        select_reference_sequence(reference_sequence, record, || {
+                            if whole_slice_reference_sequence.is_none() {
+                                whole_slice_reference_sequence =
+                                    Some(get_slice_reference_sequence(
+                                        &reference_sequence_repository,
+                                        header,
+                                        compression_header,
+                                        &self.header,
+                                        external_data_srcs,
+                                        false,
+                                    )?);
+                            }
 
-                        whole_slice_reference_sequence.clone().flatten()
-                    }
-                    reference_sequence => reference_sequence.clone(),
-                };
+                            Ok(whole_slice_reference_sequence.clone().flatten())
+                        })?;
+                }
 
                 record.substitution_matrix = substitution_matrix.clone();
             }
@@ -541,20 +536,35 @@ fn set_record_reference_sequences(
             .find(|(id, _)| Some(*id) == record.reference_sequence_id)
             .map(|(_, reference_sequence)| reference_sequence);
 
+        let get_whole =
+            || get_record_reference_sequence(reference_sequence_repository, header, record);
+
         record.reference_sequence = match range {
-            Some(
-                reference_sequence @ ReferenceSequence::ExternalRange {
-                    reference_start,
-                    sequence,
-                },
-            ) if reads_reference_within(record, *reference_start, sequence.len()) => {
-                Some(reference_sequence.clone())
-            }
-            _ => get_record_reference_sequence(reference_sequence_repository, header, record)?,
+            Some(range) => select_reference_sequence(range, record, get_whole)?,
+            None => get_whole()?,
         };
     }
 
     Ok(())
+}
+
+/// Returns the given reference sequence for the record, or the whole reference sequence from
+/// `get_whole` if the given one is a part that the record reads outside of.
+fn select_reference_sequence<'c, F>(
+    reference_sequence: &ReferenceSequence<'c>,
+    record: &Record<'_>,
+    get_whole: F,
+) -> io::Result<Option<ReferenceSequence<'c>>>
+where
+    F: FnOnce() -> io::Result<Option<ReferenceSequence<'c>>>,
+{
+    match reference_sequence {
+        ReferenceSequence::ExternalRange {
+            reference_start,
+            sequence,
+        } if !reads_reference_within(record, *reference_start, sequence.len()) => get_whole(),
+        _ => Ok(Some(reference_sequence.clone())),
+    }
 }
 
 /// Returns the alignment start and the number of reference positions that reconstructing the
@@ -803,16 +813,25 @@ mod tests {
         let record = Record::default();
         assert_eq!(calculate_template_length(&record, &record), 0);
     }
+
     #[test]
     fn test_reads_reference_within() {
         let p = |n| Position::new(n).unwrap();
         let bases = |s: &'static [u8]| Cow::Borrowed(s);
         // 6 read bases: a soft clip, a 2-base deletion and a 2-base insertion span 5 positions.
-        #[rustfmt::skip]
         let features = vec![
-            Feature::SoftClip { position: p(1), bases: bases(b"A") },
-            Feature::Deletion { position: p(3), len: 2 },
-            Feature::Insertion { position: p(4), bases: bases(b"GG") },
+            Feature::SoftClip {
+                position: p(1),
+                bases: bases(b"A"),
+            },
+            Feature::Deletion {
+                position: p(3),
+                len: 2,
+            },
+            Feature::Insertion {
+                position: p(4),
+                bases: bases(b"GG"),
+            },
         ];
         let record = Record {
             read_length: 6,
@@ -839,5 +858,45 @@ mod tests {
             };
             assert!(!reads_reference_within(&record, p(1), 100));
         }
+    }
+
+    #[test]
+    fn test_select_reference_sequence() -> io::Result<()> {
+        let sequence = |s: &[u8]| Arc::new(fasta::record::Sequence::from(s.to_vec()));
+
+        let range = ReferenceSequence::ExternalRange {
+            reference_start: Position::MIN,
+            sequence: sequence(b"ACGT"),
+        };
+        let whole = ReferenceSequence::External {
+            sequence: sequence(b"ACGTACGT"),
+        };
+        let get_whole = || Ok(Some(whole.clone()));
+
+        // The record reads reference positions 2-3.
+        let record = Record {
+            read_length: 2,
+            alignment_start: Position::new(2),
+            ..Default::default()
+        };
+        let actual = select_reference_sequence(&range, &record, get_whole)?;
+        assert_eq!(actual, Some(range.clone()));
+
+        // With a 2-base deletion, the record reads reference positions 2-5, past the range.
+        let record = Record {
+            features: vec![Feature::Deletion {
+                position: Position::new(2).unwrap(),
+                len: 2,
+            }],
+            ..record
+        };
+        let actual = select_reference_sequence(&range, &record, get_whole)?;
+        assert_eq!(actual, Some(whole.clone()));
+
+        // A whole reference sequence is used as is.
+        let actual = select_reference_sequence(&whole, &record, || unreachable!())?;
+        assert_eq!(actual, Some(whole));
+
+        Ok(())
     }
 }
