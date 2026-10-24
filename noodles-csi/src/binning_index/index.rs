@@ -155,3 +155,54 @@ where
         Ok((start, end))
     }
 }
+
+#[cfg(test)]
+mod query_offset_tests {
+    use super::*;
+    use crate::binning_index::{Indexer, index::reference_sequence::index::BinnedIndex};
+
+    #[test]
+    fn test_query_generated_csi_preserves_spanning_records()
+    -> Result<(), Box<dyn std::error::Error>> {
+        // Keep every chunk large enough that index optimization cannot fold away the leaf bins.
+        let starts = [8, 100, 130, 200, 300, 500];
+        let ends = [400, 110, 240, 210, 310, 510];
+        let position = |n| bgzf::VirtualPosition::new(n * 100000, 0).unwrap();
+        let chunk = |i| Chunk::new(position(i as u64 + 1), position(i as u64 + 2));
+        let mut indexer = Indexer::<BinnedIndex>::new(4, 2).unwrap();
+        for (i, (start, end)) in starts.iter().zip(ends).enumerate() {
+            let (start, end) = (Position::new(*start).unwrap(), Position::new(end).unwrap());
+            indexer.add_record(Some((0, start, end, true)), chunk(i))?;
+        }
+
+        let original = indexer.build(1);
+        let mut writer = crate::io::Writer::new(Vec::new());
+        writer.write_index(&original)?;
+        let data = writer.into_inner().finish()?;
+        let decoded = crate::io::Reader::new(&data[..]).read_index()?;
+
+        for index in [&original, &decoded] {
+            for query in 1..=1024 {
+                let interval = Position::new(query).unwrap()..=Position::new(query).unwrap();
+                let chunks = index.query(0, interval.into())?;
+
+                for (i, (&start, end)) in starts.iter().zip(ends).enumerate() {
+                    let pos = chunk(i).start();
+                    let is_read = chunks.iter().any(|c| c.start() <= pos && pos < c.end());
+                    // A query reads the records that span it, but not the long first record (in
+                    // bin 0, ending at 400) in a later window that it does not reach.
+                    assert!(
+                        is_read || !(start..=end).contains(&query),
+                        "lost {i} at {query}"
+                    );
+                    assert!(
+                        !is_read || i > 0 || !(497..=512).contains(&query),
+                        "{query}"
+                    );
+                }
+            }
+        }
+
+        Ok(())
+    }
+}

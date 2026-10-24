@@ -18,6 +18,13 @@ pub trait Index {
     /// Returns the start virtual position of the last first record.
     fn last_first_start_position(&self) -> Option<bgzf::VirtualPosition>;
 
+    /// Finalizes record offsets once every record is added.
+    ///
+    /// `window_offsets` has, for each linear window (`1 << min_shift` positions), the start of the
+    /// first record overlapping it, or `None`. The default implementation leaves the index
+    /// unchanged.
+    fn finish(&mut self, _depth: u8, _window_offsets: &[Option<bgzf::VirtualPosition>]) {}
+
     /// Adds a record to the index.
     fn update(&mut self, min_shift: u8, depth: u8, start: Position, end: Position, chunk: Chunk);
 }
