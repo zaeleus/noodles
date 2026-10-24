@@ -296,3 +296,156 @@ where
         self.try_finish(header)
     }
 }
+
+#[cfg(test)]
+mod reference_range_tests {
+    use std::{
+        io::{self, Cursor},
+        num::NonZero,
+    };
+
+    use crate as cram;
+    use noodles_core::Position;
+    use noodles_fasta as fasta;
+    use noodles_sam::alignment::io::Write as _;
+    use noodles_sam::{
+        self as sam,
+        alignment::{
+            RecordBuf,
+            record::{
+                Flags, MappingQuality,
+                cigar::{Op, op::Kind},
+            },
+        },
+    };
+
+    type Sequences = [(&'static str, Vec<u8>)];
+
+    fn header(sequences: &Sequences) -> sam::Header {
+        let mut text = String::new();
+        for (name, sequence) in sequences {
+            text += &format!("@SQ\tSN:{name}\tLN:{}\n", sequence.len());
+        }
+        text.parse().unwrap()
+    }
+
+    fn repository(sequences: &Sequences) -> fasta::Repository {
+        let record = |(name, sequence): &(&str, Vec<u8>)| {
+            let definition = fasta::record::Definition::new(*name, None);
+            fasta::Record::new(definition, sequence.clone().into())
+        };
+        fasta::Repository::new(sequences.iter().map(record).collect::<Vec<_>>())
+    }
+
+    /// An indexed FASTA repository, which reads ranges of sequences.
+    fn indexed_repository(sequences: &Sequences) -> fasta::Repository {
+        let (mut data, mut index) = (Vec::new(), Vec::new());
+        for (name, sequence) in sequences {
+            data.extend(format!(">{name}\n").bytes());
+            let (offset, len) = (data.len() as u64, sequence.len() as u64);
+            for line in sequence.chunks(60) {
+                data.extend(line.iter().chain(b"\n"));
+            }
+            let (bases, width) = (NonZero::new(60).unwrap(), NonZero::new(61).unwrap());
+            index.push(fasta::fai::Record::new(*name, len, offset, bases, width));
+        }
+        let reader = fasta::io::IndexedReader::new(Cursor::new(data), index.into());
+        fasta::Repository::new(fasta::repository::adapters::IndexedReader::new(reader))
+    }
+
+    /// Writes each group as its own container, without adding a writer API.
+    fn write(sequences: &Sequences, groups: &[Vec<RecordBuf>]) -> io::Result<Vec<u8>> {
+        let header = header(sequences);
+        let mut writer = cram::io::writer::Builder::default()
+            .set_reference_sequence_repository(repository(sequences))
+            .build_from_writer(Vec::new());
+        writer.write_header(&header)?;
+        for group in groups {
+            for record in group {
+                writer.write_alignment_record(&header, record)?;
+            }
+            writer.flush(&header)?;
+        }
+        writer.try_finish(&header)?;
+        Ok(writer.into_inner())
+    }
+
+    fn read(src: &[u8], repository: fasta::Repository) -> io::Result<Vec<RecordBuf>> {
+        let mut reader = cram::io::reader::Builder::default()
+            .set_reference_sequence_repository(repository)
+            .build_from_reader(src);
+        let header = reader.read_header()?;
+        reader.records(&header).collect()
+    }
+
+    /// A mapped record whose matches copy the reference, except for a mismatch at each match start.
+    fn record(name: &str, id: usize, start: usize, ops: &[(Kind, usize)], r: &[u8]) -> RecordBuf {
+        let (mut sequence, mut position) = (Vec::new(), start - 1);
+        for &(kind, n) in ops {
+            match kind {
+                Kind::Match => {
+                    sequence.push(b'N');
+                    sequence.extend(&r[position + 1..position + n]);
+                    position += n;
+                }
+                Kind::Deletion | Kind::Skip => position += n,
+                _ => sequence.extend(b"GGGG".iter().take(n)),
+            }
+        }
+        let cigar = ops.iter().map(|&(kind, n)| Op::new(kind, n)).collect();
+        RecordBuf::builder()
+            .set_name(name)
+            .set_flags(Flags::empty())
+            .set_reference_sequence_id(id)
+            .set_alignment_start(Position::new(start).unwrap())
+            .set_mapping_quality(MappingQuality::new(30).unwrap())
+            .set_cigar(cigar)
+            .set_quality_scores(vec![30; sequence.len()].into())
+            .set_sequence(sequence.into())
+            .build()
+    }
+
+    #[test]
+    fn indexed_reference_spans_match_whole_reference() -> io::Result<()> {
+        use Kind::{Deletion, Insertion, Match, Skip, SoftClip};
+        // `sq0` is long, so slices load only their spans. `sq1` is short, so it is loaded whole.
+        let base = |i: usize| b"ACGTNacgtn"[i * 7 % 11 % 10];
+        let sequences = [
+            ("sq0", (0..20_000).map(base).collect::<Vec<_>>()),
+            ("sq1", (0..200).map(base).collect()),
+        ];
+        let (sq0, sq1) = (&sequences[0].1, &sequences[1].1);
+        #[rustfmt::skip]
+        let complex = [(SoftClip, 2), (Match, 10), (Insertion, 1), (Match, 5), (Deletion, 2), (Match, 8)];
+        let groups = [
+            // A single-reference slice, which has a reference checksum.
+            vec![
+                record("a0", 0, 5000, &complex, sq0),
+                record("a1", 0, 5010, &[(Match, 10), (Skip, 3), (Match, 10)], sq0),
+            ],
+            // A multi-reference slice.
+            vec![
+                record("b0", 0, 6000, &complex, sq0),
+                record("b1", 1, 10, &[(Match, 30)], sq1),
+                record("b2", 1, 150, &complex, sq1),
+            ],
+        ];
+        let src = write(&sequences, &groups)?;
+        let indexed = indexed_repository(&sequences);
+        let actual = read(&src, indexed.clone())?;
+        assert_eq!(actual, read(&src, repository(&sequences))?);
+        // Only `sq1` was loaded whole.
+        assert_eq!(indexed.len(), 1);
+        indexed.get(b"sq1");
+        assert_eq!(indexed.len(), 1);
+
+        // A reference base that differs within a slice span fails the slice checksum either way.
+        let mut corrupted = sequences.clone();
+        corrupted[0].1[5004] = b'T';
+        for repository in [repository(&corrupted), indexed_repository(&corrupted)] {
+            let error = read(&src, repository).unwrap_err();
+            assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+        }
+        Ok(())
+    }
+}

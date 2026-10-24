@@ -1,8 +1,12 @@
 use std::io::{self, BufRead, Seek};
 
-use noodles_core::Region;
+use noodles_core::{Position, Region, region::Interval};
 
-use crate::{Record, repository::Adapter};
+use crate::{
+    Record,
+    record::{Definition, Sequence},
+    repository::Adapter,
+};
 
 /// An indexed reader adapter.
 pub struct IndexedReader<R> {
@@ -36,5 +40,35 @@ where
     fn get(&mut self, name: &[u8]) -> Option<io::Result<Record>> {
         let region = Region::new(name, ..);
         Some(self.reader.query(&region))
+    }
+
+    fn get_range(&mut self, name: &[u8], interval: Interval) -> Option<io::Result<Record>> {
+        let Some(length) = self
+            .reader
+            .index()
+            .as_ref()
+            .iter()
+            .find(|record| record.name() == name)
+            .and_then(|record| usize::try_from(record.length()).ok())
+        else {
+            return Some(self.reader.query(&Region::new(name, interval)));
+        };
+
+        // Stop at the indexed length. A query past it would read into the next record.
+        let start = interval.start().unwrap_or(Position::MIN);
+        let end = interval
+            .end()
+            .map(usize::from)
+            .unwrap_or(length)
+            .min(length);
+
+        let Some(end) = Position::new(end).filter(|&end| end >= start) else {
+            return Some(Ok(Record::new(
+                Definition::new(name, None),
+                Sequence::default(),
+            )));
+        };
+
+        Some(self.reader.query(&Region::new(name, start..=end)))
     }
 }

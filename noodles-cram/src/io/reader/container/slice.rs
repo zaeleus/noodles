@@ -126,26 +126,61 @@ impl<'c> Slice<'c> {
             compression_header,
             &self.header,
             external_data_srcs,
+            true,
         )?;
+
+        // Loaded for records that read outside a partial slice reference sequence.
+        let mut whole_slice_reference_sequence = None;
 
         let substitution_matrix = compression_header.preservation_map().substitution_matrix();
 
-        let mut records = vec![Record::default(); self.header.record_count()];
+        let has_many_external_reference_sequences = reference_sequence_context.is_many()
+            && compression_header
+                .preservation_map()
+                .external_reference_sequence_is_required();
+
+        let mut records: Vec<Record<'c>> = vec![Record::default(); self.header.record_count()];
 
         for record in &mut records {
             reader.read_record(record)?;
 
             record.header = Some(header);
 
-            if !record.bam_flags.is_unmapped() && !record.cram_flags.sequence_is_missing() {
-                record.reference_sequence = if reference_sequence_context.is_many() {
-                    get_record_reference_sequence(&reference_sequence_repository, header, record)?
-                } else {
-                    slice_reference_sequence.clone()
+            if needs_reference_sequence(record) {
+                record.reference_sequence = match &slice_reference_sequence {
+                    // These are set once all records are read, so that each reference sequence
+                    // can be read once for the span of its records.
+                    _ if has_many_external_reference_sequences => {
+                        record.reference_sequence(header).transpose()?;
+                        None
+                    }
+                    // A record reading outside a partial reference sequence uses the whole one.
+                    Some(ReferenceSequence::ExternalRange {
+                        reference_start,
+                        sequence,
+                    }) if !reads_reference_within(record, *reference_start, sequence.len()) => {
+                        if whole_slice_reference_sequence.is_none() {
+                            whole_slice_reference_sequence = Some(get_slice_reference_sequence(
+                                &reference_sequence_repository,
+                                header,
+                                compression_header,
+                                &self.header,
+                                external_data_srcs,
+                                false,
+                            )?);
+                        }
+
+                        whole_slice_reference_sequence.clone().flatten()
+                    }
+                    reference_sequence => reference_sequence.clone(),
                 };
 
                 record.substitution_matrix = substitution_matrix.clone();
             }
+        }
+
+        if has_many_external_reference_sequences {
+            set_record_reference_sequences(&reference_sequence_repository, header, &mut records)?;
         }
 
         resolve_mates(&mut records)?;
@@ -320,6 +355,11 @@ pub(crate) enum ReferenceSequence<'c> {
     External {
         sequence: Arc<fasta::record::Sequence>,
     },
+    /// The part of an external reference sequence that starts at `reference_start`.
+    ExternalRange {
+        reference_start: Position,
+        sequence: Arc<fasta::record::Sequence>,
+    },
 }
 
 fn get_slice_reference_sequence<'c>(
@@ -328,12 +368,20 @@ fn get_slice_reference_sequence<'c>(
     compression_header: &CompressionHeader,
     slice_header: &Header,
     external_data_srcs: &'c [(block::ContentId, Cow<'c, [u8]>)],
+    allow_range: bool,
 ) -> io::Result<Option<ReferenceSequence<'c>>> {
     let reference_sequence_context = slice_header.reference_sequence_context();
 
     let ReferenceSequenceContext::Some(context) = reference_sequence_context else {
         return Ok(None);
     };
+
+    if context.alignment_span() == 0 {
+        if let Some(expected_md5) = slice_header.reference_md5() {
+            validate_sequence(&[], expected_md5)?;
+        }
+        return Ok(None);
+    }
 
     let external_reference_sequence_is_required = compression_header
         .preservation_map()
@@ -343,11 +391,23 @@ fn get_slice_reference_sequence<'c>(
         slice_header.embedded_reference_bases_block_content_id();
 
     if external_reference_sequence_is_required {
-        let reference_sequence_name = header
+        let (reference_sequence_name, reference_sequence) = header
             .reference_sequences()
             .get_index(context.reference_sequence_id())
-            .map(|(name, _)| name)
             .expect("invalid slice reference sequence ID");
+
+        if allow_range
+            && let Some(reference_sequence) = get_slice_reference_sequence_range(
+                reference_sequence_repository,
+                reference_sequence_name,
+                reference_sequence.length().get(),
+                context.alignment_start(),
+                context.alignment_end(),
+                slice_header.reference_md5(),
+            )
+        {
+            return Ok(Some(reference_sequence));
+        }
 
         let sequence = reference_sequence_repository
             .get(reference_sequence_name)
@@ -377,6 +437,186 @@ fn get_slice_reference_sequence<'c>(
     } else {
         Ok(None)
     }
+}
+
+/// Reads only the slice's span of a reference sequence, as HTSlib does when the span is less than
+/// half of the reference sequence.
+///
+/// This returns `None` to use the whole reference sequence instead: when the span is too long, the
+/// repository cannot read ranges, the read fails or is short, or the checksum does not match. The
+/// whole sequence then gives the same result (or error) as without ranges.
+fn get_slice_reference_sequence_range<'c>(
+    reference_sequence_repository: &fasta::Repository,
+    reference_sequence_name: &[u8],
+    reference_sequence_length: usize,
+    alignment_start: Position,
+    alignment_end: Position,
+    reference_md5: Option<&[u8; 16]>,
+) -> Option<ReferenceSequence<'c>> {
+    let len = usize::from(alignment_end)
+        .checked_sub(usize::from(alignment_start))?
+        .checked_add(1)?;
+
+    if (len - 1).saturating_mul(2) >= reference_sequence_length {
+        return None;
+    }
+
+    let sequence = reference_sequence_repository
+        .get_range(
+            reference_sequence_name,
+            (alignment_start..=alignment_end).into(),
+        )?
+        .ok()?;
+
+    if sequence.len() != len {
+        return None;
+    }
+
+    if let Some(expected_md5) = reference_md5 {
+        validate_sequence((*sequence).as_ref(), expected_md5).ok()?;
+    }
+
+    Some(ReferenceSequence::ExternalRange {
+        reference_start: alignment_start,
+        sequence,
+    })
+}
+
+fn needs_reference_sequence(record: &Record<'_>) -> bool {
+    !record.bam_flags.is_unmapped() && !record.cram_flags.sequence_is_missing()
+}
+
+/// Sets the reference sequences of the records of a slice with many reference sequences.
+///
+/// Each reference sequence is read once for the span of its records in the slice, as for a
+/// single-reference slice. Records outside that span, and reference sequences that cannot be read
+/// in part, use the whole reference sequence.
+fn set_record_reference_sequences(
+    reference_sequence_repository: &fasta::Repository,
+    header: &sam::Header,
+    records: &mut [Record<'_>],
+) -> io::Result<()> {
+    // (reference sequence ID, start, end) of the records that need a reference sequence.
+    let mut spans: Vec<(usize, Position, Position)> = Vec::new();
+
+    for record in records
+        .iter()
+        .filter(|record| needs_reference_sequence(record))
+    {
+        let (Some(id), Some((start, len))) = (record.reference_sequence_id, reference_span(record))
+        else {
+            continue;
+        };
+
+        let Some(end) = start.checked_add(len.max(1) - 1) else {
+            continue;
+        };
+
+        match spans.iter_mut().find(|(i, _, _)| *i == id) {
+            Some((_, span_start, span_end)) => {
+                *span_start = (*span_start).min(start);
+                *span_end = (*span_end).max(end);
+            }
+            None => spans.push((id, start, end)),
+        }
+    }
+
+    let ranges: Vec<_> = spans
+        .into_iter()
+        .filter_map(|(id, start, end)| {
+            let (name, reference_sequence) = header.reference_sequences().get_index(id)?;
+
+            // Slices with many reference sequences have no reference checksum.
+            get_slice_reference_sequence_range(
+                reference_sequence_repository,
+                name,
+                reference_sequence.length().get(),
+                start,
+                end,
+                None,
+            )
+            .map(|reference_sequence| (id, reference_sequence))
+        })
+        .collect();
+
+    for record in records
+        .iter_mut()
+        .filter(|record| needs_reference_sequence(record))
+    {
+        let range = ranges
+            .iter()
+            .find(|(id, _)| Some(*id) == record.reference_sequence_id)
+            .map(|(_, reference_sequence)| reference_sequence);
+
+        record.reference_sequence = match range {
+            Some(
+                reference_sequence @ ReferenceSequence::ExternalRange {
+                    reference_start,
+                    sequence,
+                },
+            ) if reads_reference_within(record, *reference_start, sequence.len()) => {
+                Some(reference_sequence.clone())
+            }
+            _ => get_record_reference_sequence(reference_sequence_repository, header, record)?,
+        };
+    }
+
+    Ok(())
+}
+
+/// Returns the alignment start and the number of reference positions that reconstructing the
+/// record's sequence reads from there.
+///
+/// Reference positions advance with the features and end at the alignment end, provided the
+/// features are in order and do not run past the end of the read. This returns `None` for records
+/// that are not.
+fn reference_span(record: &Record<'_>) -> Option<(Position, usize)> {
+    let alignment_start = record.alignment_start?;
+
+    let mut read_end = 1;
+    let mut alignment_span = record.read_length;
+
+    for feature in &record.features {
+        let read_len = match feature {
+            Feature::Scores { .. } | Feature::QualityScore { .. } => continue,
+            Feature::Bases { bases, .. } => bases.len(),
+            Feature::ReadBase { .. } | Feature::Substitution { .. } => 1,
+            Feature::Insertion { bases, .. } | Feature::SoftClip { bases, .. } => {
+                alignment_span = alignment_span.checked_sub(bases.len())?;
+                bases.len()
+            }
+            Feature::InsertBase { .. } => {
+                alignment_span = alignment_span.checked_sub(1)?;
+                1
+            }
+            Feature::Deletion { len, .. } | Feature::ReferenceSkip { len, .. } => {
+                alignment_span = alignment_span.checked_add(*len)?;
+                0
+            }
+            Feature::Padding { .. } | Feature::HardClip { .. } => 0,
+        };
+
+        let position = usize::from(feature.position());
+
+        if position < read_end {
+            return None;
+        }
+
+        read_end = position.checked_add(read_len)?;
+    }
+
+    (read_end <= record.read_length + 1).then_some((alignment_start, alignment_span))
+}
+
+/// Returns whether reconstructing the record's sequence reads only reference positions in the
+/// `len` positions from `reference_start`.
+fn reads_reference_within(record: &Record<'_>, reference_start: Position, len: usize) -> bool {
+    reference_span(record).is_some_and(|(alignment_start, alignment_span)| {
+        usize::from(alignment_start)
+            .checked_sub(usize::from(reference_start))
+            .and_then(|offset| offset.checked_add(alignment_span))
+            .is_some_and(|end| end <= len)
+    })
 }
 
 fn get_record_reference_sequence<'c>(
@@ -569,5 +809,42 @@ mod tests {
         // No alignment start position.
         let record = Record::default();
         assert_eq!(calculate_template_length(&record, &record), 0);
+    }
+    #[test]
+    fn test_reads_reference_within() {
+        let p = |n| Position::new(n).unwrap();
+        let bases = |s: &'static [u8]| Cow::Borrowed(s);
+        // 6 read bases: a soft clip, a 2-base deletion and a 2-base insertion span 5 positions.
+        #[rustfmt::skip]
+        let features = vec![
+            Feature::SoftClip { position: p(1), bases: bases(b"A") },
+            Feature::Deletion { position: p(3), len: 2 },
+            Feature::Insertion { position: p(4), bases: bases(b"GG") },
+        ];
+        let record = Record {
+            read_length: 6,
+            alignment_start: Some(p(10)),
+            features,
+            ..Default::default()
+        };
+        let span = crate::record::calculate_alignment_span(6, &record.features);
+        assert_eq!(reference_span(&record), Some((p(10), span)));
+        for (start, len, expected) in [(10, 5, true), (8, 7, true), (10, 4, false), (11, 9, false)]
+        {
+            assert_eq!(reads_reference_within(&record, p(start), len), expected);
+        }
+        // Features out of order or past the end of the read are not trusted.
+        let past_end = Feature::Bases {
+            position: p(5),
+            bases: bases(b"ACG"),
+        };
+        let unordered = vec![record.features[1].clone(), record.features[0].clone()];
+        for features in [unordered, vec![past_end]] {
+            let record = Record {
+                features,
+                ..record.clone()
+            };
+            assert!(!reads_reference_within(&record, p(1), 100));
+        }
     }
 }

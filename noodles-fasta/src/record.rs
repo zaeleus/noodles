@@ -84,6 +84,10 @@ impl Record {
         self.definition.description()
     }
 
+    pub(crate) fn into_sequence(self) -> Sequence {
+        self.sequence
+    }
+
     /// Returns the sequence.
     ///
     /// # Examples
