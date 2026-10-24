@@ -118,8 +118,9 @@ impl NameDecoder {
 ///
 /// Bytes past `buf` up to `len` read as `fill`. This represents the implicit type stream of a new
 /// token position (its type, then a match for every other name) without allocating a byte per
-/// name. Invariant: `len >= buf.len()`, and only implicit type streams have `len > buf.len()`
-/// (explicit streams come from [`Stream::new`]), which is why only `read_u8` reads `fill`.
+/// name. Invariant: `len >= buf.len()`, and `len > buf.len()` only for an implicit type stream in
+/// its own position (explicit streams come from [`Stream::new`], and duplicates are
+/// materialized), which is why only `read_u8` reads `fill`.
 #[derive(Clone, Debug, Default)]
 struct Stream {
     buf: Vec<u8>,
@@ -150,7 +151,7 @@ impl Stream {
         Ok(n)
     }
 
-    // Only type streams are implicit, so multi-byte reads use `buf` directly.
+    // Implicit streams are only read as types, so multi-byte reads use `buf` directly.
     fn read_u32_le(&mut self) -> io::Result<u32> {
         let buf = self
             .buf
@@ -351,10 +352,16 @@ fn decode_token_byte_streams(
 
             let dup_type = read_u8(src).and_then(|n| Type::try_from(n).map_err(invalid_data))?;
 
-            b.get(dup_pos)
+            let mut stream = b
+                .get(dup_pos)
                 .ok_or_else(|| invalid_data("invalid duplicate token stream position"))?
                 .get(dup_type)?
-                .clone()
+                .clone();
+
+            // The duplicate can be read as any type, so an implicit stream is materialized.
+            stream.buf.resize(stream.len, stream.fill);
+
+            stream
         } else {
             let compressed_size = read_uint7_as(src)?;
             let buf = split_off(src, compressed_size)?;
@@ -397,6 +404,21 @@ fn unexpected_eof() -> io::Error {
 mod tests {
     use super::*;
 
+    fn build_header(name_count: u32) -> Vec<u8> {
+        let mut dst = 0u32.to_le_bytes().to_vec(); // uncompressed size
+        dst.extend(name_count.to_le_bytes());
+        dst.push(0x00); // rANS Nx16
+        dst
+    }
+
+    /// Builds an uncompressed (rANS Nx16 CAT) token byte stream.
+    fn build_stream(ttype: u8, data: &[u8]) -> Vec<u8> {
+        let len = u8::try_from(data.len()).unwrap();
+        let mut dst = vec![ttype, len + 2, 0x20, len];
+        dst.extend(data);
+        dst
+    }
+
     #[test]
     fn test_decode_htscodecs_fixtures() -> io::Result<()> {
         let expected = include_bytes!("../fixtures/names.bin");
@@ -409,6 +431,25 @@ mod tests {
         let mut name = b"a:".repeat(80);
         name.push(0);
         assert_eq!(decode(&super::super::encode(&name)?)?, name);
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_with_duplicate_of_implicit_type_stream() -> io::Result<()> {
+        let src = [
+            build_header(3),
+            // token 0: types = [diff; 3], distances = [0, 1, 1]
+            build_stream(0x80, &[0x06, 0x06, 0x06]),
+            build_stream(0x06, &[0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]),
+            // token 1: types = [string, match, match] (implicit), strings = dup(1, type)
+            vec![0xc1, 0x01, 0x00],
+            // token 2: types = [end; 3]
+            build_stream(0x80, &[0x0c, 0x0c, 0x0c]),
+        ]
+        .concat();
+
+        assert_eq!(decode(&src)?, b"\x01\x0a\0\x01\x0a\0\x01\x0a\0");
+
         Ok(())
     }
 
