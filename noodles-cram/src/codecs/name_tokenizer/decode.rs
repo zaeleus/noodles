@@ -20,7 +20,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let mut b = decode_token_byte_streams(&mut src, compression_method, name_count)?;
 
     let mut names = vec![Vec::new(); name_count];
-    let mut tokens = vec![vec![None; 128]; name_count];
+    let mut tokens = vec![vec![None; b.len()]; name_count];
 
     let mut dst = Vec::with_capacity(uncompressed_size);
 
@@ -277,6 +277,15 @@ fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_more_than_127_token_positions() -> io::Result<()> {
+        let mut expected = b"a:".repeat(80);
+        expected.push(0);
+        let src = super::super::encode(&expected)?;
+        assert_eq!(decode(&src)?, expected);
+        Ok(())
+    }
 
     #[test]
     fn test_decode() -> io::Result<()> {
