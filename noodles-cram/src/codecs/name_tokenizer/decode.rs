@@ -403,6 +403,7 @@ fn unexpected_eof() -> io::Error {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::codecs::name_tokenizer::encode;
 
     fn build_header(name_count: u32) -> Vec<u8> {
         let mut dst = 0u32.to_le_bytes().to_vec(); // uncompressed size
@@ -422,15 +423,23 @@ mod tests {
     #[test]
     fn test_decode_htscodecs_fixtures() -> io::Result<()> {
         let expected = include_bytes!("../fixtures/names.bin");
+
         for src in [
             &include_bytes!("../fixtures/tok3-rans.bin")[..],
             &include_bytes!("../fixtures/tok3-arith.bin")[..],
         ] {
             assert_eq!(decode(src)?, expected);
         }
-        let mut name = b"a:".repeat(80);
-        name.push(0);
-        assert_eq!(decode(&super::super::encode(&name)?)?, name);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_more_than_127_token_positions() -> io::Result<()> {
+        let mut expected = b"a:".repeat(80);
+        expected.push(0);
+        let src = encode(&expected)?;
+        assert_eq!(decode(&src)?, expected);
         Ok(())
     }
 
