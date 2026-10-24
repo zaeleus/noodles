@@ -454,6 +454,58 @@ mod tests {
     }
 
     #[test]
+    fn test_decode_with_no_names() -> io::Result<()> {
+        let src = [build_header(0), build_stream(0x86, &[])].concat();
+        assert!(decode(&src)?.is_empty());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_with_duplicate_of_dz_len_stream() -> io::Result<()> {
+        let src = [
+            build_header(2),
+            // token 0: types = [diff; 2], distances = [0, 1]
+            build_stream(0x80, &[0x06, 0x06]),
+            build_stream(0x06, &[0, 0, 0, 0, 1, 0, 0, 0]),
+            // token 1: types = [digits0, match] (implicit), digits = [7], lengths = [3]
+            build_stream(0x83, &[7, 0, 0, 0]),
+            build_stream(0x04, &[3]),
+            // token 2: types = [digits0, match] (implicit), digits = [8], lengths = dup(1, dzlen)
+            build_stream(0x83, &[8, 0, 0, 0]),
+            vec![0x44, 0x01, 0x04],
+            // token 3: types = [end; 2]
+            build_stream(0x80, &[0x0c, 0x0c]),
+        ]
+        .concat();
+
+        assert_eq!(decode(&src)?, b"007008\x00007008\x00");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_with_invalid_names() {
+        fn t(streams: &[Vec<u8>]) {
+            let mut src = build_header(1);
+            src.extend(streams.concat());
+            assert!(matches!(decode(&src), Err(e) if e.kind() == io::ErrorKind::InvalidData));
+        }
+
+        // token 0: types = [diff] (implicit), distances = [0]
+        let token_0 = build_stream(0x86, &[0, 0, 0, 0]);
+        // token 1: types = [end]
+        let token_1 = build_stream(0x80, &[0x0c]);
+
+        // missing end token (token 1: types = [char] (implicit), chars = [n])
+        t(&[token_0.clone(), build_stream(0x82, b"n")]);
+        // distance out of range (token 0: distances = [1])
+        t(&[build_stream(0x86, &[1, 0, 0, 0]), token_1.clone()]);
+        // duplicate position out of range (token 1: strings = dup(9, string))
+        t(&[token_0, token_1, vec![0x41, 0x09, 0x01]]);
+    }
+
+    #[test]
     fn test_decode() -> io::Result<()> {
         let src = [
             0x58, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x80, 0x15, 0x00, 0x03, 0x06,
