@@ -1,46 +1,55 @@
 use std::io;
 
-use super::{
-    cumulative_frequencies_symbol, read_alphabet, read_states, state_cumulative_frequency,
-    state_renormalize, state_step,
-};
+use super::{SymbolTable, read_alphabet, read_states, renormalize_states, state_renormalize};
 use crate::{codecs::rans_nx16::ALPHABET_SIZE, io::reader::num::read_uint7};
 
 const NORMALIZATION_BITS: u32 = 12;
 
 pub fn decode(src: &mut &[u8], dst: &mut [u8], state_count: usize) -> io::Result<()> {
     let frequencies = read_frequencies(src)?;
-    let cumulative_frequencies = build_cumulative_frequencies(&frequencies);
+    let table = SymbolTable::new(&frequencies, NORMALIZATION_BITS)?;
 
-    let mut states = read_states(src, state_count)?;
+    match state_count {
+        4 => decode_with_states::<4>(src, dst, &table),
+        32 => decode_with_states::<32>(src, dst, &table),
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid rANS Nx16 state count",
+        )),
+    }
+}
 
-    for chunk in dst.chunks_mut(states.len()) {
-        for (d, state) in chunk.iter_mut().zip(states.iter_mut()) {
-            let f = state_cumulative_frequency(*state, NORMALIZATION_BITS);
-            let sym = cumulative_frequencies_symbol(&cumulative_frequencies, f);
+fn decode_with_states<const N: usize>(
+    src: &mut &[u8],
+    dst: &mut [u8],
+    table: &SymbolTable,
+) -> io::Result<()> {
+    let mut states = read_states::<N>(src)?;
 
-            *d = sym;
+    let (chunks, tail) = dst.as_chunks_mut::<N>();
 
-            let i = usize::from(sym);
-
-            *state = state_step(
-                *state,
-                frequencies[i],
-                cumulative_frequencies[i],
-                NORMALIZATION_BITS,
-            );
-
-            *state = state_renormalize(*state, src)?;
+    for chunk in chunks {
+        for (d, state) in chunk.iter_mut().zip(&mut states) {
+            *d = table.decode_symbol(state, NORMALIZATION_BITS);
         }
+
+        // The state steps are independent, so they run ahead of the ordered renormalization reads.
+        renormalize_states(&mut states, src)?;
+    }
+
+    for (d, state) in tail.iter_mut().zip(&mut states) {
+        *d = table.decode_symbol(state, NORMALIZATION_BITS);
+        *state = state_renormalize(*state, src)?;
     }
 
     Ok(())
 }
 
 pub fn normalize_frequencies(frequencies: &mut [u32; ALPHABET_SIZE], bits: u32) {
-    let mut sum: u32 = frequencies.iter().sum();
+    // Sum in u64: a malformed table must not overflow before the symbol table rejects it.
+    let mut sum: u64 = frequencies.iter().copied().map(u64::from).sum();
 
-    if sum == 0 || sum == (1 << bits) {
+    if sum == 0 || sum >= (1 << bits) {
         return;
     }
 
@@ -72,17 +81,22 @@ fn read_frequencies(src: &mut &[u8]) -> io::Result<[u32; ALPHABET_SIZE]> {
     Ok(frequencies)
 }
 
-pub(super) fn build_cumulative_frequencies(
-    frequencies: &[u32; ALPHABET_SIZE],
-) -> [u32; ALPHABET_SIZE] {
-    let mut cumulative_frequencies = [0; ALPHABET_SIZE];
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let mut f = cumulative_frequencies[0];
-
-    for (next_f, g) in cumulative_frequencies[1..].iter_mut().zip(frequencies) {
-        *next_f = f + g;
-        f = *next_f;
+    #[test]
+    fn test_decode_rejects_oversized_frequency_tables() {
+        // Alphabet {'a', 'c'}; 'a' = 4095 and 'c' = f, with no states following: a total of 4096
+        // is valid (and reading the states fails), but 4097 is not.
+        for (f, expected) in [
+            (0x01, io::ErrorKind::UnexpectedEof),
+            (0x02, io::ErrorKind::InvalidData),
+        ] {
+            let src = [b'a', b'c', 0x00, 0x9f, 0x7f, f];
+            let mut dst = [0; 8];
+            let actual = decode(&mut &src[..], &mut dst, 4).unwrap_err().kind();
+            assert_eq!(actual, expected, "f = {f}");
+        }
     }
-
-    cumulative_frequencies
 }

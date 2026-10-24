@@ -89,7 +89,8 @@ fn read_alphabet(src: &mut &[u8]) -> io::Result<[bool; ALPHABET_SIZE]> {
 
             for _ in 0..len {
                 alphabet[usize::from(sym)] = true;
-                sym += 1;
+                // A malformed run can pass 255; wrap (as release builds did) instead of panicking.
+                sym = sym.wrapping_add(1);
             }
         }
 
@@ -99,26 +100,131 @@ fn read_alphabet(src: &mut &[u8]) -> io::Result<[bool; ALPHABET_SIZE]> {
     Ok(alphabet)
 }
 
-fn read_states(src: &mut &[u8], state_count: usize) -> io::Result<Vec<u32>> {
-    (0..state_count).map(|_| read_u32_le(src)).collect()
-}
+fn read_states<const N: usize>(src: &mut &[u8]) -> io::Result<[u32; N]> {
+    let mut states = [0; N];
 
-fn state_cumulative_frequency(s: u32, bits: u32) -> u32 {
-    s & ((1 << bits) - 1)
-}
-
-fn cumulative_frequencies_symbol(cumulative_frequencies: &[u32], frequency: u32) -> u8 {
-    let mut sym = 0;
-
-    while sym < 255 && frequency >= cumulative_frequencies[usize::from(sym + 1)] {
-        sym += 1;
+    for state in &mut states {
+        *state = read_u32_le(src)?;
     }
 
-    sym
+    Ok(states)
 }
 
-fn state_step(s: u32, f: u32, g: u32, bits: u32) -> u32 {
-    f * (s >> bits) + (s & ((1 << bits) - 1)) - g
+/// A decoding table for one frequency distribution.
+///
+/// Both arrays are indexed by cumulative frequency slot `f` (`1 << bits` entries). `symbols[f]` is
+/// the symbol whose cumulative frequency range contains `f`, and `steps[f]` packs
+/// `frequency << 16 | (f - cumulative_frequency)` for that symbol. (rANS 4x8 instead packs
+/// `frequency << 16 | cumulative_frequency` per symbol.) This replaces a per-symbol search over
+/// the cumulative frequencies, and the two lookups are independent of each other.
+struct SymbolTable {
+    symbols: Box<[u8]>,
+    steps: Box<[u32]>,
+}
+
+impl SymbolTable {
+    fn new(frequencies: &[u32; ALPHABET_SIZE], bits: u32) -> io::Result<Self> {
+        let size = 1 << bits;
+        let mut symbols = vec![0; size].into_boxed_slice();
+        let mut steps = vec![0; size].into_boxed_slice();
+        build_symbol_table(frequencies, bits, &mut symbols, &mut steps)?;
+        Ok(Self { symbols, steps })
+    }
+
+    /// Decodes a symbol and advances the state, before renormalization.
+    #[inline(always)]
+    fn decode_symbol(&self, state: &mut u32, bits: u32) -> u8 {
+        let f = (*state & ((1 << bits) - 1)) as usize;
+        let sym = self.symbols[f];
+        *state = apply_step(*state, self.steps[f], bits);
+        sym
+    }
+}
+
+/// Fills `symbols` and `steps` (each `1 << bits` long) as described for [`SymbolTable`].
+fn build_symbol_table(
+    frequencies: &[u32; ALPHABET_SIZE],
+    bits: u32,
+    symbols: &mut [u8],
+    steps: &mut [u32],
+) -> io::Result<()> {
+    let total_frequency = 1 << bits;
+    let mut cumulative_frequency: u32 = 0;
+
+    for (sym, &f) in (0..=u8::MAX).zip(frequencies) {
+        let next_cumulative_frequency = cumulative_frequency
+            .checked_add(f)
+            .filter(|&n| n <= total_frequency)
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid rANS Nx16 frequency table",
+                )
+            })?;
+
+        let range = cumulative_frequency as usize..next_cumulative_frequency as usize;
+        symbols[range.clone()].fill(sym);
+
+        // `f` and `offset` are at most `1 << bits`, and `bits` is at most 12 (order 0 uses 12;
+        // order 1 rejects more), so both fit in 16 bits.
+        for (offset, step) in (0..).zip(&mut steps[range]) {
+            *step = (f << 16) | offset;
+        }
+
+        cumulative_frequency = next_cumulative_frequency;
+    }
+
+    // Slots at or past the total frequency resolve to the last symbol, as with a search for the
+    // last cumulative frequency not greater than the slot.
+    let last_frequency = frequencies[usize::from(u8::MAX)];
+    let last_cumulative_frequency = cumulative_frequency - last_frequency;
+
+    for (slot, (sym, step)) in (cumulative_frequency..).zip(
+        symbols
+            .iter_mut()
+            .zip(steps.iter_mut())
+            .skip(cumulative_frequency as usize),
+    ) {
+        *sym = u8::MAX;
+        *step = (last_frequency << 16) | (slot - last_cumulative_frequency);
+    }
+
+    Ok(())
+}
+
+/// Advances a state with a packed step from a [`SymbolTable`]-style table.
+#[inline(always)]
+fn apply_step(state: u32, step: u32, bits: u32) -> u32 {
+    // Valid tables cannot overflow here; wrapping keeps malformed initial states panic-free.
+    (step >> 16)
+        .wrapping_mul(state >> bits)
+        .wrapping_add(step & 0xffff)
+}
+
+/// Renormalizes every state in order, reading from `src` as needed.
+#[inline(always)]
+fn renormalize_states<const N: usize>(states: &mut [u32; N], src: &mut &[u8]) -> io::Result<()> {
+    if let Some((window, _)) = src.split_at_checked(2 * N) {
+        // With enough input for every state, there is no per-state EOF handling. Every state loads
+        // the next two bytes, and only the states that need them use them.
+        // `n <= 2 * i` before state `i`, so the loads stay within `window`.
+        let mut n = 0;
+
+        for state in states.iter_mut() {
+            let renormalize = u32::from(*state < (1 << 15));
+            let b = u32::from(u16::from_le_bytes([window[n], window[n + 1]]));
+            *state = (*state << (16 * renormalize)) | (b & renormalize.wrapping_neg());
+            n += 2 * renormalize as usize;
+        }
+
+        *src = &src[n..];
+    } else {
+        for state in states.iter_mut() {
+            *state = state_renormalize(*state, src)?;
+        }
+    }
+
+    Ok(())
 }
 
 fn state_renormalize(mut s: u32, src: &mut &[u8]) -> io::Result<u32> {
