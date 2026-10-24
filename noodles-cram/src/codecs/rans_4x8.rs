@@ -17,6 +17,16 @@ mod tests {
     use std::io;
 
     use super::*;
+    use crate::codecs::test_utils::sparse;
+
+    #[test]
+    fn test_decode_htscodecs_fixtures() -> io::Result<()> {
+        let qual = include_bytes!("fixtures/qual.bin");
+        assert_eq!(decode(include_bytes!("fixtures/r4x8-qual-o0.bin"))?, qual);
+        assert_eq!(decode(include_bytes!("fixtures/r4x8-qual-o1.bin"))?, qual);
+        assert!(decode(include_bytes!("fixtures/r4x8-big-o1.bin"))? == sparse(70001, 2048, 4));
+        Ok(())
+    }
 
     #[test]
     fn test_self() -> io::Result<()> {
@@ -29,6 +39,14 @@ mod tests {
             assert_eq!(uncompressed_data, src);
         }
 
+        Ok(())
+    }
+    #[test]
+    fn test_order_0_dispatch_boundary() -> io::Result<()> {
+        for len in [4095, 4096, 4097] {
+            let src = sparse(len, 3, 32);
+            assert_eq!(decode(&encode(Order::Zero, &src)?)?, src);
+        }
         Ok(())
     }
 }
