@@ -134,11 +134,6 @@ impl<'c> Slice<'c> {
 
         let substitution_matrix = compression_header.preservation_map().substitution_matrix();
 
-        let has_many_external_reference_sequences = reference_sequence_context.is_many()
-            && compression_header
-                .preservation_map()
-                .external_reference_sequence_is_required();
-
         let mut records: Vec<Record<'c>> = vec![Record::default(); self.header.record_count()];
 
         for record in &mut records {
@@ -147,11 +142,10 @@ impl<'c> Slice<'c> {
             record.header = Some(header);
 
             if needs_reference_sequence(record) {
-                if has_many_external_reference_sequences {
-                    // These are set once all records are read, so that each reference sequence
-                    // can be read once for the span of its records.
-                    record.reference_sequence(header).transpose()?;
-                } else if let Some(reference_sequence) = &slice_reference_sequence {
+                // A slice with many reference sequences has no slice reference sequence. Its
+                // records get theirs once all are read, so that each reference sequence can be
+                // read once for the span of its records.
+                if let Some(reference_sequence) = &slice_reference_sequence {
                     record.reference_sequence =
                         select_reference_sequence(reference_sequence, record, || {
                             if whole_slice_reference_sequence.is_none() {
@@ -174,7 +168,7 @@ impl<'c> Slice<'c> {
             }
         }
 
-        if has_many_external_reference_sequences {
+        if reference_sequence_context.is_many() {
             set_record_reference_sequences(&reference_sequence_repository, header, &mut records)?;
         }
 
@@ -812,6 +806,77 @@ mod tests {
         // No alignment start position.
         let record = Record::default();
         assert_eq!(calculate_template_length(&record, &record), 0);
+    }
+
+    #[test]
+    fn test_records_with_many_reference_sequences_and_no_required_reference()
+    -> Result<(), Box<dyn std::error::Error>> {
+        use noodles_sam::alignment::{
+            RecordBuf,
+            io::Write as _,
+            record::cigar::{Op, op::Kind},
+        };
+
+        use crate::io::reader::Container;
+
+        let header = "@SQ\tSN:sq0\tLN:4\n@SQ\tSN:sq1\tLN:4\n".parse()?;
+        let repository = fasta::Repository::new(
+            [b"sq0", b"sq1"]
+                .map(|name| {
+                    let definition = fasta::record::Definition::new(name, None);
+                    fasta::Record::new(definition, b"ACGT".to_vec().into())
+                })
+                .to_vec(),
+        );
+
+        // A slice with a record on each reference sequence.
+        let mut writer = crate::io::writer::Builder::default()
+            .set_reference_sequence_repository(repository.clone())
+            .build_from_writer(Vec::new());
+        writer.write_header(&header)?;
+        for reference_sequence_id in [0, 1] {
+            let record = RecordBuf::builder()
+                .set_flags(sam::alignment::record::Flags::empty())
+                .set_reference_sequence_id(reference_sequence_id)
+                .set_alignment_start(Position::MIN)
+                .set_cigar([Op::new(Kind::Match, 4)].into_iter().collect())
+                .set_sequence(b"ACGT".to_vec().into())
+                .set_quality_scores(vec![30; 4].into())
+                .build();
+            writer.write_alignment_record(&header, &record)?;
+        }
+        writer.try_finish(&header)?;
+        let src = writer.into_inner();
+
+        let mut reader = crate::io::Reader::new(&src[..]);
+        reader.read_header()?;
+        let mut container = Container::default();
+        reader.read_container(&mut container)?;
+        let mut compression_header = container.compression_header()?;
+        compression_header
+            .preservation_map
+            .external_reference_sequence_is_required = false;
+        let slice = container.slices().next().unwrap()?;
+        let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
+        let records = slice.records(
+            repository,
+            &header,
+            &compression_header,
+            &core_data_src,
+            &external_data_srcs,
+        )?;
+
+        // Records still get their reference sequences when the external reference sequences
+        // are not required.
+        assert_eq!(records.len(), 2);
+        for record in records {
+            assert!(matches!(
+                record.reference_sequence,
+                Some(ReferenceSequence::External { .. })
+            ));
+        }
+
+        Ok(())
     }
 
     #[test]
