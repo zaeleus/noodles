@@ -256,7 +256,7 @@ where
 
     /// Reads a single record without eagerly parsing its fields.
     ///
-    /// The reads VCF record fields from the underlying stream into the given record's buffer until
+    /// This reads VCF record fields from the underlying stream into the given record's buffer until
     /// a newline is reached. No fields are parsed, meaning the record is not necessarily valid.
     /// However, the structure of the line is guaranteed to be record-like.
     ///
