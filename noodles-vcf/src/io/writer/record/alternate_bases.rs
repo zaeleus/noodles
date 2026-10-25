@@ -142,6 +142,8 @@ mod tests {
         assert!(is_valid("C[1:1["));
         assert!(is_valid("]1:0]A"));
         assert!(is_valid("C[<sq0>:1["));
+        assert!(is_valid("C."));
+        assert!(is_valid(".A"));
 
         assert!(!is_valid(""));
         assert!(!is_valid("C,"));
