@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-use crate::Record;
+use crate::{Record, record::fields::Bounds};
 
 use memchr::memchr2;
 
@@ -22,8 +22,13 @@ where
     let buf = &mut fields.buf;
     buf.clear();
 
-    let bounds = &mut fields.bounds;
+    read_record_inner(reader, buf, &mut fields.bounds)
+}
 
+fn read_record_inner<R>(reader: &mut R, dst: &mut Vec<u8>, bounds: &mut Bounds) -> io::Result<usize>
+where
+    R: BufRead,
+{
     let ends = [
         &mut bounds.name_end,
         &mut bounds.flags_end,
@@ -40,21 +45,21 @@ where
     let mut len = 0;
 
     for end in ends {
-        len += read_required_field(reader, buf)?;
-        *end = buf.len();
+        len += read_required_field(reader, dst)?;
+        *end = dst.len();
     }
 
-    let (n, terminator) = read_last_required_field(reader, buf)?;
+    let (n, terminator) = read_last_required_field(reader, dst)?;
     len += n;
-    bounds.quality_scores_end = buf.len();
+    bounds.quality_scores_end = dst.len();
 
     if matches!(terminator, Terminator::Separator) {
-        len += match read_line(reader, buf)? {
+        len += match read_line(reader, dst)? {
             0 => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
             n => n,
         };
 
-        if buf[bounds.quality_scores_end..].is_empty() {
+        if dst[bounds.quality_scores_end..].is_empty() {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "missing data"));
         }
     }
