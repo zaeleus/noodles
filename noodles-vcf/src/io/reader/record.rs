@@ -5,7 +5,10 @@ use std::{
 
 use memchr::memchr2;
 
-use crate::{Record, record::fields::Bounds};
+use crate::{
+    Record,
+    record::fields::{Bounds, Fields},
+};
 
 const LINE_FEED: u8 = b'\n';
 const CARRIAGE_RETURN: u8 = b'\r';
@@ -25,12 +28,25 @@ where
     let mut buf = mem::take(&mut fields.buf).into_bytes();
     buf.clear();
 
-    let len = read_record_inner(reader, &mut buf, &mut fields.bounds)?;
+    let len = match read_record_inner(reader, &mut buf, &mut fields.bounds) {
+        Ok(n) => n,
+        Err(e) => {
+            fields_reset_with_buf(fields, buf);
+            return Err(e);
+        }
+    };
 
-    fields.buf =
-        String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-    Ok(len)
+    match String::from_utf8(buf) {
+        Ok(buf) => {
+            fields.buf = buf;
+            Ok(len)
+        }
+        Err(e) => {
+            let err = io::Error::new(io::ErrorKind::InvalidData, e.utf8_error());
+            fields_reset_with_buf(fields, e.into_bytes());
+            Err(err)
+        }
+    }
 }
 
 fn read_record_inner<R>(reader: &mut R, dst: &mut Vec<u8>, bounds: &mut Bounds) -> io::Result<usize>
@@ -201,6 +217,15 @@ where
             Ok(n)
         }
     }
+}
+
+fn fields_reset_with_buf(fields: &mut Fields, mut buf: Vec<u8>) {
+    buf.clear();
+
+    // SAFETY: `buf` is empty.
+    fields.buf = String::from_utf8(buf).unwrap();
+
+    fields.reset();
 }
 
 #[cfg(test)]

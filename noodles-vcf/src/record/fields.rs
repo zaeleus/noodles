@@ -6,15 +6,22 @@ use noodles_core::Position;
 
 pub(crate) use self::bounds::Bounds;
 
+const DEFAULT_BUF: &str = ".1.N....";
 const MISSING: &str = ".";
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
     pub(crate) buf: String,
     pub(crate) bounds: Bounds,
 }
 
 impl Fields {
+    pub(crate) fn reset(&mut self) {
+        self.buf.clear();
+        self.buf.push_str(DEFAULT_BUF);
+        self.bounds = Bounds::default();
+    }
+
     pub(super) fn reference_sequence_name(&self) -> &str {
         &self.buf[self.bounds.reference_sequence_name_range()]
     }
@@ -86,7 +93,7 @@ impl Fields {
 impl Default for Fields {
     fn default() -> Self {
         Self {
-            buf: String::from(".1.N...."),
+            buf: String::from(DEFAULT_BUF),
             bounds: Bounds::default(),
         }
     }
@@ -95,6 +102,21 @@ impl Default for Fields {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_reset() {
+        let mut fields = Fields {
+            buf: String::from(".1.N....GT0|0"),
+            bounds: Bounds {
+                samples_keys_end: 10,
+                ..Default::default()
+            },
+        };
+
+        fields.reset();
+
+        assert_eq!(fields, Fields::default());
+    }
 
     #[test]
     fn test_samples() {
