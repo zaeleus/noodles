@@ -22,7 +22,13 @@ where
     let buf = &mut fields.buf;
     buf.clear();
 
-    read_record_inner(reader, buf, &mut fields.bounds)
+    match read_record_inner(reader, buf, &mut fields.bounds) {
+        Ok(len) => Ok(len),
+        Err(e) => {
+            fields.reset();
+            Err(e)
+        }
+    }
 }
 
 fn read_record_inner<R>(reader: &mut R, dst: &mut Vec<u8>, bounds: &mut Bounds) -> io::Result<usize>

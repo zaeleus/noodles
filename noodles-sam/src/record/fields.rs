@@ -11,15 +11,22 @@ use noodles_core::Position;
 pub(crate) use self::bounds::Bounds;
 use crate::Header;
 
+const DEFAULT_BUF: &[u8] = b"*4*0255**00**";
 const MISSING: &[u8] = b"*";
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct Fields {
     pub(crate) buf: Vec<u8>,
     pub(crate) bounds: Bounds,
 }
 
 impl Fields {
+    pub(crate) fn reset(&mut self) {
+        self.buf.clear();
+        self.buf.extend(DEFAULT_BUF);
+        self.bounds = Bounds::default();
+    }
+
     pub fn name(&self) -> Option<&BStr> {
         match &self.buf[self.bounds.name_range()] {
             MISSING => None,
@@ -124,7 +131,7 @@ impl Fields {
 impl Default for Fields {
     fn default() -> Self {
         Self {
-            buf: Vec::from(*b"*4*0255**00**"),
+            buf: Vec::from(DEFAULT_BUF),
             bounds: Bounds::default(),
         }
     }
@@ -150,4 +157,25 @@ fn parse_position(buf: &[u8]) -> io::Result<Position> {
 
 fn parse_int<N: FromLexical>(buf: &[u8]) -> io::Result<N> {
     lexical_core::parse(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_reset() {
+        let mut fields = Fields {
+            buf: Vec::from(b"*4*0255**00NNNN!!!!"),
+            bounds: Bounds {
+                sequence_end: 15,
+                quality_scores_end: 20,
+                ..Default::default()
+            },
+        };
+
+        fields.reset();
+
+        assert_eq!(fields, Fields::default());
+    }
 }
