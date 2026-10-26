@@ -60,14 +60,7 @@ where
     bounds.quality_scores_end = dst.len();
 
     if matches!(terminator, Terminator::Separator) {
-        len += match read_line(reader, dst)? {
-            0 => return Err(io::Error::from(io::ErrorKind::UnexpectedEof)),
-            n => n,
-        };
-
-        if dst[bounds.quality_scores_end..].is_empty() {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "missing data"));
-        }
+        len += read_data_field(reader, dst)?;
     }
 
     Ok(len)
@@ -114,6 +107,25 @@ where
     }
 
     Ok((len, terminator))
+}
+
+fn read_data_field<R>(reader: &mut R, dst: &mut Vec<u8>) -> io::Result<usize>
+where
+    R: BufRead,
+{
+    let mut len = 0;
+
+    loop {
+        let (n, terminator) = read_last_required_field(reader, dst)?;
+        len += n;
+
+        match terminator {
+            Terminator::Separator => dst.push(SEPARATOR),
+            _ => break,
+        }
+    }
+
+    Ok(len)
 }
 
 #[derive(Clone, Copy)]
@@ -170,28 +182,6 @@ where
     }
 
     Ok((len, terminator))
-}
-
-fn read_line<R>(reader: &mut R, buf: &mut Vec<u8>) -> io::Result<usize>
-where
-    R: BufRead,
-{
-    let prev_end = buf.len();
-
-    match reader.read_until(LINE_FEED, buf)? {
-        0 => Ok(0),
-        n => {
-            if buf[prev_end..].ends_with(&[LINE_FEED]) {
-                buf.pop();
-
-                if buf[prev_end..].ends_with(&[CARRIAGE_RETURN]) {
-                    buf.pop();
-                }
-            }
-
-            Ok(n)
-        }
-    }
 }
 
 #[cfg(test)]
@@ -262,6 +252,11 @@ mod tests {
             Err(e) if e.kind() == io::ErrorKind::InvalidData,
         ));
 
+        assert!(matches!(
+            read_record(&mut &b"*\t4\t*\t0\t255\t*\t*\t0\t0\t*\t*\t\t\n"[..], &mut record),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData,
+        ));
+
         Ok(())
     }
 
@@ -297,29 +292,6 @@ mod tests {
             read_last_required_field(&mut &b"\n"[..], &mut buf),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_read_line() -> io::Result<()> {
-        fn t(buf: &mut Vec<u8>, mut src: &[u8], expected: &[u8]) -> io::Result<()> {
-            buf.clear();
-            read_line(&mut src, buf)?;
-            assert_eq!(buf, expected);
-            Ok(())
-        }
-
-        let mut buf = Vec::new();
-
-        t(&mut buf, b"noodles\n", b"noodles")?;
-        t(&mut buf, b"noodles\r\n", b"noodles")?;
-        t(&mut buf, b"noodles", b"noodles")?;
-
-        buf.clear();
-        buf.extend(b"\r");
-        read_line(&mut &b"\n"[..], &mut buf)?;
-        assert_eq!(buf, b"\r");
 
         Ok(())
     }
