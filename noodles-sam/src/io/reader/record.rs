@@ -228,4 +228,33 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_read_last_required_field() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        buf.clear();
+        read_last_required_field(&mut &b"*"[..], &mut buf)?;
+        assert_eq!(buf, b"*");
+
+        buf.clear();
+        assert!(matches!(
+            read_last_required_field(&mut io::empty(), &mut buf),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        buf.clear();
+        assert!(matches!(
+            read_last_required_field(&mut &b"\t"[..], &mut buf),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        buf.clear();
+        assert!(matches!(
+            read_last_required_field(&mut &b"\n"[..], &mut buf),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
 }
