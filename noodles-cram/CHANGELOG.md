@@ -4,7 +4,7 @@
 
 ### Changed
 
-  * cram: Update to lzma-rust2 0.23.0.
+  * cram: Update to lzma-rust2 0.24.0.
 
 ## 0.101.0 - 2026-10-15
 
