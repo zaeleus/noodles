@@ -101,7 +101,11 @@ impl TryFrom<&[u8]> for Record {
 
         let mut reader = Reader::new(buf);
         let mut record = Self::default();
-        reader.read_record(&mut record)?;
+
+        if reader.read_record(&mut record)? == 0 {
+            return Err(io::Error::from(io::ErrorKind::UnexpectedEof));
+        }
+
         Ok(record)
     }
 }
@@ -147,4 +151,22 @@ impl crate::variant::Record for Record {
 fn parse_quality_score(s: &str) -> io::Result<f32> {
     s.parse()
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_from_u8_slice_for_record() -> io::Result<()> {
+        let record = Record::try_from(&b".\t1\t.\tN\t.\t.\t.\t."[..])?;
+        assert_eq!(record, Record::default());
+
+        assert!(matches!(
+            Record::try_from(&[][..]),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        Ok(())
+    }
 }
