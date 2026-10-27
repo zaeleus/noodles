@@ -21,7 +21,14 @@ impl<'s> Sample<'s> {
         header: &'h Header,
         i: usize,
     ) -> Option<Option<io::Result<Value<'s>>>> {
-        self.values(header).nth(i)
+        if self.src.is_empty() {
+            Some(Some(Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "empty sample",
+            ))))
+        } else {
+            self.values(header).nth(i)
+        }
     }
 
     /// Returns an iterator over values.
@@ -108,9 +115,7 @@ impl crate::variant::record::samples::Sample for Sample<'_> {
         header: &'h Header,
         i: usize,
     ) -> Option<io::Result<Option<Value<'a>>>> {
-        self.iter(header)
-            .nth(i)
-            .map(|result| result.map(|(_, value)| value))
+        self.get_index(header, i).map(|v| v.transpose())
     }
 
     fn iter<'a, 'h: 'a>(
@@ -124,6 +129,37 @@ impl crate::variant::record::samples::Sample for Sample<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_get_index() {
+        let header = Header::default();
+        let keys = Keys::new("GT:GQ");
+        let sample = Sample::new("0|0:.", keys);
+
+        assert!(matches!(
+            sample.get_index(&header, 0),
+            Some(Some(Ok(Value::Genotype(_))))
+        ));
+        assert!(matches!(sample.get_index(&header, 1), Some(None)));
+        assert!(sample.get_index(&header, 2).is_none());
+    }
+
+    #[test]
+    fn test_get_index_with_empty_src() {
+        let header = Header::default();
+        let keys = Keys::new("GT:GQ");
+        let sample = Sample::new("", keys);
+
+        assert!(matches!(
+            sample.get_index(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        assert!(matches!(
+            sample.get_index(&header, 1),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
+    }
 
     #[test]
     fn test_values() {

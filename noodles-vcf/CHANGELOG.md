@@ -58,6 +58,9 @@
 
   * vcf/io/writer/record/samples/keys: Write missing value for empty keys.
 
+  * vcf/record/samples/sample: Return error for `Sample::get_index` if sample
+    is empty.
+
 ### Removed
 
   * vcf/record/samples: Remove `AsRef<str>` implementation.
