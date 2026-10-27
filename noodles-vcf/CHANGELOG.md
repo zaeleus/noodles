@@ -51,6 +51,8 @@
     This includes info string values, info array values, sample string values,
     sample array values, and sample genotype values.
 
+  * vcf/io/writer/record/filters: Reject missing value (`.`) for filter name.
+
   * vcf/io/writer/record/samples: Validate sample count.
 
     The number of samples written must now match the number of samples in the

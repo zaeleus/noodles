@@ -67,6 +67,9 @@ where
 
 // § 1.6.1.7 "Fixed fields: FILTER" (2026-02-25): "...no whitespace or semicolons permitted..."
 fn is_valid(s: &str) -> bool {
+    // `hts-specs/test/vcf/4.3/failed/failed_body_filter_000.vcf`
+    const MISSING: &str = ".";
+
     // "'0' is reserved and must not be used as a filter String."
     const ZERO: &str = "0";
 
@@ -74,7 +77,7 @@ fn is_valid(s: &str) -> bool {
         !c.is_whitespace() && c != ';'
     }
 
-    !s.is_empty() && s != ZERO && s.chars().all(is_valid_char)
+    !s.is_empty() && s != MISSING && s != ZERO && s.chars().all(is_valid_char)
 }
 
 #[cfg(test)]
@@ -126,6 +129,7 @@ mod tests {
         assert!(is_valid("q10"));
 
         assert!(!is_valid(""));
+        assert!(!is_valid("."));
         assert!(!is_valid("0"));
         assert!(!is_valid("q 10"));
         assert!(!is_valid("q10;"));
