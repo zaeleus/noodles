@@ -332,9 +332,9 @@ fn get_filtered_data<'r>(
             };
 
             read_group_name = Some(s);
+        } else {
+            data_buf.push((tag, value.try_into()?));
         }
-
-        data_buf.push((tag, value.try_into()?));
     }
 
     Ok((data_buf, read_group_name))
@@ -349,6 +349,24 @@ mod tests {
     };
 
     use super::*;
+
+    #[test]
+    fn read_group_uses_dedicated_series_without_duplicate_auxiliary_tag() -> io::Result<()> {
+        let header = sam::Header::builder()
+            .add_read_group("rg0", Default::default())
+            .build();
+        let data = [(Tag::READ_GROUP, "rg0"), (Tag::COMMENT, "note")];
+        let data = data
+            .into_iter()
+            .map(|(tag, s)| (tag, ValueBuf::from(s)))
+            .collect();
+        let record = sam::alignment::RecordBuf::builder().set_data(data).build();
+        let actual =
+            Record::try_from_alignment_record(&fasta::Repository::default(), &header, &record)?;
+        assert_eq!(actual.read_group_id, Some(0));
+        assert_eq!(actual.data, [(Tag::COMMENT, ValueBuf::from("note"))]);
+        Ok(())
+    }
 
     #[test]
     fn test_get_read_group_id() -> io::Result<()> {

@@ -296,3 +296,123 @@ where
         self.try_finish(header)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::io::Cursor;
+
+    use noodles_core::Position;
+    use noodles_fasta as fasta;
+    use noodles_sam::alignment::record::{
+        Flags,
+        cigar::{Op, op::Kind},
+    };
+
+    use super::*;
+
+    fn multi_slice_fixture() -> io::Result<(Vec<u8>, fasta::Repository, crate::crai::Index)> {
+        let repository = fasta::Repository::new(vec![fasta::Record::new(
+            fasta::record::Definition::new("sq0", None),
+            fasta::record::Sequence::from(vec![b'A'; 64]),
+        )]);
+        let header: sam::Header = "@SQ\tSN:sq0\tLN:64\n".parse().unwrap();
+        let mut writer = Builder::default()
+            .set_reference_sequence_repository(repository.clone())
+            .build_from_writer(Vec::new());
+        writer.context.records_per_slice = 2;
+        writer.write_header(&header)?;
+        for i in 0..4 {
+            let record = sam::alignment::RecordBuf::builder()
+                .set_name(format!("r{i}"))
+                .set_flags(Flags::empty())
+                .set_reference_sequence_id(0)
+                .set_alignment_start(Position::new(i + 1).unwrap())
+                .set_cigar([Op::new(Kind::Match, 4)].into_iter().collect())
+                .set_sequence(b"AAAA".to_vec().into())
+                .set_quality_scores(vec![30; 4].into())
+                .build();
+            writer.write_alignment_record(&header, &record)?;
+        }
+        writer.try_finish(&header)?;
+        let src = writer.into_inner();
+        let mut reader = crate::io::Reader::new(Cursor::new(&src));
+        reader.read_header()?;
+        let offset = reader.get_ref().position();
+        let mut container = crate::io::reader::Container::default();
+        reader.read_container(&mut container)?;
+        assert_eq!(container.header().landmarks().len(), 2);
+        let mut index = Vec::new();
+        for (i, (&landmark, slice)) in container
+            .header()
+            .landmarks()
+            .iter()
+            .zip(container.slices())
+            .enumerate()
+        {
+            let slice = slice?;
+            let crate::container::ReferenceSequenceContext::Some(context) =
+                slice.header().reference_sequence_context()
+            else {
+                unreachable!()
+            };
+            index.push(crate::crai::Record::new(
+                Some(context.reference_sequence_id()),
+                Some(context.alignment_start()),
+                context.alignment_span(),
+                offset,
+                landmark as u64,
+                (container
+                    .header()
+                    .landmarks()
+                    .get(i + 1)
+                    .copied()
+                    .unwrap_or(container.src.len())
+                    - landmark) as u64,
+            ));
+        }
+        Ok((src, repository, index))
+    }
+
+    #[test]
+    fn test_query_does_not_repeat_records_from_other_slices() -> io::Result<()> {
+        let (src, repository, index) = multi_slice_fixture()?;
+        let mut reader = crate::io::reader::Builder::default()
+            .set_reference_sequence_repository(repository)
+            .build_from_reader(Cursor::new(src));
+        let header = reader.read_header()?;
+        let region = "sq0:1-64".parse().unwrap();
+        let records = reader
+            .query(&header, &index, &region)?
+            .records()
+            .collect::<io::Result<Vec<_>>>()?;
+        let names: Vec<_> = records
+            .iter()
+            .map(|r| r.name().unwrap().to_string())
+            .collect();
+        assert_eq!(names, ["r0", "r1", "r2", "r3"]);
+        Ok(())
+    }
+
+    #[cfg(feature = "async")]
+    #[tokio::test]
+    async fn test_async_query_does_not_repeat_records_from_other_slices() -> io::Result<()> {
+        use futures::TryStreamExt;
+        let (src, repository, index) = multi_slice_fixture()?;
+        let mut reader = crate::r#async::io::reader::Builder::default()
+            .set_reference_sequence_repository(repository)
+            .build_from_reader(Cursor::new(src));
+        let header = reader.read_header().await?;
+        let region = "sq0:1-64".parse().unwrap();
+        let records: Vec<_> = reader
+            .query(&header, &index, &region)?
+            .records()
+            .try_collect()
+            .await?;
+        let names: Vec<_> = records
+            .iter()
+            .map(|r| r.name().unwrap().to_string())
+            .collect();
+        assert_eq!(names, ["r0", "r1", "r2", "r3"]);
+        Ok(())
+    }
+}

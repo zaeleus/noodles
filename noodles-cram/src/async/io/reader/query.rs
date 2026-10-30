@@ -117,10 +117,8 @@ where
     };
 
     let records = container
-        .slices()
-        .map(|result| {
-            let slice = result?;
-
+        .slice_at_landmark(index_record.landmark())
+        .and_then(|slice| {
             let (core_data_src, external_data_srcs) = slice.decode_blocks()?;
 
             slice
@@ -141,19 +139,14 @@ where
                         })
                         .collect::<io::Result<Vec<_>>>()
                 })
-        })
-        .collect::<Result<Vec<_>, _>>();
+        });
 
     let records = match records {
         Ok(records) => records,
         Err(e) => return Some(Err(e)),
     };
 
-    ctx.records = records
-        .into_iter()
-        .flatten()
-        .collect::<Vec<_>>()
-        .into_iter();
+    ctx.records = records.into_iter();
 
     Some(Ok(()))
 }

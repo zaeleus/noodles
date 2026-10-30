@@ -232,7 +232,11 @@ where
         metadata.update(is_mapped, chunk);
     }
 
-    pub(crate) fn optimize(mut self) -> Self {
+    pub(crate) fn optimize(
+        mut self,
+        depth: u8,
+        window_offsets: &[Option<bgzf::VirtualPosition>],
+    ) -> Self {
         const MIN_COMPRESSED_SIZE: u64 = 1 << 16;
 
         let mut bins = IndexMap::with_capacity(self.bins.len());
@@ -263,6 +267,8 @@ where
         for bin in bins.values_mut() {
             bin.chunks = merge_chunks(bin.chunks());
         }
+
+        self.index.finish(depth, window_offsets);
 
         Self::new(bins, self.index, self.metadata)
     }
@@ -445,7 +451,7 @@ mod tests {
         .collect();
 
         let reference_sequence = ReferenceSequence::new(bins, Vec::new(), None);
-        let actual = reference_sequence.optimize();
+        let actual = reference_sequence.optimize(5, &[]);
 
         let expected_bins: IndexMap<_, _> = [
             (
