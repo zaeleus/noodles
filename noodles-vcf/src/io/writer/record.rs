@@ -30,6 +30,8 @@ pub enum WriteError {
     Io(io::Error),
     /// The reference sequence name is invalid.
     InvalidReferenceSequenceName(reference_sequence_name::WriteError),
+    /// The position is invalid.
+    InvalidPosition(position::WriteError),
     /// The IDs are invalid.
     InvalidIds(ids::WriteError),
     /// The reference bases are invalid.
@@ -49,6 +51,7 @@ impl error::Error for WriteError {
         match self {
             Self::Io(e) => Some(e),
             Self::InvalidReferenceSequenceName(e) => Some(e),
+            Self::InvalidPosition(e) => Some(e),
             Self::InvalidIds(e) => Some(e),
             Self::InvalidReferenceBases(e) => Some(e),
             Self::InvalidAlternateBases(e) => Some(e),
@@ -64,6 +67,7 @@ impl fmt::Display for WriteError {
         match self {
             Self::Io(_) => write!(f, "I/O error"),
             Self::InvalidReferenceSequenceName(_) => write!(f, "invalid reference sequence name"),
+            Self::InvalidPosition(_) => write!(f, "invalid position"),
             Self::InvalidIds(_) => write!(f, "invalid IDs"),
             Self::InvalidReferenceBases(_) => write!(f, "invalid reference bases"),
             Self::InvalidAlternateBases(_) => write!(f, "invalid alternate bases"),
@@ -92,7 +96,7 @@ where
 
     write_separator(writer)?;
     let position = record.variant_start().transpose().map_err(WriteError::Io)?;
-    write_position(writer, position).map_err(WriteError::Io)?;
+    write_position(writer, position).map_err(WriteError::InvalidPosition)?;
 
     write_separator(writer)?;
     write_ids(writer, record.ids()).map_err(WriteError::InvalidIds)?;
