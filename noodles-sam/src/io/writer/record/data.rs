@@ -20,7 +20,7 @@ where
     Ok(())
 }
 
-pub(super) fn write_generic_data<'r, W, D>(writer: &mut W, data: D) -> io::Result<()>
+fn write_generic_data<'r, W, D>(writer: &mut W, data: D) -> io::Result<()>
 where
     W: Write,
     D: Data<'r>,
