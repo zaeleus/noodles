@@ -1,16 +1,21 @@
 use std::{io, mem};
 
 use memchr::memchr;
+use noodles_sam::alignment::record::data::field::Tag;
 
 const NUL: u8 = 0x00;
 
 pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> {
     let original_src = *src;
 
-    split_off_first_chunk::<2>(src).ok_or_else(unexpected_eof)?;
-    let ty = src.split_off_first().ok_or_else(unexpected_eof)?;
+    let tag = split_off_first_chunk::<2>(src).ok_or_else(unexpected_eof)?;
+    let ty = src.split_off_first().copied().ok_or_else(unexpected_eof)?;
 
-    match *ty {
+    if tag == Tag::CIGAR.as_ref() {
+        return consume_cigar_field(src, ty);
+    }
+
+    match ty {
         b'A' | b'c' | b'C' => {
             src.split_off_first().ok_or_else(unexpected_eof)?;
         }
@@ -86,6 +91,35 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
     Ok(())
 }
 
+fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
+    if ty != b'B' {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid CG field: expected B,I",
+        ));
+    }
+
+    let subtype = src.split_off_first().copied().ok_or_else(unexpected_eof)?;
+
+    if subtype != b'I' {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid CG field: expected B,I",
+        ));
+    }
+
+    let count = split_off_u32_le(src)
+        .ok_or_else(unexpected_eof)
+        .and_then(|n| {
+            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        })?;
+
+    let len = count * size_of::<u32>();
+    src.split_off(..len).ok_or_else(unexpected_eof)?;
+
+    Ok(())
+}
+
 fn split_off_first_chunk<'a, const N: usize>(src: &mut &'a [u8]) -> Option<&'a [u8; N]> {
     let (chunk, rest) = src.split_first_chunk()?;
     *src = rest;
@@ -98,4 +132,28 @@ fn split_off_u32_le(src: &mut &[u8]) -> Option<u32> {
 
 fn unexpected_eof() -> io::Error {
     io::Error::from(io::ErrorKind::UnexpectedEof)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_consume_cigar_field() -> io::Result<()> {
+        let mut src = &[b'I', 0x01, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00][..];
+        consume_cigar_field(&mut src, b'B')?;
+        assert!(src.is_empty());
+
+        assert!(matches!(
+            consume_cigar_field(&mut &[0x01][..], b'C'),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        assert!(matches!(
+            consume_cigar_field(&mut &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00][..], b'B'),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
 }

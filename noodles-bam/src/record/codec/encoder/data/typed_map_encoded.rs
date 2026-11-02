@@ -32,6 +32,20 @@ mod tests {
 
         dst.clear();
         let src = [
+            b'N', b'H', b'C', 0x01, // NH:C:1
+            b'C', b'G', b'B', b'I', 0x01, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00,
+            0x00, // CG:B:I,64
+            b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+        ];
+        write_typed_map_encoded_data(&mut dst, &src)?;
+        let expected = [
+            b'N', b'H', b'C', 0x01, // NH:C:1
+            b'R', b'G', b'Z', b'r', b'g', b'0', 0x00, // RG:Z:rg0
+        ];
+        assert_eq!(dst, expected);
+
+        dst.clear();
+        let src = [
             b'Z', b'A', b'A', b'n', // ZA:A:n
             b'Z', b'B', b'c', 0x00, // ZB:c:0
             b'Z', b'C', b'C', 0x00, // ZC:C:0
