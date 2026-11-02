@@ -4,8 +4,7 @@
 
 ### Changed
 
-  * sam/io/writer/record/data: Skip overflowing CIGAR operations in generic
-    data writer.
+  * sam/io/writer/record/data: Skip overflowing CIGAR operations.
 
     These are already written to the CIGAR field.
 

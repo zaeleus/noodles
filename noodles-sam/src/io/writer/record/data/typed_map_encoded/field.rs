@@ -8,6 +8,8 @@ const FIELD_SEPARATOR: u8 = b'\t';
 const COMPONENT_SEPARATOR: u8 = b':';
 const ARRAY_ITEM_SEPARATOR: u8 = b',';
 
+const CIGAR_TAG: Tag = *b"CG";
+
 const CHARACTER_TYPE_VALUE: u8 = b'A';
 const INT8_TYPE_VALUE: u8 = b'c';
 const UINT8_TYPE_VALUE: u8 = b'C';
@@ -32,6 +34,10 @@ where
 {
     let tag = read_tag(src)?;
     let ty = read_u8(src)?;
+
+    if tag == CIGAR_TAG {
+        return consume_cigar_field(src, ty);
+    }
 
     match ty {
         CHARACTER_TYPE_VALUE => write_character_field(writer, src, tag)?,
@@ -460,6 +466,33 @@ where
     ])
 }
 
+fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
+    if ty != ARRAY_TYPE_VALUE {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid CG field: expected B,I",
+        ));
+    }
+
+    let subtype = read_u8(src)?;
+
+    if subtype != UINT32_TYPE_VALUE {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "invalid CG field: expected B,I",
+        ));
+    }
+
+    let count = read_u32_le(src).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })?;
+
+    let len = count * size_of::<u32>();
+    src.split_off(..len).ok_or_else(unexpected_eof)?;
+
+    Ok(())
+}
+
 fn read_u8(src: &mut &[u8]) -> io::Result<u8> {
     src.split_off_first().copied().ok_or_else(unexpected_eof)
 }
@@ -530,6 +563,20 @@ mod tests {
             &[b'Z', b'K', b'B', b'c', 0x01, 0x00, 0x00, 0x00, 0x00],
             b"\tZK:B:c,0",
         )?;
+
+        t(
+            &mut buf,
+            &[
+                b'C', b'G', b'B', b'I', 0x01, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00,
+            ],
+            b"",
+        )?;
+
+        buf.clear();
+        assert!(matches!(
+            write_field(&mut buf, &mut &[b'C', b'G', b'C', 0x00][..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
@@ -722,6 +769,25 @@ mod tests {
         let src = f32::NAN.to_le_bytes();
         assert!(matches!(
             write_f32_array_field(&mut buf, &mut &src[..], tag, 1),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_consume_cigar_field() -> io::Result<()> {
+        let mut src = &[b'I', 0x01, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00][..];
+        consume_cigar_field(&mut src, b'B')?;
+        assert!(src.is_empty());
+
+        assert!(matches!(
+            consume_cigar_field(&mut &[0x01][..], b'C'),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        assert!(matches!(
+            consume_cigar_field(&mut &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00][..], b'B'),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
