@@ -1,116 +1,15 @@
-use std::{io, mem};
+mod field;
 
-use memchr::memchr;
+use std::io;
 
-const NUL: u8 = 0x00;
+use self::field::write_field;
 
-pub(super) fn write_typed_map_encoded_data(dst: &mut Vec<u8>, src: &[u8]) -> io::Result<()> {
-    if is_valid(src)? {
-        dst.extend(src);
-        Ok(())
-    } else {
-        Err(io::Error::from(io::ErrorKind::InvalidInput))
-    }
-}
-
-fn is_valid(src: &[u8]) -> io::Result<bool> {
-    let mut buf = src;
-    validate(&mut buf)?;
-    Ok(true)
-}
-
-fn validate(src: &mut &[u8]) -> io::Result<()> {
+pub(super) fn write_typed_map_encoded_data(dst: &mut Vec<u8>, mut src: &[u8]) -> io::Result<()> {
     while !src.is_empty() {
-        split_off_first_chunk::<2>(src).ok_or_else(unexpected_eof)?;
-        let ty = src.split_off_first().ok_or_else(unexpected_eof)?;
-
-        match *ty {
-            b'A' | b'c' | b'C' => {
-                src.split_off_first().ok_or_else(unexpected_eof)?;
-            }
-            b's' | b'S' => {
-                src.split_off(..mem::size_of::<u16>())
-                    .ok_or_else(unexpected_eof)?;
-            }
-            b'i' | b'I' | b'f' => {
-                src.split_off(..mem::size_of::<u32>())
-                    .ok_or_else(unexpected_eof)?;
-            }
-            b'Z' => {
-                let i = memchr(NUL, src).ok_or_else(unexpected_eof)?;
-
-                // SAFETY: `i < src.len()`.
-                let buf = src.split_off(..=i).unwrap();
-
-                // SAFETY: `buf` is nonempty.
-                let value = &buf[..buf.len() - 1];
-
-                if !value.iter().all(|b| matches!(b, b' '..=b'~')) {
-                    return Err(io::Error::new(
-                        io::ErrorKind::InvalidInput,
-                        "invalid string",
-                    ));
-                }
-            }
-            b'H' => {
-                let i = memchr(NUL, src).ok_or_else(unexpected_eof)?;
-
-                // SAFETY: `i < src.len()`.
-                let buf = src.split_off(..=i).unwrap();
-
-                // SAFETY: `buf` is nonempty.
-                let value = &buf[..buf.len() - 1];
-
-                if !value.len().is_multiple_of(2)
-                    || !value.iter().all(|b| matches!(b, b'0'..=b'9' | b'A'..=b'F'))
-                {
-                    return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid hex"));
-                }
-            }
-            b'B' => {
-                let subtype = src.split_off_first().ok_or_else(unexpected_eof)?;
-
-                let count = split_off_u32_le(src)
-                    .ok_or_else(unexpected_eof)
-                    .and_then(|n| {
-                        usize::try_from(n)
-                            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-                    })?;
-
-                let size = match subtype {
-                    b'c' | b'C' => mem::size_of::<u8>(),
-                    b's' | b'S' => mem::size_of::<u16>(),
-                    b'i' | b'I' | b'f' => mem::size_of::<u32>(),
-                    _ => {
-                        return Err(io::Error::new(
-                            io::ErrorKind::InvalidInput,
-                            "invalid subtype",
-                        ));
-                    }
-                };
-
-                let len = size * count;
-                src.split_off(..len).ok_or_else(unexpected_eof)?;
-            }
-            _ => return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid type")),
-        }
+        write_field(dst, &mut src)?;
     }
 
     Ok(())
-}
-
-fn split_off_first_chunk<'a, const N: usize>(src: &mut &'a [u8]) -> Option<&'a [u8; N]> {
-    let (chunk, rest) = src.split_first_chunk()?;
-    *src = rest;
-    Some(chunk)
-}
-
-fn split_off_u32_le(src: &mut &[u8]) -> Option<u32> {
-    split_off_first_chunk(src).map(|buf| u32::from_le_bytes(*buf))
-}
-
-fn unexpected_eof() -> io::Error {
-    io::Error::from(io::ErrorKind::UnexpectedEof)
 }
 
 #[cfg(test)]
