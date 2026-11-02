@@ -4,7 +4,7 @@ mod typed_map_encoded;
 use std::io::{self, Write};
 
 use self::{field::write_field, typed_map_encoded::write_typed_map_encoded_data};
-use crate::alignment::record::{Data, DataRef};
+use crate::alignment::record::{Data, DataRef, data::field::Tag};
 
 const SEPARATOR: u8 = b'\t';
 
@@ -28,6 +28,10 @@ where
     for result in data.iter() {
         let (tag, value) = result?;
 
+        if tag == Tag::CIGAR {
+            continue;
+        }
+
         writer.write_all(&[SEPARATOR])?;
         write_field(writer, tag, &value)?;
     }
@@ -38,7 +42,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::alignment::record_buf::Data as DataBuf;
+    use crate::alignment::record_buf::{Data as DataBuf, data::field::value::Array};
 
     #[test]
     fn test_write_data() -> io::Result<()> {
@@ -48,6 +52,7 @@ mod tests {
 
         let data: DataBuf = [
             (Tag::ALIGNMENT_HIT_COUNT, Value::from(1)),
+            (Tag::CIGAR, Value::Array(Array::UInt32(vec![0x40]))),
             (Tag::COMMENT, Value::from("noodles")),
         ]
         .into_iter()

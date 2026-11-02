@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * sam/io/writer/record/data: Skip overflowing CIGAR operations in generic
+    data writer.
+
+    These are already written to the CIGAR field.
+
 ## 0.93.0 - 2026-10-29
 
 ### Changed
