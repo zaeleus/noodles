@@ -3,6 +3,18 @@ use std::{io, mem};
 use memchr::memchr;
 use noodles_sam::alignment::record::data::field::Tag;
 
+const CHARACTER_TYPE_VALUE: u8 = b'A';
+const INT8_TYPE_VALUE: u8 = b'c';
+const UINT8_TYPE_VALUE: u8 = b'C';
+const INT16_TYPE_VALUE: u8 = b's';
+const UINT16_TYPE_VALUE: u8 = b'S';
+const INT32_TYPE_VALUE: u8 = b'i';
+const UINT32_TYPE_VALUE: u8 = b'I';
+const FLOAT_TYPE_VALUE: u8 = b'f';
+const STRING_TYPE_VALUE: u8 = b'Z';
+const HEX_TYPE_VALUE: u8 = b'H';
+const ARRAY_TYPE_VALUE: u8 = b'B';
+
 const NUL: u8 = 0x00;
 
 pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> {
@@ -16,18 +28,18 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
     }
 
     match ty {
-        b'A' | b'c' | b'C' => {
+        CHARACTER_TYPE_VALUE | INT8_TYPE_VALUE | UINT8_TYPE_VALUE => {
             src.split_off_first().ok_or_else(unexpected_eof)?;
         }
-        b's' | b'S' => {
+        INT16_TYPE_VALUE | UINT16_TYPE_VALUE => {
             src.split_off(..mem::size_of::<u16>())
                 .ok_or_else(unexpected_eof)?;
         }
-        b'i' | b'I' | b'f' => {
+        INT32_TYPE_VALUE | UINT32_TYPE_VALUE | FLOAT_TYPE_VALUE => {
             src.split_off(..mem::size_of::<u32>())
                 .ok_or_else(unexpected_eof)?;
         }
-        b'Z' => {
+        STRING_TYPE_VALUE => {
             let i = memchr(NUL, src).ok_or_else(unexpected_eof)?;
 
             // SAFETY: `i < src.len()`.
@@ -43,7 +55,7 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
                 ));
             }
         }
-        b'H' => {
+        HEX_TYPE_VALUE => {
             let i = memchr(NUL, src).ok_or_else(unexpected_eof)?;
 
             // SAFETY: `i < src.len()`.
@@ -58,8 +70,8 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
                 return Err(io::Error::new(io::ErrorKind::InvalidInput, "invalid hex"));
             }
         }
-        b'B' => {
-            let subtype = src.split_off_first().ok_or_else(unexpected_eof)?;
+        ARRAY_TYPE_VALUE => {
+            let subtype = src.split_off_first().copied().ok_or_else(unexpected_eof)?;
 
             let count = split_off_u32_le(src)
                 .ok_or_else(unexpected_eof)
@@ -68,9 +80,9 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
                 })?;
 
             let size = match subtype {
-                b'c' | b'C' => mem::size_of::<u8>(),
-                b's' | b'S' => mem::size_of::<u16>(),
-                b'i' | b'I' | b'f' => mem::size_of::<u32>(),
+                INT8_TYPE_VALUE | UINT8_TYPE_VALUE => mem::size_of::<u8>(),
+                INT16_TYPE_VALUE | UINT16_TYPE_VALUE => mem::size_of::<u16>(),
+                INT32_TYPE_VALUE | UINT32_TYPE_VALUE | FLOAT_TYPE_VALUE => mem::size_of::<u32>(),
                 _ => {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidInput,
@@ -92,7 +104,7 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
 }
 
 fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
-    if ty != b'B' {
+    if ty != ARRAY_TYPE_VALUE {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             "invalid CG field: expected B,I",
@@ -101,7 +113,7 @@ fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
 
     let subtype = src.split_off_first().copied().ok_or_else(unexpected_eof)?;
 
-    if subtype != b'I' {
+    if subtype != UINT32_TYPE_VALUE {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
             "invalid CG field: expected B,I",
