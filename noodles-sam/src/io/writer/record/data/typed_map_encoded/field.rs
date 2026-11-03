@@ -2,13 +2,11 @@ use std::io::{self, Write};
 
 use bstr::ByteSlice;
 
-use crate::io::writer::num;
+use crate::{alignment::record::data::field::Tag, io::writer::num};
 
 const FIELD_SEPARATOR: u8 = b'\t';
 const COMPONENT_SEPARATOR: u8 = b':';
 const ARRAY_ITEM_SEPARATOR: u8 = b',';
-
-const CIGAR_TAG: Tag = *b"CG";
 
 const CHARACTER_TYPE_VALUE: u8 = b'A';
 const INT8_TYPE_VALUE: u8 = b'c';
@@ -26,8 +24,6 @@ const INTEGER_TYPE_VALUE: u8 = INT32_TYPE_VALUE;
 
 const NUL: u8 = 0x00;
 
-type Tag = [u8; 2];
-
 pub(super) fn write_field<W>(writer: &mut W, src: &mut &[u8]) -> io::Result<()>
 where
     W: Write,
@@ -35,7 +31,7 @@ where
     let tag = read_tag(src)?;
     let ty = read_u8(src)?;
 
-    if tag == CIGAR_TAG {
+    if tag == Tag::CIGAR {
         return consume_cigar_field(src, ty);
     }
 
@@ -58,11 +54,11 @@ where
 }
 
 fn read_tag(src: &mut &[u8]) -> io::Result<Tag> {
-    let buf = split_off_first_chunk(src).ok_or_else(unexpected_eof)?;
+    let buf = split_off_first_chunk::<2>(src).ok_or_else(unexpected_eof)?;
 
     // § 1.5 "The alignment section: optional fields" (2025-08-12): "`[A-Za-z][A-Za-z0-9]`".
     if buf[0].is_ascii_alphabetic() && buf[1].is_ascii_alphanumeric() {
-        Ok(*buf)
+        Ok(Tag::from(*buf))
     } else {
         Err(io::Error::from(io::ErrorKind::InvalidInput))
     }
@@ -223,10 +219,12 @@ fn write_field_prefix<W>(writer: &mut W, tag: Tag, ty: u8) -> io::Result<()>
 where
     W: Write,
 {
+    let [t0, t1] = tag.into();
+
     writer.write_all(&[
         FIELD_SEPARATOR,
-        tag[0],
-        tag[1],
+        t0,
+        t1,
         COMPONENT_SEPARATOR,
         ty,
         COMPONENT_SEPARATOR,
@@ -455,10 +453,12 @@ fn write_array_field_prefix<W>(writer: &mut W, tag: Tag, subtype: u8) -> io::Res
 where
     W: Write,
 {
+    let [t0, t1] = tag.into();
+
     writer.write_all(&[
         FIELD_SEPARATOR,
-        tag[0],
-        tag[1],
+        t0,
+        t1,
         COMPONENT_SEPARATOR,
         ARRAY_TYPE_VALUE,
         COMPONENT_SEPARATOR,
@@ -516,6 +516,8 @@ fn unexpected_eof() -> io::Error {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const ZZ: Tag = Tag::new(b'Z', b'Z');
 
     #[test]
     fn test_write_field() -> io::Result<()> {
@@ -583,7 +585,7 @@ mod tests {
 
     #[test]
     fn test_read_tag() -> io::Result<()> {
-        assert_eq!(read_tag(&mut &b"NH"[..])?, *b"NH");
+        assert_eq!(read_tag(&mut &b"NH"[..])?, Tag::ALIGNMENT_HIT_COUNT);
 
         assert!(matches!(
             read_tag(&mut &[][..]),
@@ -601,21 +603,20 @@ mod tests {
     #[test]
     fn test_write_character_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        let tag = *b"ZZ";
 
         buf.clear();
-        write_character_field(&mut buf, &mut &b"n"[..], tag)?;
+        write_character_field(&mut buf, &mut &b"n"[..], ZZ)?;
         assert_eq!(buf, b"\tZZ:A:n");
 
         buf.clear();
         assert!(matches!(
-            write_character_field(&mut buf, &mut &[][..], tag),
+            write_character_field(&mut buf, &mut &[][..], ZZ),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         buf.clear();
         assert!(matches!(
-            write_character_field(&mut buf, &mut &b"\n"[..], tag),
+            write_character_field(&mut buf, &mut &b"\n"[..], ZZ),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -625,22 +626,21 @@ mod tests {
     #[test]
     fn test_write_f32_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        let tag = *b"ZZ";
 
         buf.clear();
-        write_f32_field(&mut buf, &mut &[0x00, 0x00, 0x00, 0x00][..], tag)?;
+        write_f32_field(&mut buf, &mut &[0x00, 0x00, 0x00, 0x00][..], ZZ)?;
         assert_eq!(buf, b"\tZZ:f:0");
 
         buf.clear();
         assert!(matches!(
-            write_f32_field(&mut buf, &mut &[][..], tag),
+            write_f32_field(&mut buf, &mut &[][..], ZZ),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         buf.clear();
         let src = f32::NAN.to_le_bytes();
         assert!(matches!(
-            write_f32_field(&mut buf, &mut &src[..], tag),
+            write_f32_field(&mut buf, &mut &src[..], ZZ),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -650,23 +650,22 @@ mod tests {
     #[test]
     fn test_write_string_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        let tag = *b"ZZ";
 
         buf.clear();
         let src = [b'n', b'd', b'l', b's', 0x00];
-        write_string_field(&mut buf, &mut &src[..], tag)?;
+        write_string_field(&mut buf, &mut &src[..], ZZ)?;
         assert_eq!(buf, b"\tZZ:Z:ndls");
 
         buf.clear();
         assert!(matches!(
-            write_string_field(&mut buf, &mut &[][..], tag),
+            write_string_field(&mut buf, &mut &[][..], ZZ),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         buf.clear();
         let src = [b'n', b'd', b'\t', b'l', b's', 0x00];
         assert!(matches!(
-            write_string_field(&mut buf, &mut &src[..], tag),
+            write_string_field(&mut buf, &mut &src[..], ZZ),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -676,23 +675,22 @@ mod tests {
     #[test]
     fn test_write_hex_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        let tag = *b"ZZ";
 
         buf.clear();
         let src = [b'C', b'A', b'F', b'E', 0x00];
-        write_hex_field(&mut buf, &mut &src[..], tag)?;
+        write_hex_field(&mut buf, &mut &src[..], ZZ)?;
         assert_eq!(buf, b"\tZZ:H:CAFE");
 
         buf.clear();
         assert!(matches!(
-            write_hex_field(&mut buf, &mut &[][..], tag),
+            write_hex_field(&mut buf, &mut &[][..], ZZ),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         buf.clear();
         let src = [b'n', b'd', b'l', b's', 0x00];
         assert!(matches!(
-            write_hex_field(&mut buf, &mut &src[..], tag),
+            write_hex_field(&mut buf, &mut &src[..], ZZ),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -703,7 +701,7 @@ mod tests {
     fn test_write_array_field() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, mut src: &[u8], expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_array_field(buf, &mut src, *b"ZZ")?;
+            write_array_field(buf, &mut src, ZZ)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -752,23 +750,22 @@ mod tests {
     #[test]
     fn test_write_f32_array_field() -> io::Result<()> {
         let mut buf = Vec::new();
-        let tag = *b"ZZ";
 
         buf.clear();
         let src = &[0x00, 0x00, 0x00, 0x00];
-        write_f32_array_field(&mut buf, &mut &src[..], tag, 1)?;
+        write_f32_array_field(&mut buf, &mut &src[..], ZZ, 1)?;
         assert_eq!(buf, b"\tZZ:B:f,0");
 
         buf.clear();
         assert!(matches!(
-            write_f32_array_field(&mut buf, &mut &[][..], tag, 1),
+            write_f32_array_field(&mut buf, &mut &[][..], ZZ, 1),
             Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
         ));
 
         buf.clear();
         let src = f32::NAN.to_le_bytes();
         assert!(matches!(
-            write_f32_array_field(&mut buf, &mut &src[..], tag, 1),
+            write_f32_array_field(&mut buf, &mut &src[..], ZZ, 1),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
