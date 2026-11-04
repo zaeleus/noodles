@@ -27,6 +27,10 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
         return consume_cigar_field(src, ty);
     }
 
+    if !is_valid_tag(*tag) {
+        return Err(io::Error::from(io::ErrorKind::InvalidInput));
+    }
+
     match ty {
         CHARACTER_TYPE_VALUE | INT8_TYPE_VALUE | UINT8_TYPE_VALUE => {
             src.split_off_first().ok_or_else(unexpected_eof)?;
@@ -132,6 +136,11 @@ fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
     Ok(())
 }
 
+// § 1.5 "The alignment section: optional fields" (2025-08-12): "`[A-Za-z][A-Za-z0-9]`".
+fn is_valid_tag(buf: [u8; 2]) -> bool {
+    buf[0].is_ascii_alphabetic() && buf[1].is_ascii_alphanumeric()
+}
+
 fn split_off_first_chunk<'a, const N: usize>(src: &mut &'a [u8]) -> Option<&'a [u8; N]> {
     let (chunk, rest) = src.split_first_chunk()?;
     *src = rest;
@@ -167,5 +176,12 @@ mod tests {
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid_tag() {
+        assert!(is_valid_tag(*b"NH"));
+        assert!(!is_valid_tag(*b"00"));
+        assert!(!is_valid_tag(*b"n\t"));
     }
 }

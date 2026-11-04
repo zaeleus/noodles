@@ -7,6 +7,8 @@
   * bam/record/codec/encoder/data/typed_map_encoded/field: Skip overflowing
     CIGAR operations.
 
+  * bam/record/codec/encoder/data/typed_map_encoded/field: Validate tag.
+
 ## 0.98.0 - 2026-10-29
 
 ### Changed
