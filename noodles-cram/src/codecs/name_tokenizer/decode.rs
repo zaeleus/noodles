@@ -57,18 +57,19 @@ struct TokenReader {
 }
 
 impl TokenReader {
-    fn get(&self, ty: Type) -> &Cursor<Vec<u8>> {
+    fn get(&self, ty: Type) -> io::Result<&Cursor<Vec<u8>>> {
         match ty {
-            Type::Type => &self.type_reader,
-            Type::String => &self.string_reader,
-            Type::Char => &self.char_reader,
-            Type::Digits0 => &self.digits0_reader,
-            Type::Dup => &self.dup_reader,
-            Type::Diff => &self.diff_reader,
-            Type::Digits => &self.digits_reader,
-            Type::Delta => &self.delta_reader,
-            Type::Delta0 => &self.delta0_reader,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
+            Type::Type => Ok(&self.type_reader),
+            Type::String => Ok(&self.string_reader),
+            Type::Char => Ok(&self.char_reader),
+            Type::Digits0 => Ok(&self.digits0_reader),
+            Type::DZLen => Ok(&self.dz_len_reader),
+            Type::Dup => Ok(&self.dup_reader),
+            Type::Diff => Ok(&self.diff_reader),
+            Type::Digits => Ok(&self.digits_reader),
+            Type::Delta => Ok(&self.delta_reader),
+            Type::Delta0 => Ok(&self.delta0_reader),
+            Type::Match | Type::Nop | Type::End => Err(no_stream(ty)),
         }
     }
 
@@ -88,20 +89,24 @@ impl TokenReader {
         }
     }
 
-    fn set(&mut self, ty: Type, buf: Vec<u8>) {
-        match ty {
-            Type::Type => *self.type_reader.get_mut() = buf,
-            Type::String => *self.string_reader.get_mut() = buf,
-            Type::Char => *self.char_reader.get_mut() = buf,
-            Type::Digits0 => *self.digits0_reader.get_mut() = buf,
-            Type::Dup => *self.dup_reader.get_mut() = buf,
-            Type::Diff => *self.diff_reader.get_mut() = buf,
-            Type::DZLen => *self.dz_len_reader.get_mut() = buf,
-            Type::Digits => *self.digits_reader.get_mut() = buf,
-            Type::Delta => *self.delta_reader.get_mut() = buf,
-            Type::Delta0 => *self.delta0_reader.get_mut() = buf,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
-        }
+    fn set(&mut self, ty: Type, buf: Vec<u8>) -> io::Result<()> {
+        let reader = match ty {
+            Type::Type => &mut self.type_reader,
+            Type::String => &mut self.string_reader,
+            Type::Char => &mut self.char_reader,
+            Type::Digits0 => &mut self.digits0_reader,
+            Type::Dup => &mut self.dup_reader,
+            Type::Diff => &mut self.diff_reader,
+            Type::DZLen => &mut self.dz_len_reader,
+            Type::Digits => &mut self.digits_reader,
+            Type::Delta => &mut self.delta_reader,
+            Type::Delta0 => &mut self.delta0_reader,
+            Type::Match | Type::Nop | Type::End => return Err(no_stream(ty)),
+        };
+
+        *reader.get_mut() = buf;
+
+        Ok(())
     }
 
     fn read_type(&mut self) -> io::Result<Type> {
@@ -175,8 +180,7 @@ fn decode_token_byte_streams(
     compression_method: CompressionMethod,
     n_names: usize,
 ) -> io::Result<Vec<TokenReader>> {
-    let mut b = Vec::new();
-    let mut t = -1;
+    let mut b: Vec<TokenReader> = Vec::new();
 
     while !src.is_empty() {
         let ttype = read_u8(src)?;
@@ -188,15 +192,15 @@ fn decode_token_byte_streams(
             Type::try_from(ttype).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
         if tok_new {
-            t += 1;
-
-            b.push(TokenReader::default());
+            let mut reader = TokenReader::default();
 
             if ty != Type::Type {
                 let mut buf = vec![u8::from(Type::Match); n_names];
                 buf[0] = u8::from(ty);
-                b[t as usize].set(Type::Type, buf);
+                reader.set(Type::Type, buf)?;
             }
+
+            b.push(reader);
         }
 
         if tok_dup {
@@ -206,8 +210,19 @@ fn decode_token_byte_streams(
                 Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })?;
 
-            let buf = b[dup_pos].get(dup_type).get_ref().clone();
-            b[t as usize].set(ty, buf);
+            let buf = b
+                .get(dup_pos)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("invalid duplicate token position: {dup_pos}"),
+                    )
+                })?
+                .get(dup_type)?
+                .get_ref()
+                .clone();
+
+            last_token_reader(&mut b)?.set(ty, buf)?;
         } else {
             let compressed_size = read_uint7_as(src)?;
             let buf = split_off(src, compressed_size)?;
@@ -217,11 +232,27 @@ fn decode_token_byte_streams(
                 CompressionMethod::AdaptiveArithmeticCoder => aac::decode(buf, 0)?,
             };
 
-            b[t as usize].set(ty, buf);
+            last_token_reader(&mut b)?.set(ty, buf)?;
         }
     }
 
     Ok(b)
+}
+
+fn last_token_reader(b: &mut [TokenReader]) -> io::Result<&mut TokenReader> {
+    b.last_mut().ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            "token stream without a token position",
+        )
+    })
+}
+
+fn no_stream(ty: Type) -> io::Error {
+    io::Error::new(
+        io::ErrorKind::InvalidData,
+        format!("invalid token stream type: {ty:?}"),
+    )
 }
 
 fn decode_single_name(
@@ -277,6 +308,100 @@ fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{
+        codecs::rans_nx16::{self, Flags},
+        io::writer::num::write_uint7,
+    };
+
+    fn write_token_byte_stream(dst: &mut Vec<u8>, ttype: u8, buf: &[u8]) -> io::Result<()> {
+        let cdata = rans_nx16::encode(Flags::empty(), buf)?;
+        dst.push(ttype);
+        write_uint7(dst, u32::try_from(cdata.len()).unwrap())?;
+        dst.extend(cdata);
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_token_byte_streams_with_duplicate_dz_len_stream() -> io::Result<()> {
+        const NEW: u8 = 0x80;
+        const DUP: u8 = 0x40;
+
+        let mut src = Vec::new();
+        // Position 0: a DIGITS0 token with its DZLEN stream.
+        write_token_byte_stream(&mut src, NEW | u8::from(Type::Digits0), &[0, 0, 0, 0])?;
+        write_token_byte_stream(&mut src, u8::from(Type::DZLen), &[4])?;
+        // Position 1: a DIGITS0 token whose DZLEN stream duplicates position 0's.
+        write_token_byte_stream(&mut src, NEW | u8::from(Type::Digits0), &[0, 0, 0, 0])?;
+        src.extend([u8::from(Type::DZLen) | DUP, 0, u8::from(Type::DZLen)]);
+
+        let b = decode_token_byte_streams(&mut &src[..], CompressionMethod::RansNx16, 1)?;
+
+        assert_eq!(b.len(), 2);
+        assert_eq!(b[1].get(Type::DZLen)?.get_ref(), &[4]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_token_byte_streams_with_invalid_streams() -> io::Result<()> {
+        const NEW: u8 = 0x80;
+        const DUP: u8 = 0x40;
+
+        let decode =
+            |src: &[u8]| decode_token_byte_streams(&mut &src[..], CompressionMethod::RansNx16, 1);
+
+        let mut src = Vec::new();
+        write_token_byte_stream(&mut src, u8::from(Type::Digits), &[0, 0, 0, 0])?;
+        assert!(matches!(
+            decode(&src),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        let mut src = Vec::new();
+        write_token_byte_stream(&mut src, NEW | u8::from(Type::Digits), &[0, 0, 0, 0])?;
+        src.extend([u8::from(Type::Digits) | DUP, 8, u8::from(Type::Digits)]);
+        assert!(matches!(
+            decode(&src),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        for ty in [Type::Match, Type::Nop, Type::End] {
+            let mut src = Vec::new();
+            write_token_byte_stream(&mut src, NEW | u8::from(Type::Digits), &[0, 0, 0, 0])?;
+            write_token_byte_stream(&mut src, u8::from(ty), &[0])?;
+            assert!(matches!(
+                decode(&src),
+                Err(e) if e.kind() == io::ErrorKind::InvalidData
+            ));
+
+            let mut src = Vec::new();
+            write_token_byte_stream(&mut src, NEW | u8::from(Type::Digits), &[0, 0, 0, 0])?;
+            src.extend([u8::from(Type::Digits) | DUP, 0, u8::from(ty)]);
+            assert!(matches!(
+                decode(&src),
+                Err(e) if e.kind() == io::ErrorKind::InvalidData
+            ));
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_token_byte_streams_with_duplicate_stream_in_same_position() -> io::Result<()> {
+        const NEW: u8 = 0x80;
+        const DUP: u8 = 0x40;
+
+        let mut src = Vec::new();
+        write_token_byte_stream(&mut src, NEW | u8::from(Type::Delta), &[1])?;
+        src.extend([u8::from(Type::Delta0) | DUP, 0, u8::from(Type::Delta)]);
+
+        let b = decode_token_byte_streams(&mut &src[..], CompressionMethod::RansNx16, 1)?;
+
+        assert_eq!(b.len(), 1);
+        assert_eq!(b[0].get(Type::Delta0)?.get_ref(), &[1]);
+
+        Ok(())
+    }
 
     #[test]
     fn test_decode() -> io::Result<()> {

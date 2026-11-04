@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * cram/codecs/name_tokenizer/decode: Read token byte streams that duplicate
+    a `DZLEN` stream.
+
+    These are written by htslib, e.g., samtools 1.20 with CRAM 3.1. Decoding
+    them previously panicked with "unhandled ty: DZLen".
+
+  * cram/codecs/name_tokenizer/decode: Return an invalid data error instead of
+    panicking when a token byte stream comes before a token position,
+    duplicates an out-of-range position, or uses or duplicates a token type
+    without associated data (`MATCH`, `NOP`, `END`).
+
 ## 0.102.0 - 2026-10-29
 
 ### Changed
