@@ -54,14 +54,20 @@ where
 }
 
 fn read_tag(src: &mut &[u8]) -> io::Result<Tag> {
-    let buf = split_off_first_chunk::<2>(src).ok_or_else(unexpected_eof)?;
+    let buf = split_off_first_chunk::<2>(src)
+        .copied()
+        .ok_or_else(unexpected_eof)?;
 
-    // § 1.5 "The alignment section: optional fields" (2025-08-12): "`[A-Za-z][A-Za-z0-9]`".
-    if buf[0].is_ascii_alphabetic() && buf[1].is_ascii_alphanumeric() {
-        Ok(Tag::from(*buf))
+    if is_valid_tag(buf) {
+        Ok(Tag::from(buf))
     } else {
         Err(io::Error::from(io::ErrorKind::InvalidInput))
     }
+}
+
+// § 1.5 "The alignment section: optional fields" (2025-08-12): "`[A-Za-z][A-Za-z0-9]`".
+fn is_valid_tag(buf: [u8; 2]) -> bool {
+    buf[0].is_ascii_alphabetic() && buf[1].is_ascii_alphanumeric()
 }
 
 fn write_character_field<W>(writer: &mut W, src: &mut &[u8], tag: Tag) -> io::Result<()>
@@ -598,6 +604,13 @@ mod tests {
         ));
 
         Ok(())
+    }
+
+    #[test]
+    fn test_is_valid_tag() {
+        assert!(is_valid_tag(*b"NH"));
+        assert!(!is_valid_tag(*b"00"));
+        assert!(!is_valid_tag(*b"n\t"));
     }
 
     #[test]
