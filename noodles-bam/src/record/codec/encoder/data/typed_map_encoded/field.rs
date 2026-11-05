@@ -73,11 +73,9 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
         ARRAY_TYPE_VALUE => {
             let subtype = src.split_off_first().copied().ok_or_else(unexpected_eof)?;
 
-            let count = split_off_u32_le(src)
-                .ok_or_else(unexpected_eof)
-                .and_then(|n| {
-                    usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-                })?;
+            let count = read_u32_le(src).and_then(|n| {
+                usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+            })?;
 
             let size = match subtype {
                 INT8_TYPE_VALUE | UINT8_TYPE_VALUE => mem::size_of::<u8>(),
@@ -137,11 +135,9 @@ fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
         ));
     }
 
-    let count = split_off_u32_le(src)
-        .ok_or_else(unexpected_eof)
-        .and_then(|n| {
-            usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
-        })?;
+    let count = read_u32_le(src).and_then(|n| {
+        usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+    })?;
 
     let len = count * size_of::<u32>();
     src.split_off(..len).ok_or_else(unexpected_eof)?;
@@ -149,14 +145,16 @@ fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
     Ok(())
 }
 
+fn read_u32_le(src: &mut &[u8]) -> io::Result<u32> {
+    split_off_first_chunk(src)
+        .map(|buf| u32::from_le_bytes(*buf))
+        .ok_or_else(unexpected_eof)
+}
+
 fn split_off_first_chunk<'a, const N: usize>(src: &mut &'a [u8]) -> Option<&'a [u8; N]> {
     let (chunk, rest) = src.split_first_chunk()?;
     *src = rest;
     Some(chunk)
-}
-
-fn split_off_u32_le(src: &mut &[u8]) -> Option<u32> {
-    split_off_first_chunk(src).map(|buf| u32::from_le_bytes(*buf))
 }
 
 fn unexpected_eof() -> io::Error {
