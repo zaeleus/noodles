@@ -21,7 +21,7 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
     let original_src = *src;
 
     let tag = read_tag(src)?;
-    let ty = src.split_off_first().copied().ok_or_else(unexpected_eof)?;
+    let ty = read_u8(src)?;
 
     if tag == Tag::CIGAR {
         return consume_cigar_field(src, ty);
@@ -29,7 +29,7 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
 
     match ty {
         CHARACTER_TYPE_VALUE | INT8_TYPE_VALUE | UINT8_TYPE_VALUE => {
-            src.split_off_first().ok_or_else(unexpected_eof)?;
+            read_u8(src)?;
         }
         INT16_TYPE_VALUE | UINT16_TYPE_VALUE => {
             src.split_off(..mem::size_of::<u16>())
@@ -71,7 +71,7 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
             }
         }
         ARRAY_TYPE_VALUE => {
-            let subtype = src.split_off_first().copied().ok_or_else(unexpected_eof)?;
+            let subtype = read_u8(src)?;
 
             let count = read_u32_le(src).and_then(|n| {
                 usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
@@ -126,7 +126,7 @@ fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
         ));
     }
 
-    let subtype = src.split_off_first().copied().ok_or_else(unexpected_eof)?;
+    let subtype = read_u8(src)?;
 
     if subtype != UINT32_TYPE_VALUE {
         return Err(io::Error::new(
@@ -143,6 +143,10 @@ fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
     src.split_off(..len).ok_or_else(unexpected_eof)?;
 
     Ok(())
+}
+
+fn read_u8(src: &mut &[u8]) -> io::Result<u8> {
+    src.split_off_first().copied().ok_or_else(unexpected_eof)
 }
 
 fn read_u32_le(src: &mut &[u8]) -> io::Result<u32> {
