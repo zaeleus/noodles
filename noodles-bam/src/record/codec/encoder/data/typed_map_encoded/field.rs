@@ -20,15 +20,11 @@ const NUL: u8 = 0x00;
 pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> {
     let original_src = *src;
 
-    let tag = split_off_first_chunk::<2>(src).ok_or_else(unexpected_eof)?;
+    let tag = read_tag(src)?;
     let ty = src.split_off_first().copied().ok_or_else(unexpected_eof)?;
 
-    if tag == Tag::CIGAR.as_ref() {
+    if tag == Tag::CIGAR {
         return consume_cigar_field(src, ty);
-    }
-
-    if !is_valid_tag(*tag) {
-        return Err(io::Error::from(io::ErrorKind::InvalidInput));
     }
 
     match ty {
@@ -107,6 +103,23 @@ pub(super) fn write_field(dst: &mut Vec<u8>, src: &mut &[u8]) -> io::Result<()> 
     Ok(())
 }
 
+fn read_tag(src: &mut &[u8]) -> io::Result<Tag> {
+    let buf = split_off_first_chunk::<2>(src)
+        .copied()
+        .ok_or_else(unexpected_eof)?;
+
+    if is_valid_tag(buf) {
+        Ok(Tag::from(buf))
+    } else {
+        Err(io::Error::from(io::ErrorKind::InvalidInput))
+    }
+}
+
+// § 1.5 "The alignment section: optional fields" (2025-08-12): "`[A-Za-z][A-Za-z0-9]`".
+fn is_valid_tag(buf: [u8; 2]) -> bool {
+    buf[0].is_ascii_alphabetic() && buf[1].is_ascii_alphanumeric()
+}
+
 fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
     if ty != ARRAY_TYPE_VALUE {
         return Err(io::Error::new(
@@ -134,11 +147,6 @@ fn consume_cigar_field(src: &mut &[u8], ty: u8) -> io::Result<()> {
     src.split_off(..len).ok_or_else(unexpected_eof)?;
 
     Ok(())
-}
-
-// § 1.5 "The alignment section: optional fields" (2025-08-12): "`[A-Za-z][A-Za-z0-9]`".
-fn is_valid_tag(buf: [u8; 2]) -> bool {
-    buf[0].is_ascii_alphabetic() && buf[1].is_ascii_alphanumeric()
 }
 
 fn split_off_first_chunk<'a, const N: usize>(src: &mut &'a [u8]) -> Option<&'a [u8; N]> {
@@ -172,6 +180,23 @@ mod tests {
 
         assert!(matches!(
             consume_cigar_field(&mut &[b'C', 0x01, 0x00, 0x00, 0x00, 0x00][..], b'B'),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_tag() -> io::Result<()> {
+        assert_eq!(read_tag(&mut &b"NH"[..])?, Tag::ALIGNMENT_HIT_COUNT);
+
+        assert!(matches!(
+            read_tag(&mut &[][..]),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        assert!(matches!(
+            read_tag(&mut &b"n\t"[..]),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
