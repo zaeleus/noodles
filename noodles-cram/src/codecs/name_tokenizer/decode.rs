@@ -96,9 +96,18 @@ impl TokenReader {
     }
 
     fn read_distance(&mut self, ty: Type) -> io::Result<usize> {
-        assert!(matches!(ty, Type::Dup | Type::Diff));
+        let reader = match ty {
+            Type::Dup => &mut self.dup_reader,
+            Type::Diff => &mut self.diff_reader,
+            _ => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!("invalid type: {ty:?}"),
+                ));
+            }
+        };
 
-        read_u32_le(self.get_mut(ty)).and_then(|n| {
+        read_u32_le(reader).and_then(|n| {
             usize::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
         })
     }
