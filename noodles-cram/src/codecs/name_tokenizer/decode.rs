@@ -89,22 +89,6 @@ impl TokenReader {
         }
     }
 
-    fn set(&mut self, ty: Type, buf: Vec<u8>) {
-        match ty {
-            Type::Type => *self.type_reader.get_mut() = buf,
-            Type::String => *self.string_reader.get_mut() = buf,
-            Type::Char => *self.char_reader.get_mut() = buf,
-            Type::Digits0 => *self.digits0_reader.get_mut() = buf,
-            Type::Dup => *self.dup_reader.get_mut() = buf,
-            Type::Diff => *self.diff_reader.get_mut() = buf,
-            Type::DZLen => *self.dz_len_reader.get_mut() = buf,
-            Type::Digits => *self.digits_reader.get_mut() = buf,
-            Type::Delta => *self.delta_reader.get_mut() = buf,
-            Type::Delta0 => *self.delta0_reader.get_mut() = buf,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
-        }
-    }
-
     fn read_type(&mut self) -> io::Result<Type> {
         read_u8(&mut self.type_reader).and_then(|n| {
             Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
@@ -196,7 +180,7 @@ fn decode_token_byte_streams(
             if ty != Type::Type {
                 let mut buf = vec![u8::from(Type::Match); n_names];
                 buf[0] = u8::from(ty);
-                b[t as usize].set(Type::Type, buf);
+                *b[t as usize].get_mut(Type::Type).get_mut() = buf;
             }
         }
 
@@ -208,7 +192,7 @@ fn decode_token_byte_streams(
             })?;
 
             let buf = b[dup_pos].get(dup_type).get_ref().clone();
-            b[t as usize].set(ty, buf);
+            *b[t as usize].get_mut(ty).get_mut() = buf;
         } else {
             let compressed_size = read_uint7_as(src)?;
             let buf = split_off(src, compressed_size)?;
@@ -218,7 +202,7 @@ fn decode_token_byte_streams(
                 CompressionMethod::AdaptiveArithmeticCoder => aac::decode(buf, 0)?,
             };
 
-            b[t as usize].set(ty, buf);
+            *b[t as usize].get_mut(ty).get_mut() = buf;
         }
     }
 
