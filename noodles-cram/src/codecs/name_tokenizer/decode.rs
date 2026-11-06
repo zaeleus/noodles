@@ -57,35 +57,35 @@ struct TokenReader {
 }
 
 impl TokenReader {
-    fn get(&self, ty: Type) -> &Cursor<Vec<u8>> {
+    fn get(&self, ty: Type) -> Option<&Cursor<Vec<u8>>> {
         match ty {
-            Type::Type => &self.type_reader,
-            Type::String => &self.string_reader,
-            Type::Char => &self.char_reader,
-            Type::Digits0 => &self.digits0_reader,
-            Type::Dup => &self.dup_reader,
-            Type::Diff => &self.diff_reader,
-            Type::DZLen => &self.dz_len_reader,
-            Type::Digits => &self.digits_reader,
-            Type::Delta => &self.delta_reader,
-            Type::Delta0 => &self.delta0_reader,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
+            Type::Type => Some(&self.type_reader),
+            Type::String => Some(&self.string_reader),
+            Type::Char => Some(&self.char_reader),
+            Type::Digits0 => Some(&self.digits0_reader),
+            Type::Dup => Some(&self.dup_reader),
+            Type::Diff => Some(&self.diff_reader),
+            Type::DZLen => Some(&self.dz_len_reader),
+            Type::Digits => Some(&self.digits_reader),
+            Type::Delta => Some(&self.delta_reader),
+            Type::Delta0 => Some(&self.delta0_reader),
+            _ => None,
         }
     }
 
-    fn get_mut(&mut self, ty: Type) -> &mut Cursor<Vec<u8>> {
+    fn get_mut(&mut self, ty: Type) -> Option<&mut Cursor<Vec<u8>>> {
         match ty {
-            Type::Type => &mut self.type_reader,
-            Type::String => &mut self.string_reader,
-            Type::Char => &mut self.char_reader,
-            Type::Digits0 => &mut self.digits0_reader,
-            Type::Dup => &mut self.dup_reader,
-            Type::Diff => &mut self.diff_reader,
-            Type::DZLen => &mut self.dz_len_reader,
-            Type::Digits => &mut self.digits_reader,
-            Type::Delta => &mut self.delta_reader,
-            Type::Delta0 => &mut self.delta0_reader,
-            _ => unimplemented!("unhandled ty: {:?}", ty),
+            Type::Type => Some(&mut self.type_reader),
+            Type::String => Some(&mut self.string_reader),
+            Type::Char => Some(&mut self.char_reader),
+            Type::Digits0 => Some(&mut self.digits0_reader),
+            Type::Dup => Some(&mut self.dup_reader),
+            Type::Diff => Some(&mut self.diff_reader),
+            Type::DZLen => Some(&mut self.dz_len_reader),
+            Type::Digits => Some(&mut self.digits_reader),
+            Type::Delta => Some(&mut self.delta_reader),
+            Type::Delta0 => Some(&mut self.delta0_reader),
+            _ => None,
         }
     }
 
@@ -99,12 +99,7 @@ impl TokenReader {
         let reader = match ty {
             Type::Dup => &mut self.dup_reader,
             Type::Diff => &mut self.diff_reader,
-            _ => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("invalid type: {ty:?}"),
-                ));
-            }
+            _ => return Err(invalid_type(ty)),
         };
 
         read_u32_le(reader).and_then(|n| {
@@ -189,30 +184,34 @@ fn decode_token_byte_streams(
             if ty != Type::Type {
                 let mut buf = vec![u8::from(Type::Match); n_names];
                 buf[0] = u8::from(ty);
-                *b[t as usize].get_mut(Type::Type).get_mut() = buf;
+                *b[t as usize].type_reader.get_mut() = buf;
             }
         }
 
-        if tok_dup {
+        let buf = if tok_dup {
             let dup_pos = read_u8(src).map(usize::from)?;
 
             let dup_type = read_u8(src).and_then(|n| {
                 Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             })?;
 
-            let buf = b[dup_pos].get(dup_type).get_ref().clone();
-            *b[t as usize].get_mut(ty).get_mut() = buf;
+            let reader = b[dup_pos]
+                .get(dup_type)
+                .ok_or_else(|| invalid_type(dup_type))?;
+
+            reader.get_ref().clone()
         } else {
             let compressed_size = read_uint7_as(src)?;
             let buf = split_off(src, compressed_size)?;
 
-            let buf = match compression_method {
+            match compression_method {
                 CompressionMethod::RansNx16 => rans_nx16::decode(buf, 0)?,
                 CompressionMethod::AdaptiveArithmeticCoder => aac::decode(buf, 0)?,
-            };
+            }
+        };
 
-            *b[t as usize].get_mut(ty).get_mut() = buf;
-        }
+        let reader = b[t as usize].get_mut(ty).ok_or_else(|| invalid_type(ty))?;
+        *reader.get_mut() = buf;
     }
 
     Ok(b)
@@ -266,6 +265,10 @@ fn decode_single_name(
 fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
     src.split_off(..len)
         .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))
+}
+
+fn invalid_type(ty: Type) -> io::Error {
+    io::Error::new(io::ErrorKind::InvalidData, format!("invalid type: {ty:?}"))
 }
 
 #[cfg(test)]

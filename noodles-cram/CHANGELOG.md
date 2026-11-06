@@ -7,6 +7,8 @@
   * cram/codecs/name_tokenizer/decode: Return `DZLEN` reader on access
     ([#444]).
 
+  * cram/codecs/name_tokenizer/decode: Validate token types ([#444]).
+
 [#444]: https://github.com/zaeleus/noodles/pull/444
 
 ## 0.102.0 - 2026-10-29
