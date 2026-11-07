@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Changed
+
+  * cram: Update to lzma-rust2 0.25.0.
+
 ### Fixed
 
   * cram/codecs/name_tokenizer/decode: Return `DZLEN` reader on access
