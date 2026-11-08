@@ -5,6 +5,12 @@ use crate::alignment::record::{QualityScores, QualityScoresRef};
 
 const OFFSET: u8 = b'!';
 
+// § 1.4.11 "`QUAL`" (2025-08-12): "Tools should avoid writing a solitary base quality 9 (ASCII '*')
+// to SAM [...] for alignment lines where SEQ is of length 1, instead adjusting the base quality to
+// 10 (ASCII '+') to avoid this potential ambiguity."
+const MISSING_SCORE: u8 = MISSING - OFFSET;
+const ADJUSTED_MISSING_SCORE: u8 = MISSING_SCORE + 1;
+
 pub(super) fn write_quality_scores<W>(
     writer: &mut W,
     base_count: usize,
@@ -40,6 +46,12 @@ where
     W: Write,
 {
     const CHUNK_SIZE: usize = 256;
+
+    if quality_scores == [MISSING_SCORE] {
+        let n = encode(ADJUSTED_MISSING_SCORE);
+        writer.write_all(&[n])?;
+        return Ok(());
+    }
 
     let mut buf = [0; CHUNK_SIZE];
 
@@ -214,6 +226,7 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, &[45, 35, 43, 50], b"NDLS")?;
+        t(&mut buf, &[9], b"+")?;
 
         let src = [45, 35, 43, 50].repeat(96);
         let expected = b"NDLS".repeat(96);
