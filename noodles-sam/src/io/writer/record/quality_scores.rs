@@ -82,13 +82,24 @@ where
     match offset {
         0 => write_raw_quality_scores(writer, quality_scores)?,
         OFFSET => {
-            if quality_scores.iter().all(|&n| is_valid_encoded_score(n)) {
+            if quality_scores == [MISSING] {
+                let n = encode(ADJUSTED_MISSING_SCORE);
+                writer.write_all(&[n])?;
+            } else if quality_scores.iter().all(|&n| is_valid_encoded_score(n)) {
                 writer.write_all(quality_scores)?;
             } else {
                 return Err(io::Error::from(io::ErrorKind::InvalidInput));
             }
         }
         _ => {
+            if let [n] = quality_scores
+                && n.checked_sub(offset) == Some(MISSING_SCORE)
+            {
+                let m = encode(ADJUSTED_MISSING_SCORE);
+                writer.write_all(&[m])?;
+                return Ok(());
+            }
+
             for n in quality_scores {
                 let m = n
                     .checked_sub(offset)
@@ -197,12 +208,24 @@ mod tests {
         assert_eq!(buf, b"NDLS");
 
         buf.clear();
+        write_offset_quality_scores(&mut buf, &[9], 0)?;
+        assert_eq!(buf, b"+");
+
+        buf.clear();
         write_offset_quality_scores(&mut buf, b"NDLS", b'!')?;
         assert_eq!(buf, b"NDLS");
 
         buf.clear();
+        write_offset_quality_scores(&mut buf, b"*", b'!')?;
+        assert_eq!(buf, b"+");
+
+        buf.clear();
         write_offset_quality_scores(&mut buf, &[46, 36, 44, 51], 1)?;
         assert_eq!(buf, b"NDLS");
+
+        buf.clear();
+        write_offset_quality_scores(&mut buf, &[10], 1)?;
+        assert_eq!(buf, b"+");
 
         buf.clear();
         let quality_scores = [255];
