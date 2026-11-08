@@ -8,6 +8,11 @@
 
     These are already written to the CIGAR field.
 
+  * sam/io/writer/record/quality_scores: Adjust ambiguous quality score.
+
+    A sequence of length 1 and quality score 9 (`*`) is adjusted to 10 (`+`) to
+    avoid ambiguity with the missing field value.
+
 ## 0.93.0 - 2026-10-29
 
 ### Changed

@@ -122,6 +122,15 @@ where
     W: Write,
     S: QualityScores,
 {
+    if quality_scores.len() == 1
+        && let Some(n) = quality_scores.iter().next().transpose()?
+        && n == MISSING_SCORE
+    {
+        let m = encode(ADJUSTED_MISSING_SCORE);
+        writer.write_all(&[m])?;
+        return Ok(());
+    }
+
     for result in quality_scores.iter() {
         let n = result?;
 
@@ -179,6 +188,9 @@ mod tests {
 
         let quality_scores = [45, 35, 43, 50].into_iter().collect();
         t(&mut buf, 4, &quality_scores, b"NDLS")?;
+
+        let quality_scores = [9].into_iter().collect();
+        t(&mut buf, 1, &quality_scores, b"+")?;
 
         buf.clear();
         let quality_scores = [45, 35, 43, 50].into_iter().collect();
