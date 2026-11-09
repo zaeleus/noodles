@@ -13,6 +13,8 @@
     A sequence of length 1 and quality score 9 (`*`) is adjusted to 10 (`+`) to
     avoid ambiguity with the missing field value.
 
+  * sam/io/writer/record/template_length: Validate template length.
+
 ## 0.93.0 - 2026-10-29
 
 ### Changed
