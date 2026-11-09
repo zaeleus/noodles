@@ -213,31 +213,23 @@ mod tests {
 
     #[test]
     fn test_write_offset_quality_scores() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, src: &[u8], offset: u8, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_offset_quality_scores(buf, src, offset)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
         let mut buf = Vec::new();
 
-        buf.clear();
-        write_offset_quality_scores(&mut buf, &[45, 35, 43, 50], 0)?;
-        assert_eq!(buf, b"NDLS");
+        t(&mut buf, &[45, 35, 43, 50], 0, b"NDLS")?;
+        t(&mut buf, &[9], 0, b"+")?;
 
-        buf.clear();
-        write_offset_quality_scores(&mut buf, &[9], 0)?;
-        assert_eq!(buf, b"+");
+        t(&mut buf, b"NDLS", b'!', b"NDLS")?;
+        t(&mut buf, b"*", b'!', b"+")?;
 
-        buf.clear();
-        write_offset_quality_scores(&mut buf, b"NDLS", b'!')?;
-        assert_eq!(buf, b"NDLS");
-
-        buf.clear();
-        write_offset_quality_scores(&mut buf, b"*", b'!')?;
-        assert_eq!(buf, b"+");
-
-        buf.clear();
-        write_offset_quality_scores(&mut buf, &[46, 36, 44, 51], 1)?;
-        assert_eq!(buf, b"NDLS");
-
-        buf.clear();
-        write_offset_quality_scores(&mut buf, &[10], 1)?;
-        assert_eq!(buf, b"+");
+        t(&mut buf, &[46, 36, 44, 51], 1, b"NDLS")?;
+        t(&mut buf, &[10], 1, b"+")?;
 
         buf.clear();
         let quality_scores = [255];
