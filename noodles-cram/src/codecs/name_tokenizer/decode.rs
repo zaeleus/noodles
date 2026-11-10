@@ -188,8 +188,11 @@ fn read_buffers(
             }
         };
 
-        let i = bufs.len() - 1;
-        bufs[i][usize::from(ty)] = ty_buf;
+        let buf = bufs
+            .last_mut()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "empty buffers"))?;
+
+        buf[usize::from(ty)] = ty_buf;
     }
 
     Ok(bufs)
