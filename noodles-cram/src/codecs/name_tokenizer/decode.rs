@@ -91,8 +91,9 @@ impl<'a> TokenReader<'a> {
                     )
                 })
                 .map(Some),
+            Type::Nop => Ok(Some(Token::Nop)),
             Type::End => Ok(None),
-            _ => Ok(Some(Token::Nop)),
+            ty => Err(invalid_type(ty)),
         }
     }
 }
