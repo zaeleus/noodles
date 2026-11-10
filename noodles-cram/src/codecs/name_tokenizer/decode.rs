@@ -177,7 +177,15 @@ fn read_buffers(
         let ty_buf = if is_dup {
             let j = read_u8(src).map(usize::from)?;
             let dup_type = read_u8(src).and_then(decode_type)?;
-            bufs[j][usize::from(dup_type)].clone()
+
+            let buf = bufs.get(j).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid duplicate buffer position",
+                )
+            })?;
+
+            buf[usize::from(dup_type)].clone()
         } else {
             let compressed_size = read_uint7_as(src)?;
             let buf = split_off(src, compressed_size)?;
