@@ -1,9 +1,12 @@
 mod header;
 
-use std::io::{self, BufRead, Cursor, Write};
+use std::{
+    array,
+    io::{self, BufRead, Write},
+};
 
 use self::header::{CompressionMethod, read_header};
-use super::Type;
+use super::{TYPE_COUNT, Type};
 use crate::{
     codecs::{aac, rans_nx16},
     io::{
@@ -17,7 +20,8 @@ const NUL: u8 = 0x00;
 pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let (uncompressed_size, name_count, compression_method) = read_header(&mut src)?;
 
-    let mut b = decode_token_byte_streams(&mut src, compression_method, name_count)?;
+    let bufs = read_buffers(&mut src, name_count, compression_method)?;
+    let mut readers = build_readers(&bufs);
 
     let mut names = vec![Vec::new(); name_count];
     let mut tokens = vec![vec![None; 128]; name_count];
@@ -25,7 +29,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let mut dst = Vec::with_capacity(uncompressed_size);
 
     for i in 0..name_count {
-        let name = decode_single_name(&mut b, &mut names, &mut tokens, i)?;
+        let name = decode_single_name(&mut readers, &mut names, &mut tokens, i)?;
         dst.write_all(&name)?;
         write_u8(&mut dst, NUL)?;
     }
@@ -43,60 +47,17 @@ enum Token {
 }
 
 #[derive(Clone, Debug, Default)]
-struct TokenReader {
-    type_reader: Cursor<Vec<u8>>,
-    string_reader: Cursor<Vec<u8>>,
-    char_reader: Cursor<Vec<u8>>,
-    digits0_reader: Cursor<Vec<u8>>,
-    dz_len_reader: Cursor<Vec<u8>>,
-    dup_reader: Cursor<Vec<u8>>,
-    diff_reader: Cursor<Vec<u8>>,
-    digits_reader: Cursor<Vec<u8>>,
-    delta_reader: Cursor<Vec<u8>>,
-    delta0_reader: Cursor<Vec<u8>>,
-}
+struct TokenReader<'a>([&'a [u8]; TYPE_COUNT]);
 
-impl TokenReader {
-    fn get(&self, ty: Type) -> Option<&Cursor<Vec<u8>>> {
-        match ty {
-            Type::Type => Some(&self.type_reader),
-            Type::String => Some(&self.string_reader),
-            Type::Char => Some(&self.char_reader),
-            Type::Digits0 => Some(&self.digits0_reader),
-            Type::Dup => Some(&self.dup_reader),
-            Type::Diff => Some(&self.diff_reader),
-            Type::DZLen => Some(&self.dz_len_reader),
-            Type::Digits => Some(&self.digits_reader),
-            Type::Delta => Some(&self.delta_reader),
-            Type::Delta0 => Some(&self.delta0_reader),
-            _ => None,
-        }
-    }
-
-    fn get_mut(&mut self, ty: Type) -> Option<&mut Cursor<Vec<u8>>> {
-        match ty {
-            Type::Type => Some(&mut self.type_reader),
-            Type::String => Some(&mut self.string_reader),
-            Type::Char => Some(&mut self.char_reader),
-            Type::Digits0 => Some(&mut self.digits0_reader),
-            Type::Dup => Some(&mut self.dup_reader),
-            Type::Diff => Some(&mut self.diff_reader),
-            Type::DZLen => Some(&mut self.dz_len_reader),
-            Type::Digits => Some(&mut self.digits_reader),
-            Type::Delta => Some(&mut self.delta_reader),
-            Type::Delta0 => Some(&mut self.delta0_reader),
-            _ => None,
-        }
-    }
-
+impl<'a> TokenReader<'a> {
     fn read_type(&mut self) -> io::Result<Type> {
-        read_u8(&mut self.type_reader).and_then(decode_type)
+        read_u8(&mut self.0[usize::from(Type::Type)]).and_then(decode_type)
     }
 
     fn read_distance(&mut self, ty: Type) -> io::Result<usize> {
         let reader = match ty {
-            Type::Dup => &mut self.dup_reader,
-            Type::Diff => &mut self.diff_reader,
+            Type::Dup => &mut self.0[usize::from(Type::Dup)],
+            Type::Diff => &mut self.0[usize::from(Type::Diff)],
             _ => return Err(invalid_type(ty)),
         };
 
@@ -108,26 +69,26 @@ impl TokenReader {
     fn read_token(&mut self, prev_token: Option<&Token>) -> io::Result<Option<Token>> {
         match self.read_type()? {
             Type::Char => {
-                let c = read_u8(&mut self.char_reader)?;
+                let c = read_u8(&mut self.0[usize::from(Type::Char)])?;
                 Ok(Some(Token::Char(c)))
             }
             Type::String => {
                 let mut buf = Vec::new();
-                self.string_reader.read_until(NUL, &mut buf)?;
+                self.0[usize::from(Type::String)].read_until(NUL, &mut buf)?;
                 buf.pop();
                 Ok(Some(Token::String(buf)))
             }
             Type::Digits => {
-                let d = read_u32_le(&mut self.digits_reader)?;
+                let d = read_u32_le(&mut self.0[usize::from(Type::Digits)])?;
                 Ok(Some(Token::Digits(d)))
             }
             Type::Digits0 => {
-                let d = read_u32_le(&mut self.digits0_reader)?;
-                let l = read_u8(&mut self.dz_len_reader)?;
+                let d = read_u32_le(&mut self.0[usize::from(Type::Digits0)])?;
+                let l = read_u8(&mut self.0[usize::from(Type::DZLen)])?;
                 Ok(Some(Token::PaddedDigits(d, l)))
             }
             Type::Delta => {
-                let delta = read_u8(&mut self.delta_reader).map(u32::from)?;
+                let delta = read_u8(&mut self.0[usize::from(Type::Delta)]).map(u32::from)?;
 
                 match prev_token {
                     Some(Token::Digits(n)) => Ok(Some(Token::Digits(n + delta))),
@@ -138,7 +99,7 @@ impl TokenReader {
                 }
             }
             Type::Delta0 => {
-                let delta = read_u8(&mut self.delta0_reader).map(u32::from)?;
+                let delta = read_u8(&mut self.0[usize::from(Type::Delta0)]).map(u32::from)?;
 
                 match prev_token {
                     Some(Token::PaddedDigits(n, width)) => {
@@ -157,42 +118,36 @@ impl TokenReader {
     }
 }
 
-fn decode_token_byte_streams(
+fn read_buffers(
     src: &mut &[u8],
+    name_count: usize,
     compression_method: CompressionMethod,
-    n_names: usize,
-) -> io::Result<Vec<TokenReader>> {
-    let mut b = Vec::new();
-    let mut t = -1;
+) -> io::Result<Vec<[Vec<u8>; TYPE_COUNT]>> {
+    let mut bufs = Vec::new();
 
     while !src.is_empty() {
-        let ttype = read_u8(src)?;
+        let n = read_u8(src)?;
 
-        let tok_new = ttype & 0x80 != 0;
-        let tok_dup = ttype & 0x40 != 0;
-        let ty = decode_type(ttype & 0x3f)?;
+        let is_new = n & 0x80 != 0;
+        let is_dup = n & 0x40 != 0;
+        let ty = decode_type(n & 0x3f)?;
 
-        if tok_new {
-            t += 1;
-
-            b.push(TokenReader::default());
+        if is_new {
+            let mut buf = array::from_fn(|_| Vec::new());
 
             if ty != Type::Type {
-                let mut buf = vec![u8::from(Type::Match); n_names];
-                buf[0] = u8::from(ty);
-                *b[t as usize].type_reader.get_mut() = buf;
+                let mut b = vec![u8::from(Type::Match); name_count];
+                b[0] = u8::from(ty);
+                buf[0] = b;
             }
+
+            bufs.push(buf);
         }
 
-        let buf = if tok_dup {
-            let dup_pos = read_u8(src).map(usize::from)?;
+        let ty_buf = if is_dup {
+            let j = read_u8(src).map(usize::from)?;
             let dup_type = read_u8(src).and_then(decode_type)?;
-
-            let reader = b[dup_pos]
-                .get(dup_type)
-                .ok_or_else(|| invalid_type(dup_type))?;
-
-            reader.get_ref().clone()
+            bufs[j][usize::from(dup_type)].clone()
         } else {
             let compressed_size = read_uint7_as(src)?;
             let buf = split_off(src, compressed_size)?;
@@ -203,11 +158,11 @@ fn decode_token_byte_streams(
             }
         };
 
-        let reader = b[t as usize].get_mut(ty).ok_or_else(|| invalid_type(ty))?;
-        *reader.get_mut() = buf;
+        let i = bufs.len() - 1;
+        bufs[i][usize::from(ty)] = ty_buf;
     }
 
-    Ok(b)
+    Ok(bufs)
 }
 
 fn decode_type(n: u8) -> io::Result<Type> {
@@ -232,8 +187,15 @@ fn decode_type(n: u8) -> io::Result<Type> {
     }
 }
 
+fn build_readers(bufs: &[[Vec<u8>; TYPE_COUNT]]) -> Vec<TokenReader<'_>> {
+    bufs.iter()
+        .map(|bs| bs.each_ref().map(|buf| buf.as_slice()))
+        .map(TokenReader)
+        .collect()
+}
+
 fn decode_single_name(
-    b: &mut [TokenReader],
+    b: &mut [TokenReader<'_>],
     names: &mut [Vec<u8>],
     tokens: &mut [Vec<Option<Token>>],
     n: usize,

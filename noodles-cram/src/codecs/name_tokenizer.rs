@@ -3,6 +3,8 @@ mod encode;
 
 pub use self::{decode::decode, encode::encode};
 
+const TYPE_COUNT: usize = 13;
+
 #[allow(clippy::enum_variant_names)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Type {
