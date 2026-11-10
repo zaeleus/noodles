@@ -114,7 +114,12 @@ fn read_delta<'a>(src: &mut &'a [u8], prev_token: Option<Token<'a>>) -> io::Resu
     let delta = read_u8(src).map(u32::from)?;
 
     if let Some(Token::Digits(n)) = prev_token {
-        Ok(Token::Digits(n + delta))
+        n.checked_add(delta).map(Token::Digits).ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid delta: attempt to add with overflow",
+            )
+        })
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -127,7 +132,14 @@ fn read_delta0<'a>(src: &mut &'a [u8], prev_token: Option<Token<'a>>) -> io::Res
     let delta = read_u8(src).map(u32::from)?;
 
     if let Some(Token::PaddedDigits(n, width)) = prev_token {
-        Ok(Token::PaddedDigits(n + delta, width))
+        n.checked_add(delta)
+            .map(|m| Token::PaddedDigits(m, width))
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid delta0: attempt to add with overflow",
+                )
+            })
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,

@@ -11,7 +11,9 @@
   * cram/codecs/name_tokenizer/decode: Return `DZLEN` reader on access
     ([#444]).
 
-  * cram/codecs/name_tokenizer/decode: Validate token types ([#444]).
+  * cram/codecs/name_tokenizer/decode: Add validations.
+
+    This includes delta calculations and token types ([#444]).
 
   * cram/codecs/name_tokenizer/decode/header: Validate name count.
 
