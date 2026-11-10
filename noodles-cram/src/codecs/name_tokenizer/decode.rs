@@ -2,8 +2,10 @@ mod header;
 
 use std::{
     array,
-    io::{self, BufRead, Write},
+    io::{self, Write},
 };
+
+use bstr::ByteSlice;
 
 use self::header::{CompressionMethod, read_header};
 use super::{TYPE_COUNT, Type};
@@ -36,10 +38,10 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     Ok(dst)
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-enum Token {
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Token<'a> {
     Char(u8),
-    String(Vec<u8>),
+    String(&'a [u8]),
     Digits(u32),
     PaddedDigits(u32, u8),
     Nop,
@@ -65,7 +67,7 @@ impl<'a> TokenReader<'a> {
         })
     }
 
-    fn read_token(&mut self, prev_token: Option<&Token>) -> io::Result<Option<Token>> {
+    fn read_token(&mut self, prev_token: Option<Token<'a>>) -> io::Result<Option<Token<'a>>> {
         match self.read_type()? {
             Type::Char => read_char(&mut self.0[usize::from(Type::Char)]).map(Some),
             Type::String => read_string(&mut self.0[usize::from(Type::String)]).map(Some),
@@ -79,29 +81,35 @@ impl<'a> TokenReader<'a> {
             Type::Delta0 => {
                 read_delta0(&mut self.0[usize::from(Type::Delta0)], prev_token).map(Some)
             }
-            Type::Match => Ok(prev_token.cloned()),
+            Type::Match => Ok(prev_token),
             Type::End => Ok(None),
             _ => Ok(Some(Token::Nop)),
         }
     }
 }
 
-fn read_string(src: &mut &[u8]) -> io::Result<Token> {
-    let mut buf = Vec::new();
-    src.read_until(NUL, &mut buf)?;
-    buf.pop();
+fn read_string<'a>(src: &mut &'a [u8]) -> io::Result<Token<'a>> {
+    let i = src
+        .as_bstr()
+        .find_byte(NUL)
+        .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?;
+
+    let (buf, rest) = src.split_at(i);
+
+    *src = &rest[1..];
+
     Ok(Token::String(buf))
 }
 
-fn read_char(src: &mut &[u8]) -> io::Result<Token> {
+fn read_char<'a>(src: &mut &'a [u8]) -> io::Result<Token<'a>> {
     read_u8(src).map(Token::Char)
 }
 
-fn read_digits(src: &mut &[u8]) -> io::Result<Token> {
+fn read_digits<'a>(src: &mut &'a [u8]) -> io::Result<Token<'a>> {
     read_u32_le(src).map(Token::Digits)
 }
 
-fn read_delta(src: &mut &[u8], prev_token: Option<&Token>) -> io::Result<Token> {
+fn read_delta<'a>(src: &mut &'a [u8], prev_token: Option<Token<'a>>) -> io::Result<Token<'a>> {
     let delta = read_u8(src).map(u32::from)?;
 
     if let Some(Token::Digits(n)) = prev_token {
@@ -114,11 +122,11 @@ fn read_delta(src: &mut &[u8], prev_token: Option<&Token>) -> io::Result<Token> 
     }
 }
 
-fn read_delta0(src: &mut &[u8], prev_token: Option<&Token>) -> io::Result<Token> {
+fn read_delta0<'a>(src: &mut &'a [u8], prev_token: Option<Token<'a>>) -> io::Result<Token<'a>> {
     let delta = read_u8(src).map(u32::from)?;
 
     if let Some(Token::PaddedDigits(n, width)) = prev_token {
-        Ok(Token::PaddedDigits(n + delta, *width))
+        Ok(Token::PaddedDigits(n + delta, width))
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -203,9 +211,9 @@ fn build_readers(bufs: &[[Vec<u8>; TYPE_COUNT]]) -> Vec<TokenReader<'_>> {
         .collect()
 }
 
-fn read_tokens(
-    readers: &mut [TokenReader<'_>],
-    tokens: &mut [Vec<Option<Token>>],
+fn read_tokens<'a>(
+    readers: &mut [TokenReader<'a>],
+    tokens: &mut [Vec<Option<Token<'a>>>],
     i: usize,
 ) -> io::Result<()> {
     let ty = readers[0].read_type()?;
@@ -218,7 +226,7 @@ fn read_tokens(
     } else {
         let mut t = 1;
 
-        while let Some(token) = readers[t].read_token(tokens[j][t].as_ref())? {
+        while let Some(token) = readers[t].read_token(tokens[j][t])? {
             tokens[i][t] = Some(token);
             t += 1;
         }
@@ -242,7 +250,7 @@ fn write_name(dst: &mut Vec<u8>, tokens: &[Option<Token>]) -> io::Result<()> {
     while let Some(Some(token)) = iter.next() {
         match token {
             Token::Char(c) => dst.push(*c),
-            Token::String(s) => dst.extend(s),
+            Token::String(s) => dst.extend(*s),
             Token::Digits(d) => write!(dst, "{d}")?,
             Token::PaddedDigits(d, l) => write!(dst, "{:0width$}", d, width = usize::from(*l))?,
             Token::Nop => {}
