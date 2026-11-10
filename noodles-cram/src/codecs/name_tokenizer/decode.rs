@@ -247,7 +247,13 @@ fn read_tokens<'a>(
     let ty = meta_reader.read_type()?;
 
     let dist = meta_reader.read_distance(ty)?;
-    let j = i - dist;
+
+    let j = i.checked_sub(dist).ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid distance: attempt to subtract with overflow",
+        )
+    })?;
 
     if ty == Type::Dup {
         tokens[i] = tokens[j].clone();
