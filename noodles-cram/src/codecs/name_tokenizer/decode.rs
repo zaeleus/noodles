@@ -3,6 +3,7 @@ mod header;
 use std::{
     array,
     io::{self, Write},
+    num::NonZero,
 };
 
 use bstr::ByteSlice;
@@ -26,13 +27,13 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let bufs = read_buffers(&mut src, name_count, compression_method)?;
     let mut readers = build_readers(&bufs);
 
-    let mut tokens = vec![vec![None; MAX_TOKEN_COUNT]; name_count];
+    let mut tokens = vec![vec![None; MAX_TOKEN_COUNT]; name_count.get()];
 
-    for i in 0..name_count {
+    for i in 0..name_count.get() {
         read_tokens(&mut readers, &mut tokens, i)?;
     }
 
-    let mut dst = Vec::with_capacity(uncompressed_size + name_count);
+    let mut dst = Vec::with_capacity(uncompressed_size + name_count.get());
     write_names(&mut dst, &tokens)?;
 
     Ok(dst)
@@ -137,7 +138,7 @@ fn read_delta0<'a>(src: &mut &'a [u8], prev_token: Option<Token<'a>>) -> io::Res
 
 fn read_buffers(
     src: &mut &[u8],
-    name_count: usize,
+    name_count: NonZero<usize>,
     compression_method: CompressionMethod,
 ) -> io::Result<Vec<[Vec<u8>; TYPE_COUNT]>> {
     let mut bufs = Vec::new();
@@ -153,7 +154,7 @@ fn read_buffers(
             let mut buf = array::from_fn(|_| Vec::new());
 
             if ty != Type::Type {
-                let mut b = vec![u8::from(Type::Match); name_count];
+                let mut b = vec![u8::from(Type::Match); name_count.get()];
                 b[0] = u8::from(ty);
                 buf[0] = b;
             }
