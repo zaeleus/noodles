@@ -12,9 +12,9 @@ use crate::{
     },
 };
 
-pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
-    const NUL: u8 = 0x00;
+const NUL: u8 = 0x00;
 
+pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let (uncompressed_size, name_count, compression_method) = read_header(&mut src)?;
 
     let mut b = decode_token_byte_streams(&mut src, compression_method, name_count)?;
@@ -115,7 +115,7 @@ impl TokenReader {
             }
             Type::String => {
                 let mut buf = Vec::new();
-                self.string_reader.read_until(0x00, &mut buf)?;
+                self.string_reader.read_until(NUL, &mut buf)?;
                 buf.pop();
                 Ok(Some(Token::String(buf)))
             }
