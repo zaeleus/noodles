@@ -265,7 +265,15 @@ fn read_tokens<'a>(
     })?;
 
     if ty == Type::Dup {
+        if j == i {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid duplicate distance: 0",
+            ));
+        }
+
         tokens[i] = tokens[j].clone();
+
         Ok(())
     } else {
         for (t, reader) in token_readers.iter_mut().enumerate() {
