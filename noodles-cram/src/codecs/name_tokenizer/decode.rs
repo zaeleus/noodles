@@ -67,53 +67,63 @@ impl<'a> TokenReader<'a> {
 
     fn read_token(&mut self, prev_token: Option<&Token>) -> io::Result<Option<Token>> {
         match self.read_type()? {
-            Type::Char => {
-                let c = read_u8(&mut self.0[usize::from(Type::Char)])?;
-                Ok(Some(Token::Char(c)))
-            }
-            Type::String => {
-                let mut buf = Vec::new();
-                self.0[usize::from(Type::String)].read_until(NUL, &mut buf)?;
-                buf.pop();
-                Ok(Some(Token::String(buf)))
-            }
-            Type::Digits => {
-                let d = read_u32_le(&mut self.0[usize::from(Type::Digits)])?;
-                Ok(Some(Token::Digits(d)))
-            }
+            Type::Char => read_char(&mut self.0[usize::from(Type::Char)]).map(Some),
+            Type::String => read_string(&mut self.0[usize::from(Type::String)]).map(Some),
+            Type::Digits => read_digits(&mut self.0[usize::from(Type::Digits)]).map(Some),
             Type::Digits0 => {
-                let d = read_u32_le(&mut self.0[usize::from(Type::Digits0)])?;
-                let l = read_u8(&mut self.0[usize::from(Type::DZLen)])?;
-                Ok(Some(Token::PaddedDigits(d, l)))
+                let n = read_u32_le(&mut self.0[usize::from(Type::Digits0)])?;
+                let width = read_u8(&mut self.0[usize::from(Type::DZLen)])?;
+                Ok(Some(Token::PaddedDigits(n, width)))
             }
-            Type::Delta => {
-                let delta = read_u8(&mut self.0[usize::from(Type::Delta)]).map(u32::from)?;
-
-                match prev_token {
-                    Some(Token::Digits(n)) => Ok(Some(Token::Digits(n + delta))),
-                    _ => Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("invalid previous token: {prev_token:?}"),
-                    )),
-                }
-            }
+            Type::Delta => read_delta(&mut self.0[usize::from(Type::Delta)], prev_token).map(Some),
             Type::Delta0 => {
-                let delta = read_u8(&mut self.0[usize::from(Type::Delta0)]).map(u32::from)?;
-
-                match prev_token {
-                    Some(Token::PaddedDigits(n, width)) => {
-                        Ok(Some(Token::PaddedDigits(n + delta, *width)))
-                    }
-                    _ => Err(io::Error::new(
-                        io::ErrorKind::InvalidData,
-                        format!("invalid previous token: {prev_token:?}"),
-                    )),
-                }
+                read_delta0(&mut self.0[usize::from(Type::Delta0)], prev_token).map(Some)
             }
             Type::Match => Ok(prev_token.cloned()),
             Type::End => Ok(None),
             _ => Ok(Some(Token::Nop)),
         }
+    }
+}
+
+fn read_string(src: &mut &[u8]) -> io::Result<Token> {
+    let mut buf = Vec::new();
+    src.read_until(NUL, &mut buf)?;
+    buf.pop();
+    Ok(Token::String(buf))
+}
+
+fn read_char(src: &mut &[u8]) -> io::Result<Token> {
+    read_u8(src).map(Token::Char)
+}
+
+fn read_digits(src: &mut &[u8]) -> io::Result<Token> {
+    read_u32_le(src).map(Token::Digits)
+}
+
+fn read_delta(src: &mut &[u8], prev_token: Option<&Token>) -> io::Result<Token> {
+    let delta = read_u8(src).map(u32::from)?;
+
+    if let Some(Token::Digits(n)) = prev_token {
+        Ok(Token::Digits(n + delta))
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("invalid previous token: {prev_token:?}"),
+        ))
+    }
+}
+
+fn read_delta0(src: &mut &[u8], prev_token: Option<&Token>) -> io::Result<Token> {
+    let delta = read_u8(src).map(u32::from)?;
+
+    if let Some(Token::PaddedDigits(n, width)) = prev_token {
+        Ok(Token::PaddedDigits(n + delta, *width))
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("invalid previous token: {prev_token:?}"),
+        ))
     }
 }
 
