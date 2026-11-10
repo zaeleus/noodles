@@ -9,11 +9,12 @@ use self::header::{CompressionMethod, read_header};
 use super::{TYPE_COUNT, Type};
 use crate::{
     codecs::{aac, rans_nx16},
-    io::{
-        reader::num::{read_u8, read_u32_le, read_uint7_as},
-        writer::num::write_u8,
-    },
+    io::reader::num::{read_u8, read_u32_le, read_uint7_as},
 };
+
+// § 5 "Name tokenisation codec" (2025-04-07): "A maximum of 128 tokens are permitted within any
+// single read name."
+const MAX_TOKEN_COUNT: usize = 128;
 
 const NUL: u8 = 0x00;
 
@@ -23,16 +24,14 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let bufs = read_buffers(&mut src, name_count, compression_method)?;
     let mut readers = build_readers(&bufs);
 
-    let mut names = vec![Vec::new(); name_count];
-    let mut tokens = vec![vec![None; 128]; name_count];
-
-    let mut dst = Vec::with_capacity(uncompressed_size);
+    let mut tokens = vec![vec![None; MAX_TOKEN_COUNT]; name_count];
 
     for i in 0..name_count {
-        let name = decode_single_name(&mut readers, &mut names, &mut tokens, i)?;
-        dst.write_all(&name)?;
-        write_u8(&mut dst, NUL)?;
+        read_tokens(&mut readers, &mut tokens, i)?;
     }
+
+    let mut dst = Vec::with_capacity(uncompressed_size + name_count);
+    write_names(&mut dst, &tokens)?;
 
     Ok(dst)
 }
@@ -194,49 +193,53 @@ fn build_readers(bufs: &[[Vec<u8>; TYPE_COUNT]]) -> Vec<TokenReader<'_>> {
         .collect()
 }
 
-fn decode_single_name(
-    b: &mut [TokenReader<'_>],
-    names: &mut [Vec<u8>],
+fn read_tokens(
+    readers: &mut [TokenReader<'_>],
     tokens: &mut [Vec<Option<Token>>],
-    n: usize,
-) -> io::Result<Vec<u8>> {
-    let ty = b[0].read_type()?;
-    let dist = b[0].read_distance(ty)?;
+    i: usize,
+) -> io::Result<()> {
+    let ty = readers[0].read_type()?;
 
-    let m = n - dist;
+    let dist = readers[0].read_distance(ty)?;
+    let j = i - dist;
 
-    #[allow(clippy::assigning_clones)]
     if ty == Type::Dup {
-        names[n] = names[m].clone();
-        tokens[n] = tokens[m].clone();
-        return Ok(names[n].clone());
-    }
+        tokens[i] = tokens[j].clone();
+    } else {
+        let mut t = 1;
 
-    let mut t = 1;
-
-    loop {
-        let prev_token = tokens[m][t].as_ref();
-
-        if let Some(token) = b[t].read_token(prev_token)? {
-            match &token {
-                Token::Char(c) => names[n].push(*c),
-                Token::String(s) => names[n].extend(s),
-                Token::Digits(d) => write!(names[n], "{d}")?,
-                Token::PaddedDigits(d, l) => {
-                    write!(names[n], "{:0width$}", d, width = usize::from(*l))?
-                }
-                Token::Nop => {}
-            }
-
-            tokens[n][t] = Some(token);
-        } else {
-            break;
+        while let Some(token) = readers[t].read_token(tokens[j][t].as_ref())? {
+            tokens[i][t] = Some(token);
+            t += 1;
         }
-
-        t += 1;
     }
 
-    Ok(names[n].clone())
+    Ok(())
+}
+
+fn write_names(dst: &mut Vec<u8>, tokens: &[Vec<Option<Token>>]) -> io::Result<()> {
+    for ts in tokens {
+        write_name(dst, ts)?;
+        dst.push(NUL);
+    }
+
+    Ok(())
+}
+
+fn write_name(dst: &mut Vec<u8>, tokens: &[Option<Token>]) -> io::Result<()> {
+    let mut iter = tokens.iter().skip(1);
+
+    while let Some(Some(token)) = iter.next() {
+        match token {
+            Token::Char(c) => dst.push(*c),
+            Token::String(s) => dst.extend(s),
+            Token::Digits(d) => write!(dst, "{d}")?,
+            Token::PaddedDigits(d, l) => write!(dst, "{:0width$}", d, width = usize::from(*l))?,
+            Token::Nop => {}
+        }
+    }
+
+    Ok(())
 }
 
 fn split_off<'a>(src: &mut &'a [u8], len: usize) -> io::Result<&'a [u8]> {
