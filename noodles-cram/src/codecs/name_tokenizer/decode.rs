@@ -240,19 +240,24 @@ fn read_tokens<'a>(
     tokens: &mut [Vec<Option<Token<'a>>>],
     i: usize,
 ) -> io::Result<()> {
-    let ty = readers[0].read_type()?;
+    let (meta_reader, token_readers) = readers
+        .split_first_mut()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "empty readers"))?;
 
-    let dist = readers[0].read_distance(ty)?;
+    let ty = meta_reader.read_type()?;
+
+    let dist = meta_reader.read_distance(ty)?;
     let j = i - dist;
 
     if ty == Type::Dup {
         tokens[i] = tokens[j].clone();
     } else {
-        let mut t = 1;
-
-        while let Some(token) = readers[t].read_token(tokens[j][t])? {
-            tokens[i][t] = Some(token);
-            t += 1;
+        for (t, reader) in token_readers.iter_mut().enumerate() {
+            if let Some(token) = reader.read_token(tokens[j][t])? {
+                tokens[i][t] = Some(token);
+            } else {
+                break;
+            }
         }
     }
 
@@ -269,7 +274,7 @@ fn write_names(dst: &mut Vec<u8>, tokens: &[Vec<Option<Token>>]) -> io::Result<(
 }
 
 fn write_name(dst: &mut Vec<u8>, tokens: &[Option<Token>]) -> io::Result<()> {
-    let mut iter = tokens.iter().skip(1);
+    let mut iter = tokens.iter();
 
     while let Some(Some(token)) = iter.next() {
         match token {
