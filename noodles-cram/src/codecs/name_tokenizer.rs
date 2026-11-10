@@ -21,29 +21,6 @@ enum Type {
     End,
 }
 
-impl TryFrom<u8> for Type {
-    type Error = String;
-
-    fn try_from(n: u8) -> Result<Self, Self::Error> {
-        match n & 0x3f {
-            0 => Ok(Self::Type),
-            1 => Ok(Self::String),
-            2 => Ok(Self::Char),
-            3 => Ok(Self::Digits0),
-            4 => Ok(Self::DZLen),
-            5 => Ok(Self::Dup),
-            6 => Ok(Self::Diff),
-            7 => Ok(Self::Digits),
-            8 => Ok(Self::Delta),
-            9 => Ok(Self::Delta0),
-            10 => Ok(Self::Match),
-            11 => Ok(Self::Nop),
-            12 => Ok(Self::End),
-            _ => Err(format!("invalid type: expected <= 12, got {n}")),
-        }
-    }
-}
-
 impl From<Type> for u8 {
     fn from(ty: Type) -> Self {
         match ty {

@@ -90,9 +90,7 @@ impl TokenReader {
     }
 
     fn read_type(&mut self) -> io::Result<Type> {
-        read_u8(&mut self.type_reader).and_then(|n| {
-            Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-        })
+        read_u8(&mut self.type_reader).and_then(decode_type)
     }
 
     fn read_distance(&mut self, ty: Type) -> io::Result<usize> {
@@ -172,9 +170,7 @@ fn decode_token_byte_streams(
 
         let tok_new = ttype & 0x80 != 0;
         let tok_dup = ttype & 0x40 != 0;
-
-        let ty =
-            Type::try_from(ttype).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let ty = decode_type(ttype & 0x3f)?;
 
         if tok_new {
             t += 1;
@@ -190,10 +186,7 @@ fn decode_token_byte_streams(
 
         let buf = if tok_dup {
             let dup_pos = read_u8(src).map(usize::from)?;
-
-            let dup_type = read_u8(src).and_then(|n| {
-                Type::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            })?;
+            let dup_type = read_u8(src).and_then(decode_type)?;
 
             let reader = b[dup_pos]
                 .get(dup_type)
@@ -215,6 +208,28 @@ fn decode_token_byte_streams(
     }
 
     Ok(b)
+}
+
+fn decode_type(n: u8) -> io::Result<Type> {
+    match n {
+        0 => Ok(Type::Type),
+        1 => Ok(Type::String),
+        2 => Ok(Type::Char),
+        3 => Ok(Type::Digits0),
+        4 => Ok(Type::DZLen),
+        5 => Ok(Type::Dup),
+        6 => Ok(Type::Diff),
+        7 => Ok(Type::Digits),
+        8 => Ok(Type::Delta),
+        9 => Ok(Type::Delta0),
+        10 => Ok(Type::Match),
+        11 => Ok(Type::Nop),
+        12 => Ok(Type::End),
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("invalid type: expected <= 12, got {n}"),
+        )),
+    }
 }
 
 fn decode_single_name(
@@ -411,6 +426,30 @@ I17_08765:2:124:45613:16161#9\0\
 
         let expected = b"0:0\x0000:00\x00";
         assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_decode_type() -> io::Result<()> {
+        assert_eq!(decode_type(0)?, Type::Type);
+        assert_eq!(decode_type(1)?, Type::String);
+        assert_eq!(decode_type(2)?, Type::Char);
+        assert_eq!(decode_type(3)?, Type::Digits0);
+        assert_eq!(decode_type(4)?, Type::DZLen);
+        assert_eq!(decode_type(5)?, Type::Dup);
+        assert_eq!(decode_type(6)?, Type::Diff);
+        assert_eq!(decode_type(7)?, Type::Digits);
+        assert_eq!(decode_type(8)?, Type::Delta);
+        assert_eq!(decode_type(9)?, Type::Delta0);
+        assert_eq!(decode_type(10)?, Type::Match);
+        assert_eq!(decode_type(11)?, Type::Nop);
+        assert_eq!(decode_type(12)?, Type::End);
+
+        assert!(matches!(
+            decode_type(13),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
