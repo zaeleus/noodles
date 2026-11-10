@@ -82,7 +82,15 @@ impl<'a> TokenReader<'a> {
             Type::Delta0 => {
                 read_delta0(&mut self.0[usize::from(Type::Delta0)], prev_token).map(Some)
             }
-            Type::Match => Ok(prev_token),
+            Type::Match => prev_token
+                .filter(|&token| token != Token::Nop)
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        format!("invalid match: invalid previous token: {prev_token:?}"),
+                    )
+                })
+                .map(Some),
             Type::End => Ok(None),
             _ => Ok(Some(Token::Nop)),
         }
