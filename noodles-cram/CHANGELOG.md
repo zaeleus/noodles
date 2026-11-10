@@ -14,8 +14,8 @@
   * cram/codecs/name_tokenizer/decode: Add validations.
 
     This includes duplicate buffer positions, delta calculations, missing
-    previous tokens on a match, reader count, distance calculations, and token
-    types ([#444]).
+    previous tokens on a match, missing `END` tokens, reader count, distance
+    calculations, and token types ([#444]).
 
   * cram/codecs/name_tokenizer/decode/header: Validate name count.
 

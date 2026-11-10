@@ -266,17 +266,21 @@ fn read_tokens<'a>(
 
     if ty == Type::Dup {
         tokens[i] = tokens[j].clone();
+        Ok(())
     } else {
         for (t, reader) in token_readers.iter_mut().enumerate() {
             if let Some(token) = reader.read_token(tokens[j][t])? {
                 tokens[i][t] = Some(token);
             } else {
-                break;
+                return Ok(());
             }
         }
-    }
 
-    Ok(())
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "missing end token",
+        ))
+    }
 }
 
 fn write_names(dst: &mut Vec<u8>, tokens: &[Vec<Option<Token>>]) -> io::Result<()> {
