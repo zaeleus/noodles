@@ -21,7 +21,11 @@
 
   * cram/codecs/name_tokenizer/encode: Write original uncompressed size.
 
+  * cram/io/reader/container/slice: Use segment position for template size sign
+    ([#447]).
+
 [#444]: https://github.com/zaeleus/noodles/pull/444
+[#447]: https://github.com/zaeleus/noodles/pull/447
 
 ## 0.102.0 - 2026-10-29
 
