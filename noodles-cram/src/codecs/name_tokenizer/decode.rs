@@ -158,11 +158,19 @@ fn read_delta0<'a>(src: &mut &'a [u8], prev_token: Option<Token<'a>>) -> io::Res
     }
 }
 
+#[derive(Default)]
+enum Buffer {
+    #[default]
+    Empty,
+    Data(Vec<u8>),
+    Duplicate(usize, Type),
+}
+
 fn read_buffers(
     src: &mut &[u8],
     name_count: NonZero<usize>,
     compression_method: CompressionMethod,
-) -> io::Result<Vec<[Vec<u8>; TYPE_COUNT]>> {
+) -> io::Result<Vec<[Buffer; TYPE_COUNT]>> {
     let mut bufs = Vec::new();
 
     while !src.is_empty() {
@@ -180,15 +188,26 @@ fn read_buffers(
                 ));
             }
 
-            let mut buf = array::from_fn(|_| Vec::new());
+            let mut buf = array::from_fn(|_| Buffer::default());
 
             if ty != Type::Type {
                 let mut b = vec![u8::from(Type::Match); name_count.get()];
                 b[0] = u8::from(ty);
-                buf[0] = b;
+                buf[0] = Buffer::Data(b);
             }
 
             bufs.push(buf);
+        }
+
+        let buf = bufs
+            .last()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "empty buffers"))?;
+
+        if !matches!(buf[usize::from(ty)], Buffer::Empty) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "duplicate buffer",
+            ));
         }
 
         let ty_buf = if is_dup {
@@ -202,15 +221,26 @@ fn read_buffers(
                 )
             })?;
 
-            buf[usize::from(dup_type)].clone()
+            match buf[usize::from(dup_type)] {
+                Buffer::Empty => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "invalid duplicate buffer: empty source",
+                    ));
+                }
+                Buffer::Data(_) => Buffer::Duplicate(j, dup_type),
+                Buffer::Duplicate(k, orig_type) => Buffer::Duplicate(k, orig_type),
+            }
         } else {
             let compressed_size = read_uint7_as(src)?;
             let buf = split_off(src, compressed_size)?;
 
-            match compression_method {
+            let uncompressed_data = match compression_method {
                 CompressionMethod::RansNx16 => rans_nx16::decode(buf, 0)?,
                 CompressionMethod::AdaptiveArithmeticCoder => aac::decode(buf, 0)?,
-            }
+            };
+
+            Buffer::Data(uncompressed_data)
         };
 
         let buf = bufs
@@ -245,9 +275,18 @@ fn decode_type(n: u8) -> io::Result<Type> {
     }
 }
 
-fn build_readers(bufs: &[[Vec<u8>; TYPE_COUNT]]) -> Vec<TokenReader<'_>> {
+fn build_readers(bufs: &[[Buffer; TYPE_COUNT]]) -> Vec<TokenReader<'_>> {
     bufs.iter()
-        .map(|bs| bs.each_ref().map(|buf| buf.as_slice()))
+        .map(|bs| {
+            bs.each_ref().map(|buf| match buf {
+                Buffer::Empty => &[][..],
+                Buffer::Data(b) => b.as_slice(),
+                Buffer::Duplicate(j, ty) => match &bufs[*j][usize::from(*ty)] {
+                    Buffer::Data(b) => b.as_slice(),
+                    _ => unreachable!(),
+                },
+            })
+        })
         .map(TokenReader)
         .collect()
 }
