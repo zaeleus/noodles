@@ -204,6 +204,13 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
         // rightmost, and the sign for any middle segment is undefined. If segments cover the same
         // coordinates then the choice of which is leftmost and rightmost is arbitrary..."
         let template_length = calculate_template_length(record, mate);
+
+        let template_length = if is_leftmost_segment(mate, record) {
+            template_length
+        } else {
+            -template_length
+        };
+
         records[i].template_length = template_length;
 
         let mut j = i;
@@ -217,6 +224,21 @@ fn resolve_mates(records: &mut [Record]) -> io::Result<()> {
     }
 
     Ok(())
+}
+
+// Segments that start at the same position are ordered by alignment end and then by the first
+// segment flag, as in htslib.
+fn is_leftmost_segment(record: &Record, mate: &Record) -> bool {
+    use std::cmp::Ordering;
+
+    let record_interval = (record.alignment_start, record.alignment_end());
+    let mate_interval = (mate.alignment_start, mate.alignment_end());
+
+    match record_interval.cmp(&mate_interval) {
+        Ordering::Less => true,
+        Ordering::Greater => false,
+        Ordering::Equal => record.bam_flags.is_first_segment(),
+    }
 }
 
 fn set_mate(record: &mut Record, mate: &mut Record) {
@@ -488,6 +510,55 @@ mod tests {
         );
         assert_eq!(records[3].mate_alignment_start, records[0].alignment_start);
         assert_eq!(records[3].template_length, -12);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_resolve_mates_with_template_length_sign() -> io::Result<()> {
+        use sam::alignment::record::Flags as BamFlags;
+
+        fn t(
+            first: (usize, usize, BamFlags),
+            second: (usize, usize, BamFlags),
+        ) -> io::Result<(i32, i32)> {
+            let mut records = vec![
+                Record {
+                    bam_flags: first.2,
+                    cram_flags: Flags::MATE_IS_DOWNSTREAM,
+                    reference_sequence_id: Some(0),
+                    read_length: first.1,
+                    alignment_start: Position::new(first.0),
+                    mate_distance: Some(0),
+                    ..Default::default()
+                },
+                Record {
+                    bam_flags: second.2,
+                    reference_sequence_id: Some(0),
+                    read_length: second.1,
+                    alignment_start: Position::new(second.0),
+                    ..Default::default()
+                },
+            ];
+
+            resolve_mates(&mut records)?;
+
+            Ok((records[0].template_length, records[1].template_length))
+        }
+
+        let read_1 = BamFlags::SEGMENTED | BamFlags::FIRST_SEGMENT;
+        let read_2 = BamFlags::SEGMENTED | BamFlags::LAST_SEGMENT;
+
+        // The first record in the slice is the leftmost segment.
+        assert_eq!(t((5, 4, read_1), (8, 4, read_2))?, (7, -7));
+        // The first record in the slice is the rightmost segment.
+        assert_eq!(t((8, 4, read_1), (5, 4, read_2))?, (-7, 7));
+        // Equal starts: the shorter segment is leftmost.
+        assert_eq!(t((5, 6, read_1), (5, 4, read_2))?, (-6, 6));
+        assert_eq!(t((5, 4, read_1), (5, 6, read_2))?, (6, -6));
+        // Equal intervals: the first segment is leftmost.
+        assert_eq!(t((5, 4, read_2), (5, 4, read_1))?, (-4, 4));
+        assert_eq!(t((5, 4, read_1), (5, 4, read_2))?, (4, -4));
 
         Ok(())
     }

@@ -13,6 +13,12 @@
 
   * cram/codecs/name_tokenizer/decode: Validate token types ([#444]).
 
+  * cram/io/reader/container/slice: Sign template lengths of attached mates
+    by segment position.
+
+    The leftmost segment is now positive. Previously, the first record in the
+    slice was always positive.
+
 [#444]: https://github.com/zaeleus/noodles/pull/444
 
 ## 0.102.0 - 2026-10-29
