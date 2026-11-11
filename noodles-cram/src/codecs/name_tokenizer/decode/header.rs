@@ -31,30 +31,25 @@ fn read_name_count(src: &mut &[u8]) -> io::Result<NonZero<usize>> {
 }
 
 fn read_compression_method(src: &mut &[u8]) -> io::Result<CompressionMethod> {
-    read_u8(src).map(|n| match n {
-        0 => CompressionMethod::RansNx16,
-        _ => CompressionMethod::AdaptiveArithmeticCoder,
-    })
+    read_u8(src).and_then(decode_compression_method)
+}
+
+// § "Name tokenisation codec" (2025-04-07): "`use_arith`: Whether compression is arithmetic (1) or
+// rANS Nx16 (0)".
+fn decode_compression_method(n: u8) -> io::Result<CompressionMethod> {
+    match n {
+        0 => Ok(CompressionMethod::RansNx16),
+        1 => Ok(CompressionMethod::AdaptiveArithmeticCoder),
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid compression method",
+        )),
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_read_compression_method() -> io::Result<()> {
-        fn t(mut src: &[u8], expected: CompressionMethod) -> io::Result<()> {
-            assert_eq!(read_compression_method(&mut src)?, expected);
-            Ok(())
-        }
-
-        t(&[0x00], CompressionMethod::RansNx16)?;
-        t(&[0x01], CompressionMethod::AdaptiveArithmeticCoder)?;
-        t(&[0x02], CompressionMethod::AdaptiveArithmeticCoder)?;
-        t(&[0xff], CompressionMethod::AdaptiveArithmeticCoder)?;
-
-        Ok(())
-    }
 
     #[test]
     fn test_read_name_count() -> io::Result<()> {
@@ -70,6 +65,29 @@ mod tests {
 
         assert!(matches!(
             read_name_count(&mut &[0x00, 0x00, 0x00, 0x00][..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_compression_method() -> io::Result<()> {
+        fn t(mut src: &[u8], expected: CompressionMethod) -> io::Result<()> {
+            assert_eq!(read_compression_method(&mut src)?, expected);
+            Ok(())
+        }
+
+        t(&[0x00], CompressionMethod::RansNx16)?;
+        t(&[0x01], CompressionMethod::AdaptiveArithmeticCoder)?;
+
+        assert!(matches!(
+            read_compression_method(&mut &[][..]),
+            Err(e) if e.kind() == io::ErrorKind::UnexpectedEof
+        ));
+
+        assert!(matches!(
+            read_compression_method(&mut &[0x02][..]),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 
