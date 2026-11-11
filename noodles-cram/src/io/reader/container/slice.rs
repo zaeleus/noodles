@@ -429,6 +429,7 @@ mod tests {
         let mut records = vec![
             Record {
                 id: 1,
+                bam_flags: sam::alignment::record::Flags::SEGMENTED,
                 cram_flags: Flags::MATE_IS_DOWNSTREAM,
                 reference_sequence_id: Some(2),
                 read_length: 4,
@@ -438,6 +439,7 @@ mod tests {
             },
             Record {
                 id: 2,
+                bam_flags: sam::alignment::record::Flags::SEGMENTED,
                 cram_flags: Flags::MATE_IS_DOWNSTREAM,
                 reference_sequence_id: Some(2),
                 read_length: 4,
@@ -451,6 +453,7 @@ mod tests {
             },
             Record {
                 id: 4,
+                bam_flags: sam::alignment::record::Flags::SEGMENTED,
                 reference_sequence_id: Some(2),
                 read_length: 4,
                 alignment_start: Position::new(13),
@@ -498,12 +501,14 @@ mod tests {
 
         // --> -->
         let record = Record {
+            bam_flags: Flags::SEGMENTED,
             alignment_start: Position::new(100),
             read_length: 50,
             ..Default::default()
         };
 
         let mate = Record {
+            bam_flags: Flags::SEGMENTED,
             alignment_start: Position::new(200),
             read_length: 50,
             ..Default::default()
@@ -516,13 +521,14 @@ mod tests {
         // This is the example given in _Sequence Alignment/Map Format Specification_ (2021-06-03)
         // § 1.4.9 "TLEN" (footnote 14).
         let record = Record {
+            bam_flags: Flags::SEGMENTED,
             alignment_start: Position::new(100),
             read_length: 50,
             ..Default::default()
         };
 
         let mate = Record {
-            bam_flags: Flags::REVERSE_COMPLEMENTED,
+            bam_flags: Flags::SEGMENTED | Flags::REVERSE_COMPLEMENTED,
             alignment_start: Position::new(200),
             read_length: 50,
             ..Default::default()
@@ -533,13 +539,14 @@ mod tests {
 
         // <-- -->
         let record = Record {
-            bam_flags: Flags::REVERSE_COMPLEMENTED,
+            bam_flags: Flags::SEGMENTED | Flags::REVERSE_COMPLEMENTED,
             alignment_start: Position::new(100),
             read_length: 50,
             ..Default::default()
         };
 
         let mate = Record {
+            bam_flags: Flags::SEGMENTED,
             alignment_start: Position::new(200),
             read_length: 50,
             ..Default::default()
@@ -550,14 +557,14 @@ mod tests {
 
         // <-- <--
         let record = Record {
-            bam_flags: Flags::REVERSE_COMPLEMENTED,
+            bam_flags: Flags::SEGMENTED | Flags::REVERSE_COMPLEMENTED,
             alignment_start: Position::new(100),
             read_length: 50,
             ..Default::default()
         };
 
         let mate = Record {
-            bam_flags: Flags::REVERSE_COMPLEMENTED,
+            bam_flags: Flags::SEGMENTED | Flags::REVERSE_COMPLEMENTED,
             alignment_start: Position::new(200),
             read_length: 50,
             ..Default::default()
