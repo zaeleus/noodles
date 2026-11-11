@@ -172,6 +172,13 @@ fn read_buffers(
         let ty = decode_type(n & 0x3f)?;
 
         if is_new {
+            if bufs.len() >= MAX_TOKEN_COUNT {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "invalid buffer count",
+                ));
+            }
+
             let mut buf = array::from_fn(|_| Vec::new());
 
             if ty != Type::Type {
