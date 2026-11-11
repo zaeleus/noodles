@@ -19,6 +19,8 @@
 
   * cram/codecs/name_tokenizer/decode/header: Validate name count.
 
+  * cram/codecs/name_tokenizer/encode: Write original uncompressed size.
+
 [#444]: https://github.com/zaeleus/noodles/pull/444
 
 ## 0.102.0 - 2026-10-29

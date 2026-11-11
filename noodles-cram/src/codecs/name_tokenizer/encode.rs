@@ -9,6 +9,8 @@ use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
 const NUL: u8 = 0x00;
 
 pub fn encode(mut src: &[u8]) -> io::Result<Vec<u8>> {
+    let uncompressed_size = src.len();
+
     let mut dst = Vec::new();
 
     if let Some(buf) = src.strip_suffix(&[NUL]) {
@@ -17,7 +19,7 @@ pub fn encode(mut src: &[u8]) -> io::Result<Vec<u8>> {
 
     let names: Vec<_> = src.split(|&b| b == NUL).collect();
 
-    write_header(&mut dst, src.len(), names.len())?;
+    write_header(&mut dst, uncompressed_size, names.len())?;
 
     let mut names_indices = HashMap::new();
     let mut diffs = Vec::with_capacity(names.len());
