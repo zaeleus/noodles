@@ -34,7 +34,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
         tokens.push(ts);
     }
 
-    let mut dst = Vec::with_capacity(uncompressed_size + name_count.get());
+    let mut dst = Vec::with_capacity(uncompressed_size);
     write_names(&mut dst, &tokens)?;
 
     Ok(dst)
