@@ -27,10 +27,11 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let bufs = read_buffers(&mut src, name_count, compression_method)?;
     let mut readers = build_readers(&bufs);
 
-    let mut tokens = vec![vec![None; MAX_TOKEN_COUNT]; name_count.get()];
+    let mut tokens = Vec::with_capacity(name_count.get());
 
     for i in 0..name_count.get() {
-        read_tokens(&mut readers, &mut tokens, i)?;
+        let ts = read_tokens(&mut readers, &mut tokens, i)?;
+        tokens.push(ts);
     }
 
     let mut dst = Vec::with_capacity(uncompressed_size + name_count.get());
@@ -253,9 +254,9 @@ fn build_readers(bufs: &[[Vec<u8>; TYPE_COUNT]]) -> Vec<TokenReader<'_>> {
 
 fn read_tokens<'a>(
     readers: &mut [TokenReader<'a>],
-    tokens: &mut [Vec<Option<Token<'a>>>],
+    tokens: &mut [Vec<Token<'a>>],
     i: usize,
-) -> io::Result<()> {
+) -> io::Result<Vec<Token<'a>>> {
     let (meta_reader, token_readers) = readers
         .split_first_mut()
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "empty readers"))?;
@@ -272,22 +273,21 @@ fn read_tokens<'a>(
     })?;
 
     if ty == Type::Dup {
-        if j == i {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "invalid duplicate distance: 0",
-            ));
-        }
-
-        tokens[i] = tokens[j].clone();
-
-        Ok(())
+        tokens
+            .get(j)
+            .cloned()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid duplicate distance"))
     } else {
+        let prev_tokens = tokens.get(j);
+        let mut ts = Vec::with_capacity(token_readers.len());
+
         for (t, reader) in token_readers.iter_mut().enumerate() {
-            if let Some(token) = reader.read_token(tokens[j][t])? {
-                tokens[i][t] = Some(token);
+            let prev_token = prev_tokens.and_then(|ts| ts.get(t).copied());
+
+            if let Some(token) = reader.read_token(prev_token)? {
+                ts.push(token);
             } else {
-                return Ok(());
+                return Ok(ts);
             }
         }
 
@@ -298,7 +298,7 @@ fn read_tokens<'a>(
     }
 }
 
-fn write_names(dst: &mut Vec<u8>, tokens: &[Vec<Option<Token>>]) -> io::Result<()> {
+fn write_names(dst: &mut Vec<u8>, tokens: &[Vec<Token>]) -> io::Result<()> {
     for ts in tokens {
         write_name(dst, ts)?;
         dst.push(NUL);
@@ -307,10 +307,8 @@ fn write_names(dst: &mut Vec<u8>, tokens: &[Vec<Option<Token>>]) -> io::Result<(
     Ok(())
 }
 
-fn write_name(dst: &mut Vec<u8>, tokens: &[Option<Token>]) -> io::Result<()> {
-    let mut iter = tokens.iter();
-
-    while let Some(Some(token)) = iter.next() {
+fn write_name(dst: &mut Vec<u8>, tokens: &[Token]) -> io::Result<()> {
+    for token in tokens {
         match token {
             Token::Char(c) => dst.push(*c),
             Token::String(s) => dst.extend(*s),
