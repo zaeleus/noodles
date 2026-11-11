@@ -30,7 +30,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let mut tokens = Vec::with_capacity(name_count.get());
 
     for i in 0..name_count.get() {
-        let ts = read_tokens(&mut readers, &mut tokens, i)?;
+        let ts = read_tokens(&mut readers, &tokens, i)?;
         tokens.push(ts);
     }
 
@@ -293,7 +293,7 @@ fn build_readers(bufs: &[[Buffer; TYPE_COUNT]]) -> Vec<TokenReader<'_>> {
 
 fn read_tokens<'a>(
     readers: &mut [TokenReader<'a>],
-    tokens: &mut [Vec<Token<'a>>],
+    tokens: &[Vec<Token<'a>>],
     i: usize,
 ) -> io::Result<Vec<Token<'a>>> {
     let (meta_reader, token_readers) = readers
