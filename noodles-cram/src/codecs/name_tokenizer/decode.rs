@@ -116,7 +116,13 @@ fn read_string<'a>(src: &mut &'a [u8]) -> io::Result<Token<'a>> {
 }
 
 fn read_char<'a>(src: &mut &'a [u8]) -> io::Result<Token<'a>> {
-    read_u8(src).map(Token::Char)
+    match read_u8(src)? {
+        NUL => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid character token: NUL",
+        )),
+        b => Ok(Token::Char(b)),
+    }
 }
 
 fn read_digits<'a>(src: &mut &'a [u8]) -> io::Result<Token<'a>> {
@@ -460,6 +466,18 @@ I17_08765:2:124:45613:16161#9\0\
 
         let expected = b"0:0\x0000:00\x00";
         assert_eq!(actual, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_read_char() -> io::Result<()> {
+        assert_eq!(read_char(&mut &b"n"[..])?, Token::Char(b'n'));
+
+        assert!(matches!(
+            read_char(&mut &[0x00][..]),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }
