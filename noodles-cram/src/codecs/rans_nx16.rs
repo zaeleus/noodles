@@ -14,6 +14,53 @@ mod tests {
     use std::io;
 
     use super::*;
+    use crate::codecs::test_utils::sparse;
+
+    #[test]
+    fn test_decode_htscodecs_fixtures() -> io::Result<()> {
+        macro_rules! r4x16 {
+            ($name:literal) => {
+                (
+                    $name,
+                    &include_bytes!(concat!("fixtures/r4x16-", $name, ".bin"))[..],
+                )
+            };
+        }
+
+        let qual = include_bytes!("fixtures/qual.bin").to_vec();
+        // `mid` has 12-bit order-1 frequencies.
+        let (mid, big) = (sparse(8000, 1024, 8), sparse(70001, 2048, 4));
+        let wide = sparse(4099, 16, 32);
+
+        // Named by flags: ORDER = 0x01, N32 = 0x04, STRIPE = 0x08, CAT = 0x20, RLE = 0x40 and
+        // PACK = 0x80.
+        for (name, src) in [
+            r4x16!("qual-00"),
+            r4x16!("qual-01"),
+            r4x16!("qual-04"),
+            r4x16!("qual-05"),
+            r4x16!("qual-41"),
+            r4x16!("qual-49"),
+            r4x16!("qual-64"),
+            r4x16!("qual-80"),
+            r4x16!("qual-c0"),
+            r4x16!("mid-01"),
+            r4x16!("big-05"),
+            r4x16!("wide-00"),
+            r4x16!("wide-04"),
+        ] {
+            let expected = match &name[..3] {
+                "qua" => &qual,
+                "mid" => &mid,
+                "wid" => &wide,
+                _ => &big,
+            };
+
+            assert!(decode(src, expected.len())? == *expected, "{name}");
+        }
+
+        Ok(())
+    }
 
     #[test]
     fn test_self() -> io::Result<()> {
