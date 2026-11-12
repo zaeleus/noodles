@@ -6,7 +6,6 @@ license.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 description = "A refget client"
-homepage = "https://github.com/zaeleus/noodles"
 repository = "https://github.com/zaeleus/noodles"
 documentation = "https://docs.rs/noodles-refget"
 categories = ["api-bindings", "science::bioinformatics"]
