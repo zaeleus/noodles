@@ -115,6 +115,7 @@ fn set_mates(records: &mut [Record]) {
 
         if flags.is_segmented()
             && !flags.is_secondary()
+            && !flags.is_supplementary()
             && let Some(name) = &record.name
         {
             let indices = groups.entry(name.clone()).or_default();

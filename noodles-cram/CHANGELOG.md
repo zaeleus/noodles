@@ -27,6 +27,9 @@
   * cram/io/writer/container/slice: Validate segment groups can be
     reconstructed if attached.
 
+  * cram/io/writer/container/slice: Skip supplementary records when building
+    segment groups.
+
 [#444]: https://github.com/zaeleus/noodles/pull/444
 [#447]: https://github.com/zaeleus/noodles/pull/447
 
