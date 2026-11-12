@@ -12,3 +12,6 @@ categories = ["science::bioinformatics"]
 
 [dependencies]
 bstr.workspace = true
+
+[lints]
+workspace = true
