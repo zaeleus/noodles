@@ -3,6 +3,8 @@ pub mod records;
 
 use std::{collections::HashMap, io};
 
+use bstr::BString;
+use noodles_core::Position;
 use noodles_fasta as fasta;
 use noodles_sam as sam;
 
@@ -104,47 +106,167 @@ fn get_reference_sequence_context(records: &[Record]) -> ReferenceSequenceContex
 fn set_mates(records: &mut [Record]) {
     assert!(!records.is_empty());
 
-    let mut indices = HashMap::new();
-    let mut i = records.len() - 1;
+    let mut groups: HashMap<BString, Vec<usize>> = HashMap::new();
 
-    loop {
-        let record = &mut records[i];
+    for (i, record) in records.iter_mut().enumerate() {
+        set_detached(record);
+
         let flags = record.bam_flags;
 
-        if flags.is_segmented() && !flags.is_secondary() {
-            let name = record.name.as_ref().map(|name| name.to_owned());
-
-            if let Some(j) = indices.insert(name, i) {
-                let mid = i + 1;
-                let (left, right) = records.split_at_mut(mid);
-
-                let record = &mut left[i];
-                let mate = &mut right[j - mid];
-
-                set_downstream_mate(i, record, j, mate);
-            } else {
-                set_detached(record);
-            }
-        } else {
-            set_detached(record);
+        if flags.is_segmented()
+            && !flags.is_secondary()
+            && let Some(name) = &record.name
+        {
+            let indices = groups.entry(name.clone()).or_default();
+            indices.push(i);
         }
-
-        if i == 0 {
-            break;
-        }
-
-        i -= 1;
     }
+
+    for indices in groups.into_values() {
+        if indices.len() < 2 || !can_attach_mates(records, &indices) {
+            continue;
+        }
+
+        for window in indices.windows(2) {
+            let [i, j] = [window[0], window[1]];
+
+            let mid = i + 1;
+            let (left, right) = records.split_at_mut(mid);
+
+            let record = &mut left[i];
+            let mate = &mut right[j - mid];
+
+            set_downstream_mate(i, record, j, mate);
+        }
+    }
+}
+
+fn can_attach_mates(records: &[Record], indices: &[usize]) -> bool {
+    let pairs = indices
+        .iter()
+        .copied()
+        .zip(indices.iter().copied().cycle().skip(1));
+
+    for (i, j) in pairs {
+        if !is_matching_mate(&records[i], &records[j]) {
+            return false;
+        }
+    }
+
+    let segments = indices.iter().map(|&i| &records[i]);
+    let span = calculate_template_span(segments);
+
+    indices.iter().all(|&i| {
+        let record = &records[i];
+        let expected_template_length = span.map_or(0, |s| s.signed(record));
+        record.template_length == expected_template_length
+    })
+}
+
+fn is_matching_mate(record: &Record, mate: &Record) -> bool {
+    record.bam_flags.is_mate_reverse_complemented() == mate.bam_flags.is_reverse_complemented()
+        && record.bam_flags.is_mate_unmapped() == mate.bam_flags.is_unmapped()
+        && record.mate_reference_sequence_id == mate.reference_sequence_id
+        && record.mate_alignment_start == mate.alignment_start
 }
 
 fn set_downstream_mate(i: usize, record: &mut Record, j: usize, mate: &mut Record) {
     record.mate_distance = Some(j - i - 1);
+    record.cram_flags.remove(Flags::IS_DETACHED);
     record.cram_flags.insert(Flags::MATE_IS_DOWNSTREAM);
     mate.cram_flags.remove(Flags::IS_DETACHED);
 }
 
 fn set_detached(record: &mut Record) {
     record.cram_flags.insert(Flags::IS_DETACHED);
+}
+
+#[derive(Clone, Copy, Debug)]
+struct TemplateSpan {
+    min_start: Position,
+    min_start_count: usize,
+    max_end: Position,
+    max_end_count: usize,
+    len: i32,
+}
+
+impl TemplateSpan {
+    fn signed(&self, record: &Record) -> i32 {
+        let is_positive = match (record.alignment_start, record.alignment_end()) {
+            (Some(start), Some(end)) if start == self.min_start => {
+                if self.min_start_count == 1 || end < self.max_end {
+                    true
+                } else if self.max_end_count > 1 {
+                    record.bam_flags.is_first_segment()
+                } else {
+                    false
+                }
+            }
+            _ => false,
+        };
+
+        if is_positive { self.len } else { -self.len }
+    }
+}
+
+// _Sequence Alignment/Map Format Specification_ (2025-08-12) § 1.4.9 "TLEN"
+fn calculate_template_span<'r, I>(records: I) -> Option<TemplateSpan>
+where
+    I: IntoIterator<Item = &'r Record>,
+{
+    let mut iter = records.into_iter();
+
+    let first_record = iter.next()?;
+
+    if first_record.bam_flags.is_unmapped() {
+        return None;
+    }
+
+    let reference_sequence_id = first_record.reference_sequence_id?;
+
+    let mut min_start = first_record.alignment_start?;
+    let mut min_start_count = 1;
+
+    let mut max_end = first_record.alignment_end()?;
+    let mut max_end_count = 1;
+
+    for record in iter {
+        if record.bam_flags.is_unmapped()
+            || record.reference_sequence_id != Some(reference_sequence_id)
+        {
+            return None;
+        }
+
+        let start = record.alignment_start?;
+        let end = record.alignment_end()?;
+
+        if start < min_start {
+            min_start = start;
+            min_start_count = 1;
+        } else if start == min_start {
+            min_start_count += 1;
+        }
+
+        if end > max_end {
+            max_end = end;
+            max_end_count = 1;
+        } else if end == max_end {
+            max_end_count += 1;
+        }
+    }
+
+    // "...the absolute value of TLEN equals the distance between the mapped end of the template
+    // and the mapped start of the template, inclusively..."
+    let n = usize::from(min_start).abs_diff(usize::from(max_end)) + 1;
+    let len = i32::try_from(n).expect("invalid template length");
+
+    Some(TemplateSpan {
+        min_start,
+        min_start_count,
+        max_end,
+        max_end_count,
+        len,
+    })
 }
 
 #[allow(clippy::type_complexity)]
@@ -296,4 +418,97 @@ fn calculate_reference_sequence_md5(
     let sequence = &reference_sequence[interval];
 
     Ok(Some(calculate_normalized_sequence_digest(sequence)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_set_mates() {
+        let mut records = [
+            Record {
+                bam_flags: sam::alignment::record::Flags::SEGMENTED,
+                reference_sequence_id: Some(0),
+                read_length: 4,
+                alignment_start: Position::new(5),
+                name: Some(b"r0".into()),
+                mate_reference_sequence_id: Some(0),
+                mate_alignment_start: Position::new(8),
+                template_length: 12,
+                ..Default::default()
+            },
+            Record {
+                bam_flags: sam::alignment::record::Flags::SEGMENTED,
+                reference_sequence_id: Some(0),
+                read_length: 4,
+                alignment_start: Position::new(8),
+                name: Some(b"r0".into()),
+                mate_reference_sequence_id: Some(0),
+                mate_alignment_start: Position::new(13),
+                template_length: -12,
+                ..Default::default()
+            },
+            Record {
+                name: Some(b"r1".into()),
+                ..Default::default()
+            },
+            Record {
+                bam_flags: sam::alignment::record::Flags::SEGMENTED,
+                reference_sequence_id: Some(0),
+                read_length: 4,
+                alignment_start: Position::new(13),
+                name: Some(b"r0".into()),
+                mate_reference_sequence_id: Some(0),
+                mate_alignment_start: Position::new(5),
+                template_length: -12,
+                ..Default::default()
+            },
+            // template length calculation mismatch
+            Record {
+                bam_flags: sam::alignment::record::Flags::SEGMENTED
+                    | sam::alignment::record::Flags::MATE_REVERSE_COMPLEMENTED,
+                reference_sequence_id: Some(0),
+                read_length: 4,
+                alignment_start: Position::new(100),
+                name: Some(b"r2".into()),
+                mate_reference_sequence_id: Some(0),
+                mate_alignment_start: Position::new(200),
+                template_length: 0,
+                ..Default::default()
+            },
+            Record {
+                bam_flags: sam::alignment::record::Flags::SEGMENTED
+                    | sam::alignment::record::Flags::REVERSE_COMPLEMENTED,
+                reference_sequence_id: Some(0),
+                read_length: 4,
+                alignment_start: Position::new(200),
+                name: Some(b"r2".into()),
+                mate_reference_sequence_id: Some(0),
+                mate_alignment_start: Position::new(100),
+                template_length: 0,
+                ..Default::default()
+            },
+        ];
+
+        set_mates(&mut records);
+
+        assert_eq!(records[0].cram_flags, Flags::MATE_IS_DOWNSTREAM);
+        assert_eq!(records[0].mate_distance, Some(0));
+
+        assert_eq!(records[1].cram_flags, Flags::MATE_IS_DOWNSTREAM);
+        assert_eq!(records[1].mate_distance, Some(1));
+
+        assert_eq!(records[2].cram_flags, Flags::IS_DETACHED);
+        assert!(records[2].mate_distance.is_none());
+
+        assert!(records[3].cram_flags.is_empty());
+        assert!(records[3].mate_distance.is_none());
+
+        assert_eq!(records[4].cram_flags, Flags::IS_DETACHED);
+        assert!(records[4].mate_distance.is_none());
+
+        assert_eq!(records[5].cram_flags, Flags::IS_DETACHED);
+        assert!(records[5].mate_distance.is_none());
+    }
 }
