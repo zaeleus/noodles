@@ -56,9 +56,13 @@ pub fn encode(src: &[u8], ctx: &Context, state_count: usize, dst: &mut Vec<u8>) 
         }
     }
 
-    for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
-        for syms in chunk.windows(CONTEXT_SIZE).rev() {
-            let (i, j) = (usize::from(syms[0]), usize::from(syms[1]));
+    // The decoder interleaves the states at each position, reading from a single stream, so
+    // encode positions in reverse with the states in reverse at each one.
+    let chunk_size = chunks.first().map_or(0, |chunk| chunk.len());
+
+    for k in (0..chunk_size.saturating_sub(1)).rev() {
+        for (state, chunk) in states.iter_mut().rev().zip(chunks.iter().rev()) {
+            let (i, j) = (usize::from(chunk[k]), usize::from(chunk[k + 1]));
             let (f, g) = (frequencies[i][j], cumulative_frequencies[i][j]);
             *state = state_renormalize(*state, f, NORMALIZATION_BITS, &mut buf);
             *state = state_step(*state, f, g, NORMALIZATION_BITS);

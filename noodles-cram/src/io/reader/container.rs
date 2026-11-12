@@ -39,6 +39,22 @@ impl Container {
         read_compression_header(&mut src)
     }
 
+    pub(crate) fn slice_at_landmark(&self, landmark: u64) -> io::Result<Slice<'_>> {
+        let landmark =
+            usize::try_from(landmark).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+        let landmarks = self.header.landmarks();
+        let i = landmarks
+            .iter()
+            .position(|&n| n == landmark)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid slice landmark"))?;
+        let end = landmarks.get(i + 1).copied().unwrap_or(self.src.len());
+        let mut src = self
+            .src
+            .get(landmark..end)
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "invalid slice bounds"))?;
+        read_slice(&mut src)
+    }
+
     /// Returns the iterator over slices.
     pub fn slices(&self) -> impl Iterator<Item = io::Result<Slice<'_>>> + '_ {
         let landmarks = &self.header.landmarks;

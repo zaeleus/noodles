@@ -16,6 +16,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_order_1_renormalization_round_trip() -> io::Result<()> {
+        let mut state = 1u32;
+        let src: Vec<_> = (0..4097)
+            .map(|_| {
+                state = state.wrapping_mul(1664525).wrapping_add(1013904223);
+                (state >> 24) as u8
+            })
+            .collect();
+        for flags in [Flags::ORDER, Flags::ORDER | Flags::N32] {
+            assert_eq!(decode(&encode(flags, &src)?, src.len())?, src);
+        }
+        Ok(())
+    }
+
+    #[test]
     fn test_self() -> io::Result<()> {
         let src = b"noodles";
 

@@ -3,6 +3,7 @@
 mod add_record_error;
 
 use indexmap::IndexMap;
+use noodles_bgzf as bgzf;
 use noodles_core::Position;
 
 pub use self::add_record_error::AddRecordError;
@@ -21,6 +22,9 @@ pub struct Indexer<I> {
     depth: u8,
     header: Option<Header>,
     reference_sequences: Vec<ReferenceSequence<I>>,
+    // For each reference sequence, the start of the first record overlapping each linear window
+    // (`1 << min_shift` positions), or `None`.
+    window_offsets: Vec<Vec<Option<bgzf::VirtualPosition>>>,
     unplaced_unmapped_record_count: u64,
     prev_start_position: Position,
     max_position: Position,
@@ -47,6 +51,7 @@ where
             depth,
             header: None,
             reference_sequences: Vec::new(),
+            window_offsets: Vec::new(),
             unplaced_unmapped_record_count: 0,
             prev_start_position: Position::MIN,
             max_position,
@@ -153,6 +158,20 @@ where
         let reference_sequence = &mut self.reference_sequences[reference_sequence_id];
         reference_sequence.update(self.min_shift, self.depth, start, end, is_mapped, chunk);
 
+        // Records arrive in file order, so the first record to reach a window has its lowest
+        // offset.
+        let window_offsets = &mut self.window_offsets[reference_sequence_id];
+        let first_window = (usize::from(start) - 1) >> self.min_shift;
+        let last_window = (usize::from(end) - 1) >> self.min_shift;
+
+        if window_offsets.len() <= last_window {
+            window_offsets.resize(last_window + 1, None);
+        }
+
+        for offset in &mut window_offsets[first_window..=last_window] {
+            offset.get_or_insert(chunk.start());
+        }
+
         Ok(())
     }
 
@@ -174,7 +193,10 @@ where
         let reference_sequences = self
             .reference_sequences
             .into_iter()
-            .map(|reference_sequence| reference_sequence.optimize())
+            .zip(self.window_offsets)
+            .map(|(reference_sequence, window_offsets)| {
+                reference_sequence.optimize(self.depth, &window_offsets)
+            })
             .collect();
 
         let mut builder = Index::builder()
@@ -196,6 +218,8 @@ where
         self.reference_sequences.resize_with(new_len, || {
             ReferenceSequence::new(IndexMap::new(), Default::default(), None)
         });
+
+        self.window_offsets.resize_with(new_len, Vec::new);
     }
 }
 
@@ -209,6 +233,7 @@ where
             depth: 5,
             header: None,
             reference_sequences: Vec::new(),
+            window_offsets: Vec::new(),
             unplaced_unmapped_record_count: 0,
             prev_start_position: Position::MIN,
             max_position: const { Position::new(1 << 29).unwrap() },
