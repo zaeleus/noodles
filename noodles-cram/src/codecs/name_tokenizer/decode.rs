@@ -12,7 +12,10 @@ use self::header::{CompressionMethod, read_header};
 use super::{TYPE_COUNT, Type};
 use crate::{
     codecs::{aac, rans_nx16},
-    io::reader::num::{read_u8, read_u32_le, read_uint7_as},
+    io::{
+        reader::num::{read_u8, read_u32_le, read_uint7_as},
+        writer::num::write_u8,
+    },
 };
 
 // § 5 "Name tokenisation codec" (2025-04-07): "A maximum of 128 tokens are permitted within any
@@ -34,7 +37,7 @@ pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
         tokens.push(ts);
     }
 
-    let mut dst = Vec::with_capacity(uncompressed_size);
+    let mut dst = vec![0; uncompressed_size];
     write_names(&mut dst, &tokens)?;
 
     Ok(dst)
@@ -337,22 +340,32 @@ fn read_tokens<'a>(
     }
 }
 
-fn write_names(dst: &mut Vec<u8>, tokens: &[Vec<Token>]) -> io::Result<()> {
+fn write_names(mut dst: &mut [u8], tokens: &[Vec<Token>]) -> io::Result<()> {
     for ts in tokens {
-        write_name(dst, ts)?;
-        dst.push(NUL);
+        write_name(&mut dst, ts)?;
+        write_u8(&mut dst, NUL)?;
     }
 
-    Ok(())
+    if dst.is_empty() {
+        Ok(())
+    } else {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid destination buffer",
+        ))
+    }
 }
 
-fn write_name(dst: &mut Vec<u8>, tokens: &[Token]) -> io::Result<()> {
+fn write_name<W>(writer: &mut W, tokens: &[Token]) -> io::Result<()>
+where
+    W: Write,
+{
     for token in tokens {
         match token {
-            Token::Char(c) => dst.push(*c),
-            Token::String(s) => dst.extend(*s),
-            Token::Digits(d) => write!(dst, "{d}")?,
-            Token::PaddedDigits(d, l) => write!(dst, "{:0width$}", d, width = usize::from(*l))?,
+            Token::Char(c) => write_u8(writer, *c)?,
+            Token::String(s) => writer.write_all(s)?,
+            Token::Digits(d) => write!(writer, "{d}")?,
+            Token::PaddedDigits(d, l) => write!(writer, "{:0width$}", d, width = usize::from(*l))?,
             Token::Nop => {}
         }
     }
@@ -469,6 +482,32 @@ I17_08765:2:124:45613:16161#9\0\
 
         assert!(matches!(
             decode_type(13),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_names() -> io::Result<()> {
+        let tokens = [
+            vec![Token::Char(b'r'), Token::Digits(1)],
+            vec![Token::String(b"r"), Token::PaddedDigits(2, 3), Token::Nop],
+        ];
+
+        let mut dst = [0; 8];
+        write_names(&mut dst, &tokens)?;
+        assert_eq!(dst, *b"r1\0r002\0");
+
+        let mut dst = [0; 6];
+        assert!(matches!(
+            write_names(&mut dst, &tokens),
+            Err(e) if e.kind() == io::ErrorKind::WriteZero
+        ));
+
+        let mut dst = [0; 10];
+        assert!(matches!(
+            write_names(&mut dst, &tokens),
             Err(e) if e.kind() == io::ErrorKind::InvalidData
         ));
 

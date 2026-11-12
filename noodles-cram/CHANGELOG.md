@@ -15,7 +15,8 @@
 
     This includes buffer counts, duplicate buffer positions, delta
     calculations, missing previous tokens on a match, missing `END` tokens,
-    reader count, distance calculations, and token types ([#444]).
+    reader count, distance calculations, token types ([#444]), and the
+    uncompressed size.
 
   * cram/codecs/name_tokenizer/decode/header: Validate name count.
 
