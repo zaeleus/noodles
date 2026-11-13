@@ -398,22 +398,30 @@ fn read_string_array_values(
 enum GenotypeValues<'a> {
     Int8(&'a [i8]),
     Int16(&'a [i16]),
+    Int32(&'a [i32]),
 }
 
 impl GenotypeValues<'_> {
-    fn iter(&self) -> Box<dyn Iterator<Item = Result<i16, DecodeError>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = Result<i32, DecodeError>> + '_> {
         match self {
             Self::Int8(values) => Box::new(values.iter().map_while(|n| match Int8::from(*n) {
-                Int8::Value(n) => Some(Ok(i16::from(n))),
+                Int8::Value(n) => Some(Ok(i32::from(n))),
                 Int8::EndOfVector => None,
                 Int8::Missing | Int8::Reserved(_) => {
                     Some(Err(DecodeError::InvalidGenotypeSampleValue))
                 }
             })),
             Self::Int16(values) => Box::new(values.iter().map_while(|n| match Int16::from(*n) {
-                Int16::Value(n) => Some(Ok(n)),
+                Int16::Value(n) => Some(Ok(i32::from(n))),
                 Int16::EndOfVector => None,
                 Int16::Missing | Int16::Reserved(_) => {
+                    Some(Err(DecodeError::InvalidGenotypeSampleValue))
+                }
+            })),
+            Self::Int32(values) => Box::new(values.iter().map_while(|n| match Int32::from(*n) {
+                Int32::Value(n) => Some(Ok(n)),
+                Int32::EndOfVector => None,
+                Int32::Missing | Int32::Reserved(_) => {
                     Some(Err(DecodeError::InvalidGenotypeSampleValue))
                 }
             })),
@@ -428,6 +436,7 @@ pub(super) fn read_genotype_values(
     match read_type(src).map_err(DecodeError::InvalidType)? {
         Some(Type::Int8(len)) => read_i8_genotype_values(src, sample_count, len),
         Some(Type::Int16(len)) => read_i16_genotype_values(src, sample_count, len),
+        Some(Type::Int32(len)) => read_i32_genotype_values(src, sample_count, len),
         _ => Err(DecodeError::InvalidGenotypeType),
     }
 }
@@ -483,6 +492,36 @@ fn read_i16_genotype_values(
             for _ in 0..sample_count {
                 let buf = read_i16s(src, len).map_err(DecodeError::InvalidRawValue)?;
                 let vs = GenotypeValues::Int16(&buf);
+                let genotype = parse_genotype_values(vs)?;
+                values.push(Some(Value::Genotype(genotype)));
+            }
+        }
+    }
+
+    Ok(values)
+}
+
+fn read_i32_genotype_values(
+    src: &mut &[u8],
+    sample_count: usize,
+    len: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
+    let mut values = Vec::with_capacity(sample_count);
+
+    match len {
+        0 => values.push(None),
+        1 => {
+            for _ in 0..sample_count {
+                let n = read_i32(src).map_err(DecodeError::InvalidRawValue)?;
+                let vs = GenotypeValues::Int32(&[n]);
+                let genotype = parse_genotype_values(vs)?;
+                values.push(Some(Value::Genotype(genotype)));
+            }
+        }
+        _ => {
+            for _ in 0..sample_count {
+                let buf = read_i32s(src, len).map_err(DecodeError::InvalidRawValue)?;
+                let vs = GenotypeValues::Int32(&buf);
                 let genotype = parse_genotype_values(vs)?;
                 values.push(Some(Value::Genotype(genotype)));
             }
