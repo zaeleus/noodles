@@ -111,7 +111,7 @@ where
                 drop(write_tx);
                 writer_handle.join().unwrap()
             }
-            State::Done => panic!("invalid state"),
+            State::Done => Err(finished_error()),
         }
     }
 
@@ -125,7 +125,7 @@ where
 
     fn send(&mut self) -> io::Result<()> {
         let State::Running { write_tx, .. } = &self.state else {
-            panic!("invalid state");
+            return Err(finished_error());
         };
 
         let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
@@ -181,6 +181,11 @@ where
     }
 }
 
+// The writer is finished after `finish` or after a write error, which is returned once.
+fn finished_error() -> io::Error {
+    io::Error::other("multithreaded writer is finished")
+}
+
 fn spawn_writer<W>(mut writer: W, write_rx: WriteRx) -> JoinHandle<io::Result<W>>
 where
     W: Write + Send + 'static,
@@ -217,4 +222,54 @@ fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<F
         crc32,
         uncompressed_size: src.len(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct FailingWriter;
+
+    impl Write for FailingWriter {
+        fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+            Err(io::Error::from(io::ErrorKind::StorageFull))
+        }
+
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_write_and_finish_after_write_error() {
+        let mut writer = MultithreadedWriter::new(FailingWriter);
+
+        // The write error is returned asynchronously, by a later write or by finish.
+        let mut result = Ok(());
+
+        for _ in 0..64 {
+            result = writer.write_all(&[0; MAX_BUF_SIZE]);
+
+            if result.is_err() {
+                break;
+            }
+        }
+
+        if result.is_ok() {
+            result = writer.finish().map(|_| ());
+        }
+
+        assert!(matches!(result, Err(e) if e.kind() == io::ErrorKind::StorageFull));
+
+        assert!(writer.write_all(&[0; MAX_BUF_SIZE]).is_err());
+        assert!(writer.finish().is_err());
+    }
+
+    #[test]
+    fn test_finish_twice() -> io::Result<()> {
+        let mut writer = MultithreadedWriter::new(io::sink());
+        writer.finish()?;
+        assert!(writer.finish().is_err());
+        Ok(())
+    }
 }
