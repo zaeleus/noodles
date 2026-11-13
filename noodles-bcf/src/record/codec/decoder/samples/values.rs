@@ -401,7 +401,7 @@ pub(super) fn read_genotype_values(
 ) -> Result<Vec<Option<Value>>, DecodeError> {
     match read_type(src).map_err(DecodeError::InvalidType)? {
         Some(Type::Int8(len)) => read_i8_genotype_values(src, sample_count, len),
-        ty => todo!("unhandled type: {:?}", ty),
+        _ => Err(DecodeError::InvalidGenotypeType),
     }
 }
 
@@ -481,6 +481,7 @@ pub enum DecodeError {
     InvalidRawValue(raw_value::DecodeError),
     InvalidString(str::Utf8Error),
     InvalidGenotype,
+    InvalidGenotypeType,
 }
 
 impl error::Error for DecodeError {
@@ -502,6 +503,7 @@ impl fmt::Display for DecodeError {
             Self::InvalidRawValue(_) => write!(f, "invalid raw value"),
             Self::InvalidString(_) => write!(f, "invalid string"),
             Self::InvalidGenotype => write!(f, "invalid genotype"),
+            Self::InvalidGenotypeType => write!(f, "invalid genotype type"),
         }
     }
 }

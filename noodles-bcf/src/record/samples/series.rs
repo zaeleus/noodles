@@ -904,7 +904,7 @@ mod tests {
         t(&series, &header, 1, &[(Some(127), Phasing::Unphased)])?;
         assert!(series.get(&header, 2).is_none());
 
-        // Int16
+        // Int32
         let src = &[
             0x02, 0x00, 0x00, 0x00, 0x03, 0x80, 0x00, 0x00, // 0|16384
             0x02, 0x80, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // 16384
