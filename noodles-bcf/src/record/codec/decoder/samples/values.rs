@@ -399,31 +399,39 @@ pub(super) fn read_genotype_values(
     src: &mut &[u8],
     sample_count: usize,
 ) -> Result<Vec<Option<Value>>, DecodeError> {
+    match read_type(src).map_err(DecodeError::InvalidType)? {
+        Some(Type::Int8(len)) => read_i8_genotype_values(src, sample_count, len),
+        ty => todo!("unhandled type: {:?}", ty),
+    }
+}
+
+fn read_i8_genotype_values(
+    src: &mut &[u8],
+    sample_count: usize,
+    len: usize,
+) -> Result<Vec<Option<Value>>, DecodeError> {
     let mut values = Vec::with_capacity(sample_count);
 
-    match read_type(src).map_err(DecodeError::InvalidType)? {
-        Some(Type::Int8(len)) => match len {
-            0 => values.push(None),
-            1 => {
-                for _ in 0..sample_count {
-                    let value = read_i8(src)
-                        .map_err(DecodeError::InvalidRawValue)
-                        .and_then(|v| parse_genotype_values(&[v]))
-                        .map(Value::Genotype)?;
+    match len {
+        0 => values.push(None),
+        1 => {
+            for _ in 0..sample_count {
+                let value = read_i8(src)
+                    .map_err(DecodeError::InvalidRawValue)
+                    .and_then(|v| parse_genotype_values(&[v]))
+                    .map(Value::Genotype)?;
 
-                    values.push(Some(value));
-                }
+                values.push(Some(value));
             }
-            _ => {
-                for _ in 0..sample_count {
-                    let buf = read_i8s(src, len).map_err(DecodeError::InvalidRawValue)?;
-                    let genotype = parse_genotype_values(&buf)?;
-                    let value = Value::Genotype(genotype);
-                    values.push(Some(value));
-                }
+        }
+        _ => {
+            for _ in 0..sample_count {
+                let buf = read_i8s(src, len).map_err(DecodeError::InvalidRawValue)?;
+                let genotype = parse_genotype_values(&buf)?;
+                let value = Value::Genotype(genotype);
+                values.push(Some(value));
             }
-        },
-        ty => todo!("unhandled type: {:?}", ty),
+        }
     }
 
     Ok(values)
