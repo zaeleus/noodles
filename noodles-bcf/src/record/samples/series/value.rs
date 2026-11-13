@@ -1,5 +1,5 @@
 //! BCF record samples series value.
 
-mod genotype;
+pub(super) mod genotype;
 
 pub use self::genotype::Genotype;

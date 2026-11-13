@@ -45,10 +45,7 @@ impl<'r> Series<'r> {
         };
 
         if name == key::GENOTYPE {
-            match self.ty {
-                Type::Int8(len) => return get_genotype_value(self.src, header, len, i),
-                _ => todo!("unhandled type"),
-            }
+            return get_genotype_value(self.src, self.ty, header, i);
         }
 
         let (number, ty) = header
@@ -316,17 +313,34 @@ fn get_string_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Val
 
 fn get_genotype_value<'r>(
     src: &'r [u8],
+    ty: Type,
     header: &vcf::Header,
-    len: usize,
     i: usize,
 ) -> Option<Option<io::Result<Value<'r>>>> {
-    use self::value::Genotype;
+    use self::value::{Genotype, genotype::Values};
+    use crate::record::value::array;
 
-    let src = src.get(range::<i8>(i, len))?;
+    let values = match ty {
+        Type::Int8(len) => src
+            .get(range::<i8>(i, len))
+            .map(|buf| Values::Int8(array::Values::new(buf)))?,
+        Type::Int16(len) => src
+            .get(range::<i16>(i, len))
+            .map(|buf| Values::Int16(array::Values::new(buf)))?,
+        Type::Int32(len) => src
+            .get(range::<i32>(i, len))
+            .map(|buf| Values::Int32(array::Values::new(buf)))?,
+        _ => {
+            return Some(Some(Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid type for genotype (GT) value",
+            ))));
+        }
+    };
 
     Some(Some(Ok(Value::Genotype(Box::new(Genotype::new(
         header.file_format(),
-        src,
+        values,
     ))))))
 }
 
@@ -812,6 +826,118 @@ mod tests {
         t(&series, &header, 2, &[Some("n"), Some("ls")]);
 
         assert!(series.get(&header, 3).is_none());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_with_genotype_values() -> io::Result<()> {
+        use noodles_vcf::variant::record::samples::series::value::genotype::Phasing;
+
+        fn t(
+            series: &Series<'_>,
+            header: &vcf::Header,
+            i: usize,
+            expected: &[(Option<usize>, Phasing)],
+        ) -> io::Result<()> {
+            match series.get(header, i).unwrap().transpose()? {
+                Some(Value::Genotype(genotype)) => {
+                    let actual = genotype.iter().collect::<io::Result<Vec<_>>>()?;
+                    assert_eq!(actual, expected);
+                }
+                _ => panic!(),
+            }
+
+            Ok(())
+        }
+
+        let header =
+            build_header_with_format(key::GENOTYPE, Number::Count(1), format::Type::String);
+
+        let id = header
+            .string_maps()
+            .strings()
+            .get_index_of(key::GENOTYPE)
+            .unwrap();
+
+        // Int8
+        let src = &[
+            0x02, 0x05, // 0|1
+            0x04, 0x81, // 1
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int8(2),
+            sample_count: 2,
+            src,
+        };
+
+        t(
+            &series,
+            &header,
+            0,
+            &[(Some(0), Phasing::Unphased), (Some(1), Phasing::Phased)],
+        )?;
+        t(&series, &header, 1, &[(Some(1), Phasing::Unphased)])?;
+        assert!(series.get(&header, 2).is_none());
+
+        // Int16
+        let src = &[
+            0x02, 0x00, 0x01, 0x01, // 0|127
+            0x00, 0x01, 0x01, 0x80, // 127
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int16(2),
+            sample_count: 2,
+            src,
+        };
+
+        t(
+            &series,
+            &header,
+            0,
+            &[(Some(0), Phasing::Unphased), (Some(127), Phasing::Phased)],
+        )?;
+        t(&series, &header, 1, &[(Some(127), Phasing::Unphased)])?;
+        assert!(series.get(&header, 2).is_none());
+
+        // Int16
+        let src = &[
+            0x02, 0x00, 0x00, 0x00, 0x03, 0x80, 0x00, 0x00, // 0|16384
+            0x02, 0x80, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // 16384
+        ];
+
+        let series = Series {
+            id,
+            ty: Type::Int32(2),
+            sample_count: 2,
+            src,
+        };
+
+        t(
+            &series,
+            &header,
+            0,
+            &[(Some(0), Phasing::Unphased), (Some(16384), Phasing::Phased)],
+        )?;
+        t(&series, &header, 1, &[(Some(16384), Phasing::Unphased)])?;
+        assert!(series.get(&header, 2).is_none());
+
+        // invalid type
+        let src = &[0x00, 0x00, 0x00, 0x00];
+        let series = Series {
+            id,
+            ty: Type::Float(1),
+            sample_count: 1,
+            src,
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
 
         Ok(())
     }

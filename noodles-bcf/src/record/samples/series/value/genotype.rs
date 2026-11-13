@@ -4,21 +4,44 @@ use noodles_vcf::{
     self as vcf, header::FileFormat, variant::record::samples::series::value::genotype::Phasing,
 };
 
-use crate::record::{codec::value::Int8, value::array};
+use crate::record::{
+    codec::value::{Int8, Int16, Int32},
+    value::array,
+};
 
 const VCF_4_4: FileFormat = FileFormat::new(4, 4);
 
-struct Values<'a>(array::Values<'a, i8>);
+pub(crate) enum Values<'a> {
+    Int8(array::Values<'a, i8>),
+    Int16(array::Values<'a, i16>),
+    Int32(array::Values<'a, i32>),
+}
 
 impl Values<'_> {
     fn iter(&self) -> Box<dyn Iterator<Item = io::Result<i32>> + '_> {
-        Box::new(self.0.iter().map_while(|value| match value {
-            Int8::Value(n) => Some(Ok(i32::from(n))),
-            Int8::EndOfVector => None,
-            Int8::Missing | Int8::Reserved(_) => {
-                Some(Err(io::Error::from(io::ErrorKind::InvalidData)))
-            }
-        }))
+        match self {
+            Self::Int8(values) => Box::new(values.iter().map_while(|value| match value {
+                Int8::Value(n) => Some(Ok(i32::from(n))),
+                Int8::EndOfVector => None,
+                Int8::Missing | Int8::Reserved(_) => {
+                    Some(Err(io::Error::from(io::ErrorKind::InvalidData)))
+                }
+            })),
+            Self::Int16(values) => Box::new(values.iter().map_while(|value| match value {
+                Int16::Value(n) => Some(Ok(i32::from(n))),
+                Int16::EndOfVector => None,
+                Int16::Missing | Int16::Reserved(_) => {
+                    Some(Err(io::Error::from(io::ErrorKind::InvalidData)))
+                }
+            })),
+            Self::Int32(values) => Box::new(values.iter().map_while(|value| match value {
+                Int32::Value(n) => Some(Ok(n)),
+                Int32::EndOfVector => None,
+                Int32::Missing | Int32::Reserved(_) => {
+                    Some(Err(io::Error::from(io::ErrorKind::InvalidData)))
+                }
+            })),
+        }
     }
 }
 
@@ -29,10 +52,10 @@ pub struct Genotype<'a> {
 }
 
 impl<'a> Genotype<'a> {
-    pub(crate) fn new(file_format: FileFormat, src: &'a [u8]) -> Self {
+    pub(crate) fn new(file_format: FileFormat, values: Values<'a>) -> Self {
         Self {
             file_format,
-            values: Values(array::Values::new(src)),
+            values,
         }
     }
 
@@ -136,7 +159,8 @@ mod tests {
     #[test]
     fn test_iter() -> io::Result<()> {
         fn t(src: &[u8], expected: &[(Option<usize>, Phasing)]) -> io::Result<()> {
-            let genotype = Genotype::new(FileFormat::default(), src);
+            let values = Values::Int8(array::Values::new(src));
+            let genotype = Genotype::new(FileFormat::default(), values);
             assert_eq!(genotype.iter().collect::<io::Result<Vec<_>>>()?, expected);
             Ok(())
         }
@@ -189,12 +213,12 @@ mod tests {
         const VCF_4_3: FileFormat = FileFormat::new(4, 3);
 
         let src = [0x02, 0x05]; // |0/1
-        let values = Values(array::Values::new(&src));
+        let values = Values::Int8(array::Values::new(&src));
         assert_eq!(first_allele_phasing(VCF_4_3, &values)?, Phasing::Phased);
         assert_eq!(first_allele_phasing(VCF_4_4, &values)?, Phasing::Unphased);
 
         let src = [0x03, 0x04]; // /0|1
-        let values = Values(array::Values::new(&src));
+        let values = Values::Int8(array::Values::new(&src));
         assert_eq!(first_allele_phasing(VCF_4_3, &values)?, Phasing::Unphased);
         assert_eq!(first_allele_phasing(VCF_4_4, &values)?, Phasing::Phased);
 

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+  * bcf/record/samples/series/value/genotype: Support wider integer types for
+    allele indices in genotype (GT) values ([#448]).
+
+    Genotype (GT) values were previously assumed to be `Int8`. They can now be
+    any integer type, i.e., including `Int16` and `Int32`.
+
+[#448]: https://github.com/zaeleus/noodles/issues/448
+
 ### Changed
 
   * bcf/record/samples/series/value/genotype: Change allele iterator item to be
