@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bcf/record/samples/series/value/genotype: Change allele iterator item to be
+    fallible.
+
+    `Genotype::iter` can now fail parsing an allele and now returns an iterator
+    over `io::Result<_>`.
+
 ## 0.94.0 - 2026-10-29
 
 ### Changed
