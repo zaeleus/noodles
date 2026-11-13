@@ -395,6 +395,18 @@ fn read_string_array_values(
     Ok(values)
 }
 
+struct GenotypeValues<'a>(&'a [i8]);
+
+impl GenotypeValues<'_> {
+    fn iter(&self) -> impl Iterator<Item = Result<i8, DecodeError>> {
+        self.0.iter().map_while(|n| match Int8::from(*n) {
+            Int8::Value(n) => Some(Ok(n)),
+            Int8::EndOfVector => None,
+            Int8::Missing | Int8::Reserved(_) => Some(Err(DecodeError::InvalidGenotypeSampleValue)),
+        })
+    }
+}
+
 pub(super) fn read_genotype_values(
     src: &mut &[u8],
     sample_count: usize,
@@ -416,20 +428,18 @@ fn read_i8_genotype_values(
         0 => values.push(None),
         1 => {
             for _ in 0..sample_count {
-                let value = read_i8(src)
-                    .map_err(DecodeError::InvalidRawValue)
-                    .and_then(|v| parse_genotype_values(&[v]))
-                    .map(Value::Genotype)?;
-
-                values.push(Some(value));
+                let n = read_i8(src).map_err(DecodeError::InvalidRawValue)?;
+                let vs = GenotypeValues(&[n]);
+                let genotype = parse_genotype_values(vs)?;
+                values.push(Some(Value::Genotype(genotype)));
             }
         }
         _ => {
             for _ in 0..sample_count {
                 let buf = read_i8s(src, len).map_err(DecodeError::InvalidRawValue)?;
-                let genotype = parse_genotype_values(&buf)?;
-                let value = Value::Genotype(genotype);
-                values.push(Some(value));
+                let vs = GenotypeValues(&buf);
+                let genotype = parse_genotype_values(vs)?;
+                values.push(Some(Value::Genotype(genotype)));
             }
         }
     }
@@ -437,18 +447,16 @@ fn read_i8_genotype_values(
     Ok(values)
 }
 
-fn parse_genotype_values(values: &[i8]) -> Result<Genotype, DecodeError> {
+fn parse_genotype_values(values: GenotypeValues) -> Result<Genotype, DecodeError> {
     use noodles_vcf::variant::{
         record::samples::series::value::genotype::Phasing,
         record_buf::samples::sample::value::genotype::Allele,
     };
 
-    let mut alleles = Vec::with_capacity(values.len());
+    let mut alleles = Vec::new();
 
-    for &value in values {
-        if let Int8::EndOfVector = Int8::from(value) {
-            break;
-        }
+    for result in values.iter() {
+        let value = result?;
 
         let j = (value >> 1) - 1;
         let is_phased = value & 0x01 == 1;
@@ -482,6 +490,7 @@ pub enum DecodeError {
     InvalidString(str::Utf8Error),
     InvalidGenotype,
     InvalidGenotypeType,
+    InvalidGenotypeSampleValue,
 }
 
 impl error::Error for DecodeError {
@@ -504,6 +513,7 @@ impl fmt::Display for DecodeError {
             Self::InvalidString(_) => write!(f, "invalid string"),
             Self::InvalidGenotype => write!(f, "invalid genotype"),
             Self::InvalidGenotypeType => write!(f, "invalid genotype type"),
+            Self::InvalidGenotypeSampleValue => write!(f, "invalid genotype sample value"),
         }
     }
 }
@@ -742,7 +752,7 @@ mod tests {
         // Examples from § 6.3.3 "Type encoding" (2024-04-20).
 
         assert_eq!(
-            parse_genotype_values(&[0x02, 0x02])?,
+            parse_genotype_values(GenotypeValues(&[0x02, 0x02]))?,
             [
                 Allele::new(Some(0), Phasing::Unphased),
                 Allele::new(Some(0), Phasing::Unphased)
@@ -752,7 +762,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse_genotype_values(&[0x02, 0x04])?,
+            parse_genotype_values(GenotypeValues(&[0x02, 0x04]))?,
             [
                 Allele::new(Some(0), Phasing::Unphased),
                 Allele::new(Some(1), Phasing::Unphased)
@@ -762,7 +772,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse_genotype_values(&[0x04, 0x04])?,
+            parse_genotype_values(GenotypeValues(&[0x04, 0x04]))?,
             [
                 Allele::new(Some(1), Phasing::Unphased),
                 Allele::new(Some(1), Phasing::Unphased)
@@ -772,7 +782,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse_genotype_values(&[0x02, 0x05])?,
+            parse_genotype_values(GenotypeValues(&[0x02, 0x05]))?,
             [
                 Allele::new(Some(0), Phasing::Unphased),
                 Allele::new(Some(1), Phasing::Phased)
@@ -782,7 +792,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse_genotype_values(&[0x00, 0x00])?,
+            parse_genotype_values(GenotypeValues(&[0x00, 0x00]))?,
             [
                 Allele::new(None, Phasing::Unphased),
                 Allele::new(None, Phasing::Unphased)
@@ -792,21 +802,21 @@ mod tests {
         );
 
         assert_eq!(
-            parse_genotype_values(&[0x02])?,
+            parse_genotype_values(GenotypeValues(&[0x02]))?,
             [Allele::new(Some(0), Phasing::Unphased)]
                 .into_iter()
                 .collect()
         );
 
         assert_eq!(
-            parse_genotype_values(&[0x04])?,
+            parse_genotype_values(GenotypeValues(&[0x04]))?,
             [Allele::new(Some(1), Phasing::Unphased)]
                 .into_iter()
                 .collect()
         );
 
         assert_eq!(
-            parse_genotype_values(&[0x02, 0x04, 0x06])?,
+            parse_genotype_values(GenotypeValues(&[0x02, 0x04, 0x06]))?,
             [
                 Allele::new(Some(0), Phasing::Unphased),
                 Allele::new(Some(1), Phasing::Unphased),
@@ -817,7 +827,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse_genotype_values(&[0x02, 0x04, 0x07])?,
+            parse_genotype_values(GenotypeValues(&[0x02, 0x04, 0x07]))?,
             [
                 Allele::new(Some(0), Phasing::Unphased),
                 Allele::new(Some(1), Phasing::Unphased),
@@ -828,7 +838,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse_genotype_values(&[0x02, i8::from(Int8::EndOfVector)])?,
+            parse_genotype_values(GenotypeValues(&[0x02, i8::from(Int8::EndOfVector)]))?,
             [Allele::new(Some(0), Phasing::Unphased)]
                 .into_iter()
                 .collect()
