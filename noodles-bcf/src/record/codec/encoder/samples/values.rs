@@ -90,7 +90,7 @@ where
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("invalid genotype field integer value: {min}"),
+            format!("invalid samples field integer value: {min}"),
         ))
     }
 }
@@ -217,7 +217,7 @@ where
     } else {
         Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("invalid genotype field integer array value: {min}"),
+            format!("invalid samples field integer array value: {min}"),
         ))
     }
 }
