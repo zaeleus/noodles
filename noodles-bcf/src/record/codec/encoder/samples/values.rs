@@ -651,7 +651,7 @@ where
     } else if max <= i32::from(Int16::MAX_VALUE) {
         write_int16_genotype_values(writer, &raw_values, max_len)
     } else {
-        todo!()
+        write_int32_genotype_values(writer, &raw_values, max_len)
     }
 }
 
@@ -764,6 +764,32 @@ where
 
         for _ in 0..pad {
             write_i16_le(writer, i16::from(Int16::EndOfVector))?;
+        }
+    }
+
+    Ok(())
+}
+
+fn write_int32_genotype_values<W>(
+    writer: &mut W,
+    raw_values: &[Vec<i32>],
+    max_len: usize,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    write_type(writer, Some(Type::Int32(max_len)))?;
+
+    for raw_value in raw_values {
+        let len = raw_value.len();
+        let pad = max_len - len;
+
+        for &n in raw_value {
+            write_i32_le(writer, n)?;
+        }
+
+        for _ in 0..pad {
+            write_i32_le(writer, i32::from(Int32::EndOfVector))?;
         }
     }
 
@@ -1382,6 +1408,22 @@ mod tests {
             0x22, // Some(Type::Int16(2))
             0x02, 0x00, 0x01, 0x01, // "0|127"
             0x00, 0x01, 0x01, 0x80, // "127"
+        ];
+
+        assert_eq!(buf, expected);
+
+        // Int32
+        let value_0 = ValueBuf::from("0|16384");
+        let value_1 = ValueBuf::from("16384");
+        let values = [Some((&value_0).into()), Some((&value_1).into())];
+
+        buf.clear();
+        write_genotype_values(&mut buf, &values)?;
+
+        let expected = [
+            0x23, // Some(Type::Int32(2))
+            0x02, 0x00, 0x00, 0x00, 0x03, 0x80, 0x00, 0x00, // "0|16384"
+            0x02, 0x80, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // "16384"
         ];
 
         assert_eq!(buf, expected);
