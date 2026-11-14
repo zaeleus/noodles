@@ -732,10 +732,10 @@ where
 
         for &n in raw_value {
             write_i8(writer, n as i8)?;
+        }
 
-            for _ in 0..pad {
-                write_i8(writer, i8::from(Int8::EndOfVector))?;
-            }
+        for _ in 0..pad {
+            write_i8(writer, i8::from(Int8::EndOfVector))?;
         }
     }
 
@@ -1346,15 +1346,21 @@ mod tests {
     fn test_write_genotype_values_with_padding() -> io::Result<()> {
         let value_0 = ValueBuf::from("0");
         let value_1 = ValueBuf::from("0/1");
-        let values = [Some((&value_0).into()), Some((&value_1).into())];
+        let value_2 = ValueBuf::from("0/1/2");
+        let values = [
+            Some((&value_0).into()),
+            Some((&value_1).into()),
+            Some((&value_2).into()),
+        ];
 
         let mut buf = Vec::new();
         write_genotype_values(&mut buf, &values)?;
 
         let expected = [
-            0x21, // Some(Type::Int8(2))
-            0x02, 0x81, // "0"
-            0x02, 0x04, // "0/1"
+            0x31, // Some(Type::Int8(3))
+            0x02, 0x81, 0x81, // "0"
+            0x02, 0x04, 0x81, // "0/1"
+            0x02, 0x04, 0x06, // "0/1/2"
         ];
 
         assert_eq!(buf, expected);

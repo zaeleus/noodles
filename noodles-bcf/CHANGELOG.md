@@ -20,6 +20,15 @@
     `Genotype::iter` can now fail parsing an allele and now returns an iterator
     over `io::Result<_>`.
 
+### Fixed
+
+  * bcf/record/codec/encoder/samples/values: Fix writing genotype values with
+    padding ([#449]).
+
+    This previously wrote padding per allele rather than per genotype.
+
+[#449]: https://github.com/zaeleus/noodles/issues/449
+
 ## 0.94.0 - 2026-10-29
 
 ### Changed
