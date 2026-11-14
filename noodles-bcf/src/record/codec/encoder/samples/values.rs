@@ -648,6 +648,8 @@ where
 
     if max <= i32::from(Int8::MAX_VALUE) {
         write_int8_genotype_values(writer, &raw_values, max_len)
+    } else if max <= i32::from(Int16::MAX_VALUE) {
+        write_int16_genotype_values(writer, &raw_values, max_len)
     } else {
         todo!()
     }
@@ -736,6 +738,32 @@ where
 
         for _ in 0..pad {
             write_i8(writer, i8::from(Int8::EndOfVector))?;
+        }
+    }
+
+    Ok(())
+}
+
+fn write_int16_genotype_values<W>(
+    writer: &mut W,
+    raw_values: &[Vec<i32>],
+    max_len: usize,
+) -> io::Result<()>
+where
+    W: Write,
+{
+    write_type(writer, Some(Type::Int16(max_len)))?;
+
+    for raw_value in raw_values {
+        let len = raw_value.len();
+        let pad = max_len - len;
+
+        for &n in raw_value {
+            write_i16_le(writer, n as i16)?;
+        }
+
+        for _ in 0..pad {
+            write_i16_le(writer, i16::from(Int16::EndOfVector))?;
         }
     }
 
@@ -1318,6 +1346,9 @@ mod tests {
 
     #[test]
     fn test_write_genotype_values() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        // Int8
         let value_0 = ValueBuf::from("0/1");
         let value_1 = ValueBuf::from("1/1");
         let value_2 = ValueBuf::from("0/0");
@@ -1327,7 +1358,7 @@ mod tests {
             Some((&value_2).into()),
         ];
 
-        let mut buf = Vec::new();
+        buf.clear();
         write_genotype_values(&mut buf, &values)?;
 
         let expected = [
@@ -1335,6 +1366,22 @@ mod tests {
             0x02, 0x04, // "0/1"
             0x04, 0x04, // "1/1"
             0x02, 0x02, // "0/0"
+        ];
+
+        assert_eq!(buf, expected);
+
+        // Int16
+        let value_0 = ValueBuf::from("0|127");
+        let value_1 = ValueBuf::from("127");
+        let values = [Some((&value_0).into()), Some((&value_1).into())];
+
+        buf.clear();
+        write_genotype_values(&mut buf, &values)?;
+
+        let expected = [
+            0x22, // Some(Type::Int16(2))
+            0x02, 0x00, 0x01, 0x01, // "0|127"
+            0x00, 0x01, 0x01, 0x80, // "127"
         ];
 
         assert_eq!(buf, expected);
