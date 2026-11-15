@@ -91,11 +91,11 @@ where
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let mut writer = bgzf::io::MultithreadedWriter::new(io::sink());
+    /// let writer = bgzf::io::MultithreadedWriter::new(io::sink());
     /// writer.finish()?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn finish(&mut self) -> io::Result<W> {
+    pub fn finish(mut self) -> io::Result<W> {
         self.flush()?;
         self.finish_inner()
     }
@@ -152,7 +152,8 @@ where
 {
     fn drop(&mut self) {
         if !matches!(self.state, State::Done) {
-            let _ = self.finish();
+            let _ = self.flush();
+            let _ = self.finish_inner();
         }
     }
 }

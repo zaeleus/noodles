@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * bgzf/io/multithreaded_writer: Consume `self` on finish ([#450]).
+
+[#450]: https://github.com/zaeleus/noodles/pull/450
+
 ## 0.52.0 - 2026-10-01
 
 ### Added
