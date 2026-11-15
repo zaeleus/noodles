@@ -58,7 +58,7 @@ impl Builder {
     where
         W: Write + Send + 'static,
     {
-        use super::{State, spawn_writer};
+        use super::State;
 
         let worker_count = self.worker_count.get();
 
@@ -67,15 +67,9 @@ impl Builder {
             .build()
             .unwrap();
 
-        let (write_tx, write_rx) = crossbeam_channel::bounded(worker_count);
-        let writer_handle = spawn_writer(writer, write_rx);
-
         MultithreadedWriter {
             pool,
-            state: State::Running {
-                writer_handle,
-                write_tx,
-            },
+            state: State::Paused(writer),
             buf: BytesMut::new(),
             compression_level: self.compression_level.into(),
         }

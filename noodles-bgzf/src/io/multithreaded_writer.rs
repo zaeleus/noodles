@@ -26,8 +26,9 @@ struct FrameParts {
 }
 
 enum State<W> {
+    Paused(W),
     Running {
-        writer_handle: JoinHandle<io::Result<W>>,
+        writer_handle: JoinHandle<(W, io::Result<()>)>,
         write_tx: WriteTx,
     },
     Done,
@@ -104,15 +105,39 @@ where
         let state = mem::replace(&mut self.state, State::Done);
 
         match state {
+            State::Paused(inner) => Ok(inner),
             State::Running {
                 writer_handle,
                 write_tx,
             } => {
                 drop(write_tx);
-                writer_handle.join().unwrap()
+                let (inner, result) = writer_handle.join().unwrap();
+                result?;
+                Ok(inner)
             }
             State::Done => panic!("invalid state"),
         }
+    }
+
+    fn resume(&mut self) {
+        if matches!(self.state, State::Running { .. }) {
+            return;
+        }
+
+        let state = mem::replace(&mut self.state, State::Done);
+
+        let State::Paused(inner) = state else {
+            unreachable!();
+        };
+
+        let worker_count = self.pool.current_num_threads();
+        let (write_tx, write_rx) = crossbeam_channel::bounded(worker_count);
+        let writer_handle = spawn_writer(inner, write_rx);
+
+        self.state = State::Running {
+            writer_handle,
+            write_tx,
+        };
     }
 
     fn remaining(&self) -> usize {
@@ -124,8 +149,10 @@ where
     }
 
     fn send(&mut self) -> io::Result<()> {
+        self.resume();
+
         let State::Running { write_tx, .. } = &self.state else {
-            panic!("invalid state");
+            unreachable!();
         };
 
         let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
@@ -182,29 +209,37 @@ where
     }
 }
 
-fn spawn_writer<W>(mut writer: W, write_rx: WriteRx) -> JoinHandle<io::Result<W>>
+fn spawn_writer<W>(mut writer: W, write_rx: WriteRx) -> JoinHandle<(W, io::Result<()>)>
 where
     W: Write + Send + 'static,
 {
+    thread::spawn(move || {
+        let result = write_frames(&mut writer, write_rx);
+        (writer, result)
+    })
+}
+
+fn write_frames<W>(writer: &mut W, write_rx: WriteRx) -> io::Result<()>
+where
+    W: Write,
+{
     use super::writer::{BGZF_EOF, write_frame};
 
-    thread::spawn(move || {
-        while let Ok(buffered_rx) = write_rx.recv() {
-            if let Ok(result) = buffered_rx.recv() {
-                let FrameParts {
-                    compressed_data,
-                    crc32,
-                    uncompressed_size,
-                } = result?;
+    while let Ok(buffered_rx) = write_rx.recv() {
+        if let Ok(result) = buffered_rx.recv() {
+            let FrameParts {
+                compressed_data,
+                crc32,
+                uncompressed_size,
+            } = result?;
 
-                write_frame(&mut writer, &compressed_data, crc32, uncompressed_size)?;
-            }
+            write_frame(writer, &compressed_data, crc32, uncompressed_size)?;
         }
+    }
 
-        writer.write_all(&BGZF_EOF)?;
+    writer.write_all(&BGZF_EOF)?;
 
-        Ok(writer)
-    })
+    Ok(())
 }
 
 fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<FrameParts> {
