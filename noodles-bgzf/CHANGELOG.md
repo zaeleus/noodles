@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Added
+
+  * bgzf/io/multithreaded_writer: Add `MultithreadedWriter::try_finish` to
+    attempt to finish the output stream.
+
 ### Changed
 
   * bgzf/io/multithreaded_writer: Consume `self` on finish ([#450]).

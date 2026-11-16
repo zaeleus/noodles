@@ -13,7 +13,7 @@ use bytes::BytesMut;
 use crossbeam_channel::{Receiver, Sender};
 
 pub use self::builder::Builder;
-use super::writer::{CompressionLevelImpl, MAX_BUF_SIZE};
+use super::writer::{BGZF_EOF, CompressionLevelImpl, MAX_BUF_SIZE};
 
 type BufferedRx = Receiver<io::Result<FrameParts>>;
 type WriteTx = Sender<BufferedRx>;
@@ -31,6 +31,7 @@ enum State<W> {
         writer_handle: JoinHandle<(W, io::Result<()>)>,
         write_tx: WriteTx,
     },
+    Finished(W),
     Done,
 }
 
@@ -83,9 +84,39 @@ where
             .build_from_writer(inner)
     }
 
-    /// Finishes the output stream by flushing any remaining buffers.
+    /// Attempts to finish the output stream by flushing any remaining buffers.
     ///
-    /// This shuts down the writer and deflater workers and appends the final BGZF EOF block.
+    /// This then appends the final BGZF EOF block.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let mut writer = bgzf::io::MultithreadedWriter::new(io::sink());
+    /// writer.try_finish()?;
+    /// # Ok::<_, io::Error>(())
+    /// ```
+    pub fn try_finish(&mut self) -> io::Result<()> {
+        if matches!(self.state, State::Finished(_)) {
+            return Ok(());
+        }
+
+        self.flush()?;
+        self.pause()?;
+
+        let State::Paused(mut inner) = mem::replace(&mut self.state, State::Done) else {
+            unreachable!();
+        };
+
+        let result = inner.write_all(&BGZF_EOF);
+
+        self.state = State::Finished(inner);
+
+        result
+    }
+
+    /// Returns the underlying writer after finishing the output stream.
     ///
     /// # Examples
     ///
@@ -97,26 +128,16 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn finish(mut self) -> io::Result<W> {
-        self.flush()?;
-        self.finish_inner()
+        self.try_finish()?;
+        Ok(self.into_inner())
     }
 
-    fn finish_inner(&mut self) -> io::Result<W> {
-        let state = mem::replace(&mut self.state, State::Done);
+    fn into_inner(mut self) -> W {
+        let State::Finished(inner) = mem::replace(&mut self.state, State::Done) else {
+            unreachable!();
+        };
 
-        match state {
-            State::Paused(inner) => Ok(inner),
-            State::Running {
-                writer_handle,
-                write_tx,
-            } => {
-                drop(write_tx);
-                let (inner, result) = writer_handle.join().unwrap();
-                result?;
-                Ok(inner)
-            }
-            State::Done => panic!("invalid state"),
-        }
+        inner
     }
 
     fn resume(&mut self) {
@@ -140,6 +161,30 @@ where
         };
     }
 
+    fn pause(&mut self) -> io::Result<()> {
+        if matches!(self.state, State::Paused(_)) {
+            return Ok(());
+        }
+
+        let state = mem::replace(&mut self.state, State::Done);
+
+        let State::Running {
+            writer_handle,
+            write_tx,
+        } = state
+        else {
+            unreachable!();
+        };
+
+        drop(write_tx);
+
+        let (inner, result) = writer_handle.join().unwrap();
+
+        self.state = State::Paused(inner);
+
+        result
+    }
+
     fn remaining(&self) -> usize {
         MAX_BUF_SIZE - self.buf.len()
     }
@@ -158,7 +203,7 @@ where
         let (buffered_tx, buffered_rx) = crossbeam_channel::bounded(1);
 
         if write_tx.send(buffered_rx).is_err() {
-            return self.finish_inner().map(|_| ());
+            return self.pause();
         }
 
         let src = self.buf.split().freeze();
@@ -178,9 +223,8 @@ where
     W: Write + Send + 'static,
 {
     fn drop(&mut self) {
-        if !matches!(self.state, State::Done) {
-            let _ = self.flush();
-            let _ = self.finish_inner();
+        if matches!(self.state, State::Running { .. } | State::Paused(_)) {
+            let _ = self.try_finish();
         }
     }
 }
@@ -223,7 +267,7 @@ fn write_frames<W>(writer: &mut W, write_rx: WriteRx) -> io::Result<()>
 where
     W: Write,
 {
-    use super::writer::{BGZF_EOF, write_frame};
+    use super::writer::write_frame;
 
     while let Ok(buffered_rx) = write_rx.recv() {
         if let Ok(result) = buffered_rx.recv() {
@@ -236,8 +280,6 @@ where
             write_frame(writer, &compressed_data, crc32, uncompressed_size)?;
         }
     }
-
-    writer.write_all(&BGZF_EOF)?;
 
     Ok(())
 }
@@ -253,4 +295,23 @@ fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<F
         crc32,
         uncompressed_size: src.len(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_try_finish() -> io::Result<()> {
+        let mut writer = MultithreadedWriter::new(Vec::new());
+        writer.write_all(b"noodles")?;
+
+        writer.try_finish()?;
+        assert!(writer.try_finish().is_ok());
+
+        let compressed_data = writer.finish()?;
+        assert!(compressed_data.ends_with(&BGZF_EOF));
+
+        Ok(())
+    }
 }
