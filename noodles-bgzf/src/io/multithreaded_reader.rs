@@ -81,11 +81,15 @@ impl<R> MultithreadedReader<R> {
     /// ```
     /// # use std::io;
     /// use noodles_bgzf as bgzf;
-    /// let mut reader = bgzf::io::MultithreadedReader::new(io::empty());
+    /// let reader = bgzf::io::MultithreadedReader::new(io::empty());
     /// reader.finish()?;
     /// # Ok::<_, io::Error>(())
     /// ```
-    pub fn finish(&mut self) -> io::Result<R> {
+    pub fn finish(mut self) -> io::Result<R> {
+        self.shutdown()
+    }
+
+    fn shutdown(&mut self) -> io::Result<R> {
         let state = mem::replace(&mut self.state, State::Done);
 
         match state {
@@ -263,7 +267,7 @@ where
 impl<R> Drop for MultithreadedReader<R> {
     fn drop(&mut self) {
         if !matches!(self.state, State::Done) {
-            let _ = self.finish();
+            let _ = self.shutdown();
         }
     }
 }

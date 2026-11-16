@@ -12,6 +12,8 @@
 
 ### Changed
 
+  * bgzf/io/multithreaded_reader: Consume `self` on finish.
+
   * bgzf/io/multithreaded_writer: Consume `self` on finish ([#450]).
 
 [#450]: https://github.com/zaeleus/noodles/pull/450
