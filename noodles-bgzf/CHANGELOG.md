@@ -7,6 +7,9 @@
   * bgzf/io/multithreaded_writer: Add `MultithreadedWriter::try_finish` to
     attempt to finish the output stream.
 
+  * bgzf/io/multithreaded_writer: Add `MultithreadedWriter::into_inner` to
+    get back the underlying reader.
+
 ### Changed
 
   * bgzf/io/multithreaded_writer: Consume `self` on finish ([#450]).

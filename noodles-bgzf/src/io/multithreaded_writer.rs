@@ -85,6 +85,37 @@ where
             .build_from_writer(inner)
     }
 
+    /// Returns the underlying writer.
+    ///
+    /// This does not finish the output stream. Buffered data is discarded, and the final BGZF EOF
+    /// block is not appeneded. Use [`Self::try_finish`] or [`Self::finish`] to finish the output
+    /// stream first.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::io;
+    /// use noodles_bgzf as bgzf;
+    /// let writer = bgzf::io::MultithreadedWriter::new(io::sink());
+    /// let inner = writer.into_inner();
+    /// ```
+    pub fn into_inner(mut self) -> W {
+        let state = mem::replace(&mut self.state, State::Done);
+
+        match state {
+            State::Paused(inner) | State::Finished(inner) | State::Errored(inner) => inner,
+            State::Running {
+                writer_handle,
+                write_tx,
+            } => {
+                drop(write_tx);
+                let (inner, _) = writer_handle.join().unwrap();
+                inner
+            }
+            State::Done => unreachable!(),
+        }
+    }
+
     /// Attempts to finish the output stream by flushing any remaining buffers.
     ///
     /// This then appends the final BGZF EOF block.
@@ -139,14 +170,6 @@ where
     pub fn finish(mut self) -> io::Result<W> {
         self.try_finish()?;
         Ok(self.into_inner())
-    }
-
-    fn into_inner(mut self) -> W {
-        let State::Finished(inner) = mem::replace(&mut self.state, State::Done) else {
-            unreachable!();
-        };
-
-        inner
     }
 
     fn resume(&mut self) {
