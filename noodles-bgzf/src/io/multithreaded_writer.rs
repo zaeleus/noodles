@@ -32,6 +32,7 @@ enum State<W> {
         write_tx: WriteTx,
     },
     Finished(W),
+    Errored(W),
     Done,
 }
 
@@ -98,8 +99,11 @@ where
     /// # Ok::<_, io::Error>(())
     /// ```
     pub fn try_finish(&mut self) -> io::Result<()> {
-        if matches!(self.state, State::Finished(_)) {
-            return Ok(());
+        match self.state {
+            State::Paused(_) | State::Running { .. } => {}
+            State::Finished(_) => return Ok(()),
+            State::Errored(_) => return Err(writer_errored()),
+            State::Done => unreachable!(),
         }
 
         self.flush()?;
@@ -109,11 +113,16 @@ where
             unreachable!();
         };
 
-        let result = inner.write_all(&BGZF_EOF);
-
-        self.state = State::Finished(inner);
-
-        result
+        match inner.write_all(&BGZF_EOF) {
+            Ok(()) => {
+                self.state = State::Finished(inner);
+                Ok(())
+            }
+            Err(e) => {
+                self.state = State::Errored(inner);
+                Err(e)
+            }
+        }
     }
 
     /// Returns the underlying writer after finishing the output stream.
@@ -180,9 +189,16 @@ where
 
         let (inner, result) = writer_handle.join().unwrap();
 
-        self.state = State::Paused(inner);
-
-        result
+        match result {
+            Ok(()) => {
+                self.state = State::Paused(inner);
+                Ok(())
+            }
+            Err(e) => {
+                self.state = State::Errored(inner);
+                Err(e)
+            }
+        }
     }
 
     fn remaining(&self) -> usize {
@@ -234,6 +250,13 @@ where
     W: Write + Send + 'static,
 {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        match self.state {
+            State::Paused(_) | State::Running { .. } => {}
+            State::Finished(_) => return Err(writer_finished()),
+            State::Errored(_) => return Err(writer_errored()),
+            State::Done => unreachable!(),
+        }
+
         let amt = self.remaining().min(buf.len());
         self.buf.extend_from_slice(&buf[..amt]);
 
@@ -245,6 +268,13 @@ where
     }
 
     fn flush(&mut self) -> io::Result<()> {
+        match self.state {
+            State::Paused(_) | State::Running { .. } => {}
+            State::Finished(_) => return Ok(()),
+            State::Errored(_) => return Err(writer_errored()),
+            State::Done => unreachable!(),
+        }
+
         if self.buf.is_empty() {
             Ok(())
         } else {
@@ -297,6 +327,14 @@ fn compress(src: &[u8], compression_level: CompressionLevelImpl) -> io::Result<F
     })
 }
 
+fn writer_finished() -> io::Error {
+    io::Error::other("writer finished")
+}
+
+fn writer_errored() -> io::Error {
+    io::Error::other("writer errored")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -308,6 +346,8 @@ mod tests {
 
         writer.try_finish()?;
         assert!(writer.try_finish().is_ok());
+
+        assert!(writer.write_all(b"bgzf").is_err());
 
         let compressed_data = writer.finish()?;
         assert!(compressed_data.ends_with(&BGZF_EOF));
