@@ -63,7 +63,7 @@ pub(super) fn read_values(
             read_string_array_values(src, sample_count, n)
         }
 
-        _ => todo!("unhandled type"),
+        _ => Err(DecodeError::TypeMismatch(value_ty, ty)),
     }
 }
 
@@ -566,6 +566,7 @@ fn parse_genotype_values(values: GenotypeValues) -> Result<Genotype, DecodeError
 pub enum DecodeError {
     InvalidType(ty::DecodeError),
     InvalidLength,
+    TypeMismatch(Type, format::Type),
     InvalidRawValue(raw_value::DecodeError),
     InvalidInteger,
     InvalidFloat,
@@ -591,6 +592,18 @@ impl fmt::Display for DecodeError {
         match self {
             Self::InvalidType(_) => write!(f, "invalid type"),
             Self::InvalidLength => write!(f, "invalid length"),
+            Self::TypeMismatch(actual, expected) => {
+                let resolved_actual = match actual {
+                    Type::Int8(_) | Type::Int16(_) | Type::Int32(_) => format::Type::Integer,
+                    Type::Float(_) => format::Type::Float,
+                    Type::String(_) => format::Type::String,
+                };
+
+                write!(
+                    f,
+                    "type mismatch: expected {expected:?}, got {resolved_actual:?}"
+                )
+            }
             Self::InvalidRawValue(_) => write!(f, "invalid raw value"),
             Self::InvalidInteger => write!(f, "invalid integer"),
             Self::InvalidFloat => write!(f, "invalid float"),
