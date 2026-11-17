@@ -224,7 +224,7 @@ fn get_i32_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<V
 
     let src = src.get(range::<i32>(i, len))?;
 
-    // SAFETY: `src` is 2 bytes.
+    // SAFETY: `src` is 4 bytes.
     match Int32::from(i32::from_le_bytes(src.try_into().unwrap())) {
         Int32::Value(n) => Some(Some(Ok(Value::Integer(n)))),
         Int32::Missing => Some(None),
@@ -245,7 +245,7 @@ fn get_f32_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<V
 
     let src = src.get(range::<f32>(i, len))?;
 
-    // SAFETY: `src` is 2 bytes.
+    // SAFETY: `src` is 4 bytes.
     match Float::from(f32::from_le_bytes(src.try_into().unwrap())) {
         Float::Value(n) => Some(Some(Ok(Value::Float(n)))),
         Float::Missing => Some(None),
