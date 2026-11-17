@@ -27,6 +27,8 @@
 
     This previously wrote padding per allele rather than per genotype.
 
+  * bcf/record/codec/encoder/site/info/field/value: Validate float value.
+
   * bcf/record/codec/encoder/site/info/field/value: Reject literal missing
     value in float array values.
 

@@ -70,7 +70,13 @@ fn write_float_value<W>(writer: &mut W, n: f32) -> io::Result<()>
 where
     W: Write,
 {
-    value::write_value(writer, Some(Value::Float(Some(Float::Value(n)))))
+    match Float::from(n) {
+        Float::Value(n) => value::write_value(writer, Some(Value::Float(Some(Float::Value(n))))),
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid info field float value: {n}"),
+        )),
+    }
 }
 
 fn write_flag_value<W>(writer: &mut W) -> io::Result<()>
@@ -365,12 +371,19 @@ mod tests {
     #[test]
     fn test_write_value_with_float_value() -> io::Result<()> {
         let mut buf = Vec::new();
+
+        buf.clear();
         let value = ValueBuf::from(0.0);
         write_value(&mut buf, Some((&value).into()))?;
-
         let expected = [0x15, 0x00, 0x00, 0x00, 0x00];
-
         assert_eq!(buf, expected);
+
+        buf.clear();
+        let value = ValueBuf::from(f32::from(Float::Missing));
+        assert!(matches!(
+            write_value(&mut buf, Some((&value).into())),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
