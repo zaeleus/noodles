@@ -22,6 +22,11 @@
 
 ### Fixed
 
+  * bcf/record/codec/decoder: Resolve special values.
+
+    This now better handles special number types _end of vector_ and
+    _reserved_.
+
   * bcf/record/codec/encoder: Validate float values.
 
   * bcf/record/codec/encoder/samples/values: Fix writing genotype values with

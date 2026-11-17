@@ -78,7 +78,7 @@ fn read_i8_values(src: &mut &[u8], sample_count: usize) -> Result<Vec<Option<Val
         match value {
             Int8::Value(n) => values.push(Some(Value::from(i32::from(n)))),
             Int8::Missing => values.push(None),
-            _ => todo!("unhandled i8 value: {:?}", value),
+            Int8::EndOfVector | Int8::Reserved(_) => return Err(DecodeError::InvalidInteger),
         }
     }
 
@@ -97,14 +97,13 @@ fn read_i8_array_values(
 
         let vs: Vec<_> = buf
             .into_iter()
-            .map(Int8::from)
-            .filter_map(|value| match value {
-                Int8::Value(n) => Some(Some(i32::from(n))),
-                Int8::Missing => Some(None),
+            .map_while(|value| match Int8::from(value) {
+                Int8::Value(n) => Some(Ok(Some(i32::from(n)))),
+                Int8::Missing => Some(Ok(None)),
                 Int8::EndOfVector => None,
-                _ => todo!("unhandled i8 array value: {:?}", value),
+                Int8::Reserved(_) => Some(Err(DecodeError::InvalidInteger)),
             })
-            .collect();
+            .collect::<Result<_, _>>()?;
 
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
@@ -130,7 +129,7 @@ fn read_i16_values(
         match value {
             Int16::Value(n) => values.push(Some(Value::from(i32::from(n)))),
             Int16::Missing => values.push(None),
-            _ => todo!("unhandled i16 value: {:?}", value),
+            Int16::EndOfVector | Int16::Reserved(_) => return Err(DecodeError::InvalidInteger),
         }
     }
 
@@ -149,14 +148,13 @@ fn read_i16_array_values(
 
         let vs: Vec<_> = buf
             .into_iter()
-            .map(Int16::from)
-            .filter_map(|value| match value {
-                Int16::Value(n) => Some(Some(i32::from(n))),
-                Int16::Missing => Some(None),
+            .map_while(|value| match Int16::from(value) {
+                Int16::Value(n) => Some(Ok(Some(i32::from(n)))),
+                Int16::Missing => Some(Ok(None)),
                 Int16::EndOfVector => None,
-                _ => todo!("unhandled i16 array value: {:?}", value),
+                Int16::Reserved(_) => Some(Err(DecodeError::InvalidInteger)),
             })
-            .collect();
+            .collect::<Result<_, _>>()?;
 
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
@@ -182,7 +180,7 @@ fn read_i32_values(
         match value {
             Int32::Value(n) => values.push(Some(Value::from(n))),
             Int32::Missing => values.push(None),
-            _ => todo!("unhandled i32 value: {:?}", value),
+            Int32::EndOfVector | Int32::Reserved(_) => return Err(DecodeError::InvalidInteger),
         }
     }
 
@@ -201,14 +199,13 @@ fn read_i32_array_values(
 
         let vs: Vec<_> = buf
             .into_iter()
-            .map(Int32::from)
-            .filter_map(|value| match value {
-                Int32::Value(n) => Some(Some(n)),
-                Int32::Missing => Some(None),
+            .map_while(|value| match Int32::from(value) {
+                Int32::Value(n) => Some(Ok(Some(n))),
+                Int32::Missing => Some(Ok(None)),
                 Int32::EndOfVector => None,
-                _ => todo!("unhandled i32 array value: {:?}", value),
+                Int32::Reserved(_) => Some(Err(DecodeError::InvalidInteger)),
             })
-            .collect();
+            .collect::<Result<_, _>>()?;
 
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
@@ -234,7 +231,7 @@ fn read_f32_values(
         match value {
             Float::Value(n) => values.push(Some(Value::from(n))),
             Float::Missing => values.push(None),
-            _ => todo!("unhandled f32 value: {:?}", value),
+            Float::EndOfVector | Float::Reserved(_) => return Err(DecodeError::InvalidFloat),
         }
     }
 
@@ -253,14 +250,13 @@ fn read_f32_array_values(
 
         let vs: Vec<_> = buf
             .into_iter()
-            .map(Float::from)
-            .filter_map(|value| match value {
-                Float::Value(n) => Some(Some(n)),
-                Float::Missing => Some(None),
+            .map_while(|value| match Float::from(value) {
+                Float::Value(n) => Some(Ok(Some(n))),
+                Float::Missing => Some(Ok(None)),
                 Float::EndOfVector => None,
-                _ => todo!("unhandled f32 array value: {:?}", value),
+                Float::Reserved(_) => Some(Err(DecodeError::InvalidFloat)),
             })
-            .collect();
+            .collect::<Result<_, _>>()?;
 
         if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
@@ -571,6 +567,8 @@ pub enum DecodeError {
     InvalidType(ty::DecodeError),
     InvalidLength,
     InvalidRawValue(raw_value::DecodeError),
+    InvalidInteger,
+    InvalidFloat,
     InvalidString(str::Utf8Error),
     InvalidGenotype,
     InvalidGenotypeType,
@@ -594,6 +592,8 @@ impl fmt::Display for DecodeError {
             Self::InvalidType(_) => write!(f, "invalid type"),
             Self::InvalidLength => write!(f, "invalid length"),
             Self::InvalidRawValue(_) => write!(f, "invalid raw value"),
+            Self::InvalidInteger => write!(f, "invalid integer"),
+            Self::InvalidFloat => write!(f, "invalid float"),
             Self::InvalidString(_) => write!(f, "invalid string"),
             Self::InvalidGenotype => write!(f, "invalid genotype"),
             Self::InvalidGenotypeType => write!(f, "invalid genotype type"),
@@ -619,6 +619,24 @@ mod tests {
             read_values(&mut src, Number::Count(1), format::Type::Integer, 3),
             Ok(vec![Some(Value::from(5)), Some(Value::from(8)), None])
         );
+
+        let mut src = &[
+            0x11, // Some(Type::Int8(1))
+            0x81, // Int8::EndOfVector
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Integer, 1),
+            Err(DecodeError::InvalidInteger)
+        );
+
+        let mut src = &[
+            0x11, // Some(Type::Int8(1))
+            0x82, // Int8::Reserved(0x82)
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Integer, 1),
+            Err(DecodeError::InvalidInteger)
+        );
     }
 
     #[test]
@@ -640,6 +658,15 @@ mod tests {
                 None,
             ])
         );
+
+        let mut src = &[
+            0x21, // Some(Type::Int8(2))
+            0x82, 0x81, // [Int8::Reserved(0x82)]
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Integer, 1),
+            Err(DecodeError::InvalidInteger)
+        );
     }
 
     #[test]
@@ -654,6 +681,24 @@ mod tests {
         assert_eq!(
             read_values(&mut src, Number::Count(1), format::Type::Integer, 3),
             Ok(vec![Some(Value::from(5)), Some(Value::from(8)), None])
+        );
+
+        let mut src = &[
+            0x12, // Some(Type::Int16(1))
+            0x01, 0x80, // Int16::EndOfVector
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Integer, 1),
+            Err(DecodeError::InvalidInteger)
+        );
+
+        let mut src = &[
+            0x12, // Some(Type::Int16(1))
+            0x02, 0x80, // Int16::Reserved(0x8002)
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Integer, 1),
+            Err(DecodeError::InvalidInteger)
         );
     }
 
@@ -676,6 +721,15 @@ mod tests {
                 None,
             ])
         );
+
+        let mut src = &[
+            0x22, // Some(Type::Int16(2))
+            0x02, 0x80, 0x01, 0x80, // Int16::Reserved(0x8002)]
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Integer, 1),
+            Err(DecodeError::InvalidInteger)
+        );
     }
 
     #[test]
@@ -690,6 +744,24 @@ mod tests {
         assert_eq!(
             read_values(&mut src, Number::Count(1), format::Type::Integer, 3),
             Ok(vec![Some(Value::from(5)), Some(Value::from(8)), None])
+        );
+
+        let mut src = &[
+            0x13, // Some(Type::Int32(1))
+            0x01, 0x00, 0x00, 0x80, // Int32::EndOfVector
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Integer, 1),
+            Err(DecodeError::InvalidInteger)
+        );
+
+        let mut src = &[
+            0x13, // Some(Type::Int32(1))
+            0x02, 0x00, 0x00, 0x80, // Int32::Reserved(0x80000002)
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Integer, 1),
+            Err(DecodeError::InvalidInteger)
         );
     }
 
@@ -712,6 +784,15 @@ mod tests {
                 None,
             ])
         );
+
+        let mut src = &[
+            0x23, // Some(Type::Int32(2))
+            0x02, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // [Int32::Reserved(0x80000002)]
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Integer, 1),
+            Err(DecodeError::InvalidInteger)
+        );
     }
 
     #[test]
@@ -726,6 +807,24 @@ mod tests {
         assert_eq!(
             read_values(&mut src, Number::Count(1), format::Type::Float, 3),
             Ok(vec![Some(Value::from(0.0)), Some(Value::from(1.0)), None])
+        );
+
+        let mut src = &[
+            0x15, // Some(Type::Float(1))
+            0x02, 0x00, 0x80, 0x7f, // Float::EndOfVector
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Float, 1),
+            Err(DecodeError::InvalidFloat)
+        );
+
+        let mut src = &[
+            0x15, // Some(Type::Float(1))
+            0x03, 0x00, 0x80, 0x7f, // Float::Reserved(0x7f800003)
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Float, 1),
+            Err(DecodeError::InvalidFloat)
         );
     }
 
@@ -747,6 +846,15 @@ mod tests {
                 Some(Value::from(vec![Some(0.0)])),
                 None,
             ])
+        );
+
+        let mut src = &[
+            0x25, // Some(Type::Float(2))
+            0x03, 0x00, 0x80, 0x7f, 0x02, 0x00, 0x80, 0x7f, // [Float::Reserved(0x7f800003)]
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Float, 1),
+            Err(DecodeError::InvalidFloat)
         );
     }
 
