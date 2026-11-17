@@ -13,7 +13,10 @@ use noodles_vcf::{
     },
 };
 
-use crate::record::value::{Type, array::Values, read_type, read_value};
+use crate::record::{
+    codec::value::{Float, Int8, Int16, Int32},
+    value::{Type, array::Values, read_type, read_value},
+};
 
 /// A BCF record samples series.
 pub struct Series<'r> {
@@ -211,7 +214,22 @@ fn get_i8_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> {
 fn get_i8_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     let src = src.get(range::<i8>(i, len))?;
     let values = Values::<'_, i8>::new(src);
-    Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+
+    let is_missing = {
+        let mut iter = values.iter();
+
+        match (iter.next(), iter.next()) {
+            (Some(n), None) => matches!(n, Int8::Missing),
+            (Some(n), Some(m)) => matches!(n, Int8::Missing) && matches!(m, Int8::EndOfVector),
+            _ => false,
+        }
+    };
+
+    if is_missing {
+        Some(None)
+    } else {
+        Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+    }
 }
 
 fn get_i16_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> {
@@ -232,7 +250,22 @@ fn get_i16_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> 
 fn get_i16_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     let src = src.get(range::<i16>(i, len))?;
     let values = Values::<'_, i16>::new(src);
-    Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+
+    let is_missing = {
+        let mut iter = values.iter();
+
+        match (iter.next(), iter.next()) {
+            (Some(n), None) => matches!(n, Int16::Missing),
+            (Some(n), Some(m)) => matches!(n, Int16::Missing) && matches!(m, Int16::EndOfVector),
+            _ => false,
+        }
+    };
+
+    if is_missing {
+        Some(None)
+    } else {
+        Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+    }
 }
 
 fn get_i32_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> {
@@ -253,7 +286,22 @@ fn get_i32_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> 
 fn get_i32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     let src = src.get(range::<i32>(i, len))?;
     let values = Values::<'_, i32>::new(src);
-    Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+
+    let is_missing = {
+        let mut iter = values.iter();
+
+        match (iter.next(), iter.next()) {
+            (Some(n), None) => matches!(n, Int32::Missing),
+            (Some(n), Some(m)) => matches!(n, Int32::Missing) && matches!(m, Int32::EndOfVector),
+            _ => false,
+        }
+    };
+
+    if is_missing {
+        Some(None)
+    } else {
+        Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+    }
 }
 
 fn get_f32_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> {
@@ -274,7 +322,22 @@ fn get_f32_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> 
 fn get_f32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
     let src = src.get(range::<f32>(i, len))?;
     let values = Values::<'_, f32>::new(src);
-    Some(Some(Value::Array(Array::Float(Box::new(values)))))
+
+    let is_missing = {
+        let mut iter = values.iter();
+
+        match (iter.next(), iter.next()) {
+            (Some(n), None) => matches!(n, Float::Missing),
+            (Some(n), Some(m)) => matches!(n, Float::Missing) && matches!(m, Float::EndOfVector),
+            _ => false,
+        }
+    };
+
+    if is_missing {
+        Some(None)
+    } else {
+        Some(Some(Value::Array(Array::Float(Box::new(values)))))
+    }
 }
 
 fn get_string(src: &[u8], len: usize, i: usize) -> Option<&str> {
@@ -486,7 +549,7 @@ mod tests {
         t(&series, &header, 0, Some(&[Some(5), Some(8)]));
         t(&series, &header, 1, Some(&[Some(13), None]));
         t(&series, &header, 2, Some(&[Some(21)]));
-        t(&series, &header, 3, Some(&[None])); // FIXME
+        t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
     }
@@ -572,7 +635,7 @@ mod tests {
         t(&series, &header, 0, Some(&[Some(5), Some(8)]));
         t(&series, &header, 1, Some(&[Some(13), None]));
         t(&series, &header, 2, Some(&[Some(21)]));
-        t(&series, &header, 3, Some(&[None])); // FIXME
+        t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
     }
@@ -658,7 +721,7 @@ mod tests {
         t(&series, &header, 0, Some(&[Some(5), Some(8)]));
         t(&series, &header, 1, Some(&[Some(13), None]));
         t(&series, &header, 2, Some(&[Some(21)]));
-        t(&series, &header, 3, Some(&[None])); // FIXME
+        t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
     }
@@ -744,7 +807,7 @@ mod tests {
         t(&series, &header, 0, Some(&[Some(0.0), Some(1.0)]));
         t(&series, &header, 1, Some(&[Some(0.0), None]));
         t(&series, &header, 2, Some(&[Some(0.0)]));
-        t(&series, &header, 3, Some(&[None])); // FIXME
+        t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
     }
