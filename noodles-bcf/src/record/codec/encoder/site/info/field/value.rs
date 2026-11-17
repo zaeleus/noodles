@@ -233,17 +233,15 @@ where
 {
     let vs: Vec<_> = values
         .iter()
-        .map(|result| {
-            let v = match result? {
-                Some(n) => Float::from(n),
-                None => Float::Missing,
-            };
-
-            match v {
+        .map(|result| match result? {
+            Some(n) => match Float::from(n) {
                 Float::Value(n) => Ok(n),
-                Float::Missing => Ok(f32::from(v)),
-                _ => todo!("unhandled f32 array value: {:?}", v),
-            }
+                _ => Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid info field float array value: {n}"),
+                )),
+            },
+            None => Ok(f32::from(Float::Missing)),
         })
         .collect::<io::Result<_>>()?;
 
