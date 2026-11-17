@@ -173,13 +173,20 @@ fn write_integer_array_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -
 where
     W: Write,
 {
-    let mut max_len = usize::MIN;
+    let mut max_len: Option<usize> = None;
     let (mut min, mut max) = (i32::MAX, i32::MIN);
 
     for value in values {
         match value {
             Some(Value::Array(Array::Integer(vs))) => {
-                max_len = cmp::max(max_len, vs.len());
+                if vs.len() == 0 {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "samples field integer array cannot be empty",
+                    ));
+                }
+
+                max_len = Some(max_len.unwrap_or_default().max(vs.len()));
 
                 for result in vs.iter() {
                     let v = result?;
@@ -197,6 +204,10 @@ where
             None => {}
         }
     }
+
+    let max_len = max_len.ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "missing integer array values")
+    })?;
 
     if min >= i32::from(Int8::MIN_VALUE) {
         if max <= i32::from(Int8::MAX_VALUE) {
@@ -402,13 +413,22 @@ fn write_float_array_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> 
 where
     W: Write,
 {
-    let max_len = values
-        .iter()
-        .flat_map(|value| match value {
-            Some(Value::Array(Array::Float(vs))) => Some(vs.len()),
-            _ => None,
-        })
-        .max()
+    let mut max_len: Option<usize> = None;
+
+    for value in values {
+        if let Some(Value::Array(Array::Float(vs))) = value {
+            if vs.len() == 0 {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    "samples field float array cannot be empty",
+                ));
+            }
+
+            max_len = Some(max_len.unwrap_or_default().max(vs.len()));
+        }
+    }
+
+    let max_len = max_len
         .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing float array values"))?;
 
     write_type(writer, Some(Type::Float(max_len)))?;
@@ -1220,6 +1240,14 @@ mod tests {
         ];
         t(&mut buf, &format, &values, &expected)?;
 
+        buf.clear();
+        let value_0 = ValueBuf::from(Vec::<Option<i32>>::new());
+        let values = [Some((&value_0).into())];
+        assert!(matches!(
+            write_values(&mut buf, &format, &values),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
         Ok(())
     }
 
@@ -1279,6 +1307,14 @@ mod tests {
         ];
 
         assert_eq!(buf, expected);
+
+        buf.clear();
+        let value_0 = ValueBuf::from(Vec::<Option<f32>>::new());
+        let values = [Some((&value_0).into())];
+        assert!(matches!(
+            write_values(&mut buf, &format, &values),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         buf.clear();
         let value_0 = ValueBuf::from(vec![Some(f32::from(Float::Missing))]);
