@@ -162,7 +162,10 @@ where
             match v {
                 Int8::Value(n) => Ok(n),
                 Int8::Missing => Ok(i8::from(v)),
-                _ => todo!("unhandled i8 array value: {:?}", v),
+                _ => Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid info field i8 array value: {v:?}"),
+                )),
             }
         })
         .collect::<io::Result<_>>()?;
@@ -190,7 +193,10 @@ where
             match v {
                 Int16::Value(n) => Ok(n),
                 Int16::Missing => Ok(i16::from(v)),
-                _ => todo!("unhandled i16 array value: {:?}", v),
+                _ => Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid info field i16 array value: {v:?}"),
+                )),
             }
         })
         .collect::<io::Result<_>>()?;
@@ -216,7 +222,10 @@ where
             match v {
                 Int32::Value(n) => Ok(n),
                 Int32::Missing => Ok(i32::from(v)),
-                _ => todo!("unhandled i32 array value: {:?}", v),
+                _ => Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("invalid info field i32 array value: {v:?}"),
+                )),
             }
         })
         .collect::<io::Result<_>>()?;
