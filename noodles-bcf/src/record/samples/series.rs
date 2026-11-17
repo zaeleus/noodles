@@ -39,6 +39,10 @@ impl<'r> Series<'r> {
 
     /// Returns the value at the given index.
     pub fn get(&self, header: &vcf::Header, i: usize) -> Option<Option<io::Result<Value<'r>>>> {
+        if i >= self.len() {
+            return None;
+        }
+
         let name = match self.name(header) {
             Ok(name) => name,
             Err(e) => return Some(Some(Err(e))),

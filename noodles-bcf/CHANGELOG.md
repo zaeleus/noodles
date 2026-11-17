@@ -14,6 +14,12 @@
 
 ### Changed
 
+  * bcf/record/samples/series: Return `None` when sample index is
+    out-of-bounds.
+
+    This no longer validates the type definition if the sample index is
+    out-of-bounds.
+
   * bcf/record/samples/series/value/genotype: Change allele iterator item to be
     fallible.
 
