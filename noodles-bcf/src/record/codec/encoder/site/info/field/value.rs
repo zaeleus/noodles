@@ -541,6 +541,13 @@ mod tests {
             &[0x23, 0x00, 0x00, 0x00, 0x80, 0xff, 0xff, 0xff, 0x7f],
         )?;
 
+        buf.clear();
+        let value = ValueBuf::from(Vec::<Option<i32>>::new());
+        assert!(matches!(
+            write_value(&mut buf, Some((&value).into())),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
         Ok(())
     }
 
