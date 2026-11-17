@@ -65,16 +65,16 @@ impl<'r> Series<'r> {
             }
 
             (Number::Count(1), format::Type::Integer, Type::Int8(len)) => {
-                get_i8_value(self.src, len, i)
+                return get_i8_value(self.src, len, i);
             }
             (Number::Count(1), format::Type::Integer, Type::Int16(len)) => {
-                get_i16_value(self.src, len, i)
+                return get_i16_value(self.src, len, i);
             }
             (Number::Count(1), format::Type::Integer, Type::Int32(len)) => {
-                get_i32_value(self.src, len, i)
+                return get_i32_value(self.src, len, i);
             }
             (Number::Count(1), format::Type::Float, Type::Float(len)) => {
-                get_f32_value(self.src, len, i)
+                return get_f32_value(self.src, len, i);
             }
             (Number::Count(1), format::Type::Character, Type::String(len)) => {
                 get_char_value(self.src, len, i)
@@ -178,18 +178,18 @@ fn range<N>(i: usize, len: usize) -> Range<usize> {
     start..end
 }
 
-fn get_i8_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i8_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     use crate::record::codec::value::Int8;
 
     let src = src.get(range::<i8>(i, len))?;
 
-    let value = match Int8::from(src[0] as i8) {
-        Int8::Value(n) => Some(Value::Integer(i32::from(n))),
-        Int8::Missing => None,
-        Int8::EndOfVector | Int8::Reserved(_) => todo!(),
-    };
-
-    Some(value)
+    match Int8::from(src[0] as i8) {
+        Int8::Value(n) => Some(Some(Ok(Value::Integer(i32::from(n))))),
+        Int8::Missing => Some(None),
+        Int8::EndOfVector | Int8::Reserved(_) => {
+            Some(Some(Err(io::Error::from(io::ErrorKind::InvalidData))))
+        }
+    }
 }
 
 fn get_i8_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
@@ -198,19 +198,19 @@ fn get_i8_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'
     Some(Some(Value::Array(Array::Integer(Box::new(values)))))
 }
 
-fn get_i16_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i16_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     use crate::record::codec::value::Int16;
 
     let src = src.get(range::<i16>(i, len))?;
 
     // SAFETY: `src` is 2 bytes.
-    let value = match Int16::from(i16::from_le_bytes(src.try_into().unwrap())) {
-        Int16::Value(n) => Some(Value::Integer(i32::from(n))),
-        Int16::Missing => None,
-        Int16::EndOfVector | Int16::Reserved(_) => todo!(),
-    };
-
-    Some(value)
+    match Int16::from(i16::from_le_bytes(src.try_into().unwrap())) {
+        Int16::Value(n) => Some(Some(Ok(Value::Integer(i32::from(n))))),
+        Int16::Missing => Some(None),
+        Int16::EndOfVector | Int16::Reserved(_) => {
+            Some(Some(Err(io::Error::from(io::ErrorKind::InvalidData))))
+        }
+    }
 }
 
 fn get_i16_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
@@ -219,19 +219,19 @@ fn get_i16_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<
     Some(Some(Value::Array(Array::Integer(Box::new(values)))))
 }
 
-fn get_i32_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i32_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     use crate::record::codec::value::Int32;
 
     let src = src.get(range::<i32>(i, len))?;
 
     // SAFETY: `src` is 2 bytes.
-    let value = match Int32::from(i32::from_le_bytes(src.try_into().unwrap())) {
-        Int32::Value(n) => Some(Value::Integer(n)),
-        Int32::Missing => None,
-        Int32::EndOfVector | Int32::Reserved(_) => todo!(),
-    };
-
-    Some(value)
+    match Int32::from(i32::from_le_bytes(src.try_into().unwrap())) {
+        Int32::Value(n) => Some(Some(Ok(Value::Integer(n)))),
+        Int32::Missing => Some(None),
+        Int32::EndOfVector | Int32::Reserved(_) => {
+            Some(Some(Err(io::Error::from(io::ErrorKind::InvalidData))))
+        }
+    }
 }
 
 fn get_i32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
@@ -240,19 +240,19 @@ fn get_i32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<
     Some(Some(Value::Array(Array::Integer(Box::new(values)))))
 }
 
-fn get_f32_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_f32_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     use crate::record::codec::value::Float;
 
     let src = src.get(range::<f32>(i, len))?;
 
     // SAFETY: `src` is 2 bytes.
-    let value = match Float::from(f32::from_le_bytes(src.try_into().unwrap())) {
-        Float::Value(n) => Some(Value::Float(n)),
-        Float::Missing => None,
-        Float::EndOfVector | Float::Reserved(_) => todo!(),
-    };
-
-    Some(value)
+    match Float::from(f32::from_le_bytes(src.try_into().unwrap())) {
+        Float::Value(n) => Some(Some(Ok(Value::Float(n)))),
+        Float::Missing => Some(None),
+        Float::EndOfVector | Float::Reserved(_) => {
+            Some(Some(Err(io::Error::from(io::ErrorKind::InvalidData))))
+        }
+    }
 }
 
 fn get_f32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
@@ -394,12 +394,14 @@ mod tests {
             0x05, // Some(5)
             0x08, // Some(5)
             0x80, // None
+            0x81, // EndOfVector
+            0x82, // Reserved(0x82)
         ];
 
         let series = Series {
             id,
             ty: Type::Int8(1),
-            sample_count: 3,
+            sample_count: 5,
             src,
         };
 
@@ -407,7 +409,14 @@ mod tests {
         t(&series, &header, 1, Some(8));
         t(&series, &header, 2, None);
 
-        assert!(series.get(&header, 3).is_none());
+        for i in [3, 4] {
+            assert!(matches!(
+                series.get(&header, i),
+                Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+            ));
+        }
+
+        assert!(series.get(&header, 5).is_none());
     }
 
     #[test]
@@ -471,12 +480,14 @@ mod tests {
             0x05, 0x00, // Some(5)
             0x08, 0x00, // Some(8)
             0x00, 0x80, // None
+            0x01, 0x80, // EndOfVector
+            0x02, 0x80, // Reserved(0x8002)
         ];
 
         let series = Series {
             id,
             ty: Type::Int16(1),
-            sample_count: 3,
+            sample_count: 5,
             src,
         };
 
@@ -484,7 +495,14 @@ mod tests {
         t(&series, &header, 1, Some(8));
         t(&series, &header, 2, None);
 
-        assert!(series.get(&header, 3).is_none());
+        for i in [3, 4] {
+            assert!(matches!(
+                series.get(&header, i),
+                Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+            ));
+        }
+
+        assert!(series.get(&header, 5).is_none());
     }
 
     #[test]
@@ -548,12 +566,14 @@ mod tests {
             0x05, 0x00, 0x00, 0x00, // Some(5)
             0x08, 0x00, 0x00, 0x00, // Some(8)
             0x00, 0x00, 0x00, 0x80, // None
+            0x01, 0x00, 0x00, 0x80, // EndOfVector
+            0x02, 0x00, 0x00, 0x80, // Reserved(0x80000002)
         ];
 
         let series = Series {
             id,
             ty: Type::Int32(1),
-            sample_count: 3,
+            sample_count: 5,
             src,
         };
 
@@ -561,7 +581,14 @@ mod tests {
         t(&series, &header, 1, Some(8));
         t(&series, &header, 2, None);
 
-        assert!(series.get(&header, 3).is_none());
+        for i in [3, 4] {
+            assert!(matches!(
+                series.get(&header, i),
+                Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+            ));
+        }
+
+        assert!(series.get(&header, 5).is_none());
     }
 
     #[test]
@@ -625,12 +652,14 @@ mod tests {
             0x00, 0x00, 0x00, 0x00, // Some(0.0)
             0x00, 0x00, 0x80, 0x3f, // Some(1.0)
             0x01, 0x00, 0x80, 0x7f, // None
+            0x02, 0x00, 0x80, 0x7f, // EndOfVector
+            0x03, 0x00, 0x80, 0x7f, // Reserved(0x7f800003)
         ];
 
         let series = Series {
             id,
             ty: Type::Float(1),
-            sample_count: 3,
+            sample_count: 5,
             src,
         };
 
@@ -638,7 +667,14 @@ mod tests {
         t(&series, &header, 1, Some(1.0));
         t(&series, &header, 2, None);
 
-        assert!(series.get(&header, 3).is_none());
+        for i in [3, 4] {
+            assert!(matches!(
+                series.get(&header, i),
+                Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+            ));
+        }
+
+        assert!(series.get(&header, 5).is_none());
     }
 
     #[test]
