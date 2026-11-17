@@ -65,15 +65,14 @@ fn resolve_integer_array_value(value: Option<Value<'_>>) -> Result<Option<ValueB
         Some(Value::Array(Array::Int8(values))) => Ok(Some(ValueBuf::from(
             values
                 .iter()
-                .map(|result| {
-                    result.map(Int8::from).map(|value| match value {
-                        Int8::Value(n) => Some(i32::from(n)),
-                        Int8::Missing => None,
-                        _ => todo!("unhandled i8 array value: {:?}", value),
-                    })
+                .map_while(|result| match result.map(Int8::from) {
+                    Ok(Int8::Value(n)) => Some(Ok(Some(i32::from(n)))),
+                    Ok(Int8::Missing) => Some(Ok(None)),
+                    Ok(Int8::EndOfVector) => None,
+                    Ok(Int8::Reserved(_)) => Some(Err(DecodeError::InvalidInteger)),
+                    Err(_) => Some(Err(DecodeError::UnexpectedEof)),
                 })
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(|_| DecodeError::UnexpectedEof)?,
+                .collect::<Result<Vec<_>, _>>()?,
         ))),
         Some(Value::Int16(Some(Int16::Value(n)))) => {
             Ok(Some(ValueBuf::from(vec![Some(i32::from(n))])))
@@ -81,29 +80,27 @@ fn resolve_integer_array_value(value: Option<Value<'_>>) -> Result<Option<ValueB
         Some(Value::Array(Array::Int16(values))) => Ok(Some(ValueBuf::from(
             values
                 .iter()
-                .map(|result| {
-                    result.map(Int16::from).map(|value| match value {
-                        Int16::Value(n) => Some(i32::from(n)),
-                        Int16::Missing => None,
-                        _ => todo!("unhandled i16 array value: {:?}", value),
-                    })
+                .map_while(|result| match result.map(Int16::from) {
+                    Ok(Int16::Value(n)) => Some(Ok(Some(i32::from(n)))),
+                    Ok(Int16::Missing) => Some(Ok(None)),
+                    Ok(Int16::EndOfVector) => None,
+                    Ok(Int16::Reserved(_)) => Some(Err(DecodeError::InvalidInteger)),
+                    Err(_) => Some(Err(DecodeError::UnexpectedEof)),
                 })
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(|_| DecodeError::UnexpectedEof)?,
+                .collect::<Result<Vec<_>, _>>()?,
         ))),
         Some(Value::Int32(Some(Int32::Value(n)))) => Ok(Some(ValueBuf::from(vec![Some(n)]))),
         Some(Value::Array(Array::Int32(values))) => Ok(Some(ValueBuf::from(
             values
                 .iter()
-                .map(|result| {
-                    result.map(Int32::from).map(|value| match value {
-                        Int32::Value(n) => Some(n),
-                        Int32::Missing => None,
-                        _ => todo!("unhandled i32 array value: {:?}", value),
-                    })
+                .map_while(|result| match result.map(Int32::from) {
+                    Ok(Int32::Value(n)) => Some(Ok(Some(n))),
+                    Ok(Int32::Missing) => Some(Ok(None)),
+                    Ok(Int32::EndOfVector) => None,
+                    Ok(Int32::Reserved(_)) => Some(Err(DecodeError::InvalidInteger)),
+                    Err(_) => Some(Err(DecodeError::UnexpectedEof)),
                 })
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(|_| DecodeError::UnexpectedEof)?,
+                .collect::<Result<Vec<_>, _>>()?,
         ))),
         v => Err(type_mismatch_error(v, Type::Integer)),
     }
@@ -131,15 +128,14 @@ fn resolve_float_array_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf
         Some(Value::Array(Array::Float(values))) => Ok(Some(ValueBuf::from(
             values
                 .iter()
-                .map(|result| {
-                    result.map(Float::from).map(|value| match value {
-                        Float::Value(n) => Some(n),
-                        Float::Missing => None,
-                        _ => todo!("unhandled float array value: {:?}", value),
-                    })
+                .map_while(|result| match result.map(Float::from) {
+                    Ok(Float::Value(n)) => Some(Ok(Some(n))),
+                    Ok(Float::Missing) => Some(Ok(None)),
+                    Ok(Float::EndOfVector) => None,
+                    Ok(Float::Reserved(_)) => Some(Err(DecodeError::InvalidFloat)),
+                    Err(_) => Some(Err(DecodeError::UnexpectedEof)),
                 })
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(|_| DecodeError::UnexpectedEof)?,
+                .collect::<Result<Vec<_>, _>>()?,
         ))),
         v => Err(type_mismatch_error(v, Type::Float)),
     }
@@ -231,6 +227,8 @@ pub enum DecodeError {
         actual: Option<Type>,
         expected: Type,
     },
+    InvalidInteger,
+    InvalidFloat,
     MissingCharacter,
     InvalidCharacter,
 }
@@ -255,6 +253,8 @@ impl fmt::Display for DecodeError {
             Self::TypeMismatch { actual, expected } => {
                 write!(f, "type mismatch: expected {expected:?}, got {actual:?}")
             }
+            Self::InvalidInteger => write!(f, "invalid integer"),
+            Self::InvalidFloat => write!(f, "invalid float"),
             Self::MissingCharacter => write!(f, "missing character"),
             Self::InvalidCharacter => write!(f, "invalid character"),
         }
