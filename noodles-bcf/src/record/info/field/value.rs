@@ -49,10 +49,30 @@ fn read_integer_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
         | Some(TypedValue::Int8(None | Some(Int8::Missing)))
         | Some(TypedValue::Int16(None | Some(Int16::Missing)))
         | Some(TypedValue::Int32(None | Some(Int32::Missing))) => Ok(None),
+        Some(
+            TypedValue::Int8(Some(Int8::EndOfVector | Int8::Reserved(_)))
+            | TypedValue::Int16(Some(Int16::EndOfVector | Int16::Reserved(_)))
+            | TypedValue::Int32(Some(Int32::EndOfVector | Int32::Reserved(_))),
+        ) => Err(io::Error::from(io::ErrorKind::InvalidData)),
         Some(TypedValue::Int8(Some(Int8::Value(n)))) => Ok(Some(Value::Integer(i32::from(n)))),
         Some(TypedValue::Int16(Some(Int16::Value(n)))) => Ok(Some(Value::Integer(i32::from(n)))),
         Some(TypedValue::Int32(Some(Int32::Value(n)))) => Ok(Some(Value::Integer(n))),
         v => Err(type_mismatch_error(v, Type::Integer)),
+    }
+}
+
+struct Empty;
+
+impl<T> vcf::variant::record::info::field::value::array::Values<'_, T> for Empty
+where
+    T: 'static,
+{
+    fn len(&self) -> usize {
+        0
+    }
+
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<T>>> + '_> {
+        Box::new(iter::empty())
     }
 }
 
@@ -83,6 +103,16 @@ fn read_integer_array_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'
         | Some(TypedValue::Int8(None | Some(Int8::Missing)))
         | Some(TypedValue::Int16(None | Some(Int16::Missing)))
         | Some(TypedValue::Int32(None | Some(Int32::Missing))) => Ok(None),
+        Some(
+            TypedValue::Int8(Some(Int8::EndOfVector))
+            | TypedValue::Int16(Some(Int16::EndOfVector))
+            | TypedValue::Int32(Some(Int32::EndOfVector)),
+        ) => Ok(Some(Value::Array(Array::Integer(Box::new(Empty))))),
+        Some(
+            TypedValue::Int8(Some(Int8::Reserved(_)))
+            | TypedValue::Int16(Some(Int16::Reserved(_)))
+            | TypedValue::Int32(Some(Int32::Reserved(_))),
+        ) => Err(io::Error::from(io::ErrorKind::InvalidData)),
         Some(TypedValue::Int8(Some(Int8::Value(n)))) => Ok(Some(Value::Array(Array::Integer(
             Box::new(Once::new(i32::from(n))),
         )))),
@@ -115,6 +145,9 @@ fn read_flag_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
 fn read_float_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
     match read_typed_value(src)? {
         None | Some(TypedValue::Float(None | Some(Float::Missing))) => Ok(None),
+        Some(TypedValue::Float(Some(Float::EndOfVector | Float::Reserved(_)))) => {
+            Err(io::Error::from(io::ErrorKind::InvalidData))
+        }
         Some(TypedValue::Float(Some(Float::Value(n)))) => Ok(Some(Value::Float(n))),
         v => Err(type_mismatch_error(v, Type::Float)),
     }
@@ -123,6 +156,12 @@ fn read_float_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
 fn read_float_array_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'a>>> {
     match read_typed_value(src)? {
         None | Some(TypedValue::Float(None | Some(Float::Missing))) => Ok(None),
+        Some(TypedValue::Float(Some(Float::EndOfVector))) => {
+            Ok(Some(Value::Array(Array::Float(Box::new(Empty)))))
+        }
+        Some(TypedValue::Float(Some(Float::Reserved(_)))) => {
+            Err(io::Error::from(io::ErrorKind::InvalidData))
+        }
         Some(TypedValue::Float(Some(Float::Value(n)))) => {
             Ok(Some(Value::Array(Array::Float(Box::new(Once::new(n))))))
         }
@@ -229,6 +268,22 @@ mod tests {
         t(&[0x13, 0x00, 0x00, 0x00, 0x80], None);
         // Some(Value::Int32(Some(Int32::Value(21))))
         t(&[0x13, 0x15, 0x00, 0x00, 0x00], Some(21));
+
+        let srcs = [
+            vec![0x11, 0x81],                   // Some(Value::Int8(Some(Int8::EndOfVector)))
+            vec![0x11, 0x82],                   // Some(Value::Int8(Some(Int8::Reserved(0x82))))
+            vec![0x12, 0x01, 0x80],             // Some(Value::Int16(Some(Int16::EndOfVector)))
+            vec![0x12, 0x02, 0x80],             // Some(Value::Int16(Some(Int16::Reserved(0x8002))))
+            vec![0x13, 0x01, 0x00, 0x00, 0x80], // Some(Value::Int32(Some(Int32::EndOfVector)))
+            vec![0x13, 0x02, 0x00, 0x00, 0x80], // Some(Value::Int32(Some(Int32::Reserved(0x80000002))))
+        ];
+
+        for src in srcs {
+            assert!(matches!(
+                read_value(&mut &src[..], Number::Count(1), Type::Integer),
+                Err(e) if e.kind() == io::ErrorKind::InvalidData
+            ));
+        }
     }
 
     #[test]
@@ -245,6 +300,8 @@ mod tests {
             }
         }
 
+        // Some(Value::Int8(Some(EndOfVector)))
+        t(&[0x11, 0x81], &[]);
         // Some(Value::Int8(Some(Int8::Value(8))))
         t(&[0x11, 0x08], &[Some(8)]);
         // Some(Value::Array(Array::Int8([Some(8), Some(13)])))
@@ -252,6 +309,8 @@ mod tests {
         // Some(Value::Array(Array::Int8([Some(8), None])))
         t(&[0x21, 0x08, 0x80], &[Some(8), None]);
 
+        // Some(Value::Int16(Some(EndOfVector)))
+        t(&[0x12, 0x01, 0x80], &[]);
         // Some(Value::Int16(Some(Int16::Value(21))))
         t(&[0x12, 0x15, 0x00], &[Some(21)]);
         // Some(Value::Array(Array::Int16([Some(21), Some(34)])))
@@ -259,6 +318,8 @@ mod tests {
         // Some(Value::Array(Array::Int16([Some(21), None])))
         t(&[0x22, 0x15, 0x00, 0x00, 0x80], &[Some(21), None]);
 
+        // Some(Value::Int32(Some(EndOfVector)))
+        t(&[0x13, 0x01, 0x00, 0x00, 0x80], &[]);
         // Some(Value::Int32(Some(Int32::Value(55))))
         t(&[0x13, 0x37, 0x00, 0x00, 0x00], &[Some(55)]);
         // Some(Value::Array(Array::Int32([Some(55), Some(89)])))
@@ -271,6 +332,19 @@ mod tests {
             &[0x23, 0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80],
             &[Some(55), None],
         );
+
+        let srcs = [
+            vec![0x11, 0x82],                   // Some(Value::Int8(Some(Int8::Reserved(0x82))))
+            vec![0x12, 0x02, 0x80],             // Some(Value::Int16(Some(Int16::Reserved(0x8002))))
+            vec![0x13, 0x02, 0x00, 0x00, 0x80], // Some(Value::Int32(Some(Int32::Reserved(0x80000002))))
+        ];
+
+        for src in srcs {
+            assert!(matches!(
+                read_value(&mut &src[..], Number::Count(2), Type::Integer),
+                Err(e) if e.kind() == io::ErrorKind::InvalidData
+            ));
+        }
     }
 
     #[test]
@@ -309,6 +383,18 @@ mod tests {
 
         // Some(Value::Float(Some(Float::Value(0.0))))
         t(&[0x15, 0x00, 0x00, 0x00, 0x00], Some(0.0));
+
+        let srcs = [
+            vec![0x15, 0x02, 0x00, 0x80, 0x7f], // Some(Value::Float(Some(Float::EndOfVector)))
+            vec![0x15, 0x03, 0x00, 0x80, 0x7f], // Some(Value::Float(Some(Float::Reserved(0x7f800003)))
+        ];
+
+        for src in srcs {
+            assert!(matches!(
+                read_value(&mut &src[..], Number::Count(1), Type::Float),
+                Err(e) if e.kind() == io::ErrorKind::InvalidData
+            ));
+        }
     }
 
     #[test]
@@ -325,6 +411,8 @@ mod tests {
             }
         }
 
+        // Some(Value::Float(Some(Float::EndOfVector)))
+        t(&[0x15, 0x02, 0x00, 0x80, 0x7f], &[]);
         // Some(Value::Array(Array::Float([0.0, 1.0])))
         t(
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f],
@@ -335,6 +423,16 @@ mod tests {
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f],
             &[Some(0.0), None],
         );
+
+        // Some(Value::Float(Some(Float::Reserved(0x7f800003))))
+        assert!(matches!(
+            read_value(
+                &mut &[0x15, 0x03, 0x00, 0x80, 0x7f][..],
+                Number::Count(2),
+                Type::Float
+            ),
+            Err(e) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
