@@ -163,7 +163,7 @@ where
             match v {
                 Int8::Value(n) => Ok(n),
                 Int8::Missing => Ok(i8::from(v)),
-                _ => todo!("unhandled i16 array value: {:?}", v),
+                _ => todo!("unhandled i8 array value: {:?}", v),
             }
         })
         .collect::<io::Result<_>>()?;
