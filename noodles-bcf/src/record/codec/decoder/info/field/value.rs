@@ -46,6 +46,11 @@ fn resolve_integer_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, D
         | Some(Value::Int8(None | Some(Int8::Missing)))
         | Some(Value::Int16(None | Some(Int16::Missing)))
         | Some(Value::Int32(None | Some(Int32::Missing))) => Ok(None),
+        Some(
+            Value::Int8(Some(Int8::EndOfVector | Int8::Reserved(_)))
+            | Value::Int16(Some(Int16::EndOfVector | Int16::Reserved(_)))
+            | Value::Int32(Some(Int32::EndOfVector | Int32::Reserved(_))),
+        ) => Err(DecodeError::InvalidInteger),
         Some(Value::Int8(Some(Int8::Value(n)))) => Ok(Some(ValueBuf::from(i32::from(n)))),
         Some(Value::Int16(Some(Int16::Value(n)))) => Ok(Some(ValueBuf::from(i32::from(n)))),
         Some(Value::Int32(Some(Int32::Value(n)))) => Ok(Some(ValueBuf::from(n))),
@@ -59,6 +64,16 @@ fn resolve_integer_array_value(value: Option<Value<'_>>) -> Result<Option<ValueB
         | Some(Value::Int8(None | Some(Int8::Missing)))
         | Some(Value::Int16(None | Some(Int16::Missing)))
         | Some(Value::Int32(None | Some(Int32::Missing))) => Ok(None),
+        Some(
+            Value::Int8(Some(Int8::EndOfVector))
+            | Value::Int16(Some(Int16::EndOfVector))
+            | Value::Int32(Some(Int32::EndOfVector)),
+        ) => Ok(Some(ValueBuf::from(Vec::<Option<i32>>::new()))),
+        Some(
+            Value::Int8(Some(Int8::Reserved(_)))
+            | Value::Int16(Some(Int16::Reserved(_)))
+            | Value::Int32(Some(Int32::Reserved(_))),
+        ) => Err(DecodeError::InvalidInteger),
         Some(Value::Int8(Some(Int8::Value(n)))) => {
             Ok(Some(ValueBuf::from(vec![Some(i32::from(n))])))
         }
@@ -116,6 +131,9 @@ fn resolve_flag_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, Deco
 fn resolve_float_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
     match value {
         None | Some(Value::Float(None | Some(Float::Missing))) => Ok(None),
+        Some(Value::Float(Some(Float::EndOfVector | Float::Reserved(_)))) => {
+            Err(DecodeError::InvalidFloat)
+        }
         Some(Value::Float(Some(Float::Value(n)))) => Ok(Some(ValueBuf::from(n))),
         v => Err(type_mismatch_error(v, Type::Float)),
     }
@@ -124,6 +142,10 @@ fn resolve_float_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, Dec
 fn resolve_float_array_value(value: Option<Value<'_>>) -> Result<Option<ValueBuf>, DecodeError> {
     match value {
         None | Some(Value::Float(None | Some(Float::Missing))) => Ok(None),
+        Some(Value::Float(Some(Float::EndOfVector))) => {
+            Ok(Some(ValueBuf::from(Vec::<Option<f32>>::new())))
+        }
+        Some(Value::Float(Some(Float::Reserved(_)))) => Err(DecodeError::InvalidFloat),
         Some(Value::Float(Some(Float::Value(n)))) => Ok(Some(ValueBuf::from(vec![Some(n)]))),
         Some(Value::Array(Array::Float(values))) => Ok(Some(ValueBuf::from(
             values
@@ -296,6 +318,22 @@ mod tests {
         t(&[0x13, 0x00, 0x00, 0x00, 0x80], None);
         // Some(Value::Int32(Some(Int32::Value(21))))
         t(&[0x13, 0x15, 0x00, 0x00, 0x00], Some(21));
+
+        let srcs = [
+            vec![0x11, 0x81],                   // Some(Value::Int8(Some(Int8::EndOfVector)))
+            vec![0x11, 0x82],                   // Some(Value::Int8(Some(Int8::Reserved(0x82))))
+            vec![0x12, 0x01, 0x80],             // Some(Value::Int16(Some(Int16::EndOfVector)))
+            vec![0x12, 0x02, 0x80],             // Some(Value::Int16(Some(Int16::Reserved(0x8002))))
+            vec![0x13, 0x01, 0x00, 0x00, 0x80], // Some(Value::Int32(Some(Int32::EndOfVector)))
+            vec![0x13, 0x02, 0x00, 0x00, 0x80], // Some(Value::Int32(Some(Int32::Reserved(0x80000002))))
+        ];
+
+        for src in srcs {
+            assert_eq!(
+                read_value(&mut &src[..], Number::Count(1), Type::Integer),
+                Err(DecodeError::InvalidInteger)
+            );
+        }
     }
 
     #[test]
@@ -306,11 +344,15 @@ mod tests {
             assert_eq!(actual, Ok(expected));
         }
 
+        // Some(Value::Int8(Some(EndOfVector)))
+        t(&[0x11, 0x81], Some(vec![]));
         // Some(Value::IntegerArray([Some(8), Some(13)]))
         t(&[0x21, 0x08, 0x0d], Some(vec![Some(8), Some(13)]));
         // Some(Value::IntegerArray([Some(8), None]))
         t(&[0x21, 0x08, 0x80], Some(vec![Some(8), None]));
 
+        // Some(Value::Int16(Some(EndOfVector)))
+        t(&[0x12, 0x01, 0x80], Some(vec![]));
         // Some(Value::IntegerArray([Some(21), Some(34)]))
         t(
             &[0x22, 0x15, 0x00, 0x22, 0x00],
@@ -319,6 +361,8 @@ mod tests {
         // Some(Value::IntegerArray([Some(21), None]))
         t(&[0x22, 0x15, 0x00, 0x00, 0x80], Some(vec![Some(21), None]));
 
+        // Some(Value::Int32(Some(EndOfVector)))
+        t(&[0x13, 0x01, 0x00, 0x00, 0x80], Some(vec![]));
         // Some(Value::IntegerArray([Some(55), Some(89)]))
         t(
             &[0x23, 0x37, 0x00, 0x00, 0x00, 0x59, 0x00, 0x00, 0x00],
@@ -329,6 +373,19 @@ mod tests {
             &[0x23, 0x37, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80],
             Some(vec![Some(55), None]),
         );
+
+        let srcs = [
+            vec![0x11, 0x82],                   // Some(Value::Int8(Some(Int8::Reserved(0x82))))
+            vec![0x12, 0x02, 0x80],             // Some(Value::Int16(Some(Int16::Reserved(0x8002))))
+            vec![0x13, 0x02, 0x00, 0x00, 0x80], // Some(Value::Int32(Some(Int32::Reserved(0x80000002))))
+        ];
+
+        for src in srcs {
+            assert_eq!(
+                read_value(&mut &src[..], Number::Count(2), Type::Integer),
+                Err(DecodeError::InvalidInteger)
+            );
+        }
     }
 
     #[test]
@@ -359,9 +416,20 @@ mod tests {
         t(&[0x05], None);
         // Some(Value::Float(Some(Float::Missing)))
         t(&[0x15, 0x01, 0x00, 0x80, 0x7f], None);
-
         // Some(Value::Float(Some(Float::Value(0.0))))
         t(&[0x15, 0x00, 0x00, 0x00, 0x00], Some(0.0));
+
+        let srcs = [
+            vec![0x15, 0x02, 0x00, 0x80, 0x7f], // Some(Value::Float(Some(Float::EndOfVector)))
+            vec![0x15, 0x03, 0x00, 0x80, 0x7f], // Some(Value::Float(Some(Float::Reserved(0x7f800003)))
+        ];
+
+        for src in srcs {
+            assert_eq!(
+                read_value(&mut &src[..], Number::Count(1), Type::Float),
+                Err(DecodeError::InvalidFloat)
+            );
+        }
     }
 
     #[test]
@@ -372,6 +440,8 @@ mod tests {
             assert_eq!(actual, Ok(expected));
         }
 
+        // Some(Value::Float(Some(Float::EndOfVector)))
+        t(&[0x15, 0x02, 0x00, 0x80, 0x7f], Some(vec![]));
         // Some(Value::FloatArray([0.0, 1.0]))
         t(
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3f],
@@ -381,6 +451,16 @@ mod tests {
         t(
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f],
             Some(vec![Some(0.0), None]),
+        );
+
+        // Some(Value::Float(Some(Float::Reserved(0x7f800003))))
+        assert_eq!(
+            read_value(
+                &mut &[0x15, 0x03, 0x00, 0x80, 0x7f][..],
+                Number::Count(2),
+                Type::Float
+            ),
+            Err(DecodeError::InvalidFloat)
         );
     }
 
