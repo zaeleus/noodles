@@ -106,7 +106,7 @@ impl<'r> Series<'r> {
                 get_string_array_value(self.src, len, i)
             }
 
-            _ => todo!("unhandled type"),
+            _ => return Some(Some(Err(type_mismatch_error(self.ty, ty)))),
         };
 
         match value {
@@ -354,6 +354,19 @@ fn get_genotype_value<'r>(
         header.file_format(),
         values,
     ))))))
+}
+
+fn type_mismatch_error(actual: Type, expected: format::Type) -> io::Error {
+    let resolved_actual = match actual {
+        Type::Int8(_) | Type::Int16(_) | Type::Int32(_) => format::Type::Integer,
+        Type::Float(_) => format::Type::Float,
+        Type::String(_) => format::Type::String,
+    };
+
+    io::Error::new(
+        io::ErrorKind::InvalidData,
+        format!("type mismatch: expected {expected:?}, got {resolved_actual:?}"),
+    )
 }
 
 #[cfg(test)]
