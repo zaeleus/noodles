@@ -1,6 +1,5 @@
 use std::{
     borrow::Cow,
-    cmp,
     io::{self, Write},
 };
 
@@ -115,8 +114,8 @@ where
     for result in values.iter() {
         let value = result?;
         let n = value.unwrap_or_default();
-        min = cmp::min(min, n);
-        max = cmp::max(max, n);
+        min = min.min(n);
+        max = max.max(n);
     }
 
     if min >= i32::from(Int8::MIN_VALUE) {
