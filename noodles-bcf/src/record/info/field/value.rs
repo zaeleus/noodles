@@ -86,8 +86,12 @@ fn read_integer_array_value<'a>(src: &mut &'a [u8]) -> io::Result<Option<Value<'
         Some(TypedValue::Int8(Some(Int8::Value(n)))) => Ok(Some(Value::Array(Array::Integer(
             Box::new(Once::new(i32::from(n))),
         )))),
-        Some(TypedValue::Int16(Some(Int16::Value(n)))) => Ok(Some(Value::Integer(i32::from(n)))),
-        Some(TypedValue::Int32(Some(Int32::Value(n)))) => Ok(Some(Value::Integer(n))),
+        Some(TypedValue::Int16(Some(Int16::Value(n)))) => Ok(Some(Value::Array(Array::Integer(
+            Box::new(Once::new(i32::from(n))),
+        )))),
+        Some(TypedValue::Int32(Some(Int32::Value(n)))) => {
+            Ok(Some(Value::Array(Array::Integer(Box::new(Once::new(n))))))
+        }
         Some(TypedValue::Array(TypedArray::Int8(values))) => {
             Ok(Some(Value::Array(Array::Integer(Box::new(values)))))
         }
@@ -241,16 +245,22 @@ mod tests {
             }
         }
 
+        // Some(Value::Int8(Some(Int8::Value(8))))
+        t(&[0x11, 0x08], &[Some(8)]);
         // Some(Value::Array(Array::Int8([Some(8), Some(13)])))
         t(&[0x21, 0x08, 0x0d], &[Some(8), Some(13)]);
         // Some(Value::Array(Array::Int8([Some(8), None])))
         t(&[0x21, 0x08, 0x80], &[Some(8), None]);
 
+        // Some(Value::Int16(Some(Int16::Value(21))))
+        t(&[0x12, 0x15, 0x00], &[Some(21)]);
         // Some(Value::Array(Array::Int16([Some(21), Some(34)])))
         t(&[0x22, 0x15, 0x00, 0x22, 0x00], &[Some(21), Some(34)]);
         // Some(Value::Array(Array::Int16([Some(21), None])))
         t(&[0x22, 0x15, 0x00, 0x00, 0x80], &[Some(21), None]);
 
+        // Some(Value::Int32(Some(Int32::Value(55))))
+        t(&[0x13, 0x37, 0x00, 0x00, 0x00], &[Some(55)]);
         // Some(Value::Array(Array::Int32([Some(55), Some(89)])))
         t(
             &[0x23, 0x37, 0x00, 0x00, 0x00, 0x59, 0x00, 0x00, 0x00],
