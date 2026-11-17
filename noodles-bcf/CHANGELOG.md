@@ -32,6 +32,9 @@
   * bcf/record/codec/encoder/site/info/field/value: Reject literal missing
     value in float array values.
 
+  * bcf/record/codec/encoder/site/info/field/value: Validate float array
+    length.
+
 [#449]: https://github.com/zaeleus/noodles/issues/449
 
 ## 0.94.0 - 2026-10-29

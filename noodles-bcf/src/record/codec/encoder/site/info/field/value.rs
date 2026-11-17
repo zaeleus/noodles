@@ -246,6 +246,13 @@ fn write_float_array_value<W>(
 where
     W: Write,
 {
+    if values.len() == 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "info field float array cannot be empty",
+        ));
+    }
+
     let vs: Vec<_> = values
         .iter()
         .map(|result| match result? {
@@ -561,6 +568,13 @@ mod tests {
             Some(value),
             &[0x25, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x80, 0x7f],
         )?;
+
+        buf.clear();
+        let value = ValueBuf::from(Vec::<Option<f32>>::new());
+        assert!(matches!(
+            write_value(&mut buf, Some((&value).into())),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
