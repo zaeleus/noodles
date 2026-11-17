@@ -376,9 +376,15 @@ where
 
     for value in values {
         match value {
-            Some(Value::Float(n)) => {
-                write_f32_le(writer, *n)?;
-            }
+            Some(Value::Float(n)) => match Float::from(*n) {
+                Float::Value(m) => write_f32_le(writer, m)?,
+                _ => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!("invalid samples field float value: {n}"),
+                    ));
+                }
+            },
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
@@ -412,7 +418,20 @@ where
             Some(Value::Array(Array::Float(vs))) => {
                 for result in vs.iter() {
                     let v = result?;
-                    let raw_value = v.unwrap_or(f32::from(Float::Missing));
+
+                    let raw_value = match v {
+                        Some(n) => match Float::from(n) {
+                            Float::Value(m) => m,
+                            _ => {
+                                return Err(io::Error::new(
+                                    io::ErrorKind::InvalidInput,
+                                    format!("invalid samples field float array value: {n}"),
+                                ));
+                            }
+                        },
+                        None => f32::from(Float::Missing),
+                    };
+
                     write_f32_le(writer, raw_value)?;
                 }
 
@@ -1206,11 +1225,12 @@ mod tests {
 
     #[test]
     fn test_write_values_with_float_values() -> Result<(), Box<dyn std::error::Error>> {
+        let mut buf = Vec::new();
+
         let format = Map::<Format>::new(Number::Count(1), format::Type::Float, String::new());
 
+        buf.clear();
         let values = [Some(Value::Float(0.0)), Some(Value::Float(1.0)), None];
-
-        let mut buf = Vec::new();
         write_values(&mut buf, &format, &values)?;
 
         let expected = [
@@ -1222,13 +1242,23 @@ mod tests {
 
         assert_eq!(buf, expected);
 
+        buf.clear();
+        let values = [Some(Value::Float(f32::from(Float::Missing)))];
+        assert!(matches!(
+            write_values(&mut buf, &format, &values),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
         Ok(())
     }
 
     #[test]
     fn test_write_values_with_float_array_values() -> Result<(), Box<dyn std::error::Error>> {
+        let mut buf = Vec::new();
+
         let format = Map::<Format>::new(Number::Count(2), format::Type::Float, String::new());
 
+        buf.clear();
         let value_0 = ValueBuf::from(vec![Some(0.0), Some(1.0)]);
         let value_1 = ValueBuf::from(vec![Some(0.0), None]);
         let value_2 = ValueBuf::from(vec![Some(0.0)]);
@@ -1238,8 +1268,6 @@ mod tests {
             Some((&value_2).into()),
             None,
         ];
-
-        let mut buf = Vec::new();
         write_values(&mut buf, &format, &values)?;
 
         let expected = [
@@ -1251,6 +1279,14 @@ mod tests {
         ];
 
         assert_eq!(buf, expected);
+
+        buf.clear();
+        let value_0 = ValueBuf::from(vec![Some(f32::from(Float::Missing))]);
+        let values = [Some((&value_0).into())];
+        assert!(matches!(
+            write_values(&mut buf, &format, &values),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
