@@ -390,8 +390,12 @@ fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>
 }
 
 fn get_string_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
-    let s = get_string(src, len, i)?;
-    Some(Some(Value::Array(Array::String(Box::new(s)))))
+    const MISSING: &str = ".";
+
+    match get_string(src, len, i)? {
+        MISSING => Some(None),
+        s => Some(Some(Value::Array(Array::String(Box::new(s))))),
+    }
 }
 
 fn get_genotype_value<'r>(
@@ -931,40 +935,51 @@ mod tests {
 
     #[test]
     fn test_get_with_string_array_value() -> Result<(), Box<dyn std::error::Error>> {
-        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: &[Option<&str>]) {
-            let expected: Vec<_> = expected.iter().map(|value| value.map(Cow::from)).collect();
-
-            match series.get(header, i).unwrap().unwrap().unwrap() {
-                Value::Array(Array::String(values)) => {
-                    assert_eq!(
-                        values.iter().collect::<Result<Vec<_>, _>>().unwrap(),
-                        expected,
-                    );
+        fn t(
+            series: &Series<'_>,
+            header: &vcf::Header,
+            i: usize,
+            expected: Option<&[Option<&str>]>,
+        ) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Array(Array::String(values))) => {
+                    Some(values.iter().collect::<Result<Vec<_>, _>>().unwrap())
                 }
-                _ => panic!(),
-            }
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            let expected = expected.map(|vs| {
+                vs.iter()
+                    .map(|value| value.map(Cow::from))
+                    .collect::<Vec<_>>()
+            });
+
+            assert_eq!(actual, expected);
         }
 
         let header = build_header_with_format(NAME, Number::Count(2), format::Type::String);
         let id = header.string_maps().strings().get_index_of(NAME).unwrap();
         let src = &[
-            b'n', 0x00, 0x00, 0x00, // "n"
-            b'n', b',', b'l', 0x00, // "n,l"
-            b'n', b',', b'l', b's', // "n,ls"
+            b'n', 0x00, 0x00, 0x00, // Some([Some("n")])
+            b'n', b',', b'l', 0x00, // Some([Some("n"), Some("l")])
+            b'n', b',', b'l', b's', // Some([Some("n"), Some("ls")])
+            b'.', 0x00, 0x00, 0x00, // None
         ];
 
         let series = Series {
             id,
             ty: Type::String(4),
-            sample_count: 3,
+            sample_count: 4,
             src,
         };
 
-        t(&series, &header, 0, &[Some("n")]);
-        t(&series, &header, 1, &[Some("n"), Some("l")]);
-        t(&series, &header, 2, &[Some("n"), Some("ls")]);
+        t(&series, &header, 0, Some(&[Some("n")]));
+        t(&series, &header, 1, Some(&[Some("n"), Some("l")]));
+        t(&series, &header, 2, Some(&[Some("n"), Some("ls")]));
+        t(&series, &header, 3, None);
 
-        assert!(series.get(&header, 3).is_none());
+        assert!(series.get(&header, 4).is_none());
 
         Ok(())
     }
