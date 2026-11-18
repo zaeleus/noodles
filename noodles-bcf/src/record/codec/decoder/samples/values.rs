@@ -1,5 +1,6 @@
 use std::{error, fmt, str};
 
+use memchr::memchr;
 use noodles_vcf::{
     header::record::value::map::format::{self, Number},
     variant::record_buf::samples::sample::{Value, value::Genotype},
@@ -276,7 +277,7 @@ fn read_string_until_nul<'a>(src: &mut &'a [u8], len: usize) -> Result<&'a str, 
 
     let buf = read_string(src, len).map_err(DecodeError::InvalidRawValue)?;
 
-    let data = match buf.iter().position(|&b| b == NUL) {
+    let data = match memchr(NUL, buf) {
         Some(i) => &buf[..i],
         None => buf,
     };
