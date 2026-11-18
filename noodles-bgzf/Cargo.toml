@@ -33,8 +33,11 @@ tokio = { workspace = true, features = ["io-std", "macros", "rt-multi-thread"] }
 [package.metadata.docs.rs]
 features = ["async"]
 
-[lints]
-workspace = true
+[lints.rust]
+missing_docs = "warn"
+
+[lints.cargo]
+unused_dependencies = "allow"
 
 [[example]]
 name = "bgzf_read_async"
