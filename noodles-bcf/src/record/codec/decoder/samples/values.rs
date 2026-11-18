@@ -32,6 +32,9 @@ pub(super) fn read_values(
         (_, _, Type::Int8(0) | Type::Int16(0) | Type::Int32(0) | Type::Float(0)) => {
             Err(DecodeError::InvalidLength)
         }
+        (_, format::Type::Character | format::Type::String, Type::String(0)) => {
+            Ok(vec![None; sample_count])
+        }
 
         (Number::Count(1), format::Type::Integer, Type::Int8(1)) => {
             read_i8_values(src, sample_count)
@@ -281,6 +284,19 @@ fn read_string_until_nul<'a>(src: &mut &'a [u8], len: usize) -> Result<&'a str, 
     str::from_utf8(data).map_err(DecodeError::InvalidString)
 }
 
+fn read_nonempty_string_until_nul<'a>(
+    src: &mut &'a [u8],
+    len: usize,
+) -> Result<&'a str, DecodeError> {
+    let s = read_string_until_nul(src, len)?;
+
+    if s.is_empty() {
+        Err(DecodeError::EmptyValue)
+    } else {
+        Ok(s)
+    }
+}
+
 fn read_char_values(
     src: &mut &[u8],
     sample_count: usize,
@@ -291,12 +307,13 @@ fn read_char_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let s = read_string_until_nul(src, len)?;
-        let c = s.chars().next().unwrap();
+        let s = read_nonempty_string_until_nul(src, len)?;
+        let mut chars = s.chars();
 
-        let value = match c {
-            MISSING => None,
-            _ => Some(Value::from(c)),
+        let value = match (chars.next(), chars.next()) {
+            (Some(MISSING), None) => None,
+            (Some(c), None) => Some(Value::from(c)),
+            _ => return Err(DecodeError::InvalidCharacter),
         };
 
         values.push(value);
@@ -317,16 +334,28 @@ fn read_char_array_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = match read_string_until_nul(src, len)? {
+        let value = match read_nonempty_string_until_nul(src, len)? {
             MISSING => None,
-            s => Some(Value::from(
-                s.split(DELIMITER)
-                    .map(|t| match t.chars().next().unwrap() {
-                        MISSING_VALUE => None,
-                        c => Some(c),
+            s => {
+                let cs: Vec<_> = s
+                    .split(DELIMITER)
+                    .map(|t| {
+                        if t.is_empty() {
+                            return Err(DecodeError::EmptyValue);
+                        }
+
+                        let mut chars = t.chars();
+
+                        match (chars.next(), chars.next()) {
+                            (Some(MISSING_VALUE), None) => Ok(None),
+                            (Some(c), None) => Ok(Some(c)),
+                            _ => Err(DecodeError::InvalidCharacter),
+                        }
                     })
-                    .collect::<Vec<_>>(),
-            )),
+                    .collect::<Result<_, _>>()?;
+
+                Some(Value::from(cs))
+            }
         };
 
         values.push(value);
@@ -345,7 +374,7 @@ fn read_string_values(
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let value = match read_string_until_nul(src, len)? {
+        let value = match read_nonempty_string_until_nul(src, len)? {
             MISSING => None,
             s => Some(Value::from(s)),
         };
@@ -361,30 +390,27 @@ fn read_string_array_values(
     sample_count: usize,
     len: usize,
 ) -> Result<Vec<Option<Value>>, DecodeError> {
-    const NUL: u8 = 0x00;
     const DELIMITER: char = ',';
     const MISSING: &str = ".";
+    const EMPTY: &str = "";
 
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let buf = read_string(src, len).map_err(DecodeError::InvalidRawValue)?;
-
-        let data = match buf.iter().position(|&b| b == NUL) {
-            Some(i) => &buf[..i],
-            None => buf,
-        };
-
-        let value = match str::from_utf8(data).map_err(DecodeError::InvalidString)? {
+        let value = match read_nonempty_string_until_nul(src, len)? {
             MISSING => None,
-            s => Some(Value::from(
-                s.split(DELIMITER)
+            s => {
+                let vs: Vec<Option<String>> = s
+                    .split(DELIMITER)
                     .map(|t| match t {
-                        MISSING => None,
-                        _ => Some(t.into()),
+                        EMPTY => Err(DecodeError::EmptyValue),
+                        MISSING => Ok(None),
+                        _ => Ok(Some(t.into())),
                     })
-                    .collect::<Vec<Option<String>>>(),
-            )),
+                    .collect::<Result<_, _>>()?;
+
+                Some(Value::from(vs))
+            }
         };
 
         values.push(value);
@@ -572,7 +598,9 @@ pub enum DecodeError {
     InvalidRawValue(raw_value::DecodeError),
     InvalidInteger,
     InvalidFloat,
+    InvalidCharacter,
     InvalidString(str::Utf8Error),
+    EmptyValue,
     InvalidGenotype,
     InvalidGenotypeType,
     InvalidGenotypeSampleValue,
@@ -609,7 +637,9 @@ impl fmt::Display for DecodeError {
             Self::InvalidRawValue(_) => write!(f, "invalid raw value"),
             Self::InvalidInteger => write!(f, "invalid integer"),
             Self::InvalidFloat => write!(f, "invalid float"),
+            Self::InvalidCharacter => write!(f, "invalid character"),
             Self::InvalidString(_) => write!(f, "invalid string"),
+            Self::EmptyValue => write!(f, "empty value"),
             Self::InvalidGenotype => write!(f, "invalid genotype"),
             Self::InvalidGenotypeType => write!(f, "invalid genotype type"),
             Self::InvalidGenotypeSampleValue => write!(f, "invalid genotype sample value"),
@@ -885,6 +915,30 @@ mod tests {
             read_values(&mut src, Number::Count(1), format::Type::Character, 2),
             Ok(vec![Some(Value::from('n')), None])
         );
+
+        let mut src = &[0x07][..]; // Some(Type::String(0))
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Character, 2),
+            Ok(vec![None, None])
+        );
+
+        let mut src = &[
+            0x17, // Some(Type::String(1))
+            0x00, // NUL
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Character, 1),
+            Err(DecodeError::EmptyValue)
+        );
+
+        let mut src = &[
+            0x27, // Some(Type::String(2))
+            b'n', b'd', // "nd"
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::Character, 1),
+            Err(DecodeError::InvalidCharacter)
+        );
     }
 
     #[test]
@@ -906,6 +960,41 @@ mod tests {
                 None,
             ])
         );
+
+        let mut src = &[0x07][..]; // Some(Type::String(0))
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Character, 2),
+            Ok(vec![None, None])
+        );
+
+        let mut src = &[
+            0x37, // Some(Type::String(3))
+            0x00, 0x00, 0x00, // NUL
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Character, 1),
+            Err(DecodeError::EmptyValue)
+        );
+
+        let mut src = &[
+            0x37, // Some(Type::String(3))
+            b'n', b',', // "n"
+            0x00, // NUL
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Character, 1),
+            Err(DecodeError::EmptyValue)
+        );
+
+        let mut src = &[
+            0x47, // Some(Type::String(4))
+            b'n', b',', // "n"
+            b'd', b'l', // "dl"
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Character, 1),
+            Err(DecodeError::InvalidCharacter)
+        );
     }
 
     #[test]
@@ -924,6 +1013,21 @@ mod tests {
                 Some(Value::from("n")),
                 None,
             ])
+        );
+
+        let mut src = &[0x07][..]; // Some(Type::String(0))
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::String, 2),
+            Ok(vec![None, None])
+        );
+
+        let mut src = &[
+            0x17, // Some(Type::String(1))
+            0x00, // NUL
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(1), format::Type::String, 1),
+            Err(DecodeError::EmptyValue)
         );
     }
 
@@ -948,6 +1052,31 @@ mod tests {
                 Some(Value::from(vec![Some(String::from("n"))])),
                 None,
             ])
+        );
+
+        let mut src = &[0x07][..]; // Some(Type::String(0))
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::String, 2),
+            Ok(vec![None, None])
+        );
+
+        let mut src = &[
+            0x37, // Some(Type::String(3))
+            0x00, 0x00, 0x00, // NUL
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::String, 1),
+            Err(DecodeError::EmptyValue)
+        );
+
+        let mut src = &[
+            0x37, // Some(Type::String(3))
+            b'n', b',', // "n"
+            0x00, // NUL
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::String, 1),
+            Err(DecodeError::EmptyValue)
         );
     }
 
