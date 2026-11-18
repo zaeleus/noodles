@@ -311,23 +311,25 @@ fn read_char_array_values(
     len: usize,
 ) -> Result<Vec<Option<Value>>, DecodeError> {
     const DELIMITER: char = ',';
-    const MISSING: char = '.';
+    const MISSING: &str = ".";
+    const MISSING_VALUE: char = '.';
 
     let mut values = Vec::with_capacity(sample_count);
 
     for _ in 0..sample_count {
-        let s = read_string_until_nul(src, len)?;
+        let value = match read_string_until_nul(src, len)? {
+            MISSING => None,
+            s => Some(Value::from(
+                s.split(DELIMITER)
+                    .map(|t| match t.chars().next().unwrap() {
+                        MISSING_VALUE => None,
+                        c => Some(c),
+                    })
+                    .collect::<Vec<_>>(),
+            )),
+        };
 
-        let value = Value::from(
-            s.split(DELIMITER)
-                .map(|t| match t.chars().next().unwrap() {
-                    MISSING => None,
-                    c => Some(c),
-                })
-                .collect::<Vec<_>>(),
-        );
-
-        values.push(Some(value));
+        values.push(value);
     }
 
     Ok(values)
@@ -892,14 +894,16 @@ mod tests {
             b'n', b',', b'd', // [Some('n'), Some('d')]
             b'n', b',', b'.', // [Some('n'), None]
             b'n', 0x00, 0x00, // [Some('n')]
+            b'.', 0x00, 0x00, // None
         ][..];
 
         assert_eq!(
-            read_values(&mut src, Number::Count(2), format::Type::Character, 3),
+            read_values(&mut src, Number::Count(2), format::Type::Character, 4),
             Ok(vec![
                 Some(Value::from(vec![Some('n'), Some('d')])),
                 Some(Value::from(vec![Some('n'), None])),
                 Some(Value::from(vec![Some('n')])),
+                None,
             ])
         );
     }
