@@ -70,6 +70,9 @@ impl<'r> Series<'r> {
                     "invalid length",
                 ))));
             }
+            (_, format::Type::Character | format::Type::String, Type::String(0)) => {
+                return Some(None);
+            }
 
             (Number::Count(1), format::Type::Integer, Type::Int8(1)) => {
                 return get_i8_value(self.src, i);
@@ -353,48 +356,55 @@ fn get_string(src: &[u8], len: usize, i: usize) -> Option<io::Result<&str>> {
     Some(str::from_utf8(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
+fn get_nonempty_string(src: &[u8], len: usize, i: usize) -> Option<io::Result<&str>> {
+    const EMPTY: &str = "";
+
+    match get_string(src, len, i)? {
+        Ok(EMPTY) => Some(Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "empty value",
+        ))),
+        result => Some(result),
+    }
+}
+
 fn get_char_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     const MISSING: char = '.';
 
-    let s = match get_string(src, len, i)? {
+    let s = match get_nonempty_string(src, len, i)? {
         Ok(t) => t,
         Err(e) => return Some(Some(Err(e))),
     };
 
-    // TODO
-    let c = s.chars().next().unwrap();
+    let mut chars = s.chars();
 
-    match c {
-        MISSING => Some(None),
-        _ => Some(Some(Ok(Value::Character(c)))),
+    match (chars.next(), chars.next()) {
+        (Some(MISSING), None) => Some(None),
+        (Some(c), None) => Some(Some(Ok(Value::Character(c)))),
+        _ => Some(Some(Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "invalid character",
+        )))),
     }
 }
 
 fn get_char_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     const MISSING: &str = ".";
 
-    let s = match get_string(src, len, i)? {
-        Ok(t) => t,
-        Err(e) => return Some(Some(Err(e))),
-    };
-
-    match s {
-        MISSING => Some(None),
-        s => Some(Some(Ok(Value::Array(Array::Character(Box::new(s)))))),
+    match get_nonempty_string(src, len, i)? {
+        Ok(MISSING) => Some(None),
+        Ok(s) => Some(Some(Ok(Value::Array(Array::Character(Box::new(s)))))),
+        Err(e) => Some(Some(Err(e))),
     }
 }
 
 fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     const MISSING: &str = ".";
 
-    let s = match get_string(src, len, i)? {
-        Ok(t) => t,
-        Err(e) => return Some(Some(Err(e))),
-    };
-
-    match s {
-        MISSING => Some(None),
-        s => Some(Some(Ok(Value::String(Cow::from(s))))),
+    match get_nonempty_string(src, len, i)? {
+        Ok(MISSING) => Some(None),
+        Ok(s) => Some(Some(Ok(Value::String(Cow::from(s))))),
+        Err(e) => Some(Some(Err(e))),
     }
 }
 
@@ -405,14 +415,10 @@ fn get_string_array_value(
 ) -> Option<Option<io::Result<Value<'_>>>> {
     const MISSING: &str = ".";
 
-    let s = match get_string(src, len, i)? {
-        Ok(t) => t,
-        Err(e) => return Some(Some(Err(e))),
-    };
-
-    match s {
-        MISSING => Some(None),
-        s => Some(Some(Ok(Value::Array(Array::String(Box::new(s)))))),
+    match get_nonempty_string(src, len, i)? {
+        Ok(MISSING) => Some(None),
+        Ok(s) => Some(Some(Ok(Value::Array(Array::String(Box::new(s)))))),
+        Err(e) => Some(Some(Err(e))),
     }
 }
 
@@ -872,6 +878,28 @@ mod tests {
         t(&series, &header, 2, None);
 
         assert!(series.get(&header, 3).is_none());
+
+        let series = Series {
+            id,
+            ty: Type::String(1),
+            sample_count: 1,
+            src: &[0x00],
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        let series = Series {
+            id,
+            ty: Type::String(2),
+            sample_count: 1,
+            src: b"nd",
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
@@ -915,6 +943,49 @@ mod tests {
         t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
+
+        let series = Series {
+            id,
+            ty: Type::String(3),
+            sample_count: 1,
+            src: &[0x00, 0x00, 0x00],
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        let series = Series {
+            id,
+            ty: Type::String(3),
+            sample_count: 1,
+            src: &[b'n', b',', 0x00],
+        };
+        match series.get(&header, 0).unwrap().transpose().unwrap() {
+            Some(Value::Array(Array::Character(values))) => {
+                assert!(matches!(
+                    values.iter().collect::<Result<Vec<_>, _>>(),
+                    Err(e) if e.kind() == io::ErrorKind::InvalidData
+                ));
+            }
+            _ => panic!(),
+        }
+
+        let series = Series {
+            id,
+            ty: Type::String(4),
+            sample_count: 1,
+            src: b"n,dl",
+        };
+        match series.get(&header, 0).unwrap().transpose().unwrap() {
+            Some(Value::Array(Array::Character(values))) => {
+                assert!(matches!(
+                    values.iter().collect::<Result<Vec<_>, _>>(),
+                    Err(e) if e.kind() == io::ErrorKind::InvalidData
+                ));
+            }
+            _ => panic!(),
+        }
     }
 
     #[test]
@@ -949,6 +1020,17 @@ mod tests {
         t(&series, &header, 2, None);
 
         assert!(series.get(&header, 3).is_none());
+
+        let series = Series {
+            id,
+            ty: Type::String(1),
+            sample_count: 1,
+            src: &[0x00],
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
@@ -998,6 +1080,33 @@ mod tests {
         t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
+
+        let series = Series {
+            id,
+            ty: Type::String(3),
+            sample_count: 1,
+            src: &[0x00, 0x00, 0x00],
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
+
+        let series = Series {
+            id,
+            ty: Type::String(3),
+            sample_count: 1,
+            src: &[b'n', b',', 0x00],
+        };
+        match series.get(&header, 0).unwrap().transpose().unwrap() {
+            Some(Value::Array(Array::String(values))) => {
+                assert!(matches!(
+                    values.iter().collect::<Result<Vec<_>, _>>(),
+                    Err(e) if e.kind() == io::ErrorKind::InvalidData
+                ));
+            }
+            _ => panic!(),
+        }
 
         Ok(())
     }
@@ -1136,6 +1245,29 @@ mod tests {
                 series.get(&header, 0),
                 Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
             ))
+        }
+    }
+
+    #[test]
+    fn test_get_with_empty_string_type() {
+        for (number, ty) in [
+            (Number::Count(1), format::Type::Character),
+            (Number::Count(2), format::Type::Character),
+            (Number::Count(1), format::Type::String),
+            (Number::Count(2), format::Type::String),
+        ] {
+            let header = build_header_with_format(NAME, number, ty);
+            let id = header.string_maps().strings().get_index_of(NAME).unwrap();
+
+            let series = Series {
+                id,
+                ty: Type::String(0),
+                sample_count: 1,
+                src: &[],
+            };
+
+            assert!(matches!(series.get(&header, 0), Some(None)));
+            assert!(series.get(&header, 1).is_none());
         }
     }
 
