@@ -36,7 +36,7 @@ where
         Some(field::Value::Array(field::value::Array::String(values))) => {
             write_string_array_value(writer, values)
         }
-        _ => todo!("unhandled INFO field value: {:?}", value),
+        None => write_missing_value(writer),
     }
 }
 
@@ -313,6 +313,13 @@ where
     }
 
     value::write_value(writer, Some(Value::String(Some(&s))))
+}
+
+fn write_missing_value<W>(writer: &mut W) -> io::Result<()>
+where
+    W: Write,
+{
+    value::write_value(writer, None)
 }
 
 #[cfg(test)]
@@ -631,6 +638,14 @@ mod tests {
         let value = ValueBuf::from(vec![Some(String::from("nd")), None]);
         t(&mut buf, Some(value), &[0x47, 0x6e, 0x64, 0x2c, 0x2e])?;
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_value_with_missing_value() -> io::Result<()> {
+        let mut buf = Vec::new();
+        write_value(&mut buf, None)?;
+        assert_eq!(buf, [0x00]);
         Ok(())
     }
 }

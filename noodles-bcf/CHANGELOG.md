@@ -48,6 +48,8 @@
   * bcf/record/codec/encoder/site/info/field/value: Validate float array
     length.
 
+  * bcf/record/codec/encoder/site/info/field/value: Handle missing value.
+
   * bcf/record/samples/series: Resolve missing number, character, and string
     arrays as `None`.
 
