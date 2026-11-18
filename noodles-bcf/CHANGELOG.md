@@ -48,7 +48,8 @@
   * bcf/record/codec/encoder/site/info/field/value: Validate float array
     length.
 
-  * bcf/record/samples/series: Resolve missing number array as `None`.
+  * bcf/record/samples/series: Resolve missing number and character arrays as
+    `None`.
 
 [#449]: https://github.com/zaeleus/noodles/issues/449
 

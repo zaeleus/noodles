@@ -372,8 +372,12 @@ fn get_char_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>>
 }
 
 fn get_char_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
-    let s = get_string(src, len, i)?;
-    Some(Some(Value::Array(Array::Character(Box::new(s)))))
+    const MISSING: &str = ".";
+
+    match get_string(src, len, i)? {
+        MISSING => Some(None),
+        s => Some(Some(Value::Array(Array::Character(Box::new(s))))),
+    }
 }
 
 fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
@@ -850,16 +854,21 @@ mod tests {
 
     #[test]
     fn test_get_with_character_array_value() {
-        fn t(series: &Series<'_>, header: &vcf::Header, i: usize, expected: &[Option<char>]) {
-            match series.get(header, i).unwrap().unwrap().unwrap() {
-                Value::Array(Array::Character(values)) => {
-                    assert_eq!(
-                        values.iter().collect::<Result<Vec<_>, _>>().unwrap(),
-                        expected,
-                    );
+        fn t(
+            series: &Series<'_>,
+            header: &vcf::Header,
+            i: usize,
+            expected: Option<&[Option<char>]>,
+        ) {
+            let actual = match series.get(header, i).unwrap().transpose().unwrap() {
+                Some(Value::Array(Array::Character(values))) => {
+                    Some(values.iter().collect::<Result<Vec<_>, _>>().unwrap())
                 }
-                _ => panic!(),
-            }
+                Some(_) => panic!(),
+                None => None,
+            };
+
+            assert_eq!(actual.as_deref(), expected);
         }
 
         let header = build_header_with_format(NAME, Number::Count(2), format::Type::Character);
@@ -868,20 +877,22 @@ mod tests {
             b'n', b',', b'd', // [Some('n'), Some('d')]
             b'n', b',', b'.', // [Some('n'), None]
             b'n', 0x00, 0x00, // [Some('n')]
+            b'.', 0x00, 0x00, // None
         ];
 
         let series = Series {
             id,
             ty: Type::String(3),
-            sample_count: 3,
+            sample_count: 4,
             src,
         };
 
-        t(&series, &header, 0, &[Some('n'), Some('d')]);
-        t(&series, &header, 1, &[Some('n'), None]);
-        t(&series, &header, 2, &[Some('n')]);
+        t(&series, &header, 0, Some(&[Some('n'), Some('d')]));
+        t(&series, &header, 1, Some(&[Some('n'), None]));
+        t(&series, &header, 2, Some(&[Some('n')]));
+        t(&series, &header, 3, None);
 
-        assert!(series.get(&header, 3).is_none());
+        assert!(series.get(&header, 4).is_none());
     }
 
     #[test]
