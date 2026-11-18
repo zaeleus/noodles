@@ -96,10 +96,10 @@ impl<'r> Series<'r> {
             }
 
             (Number::Count(1), format::Type::Character, Type::String(len)) => {
-                get_char_value(self.src, len, i)
+                return get_char_value(self.src, len, i);
             }
             (Number::Count(1), format::Type::String, Type::String(len)) => {
-                get_string_value(self.src, len, i)
+                return get_string_value(self.src, len, i);
             }
 
             (_, format::Type::Integer, Type::Int8(len)) => get_i8_array_value(self.src, len, i),
@@ -107,10 +107,10 @@ impl<'r> Series<'r> {
             (_, format::Type::Integer, Type::Int32(len)) => get_i32_array_value(self.src, len, i),
             (_, format::Type::Float, Type::Float(len)) => get_f32_array_value(self.src, len, i),
             (_, format::Type::Character, Type::String(len)) => {
-                get_char_array_value(self.src, len, i)
+                return get_char_array_value(self.src, len, i);
             }
             (_, format::Type::String, Type::String(len)) => {
-                get_string_array_value(self.src, len, i)
+                return get_string_array_value(self.src, len, i);
             }
 
             _ => return Some(Some(Err(type_mismatch_error(self.ty, ty)))),
@@ -340,7 +340,7 @@ fn get_f32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<
     }
 }
 
-fn get_string(src: &[u8], len: usize, i: usize) -> Option<&str> {
+fn get_string(src: &[u8], len: usize, i: usize) -> Option<io::Result<&str>> {
     const NUL: u8 = 0x00;
 
     let src = src.get(range::<u8>(i, len))?;
@@ -350,51 +350,69 @@ fn get_string(src: &[u8], len: usize, i: usize) -> Option<&str> {
         None => src,
     };
 
-    Some(
-        str::from_utf8(src)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
-            .unwrap(), // TODO
-    )
+    Some(str::from_utf8(src).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e)))
 }
 
-fn get_char_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_char_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     const MISSING: char = '.';
 
-    let s = get_string(src, len, i)?;
+    let s = match get_string(src, len, i)? {
+        Ok(t) => t,
+        Err(e) => return Some(Some(Err(e))),
+    };
 
     // TODO
     let c = s.chars().next().unwrap();
 
     match c {
         MISSING => Some(None),
-        _ => Some(Some(Value::Character(c))),
+        _ => Some(Some(Ok(Value::Character(c)))),
     }
 }
 
-fn get_char_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_char_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     const MISSING: &str = ".";
 
-    match get_string(src, len, i)? {
+    let s = match get_string(src, len, i)? {
+        Ok(t) => t,
+        Err(e) => return Some(Some(Err(e))),
+    };
+
+    match s {
         MISSING => Some(None),
-        s => Some(Some(Value::Array(Array::Character(Box::new(s))))),
+        s => Some(Some(Ok(Value::Array(Array::Character(Box::new(s)))))),
     }
 }
 
-fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_string_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     const MISSING: &str = ".";
 
-    match get_string(src, len, i)? {
+    let s = match get_string(src, len, i)? {
+        Ok(t) => t,
+        Err(e) => return Some(Some(Err(e))),
+    };
+
+    match s {
         MISSING => Some(None),
-        s => Some(Some(Value::String(Cow::from(s)))),
+        s => Some(Some(Ok(Value::String(Cow::from(s))))),
     }
 }
 
-fn get_string_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_string_array_value(
+    src: &[u8],
+    len: usize,
+    i: usize,
+) -> Option<Option<io::Result<Value<'_>>>> {
     const MISSING: &str = ".";
 
-    match get_string(src, len, i)? {
+    let s = match get_string(src, len, i)? {
+        Ok(t) => t,
+        Err(e) => return Some(Some(Err(e))),
+    };
+
+    match s {
         MISSING => Some(None),
-        s => Some(Some(Value::Array(Array::String(Box::new(s))))),
+        s => Some(Some(Ok(Value::Array(Array::String(Box::new(s)))))),
     }
 }
 
