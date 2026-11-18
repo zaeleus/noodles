@@ -29,3 +29,6 @@ pub enum Encoder {
     /// fqzcomp
     Fqzcomp,
 }
+
+#[cfg(test)]
+mod test_utils;
