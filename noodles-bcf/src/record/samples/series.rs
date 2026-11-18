@@ -4,6 +4,7 @@ pub mod value;
 
 use std::{borrow::Cow, io, mem, ops::Range, str};
 
+use memchr::memchr;
 use noodles_vcf::{
     self as vcf,
     header::record::value::map::format::{self, Number},
@@ -348,7 +349,7 @@ fn get_string(src: &[u8], len: usize, i: usize) -> Option<io::Result<&str>> {
 
     let src = src.get(range::<u8>(i, len))?;
 
-    let src = match src.iter().position(|&b| b == NUL) {
+    let src = match memchr(NUL, src) {
         Some(i) => &src[..i],
         None => src,
     };
