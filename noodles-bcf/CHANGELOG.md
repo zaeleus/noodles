@@ -50,6 +50,10 @@
 
   * bcf/record/codec/encoder/site/info/field/value: Handle missing value.
 
+  * bcf/record/codec/encoder/site/position: Allow maximum BCF position.
+
+    This previously did not allow position 2^31.
+
   * bcf/record/samples/series: Resolve missing number, character, and string
     arrays as `None`.
 

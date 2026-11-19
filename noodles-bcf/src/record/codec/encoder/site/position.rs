@@ -10,14 +10,13 @@ where
 {
     const TELOMERE_START: i32 = -1;
 
-    let pos = match position {
-        Some(position) => i32::try_from(usize::from(position))
-            .map(|n| n - 1)
+    let n = match position {
+        Some(position) => i32::try_from(usize::from(position) - 1)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?,
         None => TELOMERE_START,
     };
 
-    write_i32_le(writer, pos)
+    write_i32_le(writer, n)
 }
 
 #[cfg(test)]
@@ -25,7 +24,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_write_pos() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_write_pos() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, position: Option<Position>, expected: &[u8]) -> io::Result<()> {
             buf.clear();
             write_position(buf, position)?;
@@ -37,17 +36,17 @@ mod tests {
 
         t(&mut buf, None, &[0xff, 0xff, 0xff, 0xff])?;
         t(&mut buf, Some(Position::MIN), &[0x00, 0x00, 0x00, 0x00])?;
-        t(
-            &mut buf,
-            Some(Position::try_from((1 << 31) - 1)?),
-            &[0xfe, 0xff, 0xff, 0x7f],
-        )?;
 
-        buf.clear();
-        assert!(matches!(
-            write_position(&mut buf, Some(Position::try_from(1 << 32)?)),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
+        #[cfg(not(target_pointer_width = "16"))]
+        {
+            t(&mut buf, Position::new(1 << 31), &[0xff, 0xff, 0xff, 0x7f])?;
+
+            buf.clear();
+            assert!(matches!(
+                write_position(&mut buf, Position::new((1 << 31) + 1)),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }
