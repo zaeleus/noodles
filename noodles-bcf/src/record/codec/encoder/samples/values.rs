@@ -665,6 +665,8 @@ pub(super) fn write_genotype_values<W>(
 where
     W: Write,
 {
+    const MISSING_ALLELE: i32 = 0;
+
     let mut raw_values = Vec::with_capacity(values.len());
     let mut max_len = 0;
     let mut max = 0;
@@ -673,6 +675,7 @@ where
         let raw_value = match value {
             Some(Value::String(s)) => encode_genotype_str(s)?,
             Some(Value::Genotype(genotype)) => encode_genotype(genotype.as_ref())?,
+            None => vec![MISSING_ALLELE],
             _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
         };
 
@@ -1522,6 +1525,40 @@ mod tests {
             0x02, 0x81, 0x81, // "0"
             0x02, 0x04, 0x81, // "0/1"
             0x02, 0x04, 0x06, // "0/1/2"
+        ];
+
+        assert_eq!(buf, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_genotype_values_with_missing() -> io::Result<()> {
+        let mut buf = Vec::new();
+
+        let value_0 = ValueBuf::from("0/1");
+        let values = [Some((&value_0).into()), None];
+
+        buf.clear();
+        write_genotype_values(&mut buf, &values)?;
+
+        let expected = [
+            0x21, // Some(Type::Int8(2))
+            0x02, 0x04, // "0/1"
+            0x00, 0x81, // None
+        ];
+
+        assert_eq!(buf, expected);
+
+        let values = [None, None];
+
+        buf.clear();
+        write_genotype_values(&mut buf, &values)?;
+
+        let expected = [
+            0x11, // Some(Type::Int8(1))
+            0x00, // None
+            0x00, // None
         ];
 
         assert_eq!(buf, expected);
