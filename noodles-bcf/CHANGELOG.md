@@ -54,6 +54,10 @@
 
     This previously did not allow position 2^31.
 
+  * bcf/record/codec/encoder/site/quality_score: Validate quality score.
+
+    This now rejects special float values.
+
   * bcf/record/samples/series: Resolve missing number, character, and string
     arrays as `None`.
 
