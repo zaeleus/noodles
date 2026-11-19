@@ -52,6 +52,9 @@
   * bcf/record/codec/encoder/samples/values: Support parsing phasing for first
     allele.
 
+  * bcf/record/codec/encoder/samples/values: Include phasing for missing
+    alleles.
+
   * bcf/record/codec/encoder/site/info/field/value: Reject literal missing
     value in float array values.
 

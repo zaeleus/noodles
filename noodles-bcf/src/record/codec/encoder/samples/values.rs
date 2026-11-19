@@ -708,14 +708,9 @@ fn encode_genotype_str(src: &str) -> io::Result<Vec<i32>> {
 }
 
 fn encode_genotype(genotype: &dyn Genotype) -> io::Result<Vec<i32>> {
-    fn encode(position: Option<usize>, phasing: Phasing) -> io::Result<i32> {
-        let Some(i) = position else { return Ok(0) };
-        encode_allele_position(i, phasing == Phasing::Phased)
-    }
-
     let values: Vec<_> = genotype
         .iter()
-        .map(|result| result.and_then(|(position, phasing)| encode(position, phasing)))
+        .map(|result| result.and_then(|(position, phasing)| encode_allele(position, phasing)))
         .collect::<io::Result<_>>()?;
 
     if values.is_empty() {
@@ -728,15 +723,20 @@ fn encode_genotype(genotype: &dyn Genotype) -> io::Result<Vec<i32>> {
     }
 }
 
-fn encode_allele_position(position: usize, is_phased: bool) -> io::Result<i32> {
-    // n = (i + 1) << 1
-    let mut n = i32::try_from(position)
-        .ok()
-        .and_then(|i| i.checked_add(1))
-        .and_then(|i| i.checked_mul(2))
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "allele position overflow"))?;
+fn encode_allele(position: Option<usize>, phasing: Phasing) -> io::Result<i32> {
+    let mut n = match position {
+        // n = (i + 1) << 1
+        Some(i) => i32::try_from(i)
+            .ok()
+            .and_then(|j| j.checked_add(1))
+            .and_then(|j| j.checked_mul(2))
+            .ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidInput, "allele position overflow")
+            })?,
+        None => 0,
+    };
 
-    if is_phased {
+    if phasing == Phasing::Phased {
         n |= 0x01;
     }
 
@@ -1560,6 +1560,8 @@ mod tests {
         assert_eq!(encode_genotype_str("0/1|2")?, [0x02, 0x04, 0x07]);
         assert_eq!(encode_genotype_str("|0/1")?, [0x03, 0x04]);
         assert_eq!(encode_genotype_str("/0|1")?, [0x02, 0x05]);
+        assert_eq!(encode_genotype_str(".|.")?, [0x01, 0x01]);
+        assert_eq!(encode_genotype_str("0|.")?, [0x03, 0x01]);
 
         Ok(())
     }
@@ -1623,6 +1625,14 @@ mod tests {
         .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x02, 0x04, 0x07]);
 
+        let genotype = &[
+            Allele::new(None, Phasing::Phased),
+            Allele::new(None, Phasing::Phased),
+        ]
+        .into_iter()
+        .collect();
+        assert_eq!(encode_genotype(&genotype)?, [0x01, 0x01]);
+
         let genotype = &GenotypeBuf::default();
         assert!(matches!(
             encode_genotype(&genotype),
@@ -1633,19 +1643,21 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_allele_position() -> io::Result<()> {
-        assert_eq!(encode_allele_position(0, false)?, 0x02);
-        assert_eq!(encode_allele_position(0, true)?, 0x03);
+    fn test_encode_allele() -> io::Result<()> {
+        assert_eq!(encode_allele(None, Phasing::Unphased)?, 0x00);
+        assert_eq!(encode_allele(None, Phasing::Phased)?, 0x01);
+        assert_eq!(encode_allele(Some(0), Phasing::Unphased)?, 0x02);
+        assert_eq!(encode_allele(Some(0), Phasing::Phased)?, 0x03);
 
         #[cfg(not(target_pointer_width = "16"))]
         {
             const MAX: usize = ((i32::MAX >> 1) - 1) as usize;
 
-            assert_eq!(encode_allele_position(MAX, false)?, i32::MAX - 1);
-            assert_eq!(encode_allele_position(MAX, true)?, i32::MAX);
+            assert_eq!(encode_allele(Some(MAX), Phasing::Unphased)?, i32::MAX - 1);
+            assert_eq!(encode_allele(Some(MAX), Phasing::Phased)?, i32::MAX);
 
             assert!(matches!(
-                encode_allele_position(MAX + 1, false),
+                encode_allele(Some(MAX + 1), Phasing::Unphased),
                 Err(e) if e.kind() == io::ErrorKind::InvalidInput
             ));
         }
