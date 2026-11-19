@@ -44,6 +44,9 @@
 
   * bcf/record/codec/encoder/samples/values: Handle missing sample genotype.
 
+  * bcf/record/codec/encoder/samples/values: Check overflow when encoding
+    allele position.
+
   * bcf/record/codec/encoder/site/info/field/value: Reject literal missing
     value in float array values.
 

@@ -709,19 +709,11 @@ fn encode_genotype_str(genotype: &str) -> io::Result<Vec<i32>> {
             return Ok(0);
         }
 
-        let j: usize = s
+        let i: usize = s
             .parse()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-        let is_phased = phasing == "|";
-
-        let mut i = (j + 1) << 1;
-
-        if is_phased {
-            i |= 0x01;
-        }
-
-        i32::try_from(i).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        encode_allele_position(i, phasing == "|")
     }
 
     let mut values = Vec::new();
@@ -744,20 +736,28 @@ fn encode_genotype_str(genotype: &str) -> io::Result<Vec<i32>> {
 fn encode_genotype(genotype: &dyn Genotype) -> io::Result<Vec<i32>> {
     fn encode(position: Option<usize>, phasing: Phasing) -> io::Result<i32> {
         let Some(i) = position else { return Ok(0) };
-
-        let mut n = (i + 1) << 1;
-
-        if phasing == Phasing::Phased {
-            n |= 0x01;
-        }
-
-        i32::try_from(n).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))
+        encode_allele_position(i, phasing == Phasing::Phased)
     }
 
     genotype
         .iter()
         .map(|result| result.and_then(|(position, phasing)| encode(position, phasing)))
         .collect()
+}
+
+fn encode_allele_position(position: usize, is_phased: bool) -> io::Result<i32> {
+    // n = (i + 1) << 1
+    let mut n = i32::try_from(position)
+        .ok()
+        .and_then(|i| i.checked_add(1))
+        .and_then(|i| i.checked_mul(2))
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "allele position overflow"))?;
+
+    if is_phased {
+        n |= 0x01;
+    }
+
+    Ok(n)
 }
 
 fn write_int8_genotype_values<W>(
@@ -1637,6 +1637,27 @@ mod tests {
         .into_iter()
         .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x02, 0x04, 0x07]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_encode_allele_position() -> io::Result<()> {
+        assert_eq!(encode_allele_position(0, false)?, 0x02);
+        assert_eq!(encode_allele_position(0, true)?, 0x03);
+
+        #[cfg(not(target_pointer_width = "16"))]
+        {
+            const MAX: usize = ((i32::MAX >> 1) - 1) as usize;
+
+            assert_eq!(encode_allele_position(MAX, false)?, i32::MAX - 1);
+            assert_eq!(encode_allele_position(MAX, true)?, i32::MAX);
+
+            assert!(matches!(
+                encode_allele_position(MAX + 1, false),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }
