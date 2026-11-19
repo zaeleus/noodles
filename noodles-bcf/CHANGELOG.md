@@ -49,6 +49,9 @@
 
   * bcf/record/codec/encoder/samples/values: Reject genotypes with no alleles.
 
+  * bcf/record/codec/encoder/samples/values: Support parsing phasing for first
+    allele.
+
   * bcf/record/codec/encoder/site/info/field/value: Reject literal missing
     value in float array values.
 

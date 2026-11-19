@@ -697,40 +697,14 @@ where
     }
 }
 
-fn encode_genotype_str(genotype: &str) -> io::Result<Vec<i32>> {
-    const MISSING_ALLELE: &str = ".";
+fn encode_genotype_str(src: &str) -> io::Result<Vec<i32>> {
+    use noodles_vcf::variant::record_buf::samples::sample::value::Genotype as GenotypeBuf;
 
-    fn is_phasing(c: char) -> bool {
-        matches!(c, '|' | '/')
-    }
+    let genotype: GenotypeBuf = src
+        .parse()
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
 
-    fn encode(s: &str, phasing: &str) -> io::Result<i32> {
-        if s == MISSING_ALLELE {
-            return Ok(0);
-        }
-
-        let i: usize = s
-            .parse()
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-
-        encode_allele_position(i, phasing == "|")
-    }
-
-    let mut values = Vec::new();
-    let mut start = 0;
-    let mut last_phasing = "/";
-
-    for (end, phasing) in genotype.match_indices(is_phasing) {
-        let i = encode(&genotype[start..end], last_phasing)?;
-        values.push(i);
-        start = end + 1;
-        last_phasing = phasing;
-    }
-
-    let i = encode(&genotype[start..], last_phasing)?;
-    values.push(i);
-
-    Ok(values)
+    encode_genotype(&&genotype)
 }
 
 fn encode_genotype(genotype: &dyn Genotype) -> io::Result<Vec<i32>> {
@@ -1490,8 +1464,8 @@ mod tests {
 
         let expected = [
             0x22, // Some(Type::Int16(2))
-            0x02, 0x00, 0x01, 0x01, // "0|127"
-            0x00, 0x01, 0x01, 0x80, // "127"
+            0x03, 0x00, 0x01, 0x01, // "0|127"
+            0x01, 0x01, 0x01, 0x80, // "127"
         ];
 
         assert_eq!(buf, expected);
@@ -1506,8 +1480,8 @@ mod tests {
 
         let expected = [
             0x23, // Some(Type::Int32(2))
-            0x02, 0x00, 0x00, 0x00, 0x03, 0x80, 0x00, 0x00, // "0|16384"
-            0x02, 0x80, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // "16384"
+            0x03, 0x00, 0x00, 0x00, 0x03, 0x80, 0x00, 0x00, // "0|16384"
+            0x03, 0x80, 0x00, 0x00, 0x01, 0x00, 0x00, 0x80, // "16384"
         ];
 
         assert_eq!(buf, expected);
@@ -1531,7 +1505,7 @@ mod tests {
 
         let expected = [
             0x31, // Some(Type::Int8(3))
-            0x02, 0x81, 0x81, // "0"
+            0x03, 0x81, 0x81, // "0"
             0x02, 0x04, 0x81, // "0/1"
             0x02, 0x04, 0x06, // "0/1/2"
         ];
@@ -1578,12 +1552,14 @@ mod tests {
     #[test]
     fn test_encode_genotype_str() -> io::Result<()> {
         assert_eq!(encode_genotype_str("0/1")?, [0x02, 0x04]);
-        assert_eq!(encode_genotype_str("0|1")?, [0x02, 0x05]);
+        assert_eq!(encode_genotype_str("0|1")?, [0x03, 0x05]);
         assert_eq!(encode_genotype_str("./.")?, [0x00, 0x00]);
-        assert_eq!(encode_genotype_str("0")?, [0x02]);
-        assert_eq!(encode_genotype_str("1")?, [0x04]);
+        assert_eq!(encode_genotype_str("0")?, [0x03]);
+        assert_eq!(encode_genotype_str("1")?, [0x05]);
         assert_eq!(encode_genotype_str("0/1/2")?, [0x02, 0x04, 0x06]);
         assert_eq!(encode_genotype_str("0/1|2")?, [0x02, 0x04, 0x07]);
+        assert_eq!(encode_genotype_str("|0/1")?, [0x03, 0x04]);
+        assert_eq!(encode_genotype_str("/0|1")?, [0x02, 0x05]);
 
         Ok(())
     }
