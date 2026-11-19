@@ -739,10 +739,19 @@ fn encode_genotype(genotype: &dyn Genotype) -> io::Result<Vec<i32>> {
         encode_allele_position(i, phasing == Phasing::Phased)
     }
 
-    genotype
+    let values: Vec<_> = genotype
         .iter()
         .map(|result| result.and_then(|(position, phasing)| encode(position, phasing)))
-        .collect()
+        .collect::<io::Result<_>>()?;
+
+    if values.is_empty() {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "empty genotype",
+        ))
+    } else {
+        Ok(values)
+    }
 }
 
 fn encode_allele_position(position: usize, is_phased: bool) -> io::Result<i32> {
@@ -1583,7 +1592,7 @@ mod tests {
     fn test_encode_genotype() -> Result<(), Box<dyn std::error::Error>> {
         use noodles_vcf::variant::{
             record::samples::series::value::genotype::Phasing,
-            record_buf::samples::sample::value::genotype::Allele,
+            record_buf::samples::sample::value::{Genotype as GenotypeBuf, genotype::Allele},
         };
 
         let genotype = &[
@@ -1637,6 +1646,12 @@ mod tests {
         .into_iter()
         .collect();
         assert_eq!(encode_genotype(&genotype)?, [0x02, 0x04, 0x07]);
+
+        let genotype = &GenotypeBuf::default();
+        assert!(matches!(
+            encode_genotype(&genotype),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
