@@ -90,6 +90,13 @@ fn write_character_value<W>(writer: &mut W, c: char) -> io::Result<()>
 where
     W: Write,
 {
+    if c == '\0' {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid info field character value: {c:?}"),
+        ));
+    }
+
     let s = c.to_string();
     value::write_value(writer, Some(Value::String(Some(&s))))
 }
@@ -418,12 +425,19 @@ mod tests {
     #[test]
     fn test_write_value_with_character_value() -> io::Result<()> {
         let mut buf = Vec::new();
+
+        buf.clear();
         let value = ValueBuf::Character('n');
         write_value(&mut buf, Some((&value).into()))?;
-
         let expected = [0x17, 0x6e];
-
         assert_eq!(buf, expected);
+
+        buf.clear();
+        let value = ValueBuf::Character('\0');
+        assert!(matches!(
+            write_value(&mut buf, Some((&value).into())),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
