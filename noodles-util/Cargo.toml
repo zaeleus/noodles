@@ -12,6 +12,8 @@ categories = ["science::bioinformatics"]
 
 [features]
 alignment = [
+  "dep:bstr",
+  "dep:flate2",
   "dep:noodles-bam",
   "dep:noodles-bgzf",
   "dep:noodles-core",
@@ -31,6 +33,7 @@ async = [
   "noodles-vcf?/async",
 ]
 variant = [
+  "dep:flate2",
   "dep:noodles-bcf",
   "dep:noodles-bgzf",
   "dep:noodles-core",
@@ -39,8 +42,6 @@ variant = [
 ]
 
 [dependencies]
-bstr.workspace = true
-flate2 = { workspace = true }
 noodles-bam = { path = "../noodles-bam", version = "0.99.0", optional = true }
 noodles-bcf = { path = "../noodles-bcf", version = "0.95.0", optional = true }
 noodles-bgzf = { path = "../noodles-bgzf", version = "0.53.0", optional = true }
@@ -51,6 +52,8 @@ noodles-fasta = { path = "../noodles-fasta", version = "0.69.0", optional = true
 noodles-sam = { path = "../noodles-sam", version = "0.94.0", optional = true }
 noodles-vcf = { path = "../noodles-vcf", version = "0.97.0", optional = true }
 
+bstr = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
 futures = { workspace = true, optional = true, features = ["std"] }
 tokio = { workspace = true, optional = true, features = ["fs", "io-util"] }
 
