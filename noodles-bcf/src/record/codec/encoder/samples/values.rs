@@ -568,14 +568,34 @@ fn write_string_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::R
 where
     W: Write,
 {
-    let max_len = values
-        .iter()
-        .flat_map(|value| match value {
-            Some(Value::String(s)) => Some(s.len()),
-            _ => None,
-        })
-        .max()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing String values"))?;
+    let mut max_len: Option<usize> = None;
+
+    for value in values {
+        match value {
+            Some(Value::String(s)) => {
+                if s.is_empty() {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "samples field string cannot be empty",
+                    ));
+                }
+
+                max_len = Some(max_len.unwrap_or_default().max(s.len()));
+            }
+            Some(v) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected String, got {v:?}"),
+                ));
+            }
+            None => {
+                max_len = Some(max_len.unwrap_or_default().max(1));
+            }
+        }
+    }
+
+    let max_len = max_len
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing string values"))?;
 
     let mut buf = Vec::with_capacity(values.len() * max_len);
 
@@ -1425,6 +1445,24 @@ mod tests {
         ];
 
         assert_eq!(buf, expected);
+
+        buf.clear();
+        let values = [None, None];
+        let expected = [
+            0x17, // Some(Type::String(1))
+            b'.', // None
+            b'.', // None
+        ];
+        write_values(&mut buf, &format, &values)?;
+        assert_eq!(buf, expected);
+
+        buf.clear();
+        let value_0 = ValueBuf::from("");
+        let values = [Some((&value_0).into()), None];
+        assert!(matches!(
+            write_values(&mut buf, &format, &values),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
