@@ -499,7 +499,16 @@ where
 
     for value in values {
         match value {
-            Some(Value::Character(c)) => raw_strings.push(Some(String::from(*c))),
+            Some(Value::Character(c)) => {
+                if matches!(*c, MISSING | '\0') {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!("invalid samples field character value: {c:?}"),
+                    ));
+                }
+
+                raw_strings.push(Some(String::from(*c)));
+            }
             Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
@@ -1378,6 +1387,15 @@ mod tests {
         ];
 
         assert_eq!(buf, expected);
+
+        for c in ['.', '\0'] {
+            buf.clear();
+            let values = [Some(Value::Character(c))];
+            assert!(matches!(
+                write_values(&mut buf, &format, &values),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }
