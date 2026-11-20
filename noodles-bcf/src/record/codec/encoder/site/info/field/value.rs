@@ -330,6 +330,13 @@ fn write_string_array_value<W>(
 where
     W: Write,
 {
+    if values.len() == 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "info field string array cannot be empty",
+        ));
+    }
+
     let mut s = String::new();
 
     for (i, result) in values.iter().enumerate() {
@@ -337,10 +344,18 @@ where
             s.push(DELIMITER);
         }
 
-        if let Some(t) = result? {
-            s.push_str(&t);
-        } else {
-            s.push(MISSING_VALUE);
+        match result? {
+            Some(t) => {
+                if t.is_empty() || t == "." || t.contains([DELIMITER, '\0']) {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!("invalid info field string array value: {t:?}"),
+                    ));
+                }
+
+                s.push_str(&t);
+            }
+            None => s.push(MISSING_VALUE),
         }
     }
 
@@ -701,6 +716,22 @@ mod tests {
 
         let value = ValueBuf::from(vec![Some(String::from("nd")), None]);
         t(&mut buf, Some(value), &[0x47, 0x6e, 0x64, 0x2c, 0x2e])?;
+
+        buf.clear();
+        let value = ValueBuf::from(Vec::<Option<String>>::new());
+        assert!(matches!(
+            write_value(&mut buf, Some((&value).into())),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        for s in ["", ".", "n,d", "n\0d"] {
+            buf.clear();
+            let value = ValueBuf::from(vec![Some(String::from(s))]);
+            assert!(matches!(
+                write_value(&mut buf, Some((&value).into())),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }
