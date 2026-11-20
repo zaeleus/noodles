@@ -201,7 +201,9 @@ where
                     format!("type mismatch: expected Array(Array::Integer), got {v:?}"),
                 ));
             }
-            None => {}
+            None => {
+                max_len = Some(max_len.unwrap_or_default().max(1));
+            }
         }
     }
 
@@ -1223,6 +1225,14 @@ mod tests {
             0xfe, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x80, // Some([Some(2147483646), None])
             0xff, 0xff, 0xff, 0x7f, 0x01, 0x00, 0x00, 0x80, // Some([Some(2147483647)])
             0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // None
+        ];
+        t(&mut buf, &format, &values, &expected)?;
+
+        let values = [None, None];
+        let expected = [
+            0x11, // Some(Type::Int8(1))
+            0x80, // None
+            0x80, // None
         ];
         t(&mut buf, &format, &values, &expected)?;
 

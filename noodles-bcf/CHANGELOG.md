@@ -55,6 +55,9 @@
   * bcf/record/codec/encoder/samples/values: Include phasing for missing
     alleles.
 
+  * bcf/record/codec/encoder/samples/values: Support integer arrays with all
+    missing values.
+
   * bcf/record/codec/encoder/site/info/field/value: Reject literal missing
     value in float array values.
 
