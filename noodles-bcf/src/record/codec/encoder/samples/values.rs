@@ -586,10 +586,10 @@ where
     for value in values {
         match value {
             Some(Value::String(s)) => {
-                if s.is_empty() {
+                if s.is_empty() || s == "." || s.contains('\0') {
                     return Err(io::Error::new(
                         io::ErrorKind::InvalidInput,
-                        "samples field string cannot be empty",
+                        format!("invalid samples field string value: {s:?}"),
                     ));
                 }
 
@@ -1504,13 +1504,15 @@ mod tests {
         write_values(&mut buf, &format, &values)?;
         assert_eq!(buf, expected);
 
-        buf.clear();
-        let value_0 = ValueBuf::from("");
-        let values = [Some((&value_0).into()), None];
-        assert!(matches!(
-            write_values(&mut buf, &format, &values),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
+        for s in ["", ".", "n\0d"] {
+            buf.clear();
+            let value_0 = ValueBuf::from(s);
+            let values = [Some((&value_0).into()), None];
+            assert!(matches!(
+                write_values(&mut buf, &format, &values),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }
