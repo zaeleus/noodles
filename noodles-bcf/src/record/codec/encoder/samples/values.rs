@@ -418,15 +418,26 @@ where
     let mut max_len: Option<usize> = None;
 
     for value in values {
-        if let Some(Value::Array(Array::Float(vs))) = value {
-            if vs.len() == 0 {
+        match value {
+            Some(Value::Array(Array::Float(vs))) => {
+                if vs.len() == 0 {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "samples field float array cannot be empty",
+                    ));
+                }
+
+                max_len = Some(max_len.unwrap_or_default().max(vs.len()));
+            }
+            Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    "samples field float array cannot be empty",
+                    format!("type mismatch: expected Array(Array::Float), got {v:?}"),
                 ));
             }
-
-            max_len = Some(max_len.unwrap_or_default().max(vs.len()));
+            None => {
+                max_len = Some(max_len.unwrap_or_default().max(1));
+            }
         }
     }
 
@@ -1302,6 +1313,16 @@ mod tests {
             0x01, 0x00, 0x80, 0x7f, 0x02, 0x00, 0x80, 0x7f, // None
         ];
 
+        assert_eq!(buf, expected);
+
+        buf.clear();
+        let values = [None, None];
+        let expected = [
+            0x15, // Some(Type::Float(1))
+            0x01, 0x00, 0x80, 0x7f, // None
+            0x01, 0x00, 0x80, 0x7f, // None
+        ];
+        write_values(&mut buf, &format, &values)?;
         assert_eq!(buf, expected);
 
         buf.clear();
