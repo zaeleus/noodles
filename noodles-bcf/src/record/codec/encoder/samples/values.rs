@@ -1,5 +1,4 @@
 use std::{
-    borrow::Cow,
     cmp,
     io::{self, Write},
 };
@@ -500,26 +499,19 @@ where
 
     for value in values {
         match value {
-            Some(Value::Character(c)) => {
-                let s = String::from(*c);
-                raw_strings.push(Some(s));
-            }
-            None => raw_strings.push(None),
-            v => {
+            Some(Value::Character(c)) => raw_strings.push(Some(String::from(*c))),
+            Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
                     format!("type mismatch: expected Character, got {v:?}"),
                 ));
             }
+            None => raw_strings.push(None),
         }
     }
 
-    let string_values: Vec<_> = raw_strings
-        .iter()
-        .map(|s| s.as_ref().map(|t| Value::String(Cow::from(t))))
-        .collect();
-
-    write_string_values(writer, &string_values)
+    let string_values: Vec<_> = raw_strings.iter().map(|s| s.as_deref()).collect();
+    write_raw_string_values(writer, &string_values)
 }
 
 fn write_character_array_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
@@ -563,19 +555,15 @@ where
         }
     }
 
-    let string_values: Vec<_> = raw_strings
-        .iter()
-        .map(|s| s.as_ref().map(|t| Value::String(Cow::from(t))))
-        .collect();
-
-    write_string_values(writer, &string_values)
+    let string_values: Vec<_> = raw_strings.iter().map(|s| s.as_deref()).collect();
+    write_raw_string_values(writer, &string_values)
 }
 
 fn write_string_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
 where
     W: Write,
 {
-    let mut max_len: Option<usize> = None;
+    let mut raw_strings = Vec::with_capacity(values.len());
 
     for value in values {
         match value {
@@ -587,7 +575,7 @@ where
                     ));
                 }
 
-                max_len = Some(max_len.unwrap_or_default().max(s.len()));
+                raw_strings.push(Some(s.as_ref()));
             }
             Some(v) => {
                 return Err(io::Error::new(
@@ -595,46 +583,11 @@ where
                     format!("type mismatch: expected String, got {v:?}"),
                 ));
             }
-            None => {
-                max_len = Some(max_len.unwrap_or_default().max(1));
-            }
+            None => raw_strings.push(None),
         }
     }
 
-    let max_len = max_len
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing string values"))?;
-
-    let mut buf = Vec::with_capacity(values.len() * max_len);
-
-    for value in values {
-        match value {
-            Some(Value::String(s)) => {
-                buf.extend(s.bytes());
-
-                if s.len() < max_len {
-                    buf.resize(buf.len() + (max_len - s.len()), NUL);
-                }
-            }
-            None => {
-                buf.push(b'.');
-
-                if 1 < max_len {
-                    buf.resize(buf.len() + (max_len - 1), NUL);
-                }
-            }
-            v => {
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected String, got {v:?}"),
-                ));
-            }
-        }
-    }
-
-    write_type(writer, Some(Type::String(max_len)))?;
-    writer.write_all(&buf)?;
-
-    Ok(())
+    write_raw_string_values(writer, &raw_strings)
 }
 
 fn write_string_array_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) -> io::Result<()>
@@ -687,12 +640,48 @@ where
         }
     }
 
-    let string_values: Vec<_> = raw_strings
-        .iter()
-        .map(|s| s.as_ref().map(|t| Value::String(Cow::from(t))))
-        .collect();
+    let string_values: Vec<_> = raw_strings.iter().map(|s| s.as_deref()).collect();
+    write_raw_string_values(writer, &string_values)
+}
 
-    write_string_values(writer, &string_values)
+fn write_raw_string_values<W>(writer: &mut W, values: &[Option<&str>]) -> io::Result<()>
+where
+    W: Write,
+{
+    let max_len = values
+        .iter()
+        .map(|value| match value {
+            Some(s) => s.len(),
+            None => 1,
+        })
+        .max()
+        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "missing string values"))?;
+
+    let mut buf = Vec::with_capacity(values.len() * max_len);
+
+    for value in values {
+        match value {
+            Some(s) => {
+                buf.extend(s.bytes());
+
+                if s.len() < max_len {
+                    buf.resize(buf.len() + (max_len - s.len()), NUL);
+                }
+            }
+            None => {
+                buf.push(b'.');
+
+                if 1 < max_len {
+                    buf.resize(buf.len() + (max_len - 1), NUL);
+                }
+            }
+        }
+    }
+
+    write_type(writer, Some(Type::String(max_len)))?;
+    writer.write_all(&buf)?;
+
+    Ok(())
 }
 
 pub(super) fn write_genotype_values<W>(
