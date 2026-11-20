@@ -63,7 +63,7 @@ where
     Ok(())
 }
 
-pub(crate) fn write_rlen<W>(writer: &mut W, span: usize) -> io::Result<()>
+fn write_rlen<W>(writer: &mut W, span: usize) -> io::Result<()>
 where
     W: Write,
 {
@@ -81,7 +81,7 @@ where
     write_u16_le(writer, n)
 }
 
-pub(crate) fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>
+fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>
 where
     W: Write,
 {
@@ -99,11 +99,7 @@ where
     Ok(())
 }
 
-pub(crate) fn write_n_fmt_sample<W>(
-    writer: &mut W,
-    sample_count: usize,
-    format_count: usize,
-) -> io::Result<()>
+fn write_n_fmt_sample<W>(writer: &mut W, sample_count: usize, format_count: usize) -> io::Result<()>
 where
     W: Write,
 {
