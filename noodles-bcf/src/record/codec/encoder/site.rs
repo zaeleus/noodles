@@ -46,10 +46,10 @@ where
     write_quality_score(writer, quality_score)?;
 
     write_info_field_count(writer, record.info().as_ref().len())?;
-    write_n_allele(writer, record.alternate_bases().len())?;
+    write_allele_count(writer, record.alternate_bases().len())?;
 
     let samples = record.samples()?;
-    write_n_fmt_sample(
+    write_key_and_sample_counts(
         writer,
         header.sample_names().len(),
         samples.column_names(header).count(),
@@ -81,7 +81,7 @@ where
     write_u16_le(writer, n)
 }
 
-fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>
+fn write_allele_count<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>
 where
     W: Write,
 {
@@ -99,7 +99,11 @@ where
     Ok(())
 }
 
-fn write_n_fmt_sample<W>(writer: &mut W, sample_count: usize, format_count: usize) -> io::Result<()>
+fn write_key_and_sample_counts<W>(
+    writer: &mut W,
+    sample_count: usize,
+    format_count: usize,
+) -> io::Result<()>
 where
     W: Write,
 {
@@ -135,10 +139,10 @@ mod tests {
     }
 
     #[test]
-    fn test_n_allele() -> io::Result<()> {
+    fn test_write_allele_count() -> io::Result<()> {
         fn t(buf: &mut Vec<u8>, alternate_base_count: usize, expected: &[u8]) -> io::Result<()> {
             buf.clear();
-            write_n_allele(buf, alternate_base_count)?;
+            write_allele_count(buf, alternate_base_count)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -151,13 +155,13 @@ mod tests {
 
         buf.clear();
         assert!(matches!(
-            write_n_allele(&mut buf, usize::from(u16::MAX)),
+            write_allele_count(&mut buf, usize::from(u16::MAX)),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
         buf.clear();
         assert!(matches!(
-            write_n_allele(&mut buf, usize::MAX),
+            write_allele_count(&mut buf, usize::MAX),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
@@ -165,7 +169,7 @@ mod tests {
     }
 
     #[test]
-    fn test_n_fmt_sample() -> io::Result<()> {
+    fn test_write_key_and_sample_counts() -> io::Result<()> {
         fn t(
             buf: &mut Vec<u8>,
             sample_count: usize,
@@ -173,7 +177,7 @@ mod tests {
             expected: &[u8],
         ) -> io::Result<()> {
             buf.clear();
-            write_n_fmt_sample(buf, sample_count, format_count)?;
+            write_key_and_sample_counts(buf, sample_count, format_count)?;
             assert_eq!(buf, expected);
             Ok(())
         }
@@ -188,13 +192,13 @@ mod tests {
 
         buf.clear();
         assert!(matches!(
-            write_n_fmt_sample(&mut buf, 1 << 24, 0),
+            write_key_and_sample_counts(&mut buf, 1 << 24, 0),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
         buf.clear();
         assert!(matches!(
-            write_n_fmt_sample(&mut buf, 0, 1 << 8),
+            write_key_and_sample_counts(&mut buf, 0, 1 << 8),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
