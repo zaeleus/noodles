@@ -63,7 +63,7 @@
     value in float array values.
 
   * bcf/record/codec/encoder/site/info/field/value: Validate float array
-    length, character value, and character array value.
+    length, character value, character array value, and string value.
 
   * bcf/record/codec/encoder/site/info/field/value: Handle missing value.
 

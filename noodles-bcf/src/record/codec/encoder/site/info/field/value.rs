@@ -105,6 +105,13 @@ fn write_string_value<W>(writer: &mut W, s: &str) -> io::Result<()>
 where
     W: Write,
 {
+    if s.is_empty() || s.contains('\0') {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("invalid info field string value: {s:?}"),
+        ));
+    }
+
     value::write_value(writer, Some(Value::String(Some(s))))
 }
 
@@ -463,12 +470,21 @@ mod tests {
     #[test]
     fn test_write_value_with_string_value() -> io::Result<()> {
         let mut buf = Vec::new();
+
+        buf.clear();
         let value = ValueBuf::String(String::from("ndls"));
         write_value(&mut buf, Some((&value).into()))?;
-
         let expected = [0x47, 0x6e, 0x64, 0x6c, 0x73];
-
         assert_eq!(buf, expected);
+
+        for s in ["", "n\0d"] {
+            buf.clear();
+            let value = ValueBuf::String(String::from(s));
+            assert!(matches!(
+                write_value(&mut buf, Some((&value).into())),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }
