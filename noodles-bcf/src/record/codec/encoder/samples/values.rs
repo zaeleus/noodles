@@ -633,10 +633,10 @@ where
 
                     match result? {
                         Some(t) => {
-                            if t.is_empty() {
+                            if t.is_empty() || t == "." || t.contains([DELIMITER, '\0']) {
                                 return Err(io::Error::new(
                                     io::ErrorKind::InvalidInput,
-                                    "samples field string array value cannot be empty",
+                                    "invalid samples field string array value: {t:?}",
                                 ));
                             }
 
@@ -1562,13 +1562,15 @@ mod tests {
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 
-        buf.clear();
-        let value_0 = ValueBuf::from(vec![Some(String::from("nd")), Some(String::new())]);
-        let values = [Some((&value_0).into())];
-        assert!(matches!(
-            write_values(&mut buf, &format, &values),
-            Err(e) if e.kind() == io::ErrorKind::InvalidInput
-        ));
+        for s in ["", ".", "n,d", "n\0d"] {
+            buf.clear();
+            let value_0 = ValueBuf::from(vec![Some(String::from(s))]);
+            let values = [Some((&value_0).into())];
+            assert!(matches!(
+                write_values(&mut buf, &format, &values),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }

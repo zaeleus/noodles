@@ -41,7 +41,7 @@
     This previously wrote padding per allele rather than per genotype.
 
   * bcf/record/codec/encoder/samples/values: Validate array lengths, character
-    values, character array values, and string values.
+    values, character array values, string values, and string array values.
 
   * bcf/record/codec/encoder/samples/values: Handle missing sample genotype.
 
