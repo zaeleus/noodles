@@ -634,11 +634,18 @@ fn write_string_array_values<W>(writer: &mut W, values: &[Option<Value<'_>>]) ->
 where
     W: Write,
 {
-    let mut serialized_values = Vec::with_capacity(values.len());
+    let mut raw_strings = Vec::with_capacity(values.len());
 
     for value in values {
         match value {
             Some(Value::Array(Array::String(vs))) => {
+                if vs.len() == 0 {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "samples field string array cannot be empty",
+                    ));
+                }
+
                 let mut s = String::new();
 
                 for (i, result) in vs.iter().enumerate() {
@@ -647,48 +654,38 @@ where
                     }
 
                     match result? {
-                        Some(t) => s.push_str(&t),
+                        Some(t) => {
+                            if t.is_empty() {
+                                return Err(io::Error::new(
+                                    io::ErrorKind::InvalidInput,
+                                    "samples field string array value cannot be empty",
+                                ));
+                            }
+
+                            s.push_str(&t);
+                        }
                         None => s.push(MISSING),
                     }
                 }
 
-                serialized_values.push(s);
+                raw_strings.push(Some(s));
             }
-            None => serialized_values.push(String::from(MISSING)),
-            v => {
+            Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected String, got {v:?}"),
+                    format!("type mismatch: expected Array(Array::String), got {v:?}"),
                 ));
             }
+            None => raw_strings.push(None),
         }
     }
 
-    let max_len = serialized_values
+    let string_values: Vec<_> = raw_strings
         .iter()
-        .map(|s| s.len())
-        .max()
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "missing serialized string array values",
-            )
-        })?;
+        .map(|s| s.as_ref().map(|t| Value::String(Cow::from(t))))
+        .collect();
 
-    let mut buf = Vec::with_capacity(serialized_values.len() * max_len);
-
-    for s in serialized_values {
-        buf.extend(s.bytes());
-
-        if s.len() < max_len {
-            buf.resize(buf.len() + (max_len - s.len()), NUL);
-        }
-    }
-
-    write_type(writer, Some(Type::String(max_len)))?;
-    writer.write_all(&buf)?;
-
-    Ok(())
+    write_string_values(writer, &string_values)
 }
 
 pub(super) fn write_genotype_values<W>(
@@ -1493,6 +1490,32 @@ mod tests {
         ];
 
         assert_eq!(buf, expected);
+
+        buf.clear();
+        let values = [None, None];
+        write_values(&mut buf, &format, &values)?;
+        let expected = [
+            0x17, // Some(Type::String(1))
+            b'.', // None
+            b'.', // None
+        ];
+        assert_eq!(buf, expected);
+
+        buf.clear();
+        let value_0 = ValueBuf::from(Vec::<Option<String>>::new());
+        let values = [Some((&value_0).into())];
+        assert!(matches!(
+            write_values(&mut buf, &format, &values),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        buf.clear();
+        let value_0 = ValueBuf::from(vec![Some(String::from("nd")), Some(String::new())]);
+        let values = [Some((&value_0).into())];
+        assert!(matches!(
+            write_values(&mut buf, &format, &values),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
