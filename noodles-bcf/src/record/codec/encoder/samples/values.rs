@@ -547,7 +547,16 @@ where
                     }
 
                     match result? {
-                        Some(c) => s.push(c),
+                        Some(c) => {
+                            if matches!(c, MISSING | DELIMITER | '\0') {
+                                return Err(io::Error::new(
+                                    io::ErrorKind::InvalidInput,
+                                    format!("invalid samples field character array value: {c:?}"),
+                                ));
+                            }
+
+                            s.push(c);
+                        }
                         None => s.push(MISSING),
                     }
                 }
@@ -1444,6 +1453,16 @@ mod tests {
             write_values(&mut buf, &format, &values),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
+
+        for c in ['.', ',', '\0'] {
+            buf.clear();
+            let value_0 = ValueBuf::from(vec![Some(c)]);
+            let values = [Some((&value_0).into())];
+            assert!(matches!(
+                write_values(&mut buf, &format, &values),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }
