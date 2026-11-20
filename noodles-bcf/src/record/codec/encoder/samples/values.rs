@@ -531,6 +531,13 @@ where
     for value in values {
         match value {
             Some(Value::Array(Array::Character(cs))) => {
+                if cs.len() == 0 {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        "samples field character array cannot be empty",
+                    ));
+                }
+
                 let mut s = String::new();
 
                 for (i, result) in cs.iter().enumerate() {
@@ -546,13 +553,13 @@ where
 
                 raw_strings.push(Some(s));
             }
-            None => raw_strings.push(None),
-            v => {
+            Some(v) => {
                 return Err(io::Error::new(
                     io::ErrorKind::InvalidInput,
-                    format!("type mismatch: expected Character, got {v:?}"),
+                    format!("type mismatch: expected Array(Array::Character), got {v:?}"),
                 ));
             }
+            None => raw_strings.push(None),
         }
     }
 
@@ -1412,6 +1419,24 @@ mod tests {
         ];
 
         assert_eq!(buf, expected);
+
+        buf.clear();
+        let values = [None, None];
+        write_values(&mut buf, &format, &values)?;
+        let expected = [
+            0x17, // Some(Type::String(1))
+            b'.', // None
+            b'.', // None
+        ];
+        assert_eq!(buf, expected);
+
+        buf.clear();
+        let value_0 = ValueBuf::from(Vec::<Option<char>>::new());
+        let values = [Some((&value_0).into())];
+        assert!(matches!(
+            write_values(&mut buf, &format, &values),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
 
         Ok(())
     }
