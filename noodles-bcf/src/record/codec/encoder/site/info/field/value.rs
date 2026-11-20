@@ -284,6 +284,13 @@ fn write_character_array_value<W>(
 where
     W: Write,
 {
+    if values.len() == 0 {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "info field character array cannot be empty",
+        ));
+    }
+
     let mut s = String::new();
 
     for (i, result) in values.iter().enumerate() {
@@ -291,8 +298,19 @@ where
             s.push(DELIMITER);
         }
 
-        let c = result?.unwrap_or(MISSING_VALUE);
-        s.push(c);
+        match result? {
+            Some(c) => {
+                if matches!(c, MISSING_VALUE | DELIMITER | '\0') {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!("invalid info field character array value: {c:?}"),
+                    ));
+                }
+
+                s.push(c);
+            }
+            None => s.push(MISSING_VALUE),
+        }
     }
 
     value::write_value(writer, Some(Value::String(Some(&s))))
@@ -631,6 +649,22 @@ mod tests {
             Some(value),
             &[0x77, 0x6e, 0x2c, 0x64, 0x2c, 0x6c, 0x2c, 0x2e],
         )?;
+
+        buf.clear();
+        let value = ValueBuf::from(Vec::<Option<char>>::new());
+        assert!(matches!(
+            write_value(&mut buf, Some((&value).into())),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        for c in ['.', ',', '\0'] {
+            buf.clear();
+            let value = ValueBuf::from(vec![Some(c)]);
+            assert!(matches!(
+                write_value(&mut buf, Some((&value).into())),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }
