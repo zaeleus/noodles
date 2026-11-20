@@ -45,10 +45,7 @@ where
     let quality_score = record.quality_score().transpose()?;
     write_quality_score(writer, quality_score)?;
 
-    let n_info = u16::try_from(record.info().as_ref().len())
-        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
-    write_u16_le(writer, n_info)?;
-
+    write_info_field_count(writer, record.info().as_ref().len())?;
     write_n_allele(writer, record.alternate_bases().len())?;
 
     let samples = record.samples()?;
@@ -72,6 +69,16 @@ where
 {
     let rlen = i32::try_from(span).map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
     write_i32_le(writer, rlen)
+}
+
+fn write_info_field_count<W>(writer: &mut W, info_field_count: usize) -> io::Result<()>
+where
+    W: Write,
+{
+    let n = u16::try_from(info_field_count)
+        .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e))?;
+
+    write_u16_le(writer, n)
 }
 
 pub(crate) fn write_n_allele<W>(writer: &mut W, alternate_base_count: usize) -> io::Result<()>
