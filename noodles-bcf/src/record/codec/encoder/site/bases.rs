@@ -31,6 +31,13 @@ where
     W: Write,
     R: ReferenceBases,
 {
+    if reference_bases.is_empty() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "reference bases cannot be empty",
+        ));
+    }
+
     let raw_bases: Vec<_> = reference_bases
         .iter()
         .map(|result| {
@@ -114,7 +121,6 @@ mod tests {
         let mut buf = Vec::new();
 
         t(&mut buf, "A", &AlternateBasesBuf::default(), &[0x17, b'A'])?;
-        t(&mut buf, "R", &AlternateBasesBuf::default(), &[0x17, b'A'])?;
 
         t(
             &mut buf,
@@ -129,6 +135,32 @@ mod tests {
             &AlternateBasesBuf::from(vec![String::from("G"), String::from("T")]),
             &[0x17, b'A', 0x17, b'G', 0x17, b'T'],
         )?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_write_reference_bases() -> io::Result<()> {
+        fn t(buf: &mut Vec<u8>, reference_bases: &str, expected: &[u8]) -> io::Result<()> {
+            buf.clear();
+            write_reference_bases(buf, reference_bases)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(&mut buf, "A", &[0x17, b'A'])?;
+        t(&mut buf, "R", &[0x17, b'A'])?;
+        t(&mut buf, "AC", &[0x27, b'A', b'C'])?;
+
+        for reference_bases in ["", "Z"] {
+            buf.clear();
+            assert!(matches!(
+                write_reference_bases(&mut buf, reference_bases),
+                Err(e) if e.kind() == io::ErrorKind::InvalidInput
+            ));
+        }
 
         Ok(())
     }
