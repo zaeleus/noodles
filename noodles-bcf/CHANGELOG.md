@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+  * bcf/record/codec/encoder/site/ids: Validate ID.
+
 ## 0.95.0 - 2026-11-20
 
 ### Added
