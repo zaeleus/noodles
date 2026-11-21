@@ -9,7 +9,8 @@
 
 ### Fixed
 
-  * bcf/record/codec/encoder/site/bases: Validate reference bases.
+  * bcf/record/codec/encoder/site/bases: Validate reference and alternate
+    bases.
 
   * bcf/record/codec/encoder/site/ids: Validate ID.
 

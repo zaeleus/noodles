@@ -90,22 +90,57 @@ where
     A: AlternateBases,
 {
     for result in alternate_bases.iter() {
-        let alt = result?;
-        let alt_value = Some(Value::String(Some(alt)));
-        write_value(writer, alt_value)?;
+        let bases = result?;
+
+        if !is_valid_alternate_bases(bases) {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("invalid alternate bases: {bases:?}"),
+            ));
+        }
+
+        write_value(writer, Some(Value::String(Some(bases))))?;
     }
 
     Ok(())
+}
+
+// § 1.6.1.5 "Fixed fields: ALT" (2026-02-25): "...no whitespace, commas, or angle-brackets are
+// permitted in the ID String itself".
+fn is_valid_alternate_bases(s: &str) -> bool {
+    if s.is_empty() {
+        false
+    } else if let Some(t) = strip_symbolic_allele_delimiters(s) {
+        is_valid_symbolic_allele(t)
+    } else {
+        s.chars().all(is_valid_alternate_bases_char)
+    }
+}
+
+fn is_valid_alternate_bases_char(c: char) -> bool {
+    !c.is_whitespace() && !matches!(c, ',' | '\0')
+}
+
+fn strip_symbolic_allele_delimiters(s: &str) -> Option<&str> {
+    s.strip_prefix('<').and_then(|t| t.strip_suffix('>'))
+}
+
+fn is_valid_symbolic_allele(s: &str) -> bool {
+    !s.is_empty() && s.chars().all(is_valid_symbolic_allele_char)
+}
+
+fn is_valid_symbolic_allele_char(c: char) -> bool {
+    is_valid_alternate_bases_char(c) && !matches!(c, '<' | '>')
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    use noodles_vcf::variant::record_buf::AlternateBases as AlternateBasesBuf;
+
     #[test]
     fn test_write_bases() -> Result<(), Box<dyn std::error::Error>> {
-        use noodles_vcf::variant::record_buf::AlternateBases as AlternateBasesBuf;
-
         fn t(
             buf: &mut Vec<u8>,
             reference_bases: &str,
@@ -127,13 +162,6 @@ mod tests {
             "A",
             &AlternateBasesBuf::from(vec![String::from("G")]),
             &[0x17, b'A', 0x17, b'G'],
-        )?;
-
-        t(
-            &mut buf,
-            "A",
-            &AlternateBasesBuf::from(vec![String::from("G"), String::from("T")]),
-            &[0x17, b'A', 0x17, b'G', 0x17, b'T'],
         )?;
 
         Ok(())
@@ -194,5 +222,87 @@ mod tests {
         }
 
         assert!(resolve_reference_base(b'Z').is_none());
+    }
+
+    #[test]
+    fn test_write_alternate_bases() -> io::Result<()> {
+        fn t(
+            buf: &mut Vec<u8>,
+            alternate_bases: &AlternateBasesBuf,
+            expected: &[u8],
+        ) -> io::Result<()> {
+            buf.clear();
+            write_alternate_bases(buf, alternate_bases)?;
+            assert_eq!(buf, expected);
+            Ok(())
+        }
+
+        let mut buf = Vec::new();
+
+        t(
+            &mut buf,
+            &AlternateBasesBuf::from(vec![String::from("G")]),
+            &[0x17, b'G'],
+        )?;
+
+        t(
+            &mut buf,
+            &AlternateBasesBuf::from(vec![String::from("G"), String::from("T")]),
+            &[0x17, b'G', 0x17, b'T'],
+        )?;
+
+        buf.clear();
+        assert!(matches!(
+            write_alternate_bases(&mut buf, AlternateBasesBuf::from(vec![String::new()])),
+            Err(e) if e.kind() == io::ErrorKind::InvalidInput
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_is_valid_alternate_bases() {
+        assert!(is_valid_alternate_bases("C"));
+        assert!(is_valid_alternate_bases("GT"));
+        assert!(is_valid_alternate_bases("*"));
+        assert!(is_valid_alternate_bases("."));
+        assert!(is_valid_alternate_bases("<DEL>"));
+        assert!(is_valid_alternate_bases("<*>"));
+        assert!(is_valid_alternate_bases("<NON_REF>"));
+        assert!(is_valid_alternate_bases("C[1:1["));
+        assert!(is_valid_alternate_bases("]1:0]A"));
+        assert!(is_valid_alternate_bases("C[<sq0>:1["));
+        assert!(is_valid_alternate_bases("C."));
+        assert!(is_valid_alternate_bases(".A"));
+
+        assert!(!is_valid_alternate_bases(""));
+        assert!(!is_valid_alternate_bases("C,"));
+        assert!(!is_valid_alternate_bases("G T"));
+        assert!(!is_valid_alternate_bases("<>"));
+        assert!(!is_valid_alternate_bases("<D<E>L>"));
+        assert!(!is_valid_alternate_bases("C\0"));
+    }
+
+    #[test]
+    fn test_is_valid_symbolic_allele() {
+        assert!(is_valid_symbolic_allele("DEL"));
+        assert!(is_valid_symbolic_allele("*"));
+
+        assert!(!is_valid_symbolic_allele(""));
+        assert!(!is_valid_symbolic_allele("D,L"));
+        assert!(!is_valid_symbolic_allele("D L"));
+        assert!(!is_valid_symbolic_allele("D<E>L"));
+    }
+
+    #[test]
+    fn test_is_valid_symbolic_allele_char() {
+        assert!(is_valid_symbolic_allele_char('N'));
+        assert!(is_valid_symbolic_allele_char('*'));
+
+        assert!(!is_valid_symbolic_allele_char(' '));
+        assert!(!is_valid_symbolic_allele_char(','));
+        assert!(!is_valid_symbolic_allele_char('<'));
+        assert!(!is_valid_symbolic_allele_char('>'));
+        assert!(!is_valid_symbolic_allele_char('\0'));
     }
 }
