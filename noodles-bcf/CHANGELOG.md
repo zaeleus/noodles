@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+
+  * bcf/record/codec/encoder/site/bases: Resolve IUPAC ambiguity codes for
+    reference bases.
+
 ### Fixed
 
   * bcf/record/codec/encoder/site/ids: Validate ID.
