@@ -70,7 +70,9 @@ where
 }
 
 fn is_valid(s: &str) -> bool {
-    if s.is_empty() {
+    const MISSING: &str = ".";
+
+    if s.is_empty() || s == MISSING {
         false
     } else if let Some(t) = strip_symbolic_allele_delimiters(s) {
         is_valid_symbolic_allele(t)
@@ -151,7 +153,6 @@ mod tests {
         assert!(is_valid("C"));
         assert!(is_valid("GT"));
         assert!(is_valid("*"));
-        assert!(is_valid("."));
         assert!(is_valid("<DEL>"));
         assert!(is_valid("<*>"));
         assert!(is_valid("<NON_REF>"));
@@ -162,6 +163,7 @@ mod tests {
         assert!(is_valid(".A"));
 
         assert!(!is_valid(""));
+        assert!(!is_valid("."));
         assert!(!is_valid("C,"));
         assert!(!is_valid("G T"));
         assert!(!is_valid("<>"));

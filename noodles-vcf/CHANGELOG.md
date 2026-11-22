@@ -6,6 +6,8 @@
 
   * vcf/io/reader/record_buf/alternate_bases: Parse missing value as `None`.
  
+  * vcf/io/writer/record/alternate_bases: Reject literal missing value.
+
   * vcf/record/alternate_bases: Parse missing value as `None`.
 
   * vcf/variant/record/alternate_bases: Change `AlternateBases::iter` iterator
