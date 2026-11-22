@@ -8,6 +8,7 @@ use crate::variant::record::AlternateBases as _;
 pub struct AlternateBases<'a>(&'a str);
 
 const DELIMITER: char = ',';
+const MISSING: &str = ".";
 
 impl<'a> AlternateBases<'a> {
     pub(super) fn new(src: &'a str) -> Self {
@@ -45,7 +46,15 @@ impl crate::variant::record::AlternateBases for AlternateBases<'_> {
         if self.is_empty() {
             Box::new(iter::empty())
         } else {
-            Box::new(self.0.split(DELIMITER).map(Some).map(Ok))
+            Box::new(
+                self.0
+                    .split(DELIMITER)
+                    .map(|s| match s {
+                        MISSING => None,
+                        _ => Some(s),
+                    })
+                    .map(Ok),
+            )
         }
     }
 }
@@ -78,9 +87,19 @@ mod tests {
         let expected = [Some("A")];
         assert_eq!(actual, expected);
 
+        let alternate_bases = AlternateBases::new(".");
+        let actual: Vec<_> = alternate_bases.iter().collect::<io::Result<_>>()?;
+        let expected = [None];
+        assert_eq!(actual, expected);
+
         let alternate_bases = AlternateBases::new("A,C");
         let actual: Vec<_> = alternate_bases.iter().collect::<io::Result<_>>()?;
         let expected = [Some("A"), Some("C")];
+        assert_eq!(actual, expected);
+
+        let alternate_bases = AlternateBases::new("A,.");
+        let actual: Vec<_> = alternate_bases.iter().collect::<io::Result<_>>()?;
+        let expected = [Some("A"), None];
         assert_eq!(actual, expected);
 
         Ok(())

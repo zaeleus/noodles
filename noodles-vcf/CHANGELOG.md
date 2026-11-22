@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Changed
+ 
+  * vcf/record/alternate_bases: Parse missing value as `None`.
 
   * vcf/variant/record/alternate_bases: Change `AlternateBases::iter` iterator
     item to `io::Result<Option<&str>>`.
