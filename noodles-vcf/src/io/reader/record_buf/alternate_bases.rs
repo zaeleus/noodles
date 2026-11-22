@@ -1,5 +1,6 @@
 use std::{error, fmt};
 
+use super::MISSING;
 use crate::variant::record_buf::AlternateBases;
 
 /// An error when raw VCF record alternate bases fail to parse.
@@ -31,8 +32,13 @@ pub(super) fn parse_alternate_bases(
 
     let alleles = alternate_bases.as_mut();
 
-    for allele in s.split(DELIMITER) {
-        alleles.push(Some(allele.into()));
+    for t in s.split(DELIMITER) {
+        let allele = match t {
+            MISSING => None,
+            _ => Some(t.into()),
+        };
+
+        alleles.push(allele);
     }
 
     Ok(())
@@ -54,12 +60,23 @@ mod tests {
         );
 
         alternate_bases.as_mut().clear();
+        parse_alternate_bases(".", &mut alternate_bases)?;
+        assert_eq!(alternate_bases, [None].into_iter().collect());
+
+        alternate_bases.as_mut().clear();
         parse_alternate_bases("A,C", &mut alternate_bases)?;
         assert_eq!(
             alternate_bases,
             [Some(String::from("A")), Some(String::from("C"))]
                 .into_iter()
                 .collect()
+        );
+
+        alternate_bases.as_mut().clear();
+        parse_alternate_bases("A,.", &mut alternate_bases)?;
+        assert_eq!(
+            alternate_bases,
+            [Some(String::from("A")), None].into_iter().collect()
         );
 
         alternate_bases.as_mut().clear();

@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Changed
+
+  * vcf/io/reader/record_buf/alternate_bases: Parse missing value as `None`.
  
   * vcf/record/alternate_bases: Parse missing value as `None`.
 
