@@ -4,6 +4,8 @@
 
 ### Changed
 
+  * bcf/record/alternate_bases: Parse missing value as `None`.
+
   * bcf/record/codec/encoder/site/bases: Resolve IUPAC ambiguity codes for
     reference bases.
 
