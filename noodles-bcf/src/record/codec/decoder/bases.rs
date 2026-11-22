@@ -16,7 +16,7 @@ pub(crate) fn read_ref_alt(
     let alternate_bases_count = len.get() - 1;
 
     let alternate_bases = (0..alternate_bases_count)
-        .map(|_| read_allele(src).map(|s| s.unwrap_or(MISSING).to_string()))
+        .map(|_| read_allele(src).map(|s| Some(s.unwrap_or(MISSING).to_string())))
         .collect::<io::Result<_>>()?;
 
     Ok((raw_reference_bases.into(), alternate_bases))
@@ -52,7 +52,9 @@ mod tests {
         let actual = read_ref_alt(&mut &src[..], const { NonZero::new(3).unwrap() })?;
         let expected = (
             String::from("A"),
-            [String::from("C"), String::from(".")].into_iter().collect(),
+            [Some(String::from("C")), Some(String::from("."))]
+                .into_iter()
+                .collect(),
         );
         assert_eq!(actual, expected);
 

@@ -32,7 +32,7 @@ pub(super) fn parse_alternate_bases(
     let alleles = alternate_bases.as_mut();
 
     for allele in s.split(DELIMITER) {
-        alleles.push(allele.into());
+        alleles.push(Some(allele.into()));
     }
 
     Ok(())
@@ -48,13 +48,18 @@ mod tests {
 
         alternate_bases.as_mut().clear();
         parse_alternate_bases("A", &mut alternate_bases)?;
-        assert_eq!(alternate_bases, [String::from("A")].into_iter().collect());
+        assert_eq!(
+            alternate_bases,
+            [Some(String::from("A"))].into_iter().collect()
+        );
 
         alternate_bases.as_mut().clear();
         parse_alternate_bases("A,C", &mut alternate_bases)?;
         assert_eq!(
             alternate_bases,
-            [String::from("A"), String::from("C")].into_iter().collect()
+            [Some(String::from("A")), Some(String::from("C"))]
+                .into_iter()
+                .collect()
         );
 
         alternate_bases.as_mut().clear();

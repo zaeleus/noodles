@@ -165,7 +165,7 @@ mod tests {
         t(
             &mut buf,
             "A",
-            &AlternateBasesBuf::from(vec![String::from("G")]),
+            &AlternateBasesBuf::from(vec![Some(String::from("G"))]),
             &[0x17, b'A', 0x17, b'G'],
         )?;
 
@@ -246,19 +246,27 @@ mod tests {
 
         t(
             &mut buf,
-            &AlternateBasesBuf::from(vec![String::from("G")]),
+            &AlternateBasesBuf::from(vec![Some(String::from("G"))]),
             &[0x17, b'G'],
+        )?;
+
+        t(&mut buf, &AlternateBasesBuf::from(vec![None]), &[0x07])?;
+
+        t(
+            &mut buf,
+            &AlternateBasesBuf::from(vec![Some(String::from("G")), Some(String::from("T"))]),
+            &[0x17, b'G', 0x17, b'T'],
         )?;
 
         t(
             &mut buf,
-            &AlternateBasesBuf::from(vec![String::from("G"), String::from("T")]),
-            &[0x17, b'G', 0x17, b'T'],
+            &AlternateBasesBuf::from(vec![Some(String::from("G")), None]),
+            &[0x17, b'G', 0x07],
         )?;
 
         buf.clear();
         assert!(matches!(
-            write_alternate_bases(&mut buf, AlternateBasesBuf::from(vec![String::new()])),
+            write_alternate_bases(&mut buf, AlternateBasesBuf::from(vec![Some(String::new())])),
             Err(e) if e.kind() == io::ErrorKind::InvalidInput
         ));
 

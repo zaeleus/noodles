@@ -7,6 +7,9 @@
   * vcf/variant/record/alternate_bases: Change `AlternateBases::iter` iterator
     item to `io::Result<Option<&str>>`.
 
+  * vcf/variant/record_buf/alternate_bases: Change buffer to a list of
+    `Option<String>`.
+
 ## 0.97.0 - 2026-11-20
 
 ### Changed

@@ -107,7 +107,7 @@ impl Builder {
     /// ```
     /// use noodles_vcf::{self as vcf, variant::record_buf::AlternateBases};
     ///
-    /// let alternate_bases: AlternateBases = [String::from("C")].into_iter().collect();
+    /// let alternate_bases: AlternateBases = [Some(String::from("C"))].into_iter().collect();
     ///
     /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_alternate_bases(alternate_bases.clone())

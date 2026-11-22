@@ -79,7 +79,7 @@ impl RecordBuf {
 
         for result in record.alternate_bases().iter() {
             let base = result?;
-            dst_alternate_bases.push(base.unwrap_or(".").into());
+            dst_alternate_bases.push(base.map(String::from));
         }
 
         *self.quality_score_mut() = record.quality_score().transpose()?;
@@ -156,7 +156,7 @@ mod tests {
             .set_variant_start(Position::MIN)
             .set_ids([String::from("nd0")].into_iter().collect())
             .set_reference_bases("A")
-            .set_alternate_bases([String::from("C")].into_iter().collect())
+            .set_alternate_bases([Some(String::from("C"))].into_iter().collect())
             .set_filters(Filters::pass())
             .set_info(
                 [(

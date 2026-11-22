@@ -201,7 +201,7 @@ impl RecordBuf {
     /// ```
     /// use noodles_vcf::{self as vcf, variant::record_buf::AlternateBases};
     ///
-    /// let alternate_bases: AlternateBases = [String::from("C")].into_iter().collect();
+    /// let alternate_bases: AlternateBases = [Some(String::from("C"))].into_iter().collect();
     ///
     /// let record = vcf::variant::RecordBuf::builder()
     ///     .set_alternate_bases(alternate_bases.clone())
@@ -224,7 +224,7 @@ impl RecordBuf {
     ///     .set_reference_bases("A")
     ///     .build();
     ///
-    /// let alternate_bases: AlternateBases = [String::from("C")].into_iter().collect();
+    /// let alternate_bases: AlternateBases = [Some(String::from("C"))].into_iter().collect();
     /// *record.alternate_bases_mut() = alternate_bases.clone();
     ///
     /// assert_eq!(record.alternate_bases(), &alternate_bases);

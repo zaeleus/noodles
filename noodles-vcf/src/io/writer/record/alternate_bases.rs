@@ -116,17 +116,28 @@ mod tests {
         assert_eq!(buf, b".");
 
         buf.clear();
-        let alternate_bases = AlternateBasesBuf::from(vec![String::from("C")]);
+        let alternate_bases = AlternateBasesBuf::from(vec![Some(String::from("C"))]);
         write_alternate_bases(&mut buf, &alternate_bases)?;
         assert_eq!(buf, b"C");
 
         buf.clear();
-        let alternate_bases = AlternateBasesBuf::from(vec![String::from("C"), String::from("GT")]);
+        let alternate_bases = AlternateBasesBuf::from(vec![None]);
+        write_alternate_bases(&mut buf, &alternate_bases)?;
+        assert_eq!(buf, b".");
+
+        buf.clear();
+        let alternate_bases =
+            AlternateBasesBuf::from(vec![Some(String::from("C")), Some(String::from("GT"))]);
         write_alternate_bases(&mut buf, &alternate_bases)?;
         assert_eq!(buf, b"C,GT");
 
         buf.clear();
-        let alternate_bases = AlternateBasesBuf::from(vec![String::from("C,")]);
+        let alternate_bases = AlternateBasesBuf::from(vec![Some(String::from("C")), None]);
+        write_alternate_bases(&mut buf, &alternate_bases)?;
+        assert_eq!(buf, b"C,.");
+
+        buf.clear();
+        let alternate_bases = AlternateBasesBuf::from(vec![Some(String::from("C,"))]);
         assert!(matches!(
             write_alternate_bases(&mut buf, &alternate_bases),
             Err(WriteError::InvalidAlternateBases(s)) if s == "C,"
