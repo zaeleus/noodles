@@ -113,7 +113,9 @@ where
 // § 1.6.1.5 "Fixed fields: ALT" (2026-02-25): "...no whitespace, commas, or angle-brackets are
 // permitted in the ID String itself".
 fn is_valid_alternate_bases(s: &str) -> bool {
-    if s.is_empty() {
+    const MISSING: &str = ".";
+
+    if s.is_empty() || s == MISSING {
         false
     } else if let Some(t) = strip_symbolic_allele_delimiters(s) {
         is_valid_symbolic_allele(t)
@@ -278,7 +280,6 @@ mod tests {
         assert!(is_valid_alternate_bases("C"));
         assert!(is_valid_alternate_bases("GT"));
         assert!(is_valid_alternate_bases("*"));
-        assert!(is_valid_alternate_bases("."));
         assert!(is_valid_alternate_bases("<DEL>"));
         assert!(is_valid_alternate_bases("<*>"));
         assert!(is_valid_alternate_bases("<NON_REF>"));
@@ -289,6 +290,7 @@ mod tests {
         assert!(is_valid_alternate_bases(".A"));
 
         assert!(!is_valid_alternate_bases(""));
+        assert!(!is_valid_alternate_bases("."));
         assert!(!is_valid_alternate_bases("C,"));
         assert!(!is_valid_alternate_bases("G T"));
         assert!(!is_valid_alternate_bases("<>"));

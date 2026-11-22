@@ -11,6 +11,8 @@
   * bcf/record/codec/encoder/site/bases: Resolve IUPAC ambiguity codes for
     reference bases.
 
+  * bcf/record/codec/encoder/site/bases: Reject literal missing value.
+
 ### Fixed
 
   * bcf/record/codec/encoder/site/bases: Validate reference and alternate
