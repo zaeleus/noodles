@@ -45,8 +45,8 @@ impl crate::variant::record::AlternateBases for AlternateBases {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
-        Box::new(self.0.iter().map(|allele| allele.as_ref()).map(Ok))
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<&str>>> + '_> {
+        Box::new(self.0.iter().map(|allele| Some(allele.as_ref())).map(Ok))
     }
 }
 
@@ -59,7 +59,7 @@ impl crate::variant::record::AlternateBases for &AlternateBases {
         self.0.len()
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
-        Box::new(self.0.iter().map(|allele| allele.as_ref()).map(Ok))
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<&str>>> + '_> {
+        Box::new(self.0.iter().map(|allele| Some(allele.as_ref())).map(Ok))
     }
 }

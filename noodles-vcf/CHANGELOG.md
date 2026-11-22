@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+  * vcf/variant/record/alternate_bases: Change `AlternateBases::iter` iterator
+    item to `io::Result<Option<&str>>`.
+
 ## 0.97.0 - 2026-11-20
 
 ### Changed

@@ -41,11 +41,11 @@ impl crate::variant::record::AlternateBases for AlternateBases<'_> {
         }
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<&str>>> + '_> {
         if self.is_empty() {
             Box::new(iter::empty())
         } else {
-            Box::new(self.0.split(DELIMITER).map(Ok))
+            Box::new(self.0.split(DELIMITER).map(Some).map(Ok))
         }
     }
 }
@@ -75,12 +75,12 @@ mod tests {
 
         let alternate_bases = AlternateBases::new("A");
         let actual: Vec<_> = alternate_bases.iter().collect::<io::Result<_>>()?;
-        let expected = ["A"];
+        let expected = [Some("A")];
         assert_eq!(actual, expected);
 
         let alternate_bases = AlternateBases::new("A,C");
         let actual: Vec<_> = alternate_bases.iter().collect::<io::Result<_>>()?;
-        let expected = ["A", "C"];
+        let expected = [Some("A"), Some("C")];
         assert_eq!(actual, expected);
 
         Ok(())

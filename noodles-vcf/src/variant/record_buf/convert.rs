@@ -79,7 +79,7 @@ impl RecordBuf {
 
         for result in record.alternate_bases().iter() {
             let base = result?;
-            dst_alternate_bases.push(base.into());
+            dst_alternate_bases.push(base.unwrap_or(".").into());
         }
 
         *self.quality_score_mut() = record.quality_score().transpose()?;

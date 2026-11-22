@@ -186,7 +186,7 @@ pub(crate) mod tests {
                 .alternate_bases()
                 .iter()
                 .collect::<io::Result<Vec<_>>>()?,
-            ["C"]
+            [Some("C")]
         );
 
         assert_eq!(

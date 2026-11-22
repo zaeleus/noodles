@@ -30,13 +30,13 @@ impl vcf::variant::record::AlternateBases for AlternateBases<'_> {
         self.len
     }
 
-    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<&str>> + '_> {
+    fn iter(&self) -> Box<dyn Iterator<Item = io::Result<Option<&str>>> + '_> {
         use super::{Value, value::read_value};
 
         let mut src = self.src;
 
         Box::new((0..self.len()).map(move |_| match read_value(&mut src)? {
-            Some(Value::String(Some(value))) => Ok(value),
+            Some(Value::String(Some(value))) => Ok(Some(value)),
             _ => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "invalid alt value",

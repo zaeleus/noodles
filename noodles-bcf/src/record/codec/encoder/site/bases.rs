@@ -90,16 +90,21 @@ where
     A: AlternateBases,
 {
     for result in alternate_bases.iter() {
-        let bases = result?;
+        let value = match result? {
+            Some(bases) => {
+                if !is_valid_alternate_bases(bases) {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidInput,
+                        format!("invalid alternate bases: {bases:?}"),
+                    ));
+                }
 
-        if !is_valid_alternate_bases(bases) {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("invalid alternate bases: {bases:?}"),
-            ));
-        }
+                Some(Value::String(Some(bases)))
+            }
+            None => Some(Value::String(None)),
+        };
 
-        write_value(writer, Some(Value::String(Some(bases))))?;
+        write_value(writer, value)?;
     }
 
     Ok(())

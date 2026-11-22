@@ -53,10 +53,15 @@ where
                 writer.write_all(DELIMITER).map_err(WriteError::Io)?;
             }
 
-            if is_valid(bases) {
-                writer.write_all(bases.as_bytes()).map_err(WriteError::Io)?;
-            } else {
-                return Err(WriteError::InvalidAlternateBases(bases.into()));
+            match bases {
+                Some(bases) => {
+                    if is_valid(bases) {
+                        writer.write_all(bases.as_bytes()).map_err(WriteError::Io)?;
+                    } else {
+                        return Err(WriteError::InvalidAlternateBases(bases.into()));
+                    }
+                }
+                None => writer.write_all(MISSING).map_err(WriteError::Io)?,
             }
         }
     }

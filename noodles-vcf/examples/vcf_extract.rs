@@ -53,7 +53,7 @@ fn main() -> io::Result<()> {
                     write!(writer, ",")?;
                 }
 
-                let allele = result?;
+                let allele = result?.unwrap_or(MISSING);
                 write!(writer, "{allele}")?;
             }
         }
