@@ -109,7 +109,9 @@ fn read_i8_array_values(
             })
             .collect::<Result<_, _>>()?;
 
-        if vs.len() == 1 && vs[0].is_none() {
+        if vs.is_empty() {
+            return Err(DecodeError::EmptyValue);
+        } else if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
             values.push(Some(Value::from(vs)));
@@ -160,7 +162,9 @@ fn read_i16_array_values(
             })
             .collect::<Result<_, _>>()?;
 
-        if vs.len() == 1 && vs[0].is_none() {
+        if vs.is_empty() {
+            return Err(DecodeError::EmptyValue);
+        } else if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
             values.push(Some(Value::from(vs)));
@@ -211,7 +215,9 @@ fn read_i32_array_values(
             })
             .collect::<Result<_, _>>()?;
 
-        if vs.len() == 1 && vs[0].is_none() {
+        if vs.is_empty() {
+            return Err(DecodeError::EmptyValue);
+        } else if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
             values.push(Some(Value::from(vs)));
@@ -262,7 +268,9 @@ fn read_f32_array_values(
             })
             .collect::<Result<_, _>>()?;
 
-        if vs.len() == 1 && vs[0].is_none() {
+        if vs.is_empty() {
+            return Err(DecodeError::EmptyValue);
+        } else if vs.len() == 1 && vs[0].is_none() {
             values.push(None);
         } else {
             values.push(Some(Value::from(vs)));
@@ -713,6 +721,15 @@ mod tests {
             read_values(&mut src, Number::Count(2), format::Type::Integer, 1),
             Err(DecodeError::InvalidInteger)
         );
+
+        let mut src = &[
+            0x21, // Some(Type::Int8(2))
+            0x81, 0x81, // [Int8::EndOfVector, Int8::EndOfVector]
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Integer, 1),
+            Err(DecodeError::EmptyValue)
+        );
     }
 
     #[test]
@@ -775,6 +792,15 @@ mod tests {
         assert_eq!(
             read_values(&mut src, Number::Count(2), format::Type::Integer, 1),
             Err(DecodeError::InvalidInteger)
+        );
+
+        let mut src = &[
+            0x22, // Some(Type::Int16(2))
+            0x01, 0x80, 0x01, 0x80, // [Int16::EndOfVector, Int16::EndOfVector]
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Integer, 1),
+            Err(DecodeError::EmptyValue)
         );
     }
 
@@ -839,6 +865,16 @@ mod tests {
             read_values(&mut src, Number::Count(2), format::Type::Integer, 1),
             Err(DecodeError::InvalidInteger)
         );
+
+        #[rustfmt::skip]
+        let mut src = &[
+            0x23, // Some(Type::Int32(2))
+            0x01, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80, // [Int32::EndOfVector, Int32::EndOfVector]
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Integer, 1),
+            Err(DecodeError::EmptyValue)
+        );
     }
 
     #[test]
@@ -901,6 +937,16 @@ mod tests {
         assert_eq!(
             read_values(&mut src, Number::Count(2), format::Type::Float, 1),
             Err(DecodeError::InvalidFloat)
+        );
+
+        #[rustfmt::skip]
+        let mut src = &[
+            0x25, // Some(Type::Float(2))
+            0x02, 0x00, 0x80, 0x7f, 0x02, 0x00, 0x80, 0x7f, // [Float::EndOfVector, Float::EndOfVector]
+        ][..];
+        assert_eq!(
+            read_values(&mut src, Number::Count(2), format::Type::Float, 1),
+            Err(DecodeError::EmptyValue)
         );
     }
 

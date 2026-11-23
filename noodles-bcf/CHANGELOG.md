@@ -15,7 +15,7 @@
 
 ### Fixed
 
-  * bcf/record: Validate info field number array values are nonempty.
+  * bcf/record: Validate info and sample number array values are nonempty.
 
   * bcf/record/codec/encoder/site/bases: Validate reference and alternate
     bases.
