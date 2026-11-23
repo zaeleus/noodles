@@ -36,7 +36,7 @@ where
         }
 
         let format = header.formats().get(key).ok_or_else(|| {
-            io::Error::new(io::ErrorKind::InvalidData, "missing FORMAT header record")
+            io::Error::new(io::ErrorKind::InvalidInput, "missing FORMAT header record")
         })?;
 
         if key == key::GENOTYPE {
