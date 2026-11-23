@@ -22,18 +22,13 @@ where
 {
     use noodles_vcf::variant::record::samples::keys::key;
 
-    for (i, result) in samples.column_names(header).enumerate() {
-        let key = result?;
+    for result in samples.series() {
+        let series = result?;
 
+        let key = series.name(header)?;
         write_key(writer, string_maps.strings(), key)?;
 
-        let rows: Vec<_> = samples.iter().collect();
-        let mut values = Vec::new();
-
-        for sample in rows.iter() {
-            let value = sample.get_index(header, i).transpose()?.unwrap_or_default();
-            values.push(value);
-        }
+        let values: Vec<_> = series.iter(header).collect::<io::Result<_>>()?;
 
         let format = header.formats().get(key).ok_or_else(|| {
             io::Error::new(io::ErrorKind::InvalidInput, "missing FORMAT header record")
@@ -44,8 +39,6 @@ where
         } else {
             write_values(writer, format, &values)?;
         }
-
-        drop(values);
     }
 
     Ok(())
