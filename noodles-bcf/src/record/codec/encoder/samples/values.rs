@@ -636,7 +636,7 @@ where
                             if t.is_empty() || t == "." || t.contains([DELIMITER, '\0']) {
                                 return Err(io::Error::new(
                                     io::ErrorKind::InvalidInput,
-                                    "invalid samples field string array value: {t:?}",
+                                    format!("invalid samples field string array value: {t:?}"),
                                 ));
                             }
 
