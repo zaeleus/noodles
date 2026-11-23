@@ -63,7 +63,13 @@ where
     for value in values {
         let n = match value {
             Some(Value::Integer(n)) => *n,
-            _ => 0,
+            Some(v) => {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidInput,
+                    format!("type mismatch: expected Integer, got {v:?}"),
+                ));
+            }
+            None => 0,
         };
 
         min = cmp::min(min, n);
