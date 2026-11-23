@@ -15,6 +15,9 @@
 
 ### Fixed
 
+  * bcf/record/codec/decoder/info/field/value: Validate number array values are
+    nonempty.
+
   * bcf/record/codec/encoder/site/bases: Validate reference and alternate
     bases.
 
