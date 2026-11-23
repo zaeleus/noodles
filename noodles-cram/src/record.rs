@@ -158,6 +158,16 @@ impl sam::alignment::Record for Record<'_> {
                         Position::new(alignment_start - offset + 1).unwrap();
                     (Some(*sequence), offset_alignment_start)
                 }
+                Some(ReferenceSequence::ExternalRange {
+                    reference_start,
+                    sequence,
+                }) => {
+                    let alignment_start = usize::from(self.alignment_start.unwrap());
+                    let offset = usize::from(*reference_start);
+                    let offset_alignment_start =
+                        Position::new(alignment_start - offset + 1).unwrap();
+                    (Some((**sequence).as_ref()), offset_alignment_start)
+                }
                 Some(ReferenceSequence::External { sequence, .. }) => {
                     (Some((**sequence).as_ref()), self.alignment_start.unwrap())
                 }
