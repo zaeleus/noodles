@@ -62,48 +62,32 @@ impl<'r> Series<'r> {
             .map(|format| (format.number(), format.ty()))
             .expect("missing type definition");
 
-        let value = match (number, ty, self.ty) {
+        match (number, ty, self.ty) {
             (Number::Count(0), _, _) => todo!("invalid number for type"),
 
-            (_, _, Type::Int8(0) | Type::Int16(0) | Type::Int32(0) | Type::Float(0)) => {
-                return Some(Some(Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "invalid length",
-                ))));
-            }
-            (_, format::Type::Character | format::Type::String, Type::String(0)) => {
-                return Some(None);
-            }
+            (_, _, Type::Int8(0) | Type::Int16(0) | Type::Int32(0) | Type::Float(0)) => Some(Some(
+                Err(io::Error::new(io::ErrorKind::InvalidData, "invalid length")),
+            )),
+            (_, format::Type::Character | format::Type::String, Type::String(0)) => Some(None),
 
-            (Number::Count(1), format::Type::Integer, Type::Int8(1)) => {
-                return get_i8_value(self.src, i);
-            }
-            (Number::Count(1), format::Type::Integer, Type::Int16(1)) => {
-                return get_i16_value(self.src, i);
-            }
-            (Number::Count(1), format::Type::Integer, Type::Int32(1)) => {
-                return get_i32_value(self.src, i);
-            }
-            (Number::Count(1), format::Type::Float, Type::Float(1)) => {
-                return get_f32_value(self.src, i);
-            }
+            (Number::Count(1), format::Type::Integer, Type::Int8(1)) => get_i8_value(self.src, i),
+            (Number::Count(1), format::Type::Integer, Type::Int16(1)) => get_i16_value(self.src, i),
+            (Number::Count(1), format::Type::Integer, Type::Int32(1)) => get_i32_value(self.src, i),
+            (Number::Count(1), format::Type::Float, Type::Float(1)) => get_f32_value(self.src, i),
             (
                 Number::Count(1),
                 format::Type::Integer,
                 Type::Int8(_) | Type::Int16(_) | Type::Int32(_),
             )
-            | (Number::Count(1), format::Type::Float, Type::Float(_)) => {
-                return Some(Some(Err(io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    "invalid length",
-                ))));
-            }
+            | (Number::Count(1), format::Type::Float, Type::Float(_)) => Some(Some(Err(
+                io::Error::new(io::ErrorKind::InvalidData, "invalid length"),
+            ))),
 
             (Number::Count(1), format::Type::Character, Type::String(len)) => {
-                return get_char_value(self.src, len, i);
+                get_char_value(self.src, len, i)
             }
             (Number::Count(1), format::Type::String, Type::String(len)) => {
-                return get_string_value(self.src, len, i);
+                get_string_value(self.src, len, i)
             }
 
             (_, format::Type::Integer, Type::Int8(len)) => get_i8_array_value(self.src, len, i),
@@ -111,19 +95,13 @@ impl<'r> Series<'r> {
             (_, format::Type::Integer, Type::Int32(len)) => get_i32_array_value(self.src, len, i),
             (_, format::Type::Float, Type::Float(len)) => get_f32_array_value(self.src, len, i),
             (_, format::Type::Character, Type::String(len)) => {
-                return get_char_array_value(self.src, len, i);
+                get_char_array_value(self.src, len, i)
             }
             (_, format::Type::String, Type::String(len)) => {
-                return get_string_array_value(self.src, len, i);
+                get_string_array_value(self.src, len, i)
             }
 
-            _ => return Some(Some(Err(type_mismatch_error(self.ty, ty)))),
-        };
-
-        match value {
-            Some(Some(value)) => Some(Some(Ok(value))),
-            Some(None) => Some(None),
-            None => None,
+            _ => Some(Some(Err(type_mismatch_error(self.ty, ty)))),
         }
     }
 }
@@ -215,24 +193,19 @@ fn get_i8_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     }
 }
 
-fn get_i8_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i8_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     let src = src.get(range::<i8>(i, len))?;
     let values = Values::<'_, i8>::new(src);
 
-    let is_missing = {
-        let mut iter = values.iter();
+    let mut iter = values.iter();
 
-        match (iter.next(), iter.next()) {
-            (Some(n), None) => matches!(n, Int8::Missing),
-            (Some(n), Some(m)) => matches!(n, Int8::Missing) && matches!(m, Int8::EndOfVector),
-            _ => false,
-        }
-    };
-
-    if is_missing {
-        Some(None)
-    } else {
-        Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+    match (iter.next(), iter.next()) {
+        (Some(Int8::Missing), None | Some(Int8::EndOfVector)) => Some(None),
+        (Some(Int8::EndOfVector), _) => Some(Some(Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "empty value",
+        )))),
+        _ => Some(Some(Ok(Value::Array(Array::Integer(Box::new(values)))))),
     }
 }
 
@@ -251,24 +224,19 @@ fn get_i16_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> 
     }
 }
 
-fn get_i16_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i16_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     let src = src.get(range::<i16>(i, len))?;
     let values = Values::<'_, i16>::new(src);
 
-    let is_missing = {
-        let mut iter = values.iter();
+    let mut iter = values.iter();
 
-        match (iter.next(), iter.next()) {
-            (Some(n), None) => matches!(n, Int16::Missing),
-            (Some(n), Some(m)) => matches!(n, Int16::Missing) && matches!(m, Int16::EndOfVector),
-            _ => false,
-        }
-    };
-
-    if is_missing {
-        Some(None)
-    } else {
-        Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+    match (iter.next(), iter.next()) {
+        (Some(Int16::Missing), None | Some(Int16::EndOfVector)) => Some(None),
+        (Some(Int16::EndOfVector), _) => Some(Some(Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "empty value",
+        )))),
+        _ => Some(Some(Ok(Value::Array(Array::Integer(Box::new(values)))))),
     }
 }
 
@@ -287,24 +255,19 @@ fn get_i32_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> 
     }
 }
 
-fn get_i32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_i32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     let src = src.get(range::<i32>(i, len))?;
     let values = Values::<'_, i32>::new(src);
 
-    let is_missing = {
-        let mut iter = values.iter();
+    let mut iter = values.iter();
 
-        match (iter.next(), iter.next()) {
-            (Some(n), None) => matches!(n, Int32::Missing),
-            (Some(n), Some(m)) => matches!(n, Int32::Missing) && matches!(m, Int32::EndOfVector),
-            _ => false,
-        }
-    };
-
-    if is_missing {
-        Some(None)
-    } else {
-        Some(Some(Value::Array(Array::Integer(Box::new(values)))))
+    match (iter.next(), iter.next()) {
+        (Some(Int32::Missing), None | Some(Int32::EndOfVector)) => Some(None),
+        (Some(Int32::EndOfVector), _) => Some(Some(Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "empty value",
+        )))),
+        _ => Some(Some(Ok(Value::Array(Array::Integer(Box::new(values)))))),
     }
 }
 
@@ -323,24 +286,19 @@ fn get_f32_value(src: &[u8], i: usize) -> Option<Option<io::Result<Value<'_>>>> 
     }
 }
 
-fn get_f32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<Value<'_>>> {
+fn get_f32_array_value(src: &[u8], len: usize, i: usize) -> Option<Option<io::Result<Value<'_>>>> {
     let src = src.get(range::<f32>(i, len))?;
     let values = Values::<'_, f32>::new(src);
 
-    let is_missing = {
-        let mut iter = values.iter();
+    let mut iter = values.iter();
 
-        match (iter.next(), iter.next()) {
-            (Some(n), None) => matches!(n, Float::Missing),
-            (Some(n), Some(m)) => matches!(n, Float::Missing) && matches!(m, Float::EndOfVector),
-            _ => false,
-        }
-    };
-
-    if is_missing {
-        Some(None)
-    } else {
-        Some(Some(Value::Array(Array::Float(Box::new(values)))))
+    match (iter.next(), iter.next()) {
+        (Some(Float::Missing), None | Some(Float::EndOfVector)) => Some(None),
+        (Some(Float::EndOfVector), _) => Some(Some(Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "empty value",
+        )))),
+        _ => Some(Some(Ok(Value::Array(Array::Float(Box::new(values)))))),
     }
 }
 
@@ -585,6 +543,17 @@ mod tests {
         t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
+
+        let series = Series {
+            id,
+            ty: Type::Int8(2),
+            sample_count: 1,
+            src: &[0x81, 0x81],
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
@@ -671,6 +640,17 @@ mod tests {
         t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
+
+        let series = Series {
+            id,
+            ty: Type::Int16(2),
+            sample_count: 1,
+            src: &[0x01, 0x80, 0x01, 0x80],
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
@@ -757,6 +737,17 @@ mod tests {
         t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
+
+        let series = Series {
+            id,
+            ty: Type::Int32(2),
+            sample_count: 1,
+            src: &[0x01, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00, 0x80],
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
@@ -843,6 +834,17 @@ mod tests {
         t(&series, &header, 3, None);
 
         assert!(series.get(&header, 4).is_none());
+
+        let series = Series {
+            id,
+            ty: Type::Float(2),
+            sample_count: 1,
+            src: &[0x02, 0x00, 0x80, 0x7f, 0x02, 0x00, 0x80, 0x7f],
+        };
+        assert!(matches!(
+            series.get(&header, 0),
+            Some(Some(Err(e))) if e.kind() == io::ErrorKind::InvalidData
+        ));
     }
 
     #[test]
