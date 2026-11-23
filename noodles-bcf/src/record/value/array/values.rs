@@ -24,14 +24,14 @@ impl<N> AsRef<[u8]> for Values<'_, N> {
     }
 }
 
-impl Values<'_, i8> {
+impl<'a> Values<'a, i8> {
     fn count(&self) -> usize {
         self.iter()
             .take_while(|value| !matches!(value, Int8::EndOfVector))
             .count()
     }
 
-    pub(crate) fn iter(&self) -> impl Iterator<Item = Int8> + '_ {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = Int8> + use<'a> {
         self.src.iter().map(|&n| Int8::from(n as i8))
     }
 }
@@ -66,14 +66,14 @@ impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, i32> fo
     }
 }
 
-impl Values<'_, i16> {
+impl<'a> Values<'a, i16> {
     fn count(&self) -> usize {
         self.iter()
             .take_while(|value| !matches!(value, Int16::EndOfVector))
             .count()
     }
 
-    pub(crate) fn iter(&self) -> impl Iterator<Item = Int16> + '_ {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = Int16> + use<'a> {
         let (chunks, []) = self.src.as_chunks() else {
             panic!();
         };
@@ -115,14 +115,14 @@ impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, i32> fo
     }
 }
 
-impl Values<'_, i32> {
+impl<'a> Values<'a, i32> {
     fn count(&self) -> usize {
         self.iter()
             .take_while(|value| !matches!(value, Int32::EndOfVector))
             .count()
     }
 
-    pub(crate) fn iter(&self) -> impl Iterator<Item = Int32> + '_ {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = Int32> + use<'a> {
         let (chunks, []) = self.src.as_chunks() else {
             panic!();
         };
@@ -164,14 +164,14 @@ impl<'a> vcf::variant::record::samples::series::value::array::Values<'a, i32> fo
     }
 }
 
-impl Values<'_, f32> {
+impl<'a> Values<'a, f32> {
     fn count(&self) -> usize {
         self.iter()
             .take_while(|value| !matches!(value, Float::EndOfVector))
             .count()
     }
 
-    pub(crate) fn iter(&self) -> impl Iterator<Item = Float> + '_ {
+    pub(crate) fn iter(&self) -> impl Iterator<Item = Float> + use<'a> {
         let (chunks, []) = self.src.as_chunks() else {
             panic!();
         };
