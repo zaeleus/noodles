@@ -1,7 +1,4 @@
-use std::{
-    cmp,
-    io::{self, Write},
-};
+use std::io::{self, Write};
 
 use noodles_vcf::{
     header::record::value::{Map, map::Format},
@@ -72,8 +69,8 @@ where
             None => 0,
         };
 
-        min = cmp::min(min, n);
-        max = cmp::max(max, n);
+        min = min.min(n);
+        max = max.max(n);
     }
 
     if min >= i32::from(Int8::MIN_VALUE) {
@@ -196,8 +193,8 @@ where
                 for result in vs.iter() {
                     let v = result?;
                     let n = v.unwrap_or_default();
-                    min = cmp::min(min, n);
-                    max = cmp::max(max, n);
+                    min = min.min(n);
+                    max = max.max(n);
                 }
             }
             Some(v) => {
@@ -729,7 +726,7 @@ where
             _ => return Err(io::Error::from(io::ErrorKind::InvalidInput)),
         };
 
-        max_len = cmp::max(max_len, raw_value.len());
+        max_len = max_len.max(raw_value.len());
 
         if let Some(mx) = raw_value.iter().max() {
             max = max.max(*mx);
