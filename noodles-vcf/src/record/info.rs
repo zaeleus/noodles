@@ -57,6 +57,10 @@ impl AsRef<str> for Info<'_> {
 }
 
 impl crate::variant::record::Info for Info<'_> {
+    fn as_text(&self) -> Option<&str> {
+        Some(self.0)
+    }
+
     fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
