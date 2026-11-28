@@ -8,6 +8,19 @@ use self::header::read_header;
 use super::{LOWER_BOUND, Order, STATE_COUNT};
 use crate::io::reader::num::{read_u8, read_u32_le};
 
+/// Decodes a rANS 4x8 stream.
+///
+/// The order and uncompressed size are read from the stream header.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::codecs::rans_4x8::{Order, decode, encode};
+///
+/// let src = encode(Order::Zero, b"noodles")?;
+/// assert_eq!(decode(&src)?, b"noodles");
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn decode(mut src: &[u8]) -> io::Result<Vec<u8>> {
     let (order, _, uncompressed_size) = read_header(&mut src)?;
 

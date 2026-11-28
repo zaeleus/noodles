@@ -15,6 +15,17 @@ use crate::io::writer::num::{write_u8, write_u32_le, write_uint7};
 // § 3 "rANS Nx16" (2023-03-15): "The lower-bound and initial encoder state _L_ is [...] 0x8000."
 const LOWER_BOUND: u32 = 0x8000;
 
+/// Encodes a buffer as a rANS Nx16 stream.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::codecs::rans_nx16::{Flags, decode, encode};
+///
+/// let src = encode(Flags::empty(), b"noodles")?;
+/// assert_eq!(decode(&src, 7)?, b"noodles");
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn encode(mut flags: Flags, src: &[u8]) -> io::Result<Vec<u8>> {
     let mut src = Cow::from(src);
     let mut dst = Vec::new();

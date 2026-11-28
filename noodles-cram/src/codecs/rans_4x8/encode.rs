@@ -9,6 +9,17 @@ use crate::io::writer::num::{write_u8, write_u32_le};
 use self::header::write_header;
 use super::{LOWER_BOUND, Order, STATE_COUNT};
 
+/// Encodes a buffer as a rANS 4x8 stream.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::codecs::rans_4x8::{Order, decode, encode};
+///
+/// let src = encode(Order::Zero, b"noodles")?;
+/// assert_eq!(decode(&src)?, b"noodles");
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn encode(order: Order, src: &[u8]) -> io::Result<Vec<u8>> {
     match order {
         Order::Zero => order_0::encode(src),
