@@ -4,7 +4,7 @@ mod builder;
 pub(crate) mod collections;
 pub(crate) mod container;
 pub mod header;
-pub(crate) mod num;
+pub mod num;
 pub(crate) mod query;
 mod records;
 

@@ -7,6 +7,17 @@ use super::read_u8;
 
 const MAX_SIZE: usize = 5;
 
+/// Reads a 7-bit variable-length quantity (`uint7`).
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::io::reader::num::read_uint7;
+///
+/// let mut src = &[0x81, 0x00][..];
+/// assert_eq!(read_uint7(&mut src)?, 128);
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn read_uint7<R>(reader: &mut R) -> io::Result<u32>
 where
     R: Read,
@@ -34,6 +45,17 @@ where
     Ok(n)
 }
 
+/// Reads a 7-bit variable-length quantity (`uint7`) and converts it to `N`.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::io::reader::num::read_uint7_as;
+///
+/// let mut src = &[0x81, 0x00][..];
+/// assert_eq!(read_uint7_as::<_, u16>(&mut src)?, 128);
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn read_uint7_as<R, N>(reader: &mut R) -> io::Result<N>
 where
     R: Read,

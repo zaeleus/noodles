@@ -5,6 +5,17 @@ use std::{
 
 use super::{read_u8, read_u16_be, read_u24_be, read_u32_be};
 
+/// Reads an ITF-8 integer.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::io::reader::num::read_itf8;
+///
+/// let mut src = &[0x87, 0x55][..];
+/// assert_eq!(read_itf8(&mut src)?, 1877);
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn read_itf8<R>(reader: &mut R) -> io::Result<i32>
 where
     R: Read,
@@ -30,6 +41,17 @@ where
     Ok(n as i32)
 }
 
+/// Reads an ITF-8 integer and converts it to `N`.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::io::reader::num::read_itf8_as;
+///
+/// let mut src = &[0x87, 0x55][..];
+/// assert_eq!(read_itf8_as::<_, u16>(&mut src)?, 1877);
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn read_itf8_as<R, N>(reader: &mut R) -> io::Result<N>
 where
     R: Read,

@@ -1,5 +1,17 @@
 use std::io::{self, Write};
 
+/// Writes an ITF-8 integer.
+///
+/// # Examples
+///
+/// ```
+/// use noodles_cram::io::writer::num::write_itf8;
+///
+/// let mut dst = Vec::new();
+/// write_itf8(&mut dst, 1877)?;
+/// assert_eq!(dst, [0x87, 0x55]);
+/// # Ok::<_, std::io::Error>(())
+/// ```
 pub fn write_itf8<W>(writer: &mut W, n: i32) -> io::Result<()>
 where
     W: Write,
